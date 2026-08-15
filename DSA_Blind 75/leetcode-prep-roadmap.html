@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LeetCode Topic Prep — Interactive Roadmap</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg: #0b1220;
+    --panel: #111a2e;
+    --panel-2: #16213a;
+    --line: #24304a;
+    --ink: #e7ecf7;
+    --ink-dim: #93a1c2;
+    --accent: #5ee6c7;
+    --easy: #5ee6c7;
+    --medium: #ffb454;
+    --hard: #ff6b7a;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body{
+    margin:0;
+    background: radial-gradient(1200px 600px at 10% -10%, #142140 0%, var(--bg) 55%);
+    color: var(--ink);
+    font-family: var(--sans);
+    padding: 28px 18px 60px;
+  }
+
+  .wrap{ max-width: 760px; margin: 0 auto; }
+
+  header{ margin-bottom: 22px; }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  h1{
+    font-size: 26px;
+    line-height: 1.2;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .sub{ color: var(--ink-dim); font-size: 14px; line-height: 1.5; }
+
+  .stage-row{
+    display:flex; gap: 6px; margin: 20px 0 6px; flex-wrap: wrap;
+  }
+  .stage-btn{
+    flex: 1 1 auto;
+    min-width: 90px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    padding: 10px 8px;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .stage-btn.active{
+    background: var(--panel-2);
+    color: var(--ink);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent) inset;
+  }
+  .stage-btn .n{ display:block; font-size: 16px; font-weight: 800; color: var(--accent); margin-bottom: 2px; }
+  .stage-btn.active .n{ color: var(--accent); }
+
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 16px;
+    margin-top: 14px;
+  }
+  .panel-title{ font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .panel-desc{ color: var(--ink-dim); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
+
+  .topic{
+    border-top: 1px solid var(--line);
+    padding: 12px 0;
+  }
+  .topic:first-child{ border-top: none; padding-top: 0; }
+  .topic-head{
+    display:flex; justify-content: space-between; align-items: baseline;
+    cursor: pointer;
+  }
+  .topic-name{ font-weight: 600; font-size: 14px; }
+  .topic-count{ font-family: var(--mono); font-size: 12px; color: var(--ink-dim); }
+  .bar-track{
+    height: 6px; background: #0c1526; border-radius: 4px; margin-top: 8px; overflow: hidden;
+    display:flex;
+  }
+  .bar-seg{ height: 100%; }
+  .topic-examples{
+    font-size: 12px; color: var(--ink-dim); margin-top: 8px; line-height: 1.6;
+    display:none;
+  }
+  .topic.open .topic-examples{ display:block; }
+  .topic-examples b{ color: var(--ink); font-weight: 500; }
+
+  .legend{ display:flex; gap: 14px; margin-top: 16px; flex-wrap: wrap; }
+  .legend-item{ display:flex; align-items:center; gap:6px; font-family: var(--mono); font-size: 11px; color: var(--ink-dim); }
+  .dot{ width:8px; height:8px; border-radius:50%; }
+
+  .footer-note{
+    margin-top: 20px; font-size: 12px; color: var(--ink-dim); line-height: 1.6;
+    border-top: 1px solid var(--line); padding-top: 14px;
+  }
+
+  .total-badge{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family: var(--mono); font-size: 12px; color: var(--ink);
+    background: var(--panel-2); border: 1px solid var(--line);
+    padding: 6px 12px; border-radius: 999px; margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">FDE Interview Prep · DSA Layer</div>
+    <h1>Topic-Wise LeetCode Roadmap</h1>
+    <div class="sub">Tap a track to size it, tap any topic to see anchor problems. Built around curated sets — not the full ~3,900 problem catalog.</div>
+  </header>
+
+  <div class="stage-row" id="stageRow"></div>
+
+  <div class="panel">
+    <div class="panel-title" id="panelTitle"></div>
+    <div class="panel-desc" id="panelDesc"></div>
+    <div id="topicList"></div>
+    <div class="legend">
+      <div class="legend-item"><span class="dot" style="background:var(--easy)"></span>Easy</div>
+      <div class="legend-item"><span class="dot" style="background:var(--medium)"></span>Medium</div>
+      <div class="legend-item"><span class="dot" style="background:var(--hard)"></span>Hard</div>
+    </div>
+    <div class="total-badge" id="totalBadge"></div>
+  </div>
+
+  <div class="footer-note">
+    At Director/L5+ level, DSA screens are usually a fast filter, not the deciding round — <b style="color:var(--ink)">Grind 75</b> is typically sufficient depth. Prioritize time on system design and the BFSI Voice Agent narrative.
+  </div>
+
+</div>
+
+<script>
+const tracks = {
+  grind75: {
+    label: "Grind 75", n: 75, easy: 20, medium: 45, hard: 10,
+    desc: "Minimum viable coverage, ordered for fastest ramp. Good fit if timeline to interviews is under 3 weeks.",
+    topics: [
+      { name: "Arrays & Hashing", count: 8, e:4,m:4,h:0, ex: "Two Sum, Valid Anagram, Group Anagrams, Product of Array Except Self" },
+      { name: "Two Pointers", count: 4, e:1,m:3,h:0, ex: "Valid Palindrome, 3Sum, Container With Most Water" },
+      { name: "Sliding Window", count: 5, e:1,m:3,h:1, ex: "Best Time to Buy/Sell Stock, Longest Substring Without Repeat" },
+      { name: "Stack", count: 4, e:1,m:2,h:1, ex: "Valid Parentheses, Min Stack, Evaluate RPN" },
+      { name: "Binary Search", count: 4, e:1,m:3,h:0, ex: "Binary Search, Search Rotated Sorted Array" },
+      { name: "Linked List", count: 8, e:2,m:5,h:1, ex: "Reverse Linked List, LRU Cache, Merge K Sorted Lists" },
+      { name: "Trees", count: 12, e:5,m:6,h:1, ex: "Invert Tree, Validate BST, Lowest Common Ancestor" },
+      { name: "Heap / Priority Queue", count: 4, e:0,m:3,h:1, ex: "Kth Largest, Task Scheduler, Merge K Lists" },
+      { name: "Backtracking", count: 4, e:0,m:3,h:1, ex: "Subsets, Combination Sum, Word Search" },
+      { name: "Graphs", count: 9, e:1,m:6,h:2, ex: "Number of Islands, Clone Graph, Course Schedule" },
+      { name: "Dynamic Programming", count: 10, e:2,m:7,h:1, ex: "Climbing Stairs, House Robber, Coin Change, LCS" },
+      { name: "Greedy & Intervals", count: 3, e:1,m:2,h:0, ex: "Jump Game, Merge Intervals" }
+    ]
+  },
+  blind75: {
+    label: "Blind 75", n: 75, easy: 20, medium: 45, hard: 10,
+    desc: "The original curated interview set. Same size as Grind 75, different internal ordering by topic block rather than difficulty ramp.",
+    topics: [
+      { name: "Array", count: 10, e:3,m:6,h:1, ex: "Two Sum, Best Time to Buy/Sell, Product Except Self, 3Sum" },
+      { name: "Binary", count: 5, e:3,m:2,h:0, ex: "Sum of Two Integers, Number of 1 Bits, Counting Bits" },
+      { name: "Dynamic Programming", count: 11, e:2,m:8,h:1, ex: "Climbing Stairs, Coin Change, Longest Increasing Subsequence" },
+      { name: "Graph", count: 8, e:0,m:6,h:2, ex: "Clone Graph, Course Schedule, Number of Islands, Alien Dictionary" },
+      { name: "Interval", count: 5, e:0,m:5,h:0, ex: "Insert Interval, Merge Intervals, Meeting Rooms I & II" },
+      { name: "Linked List", count: 6, e:2,m:3,h:1, ex: "Reverse List, Detect Cycle, Merge K Sorted Lists" },
+      { name: "Matrix", count: 4, e:0,m:3,h:1, ex: "Set Matrix Zeroes, Spiral Matrix, Rotate Image" },
+      { name: "String", count: 10, e:3,m:6,h:1, ex: "Longest Substring w/o Repeat, Longest Palindrome, Valid Anagram" },
+      { name: "Tree", count: 14, e:6,m:6,h:2, ex: "Max Depth, Same Tree, Validate BST, Serialize/Deserialize" },
+      { name: "Heap", count: 3, e:0,m:1,h:2, ex: "Merge K Lists, Top K Frequent, Find Median from Stream" }
+    ]
+  },
+  neetcode150: {
+    label: "NeetCode 150", n: 150, easy: 30, medium: 90, hard: 30,
+    desc: "Double the depth of Blind 75, with dedicated advanced graph and 2D-DP sections. Best fit if timeline is 4–8 weeks.",
+    topics: [
+      { name: "Arrays & Hashing", count: 9, e:4,m:5,h:0, ex: "Two Sum, Group Anagrams, Top K Frequent, Encode/Decode Strings" },
+      { name: "Two Pointers", count: 5, e:1,m:3,h:1, ex: "Valid Palindrome, 3Sum, Trapping Rain Water" },
+      { name: "Sliding Window", count: 6, e:1,m:4,h:1, ex: "Longest Repeating Char Replace, Min Window Substring" },
+      { name: "Stack", count: 7, e:1,m:5,h:1, ex: "Valid Parentheses, Daily Temperatures, Largest Rectangle" },
+      { name: "Binary Search", count: 7, e:2,m:4,h:1, ex: "Median of Two Sorted Arrays, Find Minimum in Rotated Array" },
+      { name: "Linked List", count: 11, e:3,m:7,h:1, ex: "Reorder List, Add Two Numbers, Merge K Sorted Lists" },
+      { name: "Trees", count: 15, e:6,m:8,h:1, ex: "Kth Smallest in BST, Construct Tree from Traversal, Trie" },
+      { name: "Tries", count: 3, e:0,m:2,h:1, ex: "Implement Trie, Design Add/Search Words, Word Search II" },
+      { name: "Heap / Priority Queue", count: 7, e:1,m:5,h:1, ex: "Find Median from Data Stream, Task Scheduler" },
+      { name: "Backtracking", count: 9, e:0,m:8,h:1, ex: "Subsets II, Palindrome Partitioning, N-Queens" },
+      { name: "Graphs", count: 13, e:1,m:9,h:3, ex: "Pacific Atlantic, Graph Valid Tree, Word Ladder" },
+      { name: "Advanced Graphs", count: 6, e:0,m:2,h:4, ex: "Dijkstra's, Swim in Rising Water, Reconstruct Itinerary" },
+      { name: "1-D DP", count: 12, e:2,m:9,h:1, ex: "House Robber II, Decode Ways, Word Break" },
+      { name: "2-D DP", count: 11, e:0,m:6,h:5, ex: "Unique Paths, LCS, Edit Distance, Burst Balloons" },
+      { name: "Greedy", count: 8, e:0,m:7,h:1, ex: "Jump Game II, Gas Station, Partition Labels" },
+      { name: "Intervals", count: 6, e:0,m:5,h:1, ex: "Merge Intervals, Non-overlapping Intervals, Car Pooling" },
+      { name: "Math & Geometry", count: 8, e:2,m:5,h:1, ex: "Rotate Image, Spiral Matrix, Detect Squares" },
+      { name: "Bit Manipulation", count: 7, e:5,m:2,h:0, ex: "Single Number, Counting Bits, Reverse Bits" }
+    ]
+  }
+};
+
+let current = "grind75";
+
+function colorFor(kind){
+  return kind === 'e' ? 'var(--easy)' : kind === 'm' ? 'var(--medium)' : 'var(--hard)';
+}
+
+function renderStages(){
+  const row = document.getElementById('stageRow');
+  row.innerHTML = '';
+  Object.keys(tracks).forEach(key => {
+    const t = tracks[key];
+    const btn = document.createElement('div');
+    btn.className = 'stage-btn' + (key === current ? ' active' : '');
+    btn.innerHTML = `<span class="n">${t.n}</span>${t.label}`;
+    btn.onclick = () => { current = key; render(); };
+    row.appendChild(btn);
+  });
+}
+
+function render(){
+  renderStages();
+  const t = tracks[current];
+  document.getElementById('panelTitle').textContent = t.label + ' — Topic Breakdown';
+  document.getElementById('panelDesc').textContent = t.desc;
+  document.getElementById('totalBadge').textContent =
+    `${t.n} total  ·  ${t.easy} easy  ·  ${t.medium} medium  ·  ${t.hard} hard`;
+
+  const list = document.getElementById('topicList');
+  list.innerHTML = '';
+  t.topics.forEach((topic, i) => {
+    const div = document.createElement('div');
+    div.className = 'topic';
+    const segs = [
+      { kind: 'e', v: topic.e },
+      { kind: 'm', v: topic.m },
+      { kind: 'h', v: topic.h }
+    ].filter(s => s.v > 0);
+
+    div.innerHTML = `
+      <div class="topic-head">
+        <div class="topic-name">${topic.name}</div>
+        <div class="topic-count">${topic.count} problems</div>
+      </div>
+      <div class="bar-track">
+        ${segs.map(s => `<div class="bar-seg" style="width:${(s.v/topic.count*100)}%; background:${colorFor(s.kind)}"></div>`).join('')}
+      </div>
+      <div class="topic-examples">${topic.ex}</div>
+    `;
+    div.querySelector('.topic-head').onclick = () => {
+      div.classList.toggle('open');
+    };
+    list.appendChild(div);
+  });
+}
+
+render();
+</script>
+</body>
+</html>

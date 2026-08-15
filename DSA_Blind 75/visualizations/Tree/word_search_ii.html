@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Search II — Visual Explainer</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --fg:#1c2230; --muted:#5b6472; --card:#ffffff; --border:#e2e6ec;
+    --accent:#3563e9; --accent-soft:#e5edff;
+    --hi:#ffe08a; --hi-bd:#e0a800; --good:#b7ecc4; --good-bd:#2f9e52;
+    --bad:#f6c9c9; --bad-bd:#d24a4a; --seen:#d7ccff; --seen-bd:#7a5cff;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1420; --fg:#e7ebf2; --muted:#9aa4b5; --card:#171d2b; --border:#28303f;
+      --accent:#6f9bff; --accent-soft:#1c2740;
+      --hi:#6b5a1f; --hi-bd:#d8b23c; --good:#1f5133; --good-bd:#4cc178;
+      --bad:#5a2830; --bad-bd:#e07a7a; --seen:#332a63; --seen-bd:#9b83ff;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+  a{color:var(--accent)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .back{font-size:14px;text-decoration:none}
+  h1{font-size:26px;margin:.2em 0}
+  h2{font-size:20px;margin:1.5em 0 .4em}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#eab308}
+  .lead{color:var(--muted);font-size:15px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+  .idea{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:10px 0}
+  .big{font-size:17px}
+  code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;font-size:.9em}
+  .viz{overflow-x:auto;padding:8px 2px 4px}
+  .rowlabel{font-size:12px;color:var(--muted);margin:8px 0 2px}
+  .row{display:flex;gap:10px;min-width:min-content;justify-content:center}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .ptr{height:22px;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .box{width:52px;height:52px;border-radius:10px;border:2px solid var(--border);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;transition:.15s}
+  .idxlabel{font-size:11px;color:var(--muted)}
+  .box.hi{background:var(--hi);border-color:var(--hi-bd)}
+  .box.good{background:var(--good);border-color:var(--good-bd)}
+  .box.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .box.seen{background:var(--seen);border-color:var(--seen-bd)}
+  .box.dim{opacity:.35}
+  .bars{display:flex;gap:8px;align-items:flex-end;min-width:min-content;justify-content:center;padding-top:22px}
+  .barcell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .bar{width:34px;border-radius:8px 8px 0 0;background:var(--accent-soft);border:2px solid var(--border);
+    display:flex;align-items:flex-start;justify-content:center;font-size:12px;font-weight:700;padding-top:3px;color:var(--fg);transition:.15s}
+  .bar.hi{background:var(--hi);border-color:var(--hi-bd)} .bar.good{background:var(--good);border-color:var(--good-bd)}
+  .bar.dim{opacity:.35}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .badge{background:var(--accent-soft);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:14px}
+  .badge.good{background:var(--good);border-color:var(--good-bd)}
+  .badge.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .mem{margin-top:14px}
+  .mem h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;min-height:34px}
+  .chip{background:var(--seen);border:1px solid var(--seen-bd);border-radius:8px;padding:4px 10px;font-size:14px;font-weight:600}
+  .chip.look{background:var(--good);border-color:var(--good-bd)}
+  .empty{color:var(--muted);font-size:13px;font-style:italic}
+  .caption{margin:12px 0 6px;min-height:44px;font-size:15px}
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+  button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--card);
+    color:var(--fg);border-radius:9px;padding:7px 12px;transition:.12s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .counter{margin-left:auto;font-size:13px;color:var(--muted)}
+  .speed{font-size:14px;color:var(--muted);margin-top:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:6px 0 2px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .sw{width:13px;height:13px;border-radius:4px;border:2px solid}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .pcard{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.12s}
+  .pcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .pcard .n{font-size:12px;color:var(--muted)}
+  .pcard .t{font-size:17px;font-weight:700;margin:2px 0 6px}
+  .pcard .b{font-size:13px;color:var(--muted)}
+
+  .svgwrap{overflow-x:auto;padding:6px 0}
+  .edge{stroke:var(--border);stroke-width:2}
+  .tnode circle{fill:var(--card);stroke:var(--border);stroke-width:2;transition:.15s}
+  .tnode text{fill:var(--fg);font-size:13px;font-weight:700}
+  .tnode.hi circle{fill:var(--hi);stroke:var(--hi-bd)}
+  .tnode.good circle{fill:var(--good);stroke:var(--good-bd)}
+  .tnode.bad circle{fill:var(--bad);stroke:var(--bad-bd)}
+  .tnode.seen circle{fill:var(--seen);stroke:var(--seen-bd)}
+  .tnode.dim{opacity:.28}
+  .twins{display:flex;gap:26px;flex-wrap:wrap}
+  .grid2{display:inline-grid;gap:6px;padding:6px 0}
+  .gcell{width:46px;height:46px;border:2px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;background:var(--card);transition:.15s}
+  .gcell.hi{background:var(--hi);border-color:var(--hi-bd)} .gcell.good{background:var(--good);border-color:var(--good-bd)}
+  .gcell.dim{opacity:.3}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><a class="back" href="index.html">← All Tree problems</a><span class="tag"><span class="dot" style="background:#ef4444"></span> Hard · Tree</span></div>
+<h1>212 · Word Search II</h1>
+<p class="lead">Find many words in a letter grid.</p>
+<div class="card"><h2 style="margin-top:.2em">The problem, in plain words</h2><p class="big">Given a letter grid and a list of words, find which words you can spell by walking to neighboring cells (up/down/left/right), never reusing a cell within a word.</p><div class="idea">Example: this grid contains <b>"oath"</b> and <b>"eat"</b>.</div><div class="legend"><span><span class="sw" style="background:var(--hi);border-color:var(--hi-bd)"></span>looking at</span><span><span class="sw" style="background:var(--seen);border-color:var(--seen-bd)"></span>remembered / kept</span><span><span class="sw" style="background:var(--good);border-color:var(--good-bd)"></span>match / answer</span><span><span class="sw" style="background:var(--bad);border-color:var(--bad-bd)"></span>ruled out</span></div></div><div class="card"><h2>The smart way — one grid sweep guided by a trie</h2><div class="idea">Put all target words in a trie. Then walk the grid once: from each cell only step where some word continues (the trie says so). When a path completes a word, collect it. The trie prunes dead ends instantly.</div><div class="viz" id="ws-viz" style="text-align:center"></div><div class="badges" id="ws-b"></div><div class="caption" id="ws-cap"></div><div class="controls" data-player="ws"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="ws-count"></span></div><p class="speed"><b>Speed:</b> one board sweep instead of one per word — the trie prunes paths that can’t spell any word.</p></div><div class="card"><h2>When you'd use this</h2>See <b>"find many words in a grid"</b>? Put the words in a trie and do one grid DFS, letting the trie prune dead ends.<p><a href="patterns.html">→ See all the Tree patterns and how to use them in an interview</a></p></div>
+</div>
+<script>
+"use strict";
+function makePlayer(name, frames, render){
+  var i=0, timer=null;
+  var controls=document.querySelector('[data-player="'+name+'"]');
+  var counter=document.getElementById(name+'-count');
+  var btn={};
+  controls.querySelectorAll('button').forEach(function(b){ btn[b.dataset.act]=b; });
+  function draw(){
+    render(frames[i], i);
+    counter.textContent='Step '+(i+1)+' / '+frames.length;
+    btn.prev.disabled=(i===0); btn.next.disabled=(i===frames.length-1);
+  }
+  function stop(){ if(timer){clearInterval(timer);timer=null;btn.play.textContent='\u25B6 Play';} }
+  function go(d){ stop(); i=Math.max(0,Math.min(frames.length-1,i+d)); draw(); }
+  btn.prev.addEventListener('click',function(){go(-1);});
+  btn.next.addEventListener('click',function(){go(1);});
+  btn.reset.addEventListener('click',function(){stop();i=0;draw();});
+  btn.play.addEventListener('click',function(){
+    if(timer){stop();return;}
+    if(i===frames.length-1){i=0;draw();}
+    btn.play.textContent='\u23F8 Pause';
+    timer=setInterval(function(){ if(i>=frames.length-1){stop();return;} i++; draw(); },1100);
+  });
+  draw();
+}
+function boxes(targetId, nums, marks, ptrs){
+  marks=marks||{}; ptrs=ptrs||{};
+  var h='<div class="row">';
+  for(var k=0;k<nums.length;k++){
+    h+='<div class="cell"><div class="ptr">'+(ptrs[k]||'')+'</div><div class="box '
+      +(marks[k]||'')+'">'+nums[k]+'</div><div class="idxlabel">'+k+'</div></div>';
+  }
+  document.getElementById(targetId).innerHTML=h+'</div>';
+}
+function bars(targetId, heights, marks, ptrs){
+  marks=marks||{}; ptrs=ptrs||{};
+  var mx=Math.max.apply(null,heights), h='<div class="bars">';
+  for(var k=0;k<heights.length;k++){
+    var px=Math.round(20+heights[k]/mx*150);
+    h+='<div class="barcell"><div class="ptr">'+(ptrs[k]||'')+'</div><div class="bar '
+      +(marks[k]||'')+'" style="height:'+px+'px">'+heights[k]+'</div><div class="idxlabel">'+k+'</div></div>';
+  }
+  document.getElementById(targetId).innerHTML=h+'</div>';
+}
+function badges(targetId, list){
+  var h='';
+  for(var k=0;k<list.length;k++) h+='<span class="badge '+(list[k].cls||'')+'">'+list[k].label+': <b>'+list[k].val+'</b></span>';
+  document.getElementById(targetId).innerHTML=h;
+}
+function chips(targetId, items){
+  if(!items.length){ document.getElementById(targetId).innerHTML='<span class="empty">(empty)</span>'; return; }
+  var h=''; for(var k=0;k<items.length;k++) h+='<span class="chip '+(items[k].cls||'')+'">'+items[k].text+'</span>';
+  document.getElementById(targetId).innerHTML=h;
+}
+
+function bin2nary(T){
+  return T.map(function(n){ var k=[]; if(n.l>=0)k.push(n.l); if(n.r>=0)k.push(n.r); return {v:n.v,kids:k}; });
+}
+function layoutN(nodes,root){
+  var pos={},c={v:0};
+  (function go(i,d){ var ch=nodes[i].kids;
+    if(!ch||ch.length===0){ pos[i]={x:c.v++,y:d}; return; }
+    var xs=[]; for(var k=0;k<ch.length;k++){ go(ch[k],d+1); xs.push(pos[ch[k]].x); }
+    pos[i]={x:(xs[0]+xs[xs.length-1])/2,y:d};
+  })(root,0);
+  return pos;
+}
+function renderNary(id,nodes,root,marks){
+  marks=marks||{}; var pos=layoutN(nodes,root);
+  var xs=[],ys=[]; for(var k in pos){xs.push(pos[k].x);ys.push(pos[k].y);}
+  var mx=Math.max.apply(null,xs),my=Math.max.apply(null,ys);
+  var GX=54,GY=66,r=17,Wd=(mx+1)*GX,H=(my+1)*GY+10;
+  function X(i){return pos[i].x*GX+GX/2;} function Y(i){return pos[i].y*GY+r+6;}
+  var s='<div class="svgwrap"><svg viewBox="0 0 '+Wd+' '+H+'" width="100%" style="max-width:'+Math.max(Wd,240)+'px">';
+  for(var i=0;i<nodes.length;i++){ if(!pos[i])continue; nodes[i].kids.forEach(function(ch){ if(pos[ch]) s+='<line class="edge" x1="'+X(i)+'" y1="'+Y(i)+'" x2="'+X(ch)+'" y2="'+Y(ch)+'"/>'; }); }
+  for(var i=0;i<nodes.length;i++){ if(!pos[i])continue; s+='<g class="tnode '+(marks[i]||'')+'"><circle cx="'+X(i)+'" cy="'+Y(i)+'" r="'+r+'"/><text x="'+X(i)+'" y="'+(Y(i)+5)+'" text-anchor="middle">'+nodes[i].v+'</text></g>'; }
+  document.getElementById(id).innerHTML=s+'</svg></div>';
+}
+function renderTree(id,T,root,marks){ renderNary(id,bin2nary(T),root,marks); }
+function levelsBin(T,root){ var res=[],q=[[root,0]]; while(q.length){ var it=q.shift(),i=it[0],d=it[1]; if(i<0||!T[i])continue; if(!res[d])res[d]=[]; res[d].push(i); q.push([T[i].l,d+1]); q.push([T[i].r,d+1]); } return res; }
+function inorderBin(T,root){ var o=[]; (function go(i){ if(i<0||!T[i])return; go(T[i].l); o.push(i); go(T[i].r); })(root); return o; }
+function preorderBin(T,root){ var o=[]; (function go(i){ if(i<0||!T[i])return; o.push(i); go(T[i].l); go(T[i].r); })(root); return o; }
+function renderGrid(id,board,marks){
+  marks=marks||{}; var s='<div class="grid2" style="grid-template-columns:repeat('+board[0].length+',auto)">';
+  for(var r=0;r<board.length;r++) for(var c=0;c<board[0].length;c++){
+    s+='<div class="gcell '+(marks[r+","+c]||'')+'">'+board[r][c]+'</div>';
+  }
+  document.getElementById(id).innerHTML=s+'</div>';
+}
+
+
+var B=[["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]];
+var paths={
+  "oath":[[0,0],[0,1],[1,1],[2,1]],
+  "eat":[[1,3],[1,2],[1,1]]
+};
+var fr=[{cap:'Walk the grid, guided by the trie of words. Let\u2019s trace the words it finds.',cells:[],word:'',done:[]}];
+var found=[];
+["oath","eat"].forEach(function(w){
+  var p=paths[w];
+  for(var s=1;s<=p.length;s++){
+    fr.push({cap:'Spelling "<b>'+w+'</b>": '+w.slice(0,s).split("").join("-")+' \u2026',cells:p.slice(0,s),word:w,done:found.slice()});
+  }
+  found.push(w);
+  fr.push({cap:'Completed "<b>'+w+'</b>" \u2014 add it to the results.',cells:p.slice(),word:w,done:found.slice(),justDone:true});
+});
+fr.push({cap:'Found all spellable words: <b>oath</b> and <b>eat</b>.',cells:[],word:'',done:found.slice(),final:true});
+makePlayer('ws',fr,function(f){
+  var m={};
+  (f.cells||[]).forEach(function(rc){ m[rc[0]+","+rc[1]]=f.justDone||f.final?'good':'hi'; });
+  renderGrid('ws-viz',B,m);
+  badges('ws-b',[{label:'words found',val:(f.done&&f.done.length)?f.done.join(", "):'\u2014',cls:'good'}]);
+  document.getElementById('ws-cap').innerHTML=f.cap;
+});
+</script>
+</body></html>

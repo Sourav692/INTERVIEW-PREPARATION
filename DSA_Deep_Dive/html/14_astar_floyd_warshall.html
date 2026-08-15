@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A* & Floyd-Warshall — DSA Deep Dive</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --fg:#1c2230; --muted:#5b6472; --card:#ffffff; --border:#e2e6ec;
+    --accent:#3563e9; --accent-soft:#e5edff;
+    --hi:#ffe08a; --hi-bd:#e0a800; --good:#b7ecc4; --good-bd:#2f9e52;
+    --bad:#f6c9c9; --bad-bd:#d24a4a; --seen:#d7ccff; --seen-bd:#7a5cff;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1420; --fg:#e7ebf2; --muted:#9aa4b5; --card:#171d2b; --border:#28303f;
+      --accent:#6f9bff; --accent-soft:#1c2740;
+      --hi:#6b5a1f; --hi-bd:#d8b23c; --good:#1f5133; --good-bd:#4cc178;
+      --bad:#5a2830; --bad-bd:#e07a7a; --seen:#332a63; --seen-bd:#9b83ff;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:24px 18px 80px}
+  a{color:var(--accent)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .back{font-size:14px;text-decoration:none}
+  h1{font-size:28px;margin:.2em 0}
+  h2{font-size:20px;margin:1.4em 0 .4em}
+  h3{font-size:16px;margin:0 0 6px}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--accent)}
+  .lead{color:var(--muted);font-size:15px}
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 2px}
+  .toc a{font-size:13px;text-decoration:none;background:var(--accent-soft);border:1px solid var(--border);border-radius:999px;padding:4px 11px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+  .idea{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:10px 0}
+  .big{font-size:17px}
+  code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;font-size:.9em}
+  .viz{overflow-x:auto;padding:8px 2px 4px}
+  .row{display:flex;gap:8px;min-width:min-content;justify-content:center}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .box{width:46px;height:46px;border-radius:10px;border:2px solid var(--border);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;transition:.15s}
+  .idxlabel{font-size:11px;color:var(--muted)}
+  .box.hi{background:var(--hi);border-color:var(--hi-bd)}
+  .box.good{background:var(--good);border-color:var(--good-bd)}
+  .box.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .box.seen{background:var(--seen);border-color:var(--seen-bd)}
+  .box.dim{opacity:.3}
+  .mem{margin-top:12px}
+  .mem h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;min-height:34px}
+  .chip{background:var(--seen);border:1px solid var(--seen-bd);border-radius:8px;padding:4px 10px;font-size:14px;font-weight:600}
+  .chip.look{background:var(--good);border-color:var(--good-bd)}
+  .empty{color:var(--muted);font-size:13px;font-style:italic}
+  .caption{margin:12px 0 6px;min-height:44px;font-size:15px}
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+  button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--card);
+    color:var(--fg);border-radius:9px;padding:7px 12px;transition:.12s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .counter{margin-left:auto;font-size:13px;color:var(--muted)}
+  .speed{font-size:14px;color:var(--muted);margin-top:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:6px 0 2px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .sw{width:13px;height:13px;border-radius:4px;border:2px solid}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .pcard{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.12s}
+  .pcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .pcard .n{font-size:12px;color:var(--muted)}
+  .pcard .t{font-size:17px;font-weight:700;margin:2px 0 6px}
+  .pcard .b{font-size:13px;color:var(--muted)}
+  table{border-collapse:collapse;font-size:14px;margin-top:6px}
+  th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:var(--accent-soft);font-size:13px}
+  .mtable{display:inline-table;width:auto;margin:0 auto}
+  .mtable td,.mtable th{width:38px;height:34px;text-align:center;padding:0}
+  td.mcell{font-weight:700;transition:.15s}
+  td.mcell.hi{background:var(--hi);border-color:var(--hi-bd)}
+  td.mcell.good{background:var(--good);border-color:var(--good-bd)}
+  td.mcell.zero{color:var(--muted);opacity:.5}
+  .adjrow{display:flex;align-items:center;gap:8px;margin:4px 0;flex-wrap:wrap}
+  .adjkey{font-weight:800;width:22px;text-align:center;color:var(--accent)}
+  .arrow{color:var(--muted)}
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+  @media(max-width:640px){.cols2{grid-template-columns:1fr}}
+  .svgwrap{overflow-x:auto;padding:6px 0;text-align:center}
+  .edge{stroke:var(--border);stroke-width:2}
+  .edge.hi{stroke:var(--accent);stroke-width:3.5}
+  .edge.dim{opacity:.15}
+  .wlabel{fill:var(--fg);font-size:12px;font-weight:700;paint-order:stroke;stroke:var(--bg);stroke-width:3px}
+  .tnode circle{fill:var(--card);stroke:var(--border);stroke-width:2;transition:.15s}
+  .tnode text{fill:var(--fg);font-size:13px;font-weight:700}
+  .tnode.hi circle{fill:var(--hi);stroke:var(--hi-bd)}
+  .tnode.good circle{fill:var(--good);stroke:var(--good-bd)}
+  .tnode.bad circle{fill:var(--bad);stroke:var(--bad-bd)}
+  .tnode.seen circle{fill:var(--seen);stroke:var(--seen-bd)}
+  .tnode.dim{opacity:.25}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><a class="back" href="index.html">← All topics</a><span class="tag"><span class="dot"></span> Deep Dive · 14 of 15</span></div>
+<h1>🧭 A* & Floyd-Warshall</h1>
+<p class="lead">A* (f = g + h, single goal) and Floyd-Warshall (all pairs).</p>
+<div class="toc"><a href="#astar">A*</a><a href="#fw">Floyd-Warshall</a></div>
+<div class="card"><h2 style="margin-top:.2em">The idea</h2><p class="big">Two relatives of Dijkstra: <b>A\*</b> reaches a single <b>goal</b> faster using a heuristic; <b>Floyd-Warshall</b> finds the shortest path between <b>every pair</b>.</p><div class="idea"><b>A\*</b> expands the node with the smallest <code>f = g + h</code> (cost-so-far + estimate). <b>Floyd-Warshall</b>: <code>dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])</code>, k outermost.</div><div class="legend"><span><span class="sw" style="background:var(--good);border-color:var(--good-bd)"></span>current / answer</span><span><span class="sw" style="background:var(--hi);border-color:var(--hi-bd)"></span>active / on path</span><span><span class="sw" style="background:var(--seen);border-color:var(--seen-bd)"></span>visited / done</span><span><span class="sw" style="background:var(--bad);border-color:var(--bad-bd)"></span>target / cycle</span></div></div><div id="astar"></div><div class="card"><h2 style="margin-top:.2em">① A\* — Dijkstra guided by a heuristic</h2><div class="idea">Priority is <code>f = g + h</code>. An <b>admissible</b> heuristic (never overestimates) keeps A\* optimal while steering it toward the goal.</div><div class="viz" id="as-viz"></div><div class="mem"><h4>g (cost so far) · f = g + h</h4><div class="chips" id="as-tbl"></div></div><div class="caption" id="as-cap"></div><div class="controls" data-player="as"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="as-count"></span></div></div><div id="fw"></div><div class="card"><h2 style="margin-top:.2em">② Floyd-Warshall — all pairs, one matrix</h2><div class="idea">For each intermediate <code>k</code>, ask if routing <code>i → k → j</code> beats <code>i → j</code>. Fills a distance matrix; a negative on the diagonal flags a negative cycle.</div><div class="viz" id="fw-viz"></div><div class="caption" id="fw-cap"></div><div class="controls" data-player="fw"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="fw-count"></span></div></div><div class="card"><h2>Full written tutorial</h2><p>Admissible heuristics, the shortest-path decision guide, and negative-cycle detection are in <a href="../tutorials/14_AStar_Floyd_Warshall.md">14_AStar_Floyd_Warshall.md</a>.</p></div>
+</div>
+<script>
+"use strict";
+function makePlayer(name, frames, render){
+  var i=0, timer=null;
+  var controls=document.querySelector('[data-player="'+name+'"]');
+  var counter=document.getElementById(name+'-count');
+  var btn={};
+  controls.querySelectorAll('button').forEach(function(b){ btn[b.dataset.act]=b; });
+  function draw(){
+    render(frames[i], i);
+    counter.textContent='Step '+(i+1)+' / '+frames.length;
+    btn.prev.disabled=(i===0); btn.next.disabled=(i===frames.length-1);
+  }
+  function stop(){ if(timer){clearInterval(timer);timer=null;btn.play.textContent='\u25B6 Play';} }
+  function go(d){ stop(); i=Math.max(0,Math.min(frames.length-1,i+d)); draw(); }
+  btn.prev.addEventListener('click',function(){go(-1);});
+  btn.next.addEventListener('click',function(){go(1);});
+  btn.reset.addEventListener('click',function(){stop();i=0;draw();});
+  btn.play.addEventListener('click',function(){
+    if(timer){stop();return;}
+    if(i===frames.length-1){i=0;draw();}
+    btn.play.textContent='\u23F8 Pause';
+    timer=setInterval(function(){ if(i>=frames.length-1){stop();return;} i++; draw(); },1000);
+  });
+  draw();
+}
+function boxes(targetId, nums, marks){
+  marks=marks||{};
+  var h='<div class="row">';
+  for(var k=0;k<nums.length;k++){
+    h+='<div class="cell"><div class="box '+(marks[k]||'')+'">'+nums[k]+'</div><div class="idxlabel">'+k+'</div></div>';
+  }
+  document.getElementById(targetId).innerHTML=h+'</div>';
+}
+function chips(targetId, items){
+  if(!items.length){ document.getElementById(targetId).innerHTML='<span class="empty">(nothing yet)</span>'; return; }
+  var h=''; for(var k=0;k<items.length;k++) h+='<span class="chip '+(items[k].cls||'')+'">'+items[k].text+'</span>';
+  document.getElementById(targetId).innerHTML=h;
+}
+function renderGraphW(id, nodes, edges, marks, directed){
+  marks = marks || {};
+  var xs=nodes.map(function(n){return n.x;}), ys=nodes.map(function(n){return n.y;});
+  var Wd=Math.max.apply(null,xs)+50, H=Math.max.apply(null,ys)+50, r=19;
+  var s='<div class="svgwrap"><svg viewBox="0 0 '+Wd+' '+H+'" width="100%" style="max-width:'+Wd+'px">';
+  if(directed) s+='<defs><marker id="arw" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="var(--muted)"/></marker></defs>';
+  edges.forEach(function(e){
+    var a=nodes[e[0]], b=nodes[e[1]];
+    var dx=b.x-a.x, dy=b.y-a.y, len=Math.sqrt(dx*dx+dy*dy)||1, ux=dx/len, uy=dy/len;
+    var x1=a.x+ux*r, y1=a.y+uy*r, x2=b.x-ux*r, y2=b.y-uy*r;
+    s+='<line class="edge '+(e[2]||'')+'" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'"'+(directed?' marker-end="url(#arw)"':'')+'/>';
+    if(e.length>3 && e[3]!==undefined && e[3]!==null){
+      var mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+      s+='<text class="wlabel" x="'+mx+'" y="'+(my-3)+'" text-anchor="middle">'+e[3]+'</text>';
+    }
+  });
+  nodes.forEach(function(n,i){
+    s+='<g class="tnode '+(marks[i]||'')+'"><circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'"/><text x="'+n.x+'" y="'+(n.y+5)+'" text-anchor="middle">'+n.v+'</text></g>';
+  });
+  document.getElementById(id).innerHTML=s+'</svg></div>';
+}
+function renderGraph(id, nodes, edges, marks, directed){ renderGraphW(id, nodes, edges, marks, directed); }
+function renderMatrix(id, labels, mat, marks){
+  marks = marks || {};
+  var s='<table class="mtable"><tr><th></th>';
+  for(var c=0;c<labels.length;c++) s+='<th>'+labels[c]+'</th>';
+  s+='</tr>';
+  for(var r=0;r<labels.length;r++){
+    s+='<tr><th>'+labels[r]+'</th>';
+    for(var c=0;c<labels.length;c++){
+      var val=mat[r][c];
+      var cls='mcell '+(marks[r+','+c]||'')+(val===0?' zero':'');
+      s+='<td class="'+cls+'">'+(val===Infinity?"\u221e":val)+'</td>';
+    }
+    s+='</tr>';
+  }
+  document.getElementById(id).innerHTML=s+'</table>';
+}
+// ---- tree kit ----
+function bstInsert(root,v){ if(!root) return {val:v,left:null,right:null}; if(v<root.val) root.left=bstInsert(root.left,v); else if(v>root.val) root.right=bstInsert(root.right,v); return root; }
+function buildBST(a){ var r=null; for(var i=0;i<a.length;i++) r=bstInsert(r,a[i]); return r; }
+function bstMin(n){ while(n.left) n=n.left; return n.val; }
+function bstDelete(root,v){ if(!root) return null; if(v<root.val) root.left=bstDelete(root.left,v); else if(v>root.val) root.right=bstDelete(root.right,v); else { if(!root.left) return root.right; if(!root.right) return root.left; var s=bstMin(root.right); root.val=s; root.right=bstDelete(root.right,s); } return root; }
+function cloneT(n){ return n?{val:n.val,left:cloneT(n.left),right:cloneT(n.right)}:null; }
+function layoutTree(root){ var nodes=[], ox={i:0}; function a(n,d){ if(!n) return; a(n.left,d+1); n._id=nodes.length; nodes.push({x:ox.i*58+40,y:d*66+36,v:n.val}); ox.i++; a(n.right,d+1); } a(root,0); var edges=[]; function w(n){ if(!n) return; if(n.left){edges.push([n._id,n.left._id]); w(n.left);} if(n.right){edges.push([n._id,n.right._id]); w(n.right);} } w(root); return {nodes:nodes,edges:edges}; }
+function marksByVal(root,hl){ var m={}; function w(n){ if(!n) return; if(hl[n.val]!==undefined) m[n._id]=hl[n.val]; w(n.left); w(n.right);} w(root); return m; }
+function tf(root,hl,cap){ var L=layoutTree(root); return {nodes:L.nodes,edges:L.edges,marks:marksByVal(root,hl||{}),cap:cap}; }
+function playTree(pid,frames){ makePlayer(pid,frames,function(f){ renderGraphW(pid+'-viz',f.nodes,f.edges,f.marks,false); document.getElementById(pid+'-cap').innerHTML=f.cap; }); }
+function allDim(vals){ var h={}; for(var i=0;i<vals.length;i++) h[vals[i]]='dim'; return h; }
+// ---- order player (traversal-style highlight) ----
+function orderPlayer(pid, N, E, order, label, directed){
+  var fr=[{cap:"Ready to run "+label+".",seen:[],cur:-1}];
+  var seen=[];
+  for(var k=0;k<order.length;k++){ seen=seen.slice(); seen.push(order[k]); fr.push({cap:"Visit <b>"+N[order[k]].v+"</b> (step "+(k+1)+" of "+order.length+").",seen:seen.slice(),cur:order[k]}); }
+  fr.push({cap:label+": <b>"+order.map(function(i){return N[i].v;}).join(", ")+"</b>",seen:seen.slice(),cur:-1,fin:true});
+  makePlayer(pid,fr,function(f){
+    var m={}; f.seen.forEach(function(i){m[i]="seen";}); if(f.cur>=0)m[f.cur]="good";
+    renderGraphW(pid+"-viz",N,E,m,!!directed);
+    var outEl=document.getElementById(pid+"-out"); if(outEl) outEl.innerHTML=f.seen.length? f.seen.map(function(i){return '<span class="chip">'+N[i].v+'</span>';}).join("") : '<span class="empty">(nothing yet)</span>';
+    document.getElementById(pid+"-cap").innerHTML=f.cap;
+  });
+}
+
+// ① A*
+(function(){
+  var N=[{v:0,x:60,y:120},{v:1,x:210,y:50},{v:2,x:210,y:190},{v:3,x:370,y:120},{v:4,x:510,y:120}];
+  var EW=[[0,1,1],[0,2,4],[1,2,2],[1,3,5],[2,3,1],[3,4,3]];
+  var adj={0:[[1,1],[2,4]],1:[[2,2],[3,5]],2:[[3,1]],3:[[4,3]],4:[]};
+  var H={0:4,1:3,2:2,3:1,4:0}, GOAL=4, INF=Infinity;
+  var g={0:0}, done={}, fr=[{cap:"Goal = node 4. Expand the OPEN node with the smallest f = g + h.",g:Object.assign({},g),done:[],cur:-1,relax:[]}];
+  while(true){ var u=-1,bf=INF; for(var k in g){ k=+k; if(!done[k]){ var f=g[k]+H[k]; if(f<bf){bf=f;u=k;} } } if(u===-1||u===GOAL){ if(u===GOAL){ done[u]=1; fr.push({cap:"The smallest-f open node is the <b>goal</b> (node 4) → stop. Optimal path cost = <b>g[4] = "+g[GOAL]+"</b> (found without exploring away from the goal).",g:Object.assign({},g),done:Object.keys(done).map(Number),cur:GOAL,relax:[],fin:true}); } break; }
+    done[u]=1; var rel=[];
+    adj[u].forEach(function(p){ var v=p[0],w=p[1]; if(g[u]+w<(g[v]===undefined?INF:g[v])){ g[v]=g[u]+w; rel.push([u,v]); } });
+    fr.push({cap:"Expand <b>"+u+"</b> (f="+(g[u]+H[u])+"). Update "+(rel.length?rel.map(function(x){return x[1]+": g="+g[x[1]]+", f="+(g[x[1]]+H[x[1]]);}).join("; "):"nothing")+".",g:Object.assign({},g),done:Object.keys(done).map(Number),cur:u,relax:rel.slice()}); }
+  makePlayer("as",fr,function(f){ var m={}; f.done.forEach(function(i){m[i]="seen";}); if(f.cur>=0)m[f.cur]="good"; m[GOAL]=m[GOAL]||"bad";
+    var edges=EW.map(function(e){ var hi=f.relax&&f.relax.some(function(rr){return rr[0]===e[0]&&rr[1]===e[1];}); return [e[0],e[1],hi?"hi":"",e[2]]; });
+    renderGraphW("as-viz",N,edges,m,true);
+    document.getElementById("as-tbl").innerHTML=[0,1,2,3,4].map(function(i){var gv=(f.g[i]===undefined?"∞":f.g[i]); var fv=(f.g[i]===undefined?"∞":(f.g[i]+H[i])); return '<span class="chip'+(f.cur===i?" look":"")+'">'+i+": g="+gv+", f="+fv+'</span>';}).join("");
+    document.getElementById("as-cap").innerHTML=f.cap; });
+})();
+// ② Floyd-Warshall
+(function(){
+  var LAB=["0","1","2","3"];
+  var GN=[{v:0,x:70,y:60},{v:1,x:240,y:50},{v:2,x:240,y:190},{v:3,x:410,y:120}];
+  var GE=[[0,1,"",3],[0,2,"",8],[1,2,"",-2],[2,3,"",2]];
+  var INF=Infinity; var W=[[0,3,8,INF],[INF,0,-2,INF],[INF,INF,0,2],[INF,INF,INF,0]];
+  function clone(m){ return m.map(function(r){return r.slice();}); }
+  var dist=clone(W);
+  var fr=[{cap:"Start with raw edge weights (∞ = no direct edge). Allow each vertex k as an intermediate.",mat:clone(dist),hi:{}}];
+  for(var k=0;k<4;k++){ var hi={},ch=false; for(var i=0;i<4;i++) for(var j=0;j<4;j++){ if(dist[i][k]+dist[k][j]<dist[i][j]){ dist[i][j]=dist[i][k]+dist[k][j]; hi[i+","+j]="hi"; ch=true; } }
+    fr.push({cap:"k = <b>"+k+"</b>: allow paths through vertex "+k+". "+(ch?"Improved the highlighted cells.":"Nothing improved."),mat:clone(dist),hi:hi,k:k}); }
+  fr.push({cap:"Done — every cell holds the shortest distance between that pair.",mat:clone(dist),hi:{},fin:true});
+  makePlayer("fw",fr,function(f){ var m={}; if(f.k!==undefined)m[f.k]="good"; renderGraphW("fw-viz",GN,GE,m,true); renderMatrix("fw-mat",LAB,f.mat,f.hi); document.getElementById("fw-cap").innerHTML=f.cap; });
+})();
+
+</script>
+</body></html>

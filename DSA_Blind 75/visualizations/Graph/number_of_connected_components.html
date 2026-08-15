@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Number of Connected Components — Visual Explainer</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --fg:#1c2230; --muted:#5b6472; --card:#ffffff; --border:#e2e6ec;
+    --accent:#3563e9; --accent-soft:#e5edff;
+    --hi:#ffe08a; --hi-bd:#e0a800; --good:#b7ecc4; --good-bd:#2f9e52;
+    --bad:#f6c9c9; --bad-bd:#d24a4a; --seen:#d7ccff; --seen-bd:#7a5cff;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1420; --fg:#e7ebf2; --muted:#9aa4b5; --card:#171d2b; --border:#28303f;
+      --accent:#6f9bff; --accent-soft:#1c2740;
+      --hi:#6b5a1f; --hi-bd:#d8b23c; --good:#1f5133; --good-bd:#4cc178;
+      --bad:#5a2830; --bad-bd:#e07a7a; --seen:#332a63; --seen-bd:#9b83ff;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+  a{color:var(--accent)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .back{font-size:14px;text-decoration:none}
+  h1{font-size:26px;margin:.2em 0}
+  h2{font-size:20px;margin:1.5em 0 .4em}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#eab308}
+  .lead{color:var(--muted);font-size:15px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+  .idea{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:10px 0}
+  .big{font-size:17px}
+  code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;font-size:.9em}
+  .viz{overflow-x:auto;padding:8px 2px 4px}
+  .rowlabel{font-size:12px;color:var(--muted);margin:8px 0 2px}
+  .row{display:flex;gap:10px;min-width:min-content;justify-content:center}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .ptr{height:22px;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .box{width:52px;height:52px;border-radius:10px;border:2px solid var(--border);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;transition:.15s}
+  .idxlabel{font-size:11px;color:var(--muted)}
+  .box.hi{background:var(--hi);border-color:var(--hi-bd)}
+  .box.good{background:var(--good);border-color:var(--good-bd)}
+  .box.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .box.seen{background:var(--seen);border-color:var(--seen-bd)}
+  .box.dim{opacity:.35}
+  .bars{display:flex;gap:8px;align-items:flex-end;min-width:min-content;justify-content:center;padding-top:22px}
+  .barcell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .bar{width:34px;border-radius:8px 8px 0 0;background:var(--accent-soft);border:2px solid var(--border);
+    display:flex;align-items:flex-start;justify-content:center;font-size:12px;font-weight:700;padding-top:3px;color:var(--fg);transition:.15s}
+  .bar.hi{background:var(--hi);border-color:var(--hi-bd)} .bar.good{background:var(--good);border-color:var(--good-bd)}
+  .bar.dim{opacity:.35}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .badge{background:var(--accent-soft);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:14px}
+  .badge.good{background:var(--good);border-color:var(--good-bd)}
+  .badge.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .mem{margin-top:14px}
+  .mem h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;min-height:34px}
+  .chip{background:var(--seen);border:1px solid var(--seen-bd);border-radius:8px;padding:4px 10px;font-size:14px;font-weight:600}
+  .chip.look{background:var(--good);border-color:var(--good-bd)}
+  .empty{color:var(--muted);font-size:13px;font-style:italic}
+  .caption{margin:12px 0 6px;min-height:44px;font-size:15px}
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+  button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--card);
+    color:var(--fg);border-radius:9px;padding:7px 12px;transition:.12s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .counter{margin-left:auto;font-size:13px;color:var(--muted)}
+  .speed{font-size:14px;color:var(--muted);margin-top:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:6px 0 2px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .sw{width:13px;height:13px;border-radius:4px;border:2px solid}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .pcard{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.12s}
+  .pcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .pcard .n{font-size:12px;color:var(--muted)}
+  .pcard .t{font-size:17px;font-weight:700;margin:2px 0 6px}
+  .pcard .b{font-size:13px;color:var(--muted)}
+
+  .svgwrap{overflow-x:auto;padding:6px 0;text-align:center}
+  .edge{stroke:var(--border);stroke-width:2}
+  .edge.hi{stroke:var(--accent);stroke-width:3}
+  .edge.dim{opacity:.22}
+  .tnode circle{fill:var(--card);stroke:var(--border);stroke-width:2;transition:.15s}
+  .tnode text{fill:var(--fg);font-size:13px;font-weight:700}
+  .tnode.hi circle{fill:var(--hi);stroke:var(--hi-bd)}
+  .tnode.good circle{fill:var(--good);stroke:var(--good-bd)}
+  .tnode.bad circle{fill:var(--bad);stroke:var(--bad-bd)}
+  .tnode.seen circle{fill:var(--seen);stroke:var(--seen-bd)}
+  .tnode.dim{opacity:.28}
+  .grid2{display:inline-grid;gap:6px;padding:6px 0}
+  .gcell{width:44px;height:44px;border:2px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;background:var(--card);transition:.15s}
+  .gcell.hi{background:var(--hi);border-color:var(--hi-bd)} .gcell.good{background:var(--good);border-color:var(--good-bd)}
+  .gcell.seen{background:var(--seen);border-color:var(--seen-bd)} .gcell.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .gcell.dim{opacity:.35}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><a class="back" href="index.html">← All Graph problems</a><span class="tag"><span class="dot" style="background:#eab308"></span> Medium · Graph</span></div>
+<h1>323 · Number of Connected Components</h1>
+<p class="lead">Count the separate groups.</p>
+<div class="card"><h2 style="margin-top:.2em">The problem, in plain words</h2><p class="big">Count the separate groups of connected nodes.</p><div class="idea">Example: nodes 0-1-2 form one group, 3-4 another &rarr; <b>2</b>.</div><div class="legend"><span><span class="sw" style="background:var(--hi);border-color:var(--hi-bd)"></span>looking at</span><span><span class="sw" style="background:var(--seen);border-color:var(--seen-bd)"></span>remembered / kept</span><span><span class="sw" style="background:var(--good);border-color:var(--good-bd)"></span>match / answer</span><span><span class="sw" style="background:var(--bad);border-color:var(--bad-bd)"></span>ruled out</span></div></div><div class="card"><h2>The smart way — merge with edges, count what’s left</h2><div class="idea">Start with each node alone (n groups). Each edge that joins two <b>different</b> groups merges them and lowers the count by one. Whatever number of groups remains is the answer.</div><div class="viz" id="nc-viz"></div><div class="badges" id="nc-b"></div><div class="caption" id="nc-cap"></div><div class="controls" data-player="nc"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="nc-count"></span></div><p class="speed"><b>Speed:</b> almost constant per edge — about <code>O(n + edges)</code>.</p></div><div class="card"><h2>When you'd use this</h2>See <b>"connected components / groups / provinces / friend circles"</b>? Union-Find: start at n, subtract one per merging edge.<p><a href="patterns.html">→ See all the Graph patterns and how to use them in an interview</a></p></div>
+</div>
+<script>
+"use strict";
+function makePlayer(name, frames, render){
+  var i=0, timer=null;
+  var controls=document.querySelector('[data-player="'+name+'"]');
+  var counter=document.getElementById(name+'-count');
+  var btn={};
+  controls.querySelectorAll('button').forEach(function(b){ btn[b.dataset.act]=b; });
+  function draw(){
+    render(frames[i], i);
+    counter.textContent='Step '+(i+1)+' / '+frames.length;
+    btn.prev.disabled=(i===0); btn.next.disabled=(i===frames.length-1);
+  }
+  function stop(){ if(timer){clearInterval(timer);timer=null;btn.play.textContent='\u25B6 Play';} }
+  function go(d){ stop(); i=Math.max(0,Math.min(frames.length-1,i+d)); draw(); }
+  btn.prev.addEventListener('click',function(){go(-1);});
+  btn.next.addEventListener('click',function(){go(1);});
+  btn.reset.addEventListener('click',function(){stop();i=0;draw();});
+  btn.play.addEventListener('click',function(){
+    if(timer){stop();return;}
+    if(i===frames.length-1){i=0;draw();}
+    btn.play.textContent='\u23F8 Pause';
+    timer=setInterval(function(){ if(i>=frames.length-1){stop();return;} i++; draw(); },1100);
+  });
+  draw();
+}
+function boxes(targetId, nums, marks, ptrs){
+  marks=marks||{}; ptrs=ptrs||{};
+  var h='<div class="row">';
+  for(var k=0;k<nums.length;k++){
+    h+='<div class="cell"><div class="ptr">'+(ptrs[k]||'')+'</div><div class="box '
+      +(marks[k]||'')+'">'+nums[k]+'</div><div class="idxlabel">'+k+'</div></div>';
+  }
+  document.getElementById(targetId).innerHTML=h+'</div>';
+}
+function bars(targetId, heights, marks, ptrs){
+  marks=marks||{}; ptrs=ptrs||{};
+  var mx=Math.max.apply(null,heights), h='<div class="bars">';
+  for(var k=0;k<heights.length;k++){
+    var px=Math.round(20+heights[k]/mx*150);
+    h+='<div class="barcell"><div class="ptr">'+(ptrs[k]||'')+'</div><div class="bar '
+      +(marks[k]||'')+'" style="height:'+px+'px">'+heights[k]+'</div><div class="idxlabel">'+k+'</div></div>';
+  }
+  document.getElementById(targetId).innerHTML=h+'</div>';
+}
+function badges(targetId, list){
+  var h='';
+  for(var k=0;k<list.length;k++) h+='<span class="badge '+(list[k].cls||'')+'">'+list[k].label+': <b>'+list[k].val+'</b></span>';
+  document.getElementById(targetId).innerHTML=h;
+}
+function chips(targetId, items){
+  if(!items.length){ document.getElementById(targetId).innerHTML='<span class="empty">(empty)</span>'; return; }
+  var h=''; for(var k=0;k<items.length;k++) h+='<span class="chip '+(items[k].cls||'')+'">'+items[k].text+'</span>';
+  document.getElementById(targetId).innerHTML=h;
+}
+
+function renderGraph(id, nodes, edges, marks, directed){
+  marks = marks || {};
+  var xs=nodes.map(function(n){return n.x;}), ys=nodes.map(function(n){return n.y;});
+  var Wd=Math.max.apply(null,xs)+50, H=Math.max.apply(null,ys)+50, r=18;
+  var s='<div class="svgwrap"><svg viewBox="0 0 '+Wd+' '+H+'" width="100%" style="max-width:'+Wd+'px">';
+  if(directed) s+='<defs><marker id="arw" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="var(--muted)"/></marker></defs>';
+  edges.forEach(function(e){
+    var a=nodes[e[0]], b=nodes[e[1]];
+    var dx=b.x-a.x, dy=b.y-a.y, len=Math.sqrt(dx*dx+dy*dy)||1, ux=dx/len, uy=dy/len;
+    var x1=a.x+ux*r, y1=a.y+uy*r, x2=b.x-ux*r, y2=b.y-uy*r;
+    s+='<line class="edge '+(e[2]||'')+'" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'"'+(directed?' marker-end="url(#arw)"':'')+'/>';
+  });
+  nodes.forEach(function(n,i){
+    s+='<g class="tnode '+(marks[i]||'')+'"><circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'"/><text x="'+n.x+'" y="'+(n.y+5)+'" text-anchor="middle">'+n.v+'</text></g>';
+  });
+  document.getElementById(id).innerHTML=s+'</svg></div>';
+}
+function renderGrid(id, board, marks){
+  marks=marks||{};
+  var s='<div class="grid2" style="grid-template-columns:repeat('+board[0].length+',auto)">';
+  for(var r=0;r<board.length;r++) for(var c=0;c<board[0].length;c++)
+    s+='<div class="gcell '+(marks[r+","+c]||'')+'">'+board[r][c]+'</div>';
+  document.getElementById(id).innerHTML=s+'</div>';
+}
+
+
+var N=[{v:0,x:70,y:80},{v:1,x:180,y:80},{v:2,x:290,y:80},{v:3,x:120,y:210},{v:4,x:250,y:210}];
+var E=[[0,1],[1,2],[3,4]];
+var parent=[0,1,2,3,4];
+function find(x){while(parent[x]!==x)x=parent[x];return x;}
+var fr=[{cap:'Start: 5 separate nodes = 5 groups.',merged:[],count:5,cur:-1}];
+var count=5, merged=[];
+E.forEach(function(e,idx){ var ra=find(e[0]),rb=find(e[1]); merged.push(idx);
+  if(ra!==rb){parent[ra]=rb; count--; fr.push({cap:'Edge '+e[0]+'\u2013'+e[1]+' joins two groups \u2192 groups now <b>'+count+'</b>.',merged:merged.slice(),count:count,cur:idx});}
+  else fr.push({cap:'Edge '+e[0]+'\u2013'+e[1]+' already in one group \u2014 no change.',merged:merged.slice(),count:count,cur:idx});
+});
+fr.push({cap:'Final answer: <b>'+count+'</b> connected components.',merged:merged.slice(),count:count,cur:-1,fin:true});
+// precompute final component of each node for coloring
+var comp={}; (function(){var p=[0,1,2,3,4]; function f(x){while(p[x]!==x)x=p[x];return x;} E.forEach(function(e){var a=f(e[0]),b=f(e[1]); if(a!==b)p[a]=b;}); for(var i=0;i<5;i++)comp[i]=f(i);})();
+makePlayer('nc',fr,function(f){
+  var es=E.map(function(e,idx){ return [e[0],e[1], f.merged.indexOf(idx)>=0?'hi':'dim']; });
+  var m={};
+  if(f.fin){ // color two components differently
+    var roots=[]; for(var i=0;i<5;i++){ if(roots.indexOf(comp[i])<0)roots.push(comp[i]); }
+    for(var i=0;i<5;i++){ m[i]= roots.indexOf(comp[i])===0?'good':'seen'; }
+  } else if(f.cur>=0){ m[E[f.cur][0]]='hi'; m[E[f.cur][1]]='hi'; }
+  renderGraph('nc-viz',N,es,m,false);
+  badges('nc-b',[{label:'groups',val:f.count,cls:'good'}]);
+  document.getElementById('nc-cap').innerHTML=f.cap;
+});
+</script>
+</body></html>

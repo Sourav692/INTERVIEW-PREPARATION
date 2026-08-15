@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matrix Patterns — Cheat Sheet</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --fg:#1c2230; --muted:#5b6472; --card:#ffffff; --border:#e2e6ec;
+    --accent:#3563e9; --accent-soft:#e5edff;
+    --hi:#ffe08a; --hi-bd:#e0a800; --good:#b7ecc4; --good-bd:#2f9e52;
+    --bad:#f6c9c9; --bad-bd:#d24a4a; --seen:#d7ccff; --seen-bd:#7a5cff;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1420; --fg:#e7ebf2; --muted:#9aa4b5; --card:#171d2b; --border:#28303f;
+      --accent:#6f9bff; --accent-soft:#1c2740;
+      --hi:#6b5a1f; --hi-bd:#d8b23c; --good:#1f5133; --good-bd:#4cc178;
+      --bad:#5a2830; --bad-bd:#e07a7a; --seen:#332a63; --seen-bd:#9b83ff;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+  a{color:var(--accent)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .back{font-size:14px;text-decoration:none}
+  h1{font-size:26px;margin:.2em 0}
+  h2{font-size:20px;margin:1.5em 0 .4em}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#eab308}
+  .lead{color:var(--muted);font-size:15px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+  .idea{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:10px 0}
+  .big{font-size:17px}
+  code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;font-size:.9em}
+  .viz{overflow-x:auto;padding:8px 2px 4px}
+  .rowlabel{font-size:12px;color:var(--muted);margin:8px 0 2px}
+  .row{display:flex;gap:10px;min-width:min-content;justify-content:center}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .ptr{height:22px;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .box{width:52px;height:52px;border-radius:10px;border:2px solid var(--border);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;transition:.15s}
+  .idxlabel{font-size:11px;color:var(--muted)}
+  .box.hi{background:var(--hi);border-color:var(--hi-bd)}
+  .box.good{background:var(--good);border-color:var(--good-bd)}
+  .box.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .box.seen{background:var(--seen);border-color:var(--seen-bd)}
+  .box.dim{opacity:.35}
+  .bars{display:flex;gap:8px;align-items:flex-end;min-width:min-content;justify-content:center;padding-top:22px}
+  .barcell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .bar{width:34px;border-radius:8px 8px 0 0;background:var(--accent-soft);border:2px solid var(--border);
+    display:flex;align-items:flex-start;justify-content:center;font-size:12px;font-weight:700;padding-top:3px;color:var(--fg);transition:.15s}
+  .bar.hi{background:var(--hi);border-color:var(--hi-bd)} .bar.good{background:var(--good);border-color:var(--good-bd)}
+  .bar.dim{opacity:.35}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .badge{background:var(--accent-soft);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:14px}
+  .badge.good{background:var(--good);border-color:var(--good-bd)}
+  .badge.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .mem{margin-top:14px}
+  .mem h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;min-height:34px}
+  .chip{background:var(--seen);border:1px solid var(--seen-bd);border-radius:8px;padding:4px 10px;font-size:14px;font-weight:600}
+  .chip.look{background:var(--good);border-color:var(--good-bd)}
+  .empty{color:var(--muted);font-size:13px;font-style:italic}
+  .caption{margin:12px 0 6px;min-height:44px;font-size:15px}
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+  button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--card);
+    color:var(--fg);border-radius:9px;padding:7px 12px;transition:.12s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .counter{margin-left:auto;font-size:13px;color:var(--muted)}
+  .speed{font-size:14px;color:var(--muted);margin-top:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:6px 0 2px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .sw{width:13px;height:13px;border-radius:4px;border:2px solid}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .pcard{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.12s}
+  .pcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .pcard .n{font-size:12px;color:var(--muted)}
+  .pcard .t{font-size:17px;font-weight:700;margin:2px 0 6px}
+  .pcard .b{font-size:13px;color:var(--muted)}
+
+  .svgwrap{overflow-x:auto;padding:6px 0;text-align:center}
+  .edge{stroke:var(--border);stroke-width:2}
+  .tnode circle{fill:var(--card);stroke:var(--border);stroke-width:2;transition:.15s}
+  .tnode text{fill:var(--fg);font-size:13px;font-weight:700}
+  .tnode.hi circle{fill:var(--hi);stroke:var(--hi-bd)}
+  .tnode.good circle{fill:var(--good);stroke:var(--good-bd)}
+  .tnode.bad circle{fill:var(--bad);stroke:var(--bad-bd)}
+  .tnode.seen circle{fill:var(--seen);stroke:var(--seen-bd)}
+  .tnode.dim{opacity:.3}
+  .grid2{display:inline-grid;gap:6px;padding:6px 0}
+  .gcell{width:44px;height:44px;border:2px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;background:var(--card);transition:.15s}
+  .gcell.hi{background:var(--hi);border-color:var(--hi-bd)} .gcell.good{background:var(--good);border-color:var(--good-bd)}
+  .gcell.seen{background:var(--seen);border-color:var(--seen-bd)} .gcell.bad{background:var(--bad);border-color:var(--bad-bd)} .gcell.dim{opacity:.3}
+  .ivbar{fill:var(--accent-soft);stroke:var(--border);stroke-width:1.5}
+  .ivbar.hi{fill:var(--hi);stroke:var(--hi-bd)} .ivbar.good{fill:var(--good);stroke:var(--good-bd)}
+  .ivbar.bad{fill:var(--bad);stroke:var(--bad-bd)} .ivbar.dim{opacity:.3}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><a class="back" href="index.html">← All Matrix problems</a></div>
+<h1>🧩 Matrix Patterns — Interview Cheat Sheet</h1>
+<p class="lead">A few ideas cover the whole topic. Learn to spot which one a question wants.</p>
+<div class="chips" style="margin:8px 0 4px"><a class="chip" href="#inplace" style="text-decoration:none">In-Place Grid Tricks</a><a class="chip" href="#boundary" style="text-decoration:none">Boundary Walking</a><a class="chip" href="#gridback" style="text-decoration:none">Grid Backtracking</a></div>
+<div class="card" id="inplace"><h2 style="margin-top:.2em">♻️ In-Place Grid Tricks</h2><p class="big" style="margin:.2em 0">Rearrange a grid using itself as scratch paper — no second grid.</p><div class="idea"><b>The tell (how to spot it):</b> You must transform a matrix <b>in place</b> with O(1) extra space.</div><p><b>How it works:</b> Use the border row/column as flags (set-zeroes), or compose simple moves like transpose + reverse (rotate).</p><p><b>Problems here that use it:</b> <a href="set_matrix_zeroes.html">Set Matrix Zeroes</a> <a href="rotate_image.html">Rotate Image</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“I’ll transform the grid in place — using the first row/col as markers (or transpose+reverse) for O(1) space.”</div></div><div class="card" id="boundary"><h2 style="margin-top:.2em">🧭 Boundary Walking</h2><p class="big" style="margin:.2em 0">Trace the outer edges, then shrink inward layer by layer.</p><div class="idea"><b>The tell (how to spot it):</b> You traverse a grid in a <b>spiral or layered</b> order.</div><p><b>How it works:</b> Keep top/bottom/left/right limits; walk each edge, then move that limit inward until they cross.</p><p><b>Problems here that use it:</b> <a href="spiral_matrix.html">Spiral Matrix</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“I’ll track four shrinking boundaries and trace each edge in turn — O(m×n).”</div></div><div class="card" id="gridback"><h2 style="margin-top:.2em">🌳 Grid Backtracking</h2><p class="big" style="margin:.2em 0">Search a maze, marking your trail and erasing it when you turn back.</p><div class="idea"><b>The tell (how to spot it):</b> You look for a <b>path or word</b> through adjacent cells.</div><p><b>How it works:</b> DFS from each start; mark the current cell used, explore neighbors, then restore it so other paths can use it.</p><p><b>Problems here that use it:</b> <a href="word_search.html">Word Search</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“I’ll DFS from each cell, marking cells used and restoring on backtrack, pruning as soon as a letter mismatches.”</div></div><div class="card"><h2>Talking through any Matrix problem</h2><p><b>1. Fix your coordinates:</b> (row, col), and how neighbors/transpose map.</p><p><b>2. Ask for O(1) space:</b> can the grid itself store flags, or can moves compose (transpose+reverse)?</p><p><b>3. For traversals, track boundaries;</b> for path search, backtrack (mark/restore).</p></div></div>
+</body></html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DevRev DSA — Visual Explainers</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --fg:#1c2230; --muted:#5b6472; --card:#ffffff; --border:#e2e6ec;
+    --accent:#3563e9; --accent-soft:#e5edff;
+    --hi:#ffe08a; --hi-bd:#e0a800; --good:#b7ecc4; --good-bd:#2f9e52;
+    --bad:#f6c9c9; --bad-bd:#d24a4a; --seen:#d7ccff; --seen-bd:#7a5cff;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1420; --fg:#e7ebf2; --muted:#9aa4b5; --card:#171d2b; --border:#28303f;
+      --accent:#6f9bff; --accent-soft:#1c2740;
+      --hi:#6b5a1f; --hi-bd:#d8b23c; --good:#1f5133; --good-bd:#4cc178;
+      --bad:#5a2830; --bad-bd:#e07a7a; --seen:#332a63; --seen-bd:#9b83ff;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+  a{color:var(--accent)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .back{font-size:14px;text-decoration:none}
+  h1{font-size:26px;margin:.2em 0}
+  h2{font-size:20px;margin:1.5em 0 .4em}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#eab308}
+  .lead{color:var(--muted);font-size:15px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+  .idea{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:10px 0}
+  .big{font-size:17px}
+  code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;font-size:.9em}
+  .viz{overflow-x:auto;padding:8px 2px 4px}
+  .rowlabel{font-size:12px;color:var(--muted);margin:8px 0 2px}
+  .row{display:flex;gap:10px;min-width:min-content;justify-content:center}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .ptr{height:22px;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .box{width:52px;height:52px;border-radius:10px;border:2px solid var(--border);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;transition:.15s}
+  .idxlabel{font-size:11px;color:var(--muted)}
+  .box.hi{background:var(--hi);border-color:var(--hi-bd)}
+  .box.good{background:var(--good);border-color:var(--good-bd)}
+  .box.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .box.seen{background:var(--seen);border-color:var(--seen-bd)}
+  .box.dim{opacity:.35}
+  .bars{display:flex;gap:8px;align-items:flex-end;min-width:min-content;justify-content:center;padding-top:22px}
+  .barcell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .bar{width:34px;border-radius:8px 8px 0 0;background:var(--accent-soft);border:2px solid var(--border);
+    display:flex;align-items:flex-start;justify-content:center;font-size:12px;font-weight:700;padding-top:3px;color:var(--fg);transition:.15s}
+  .bar.hi{background:var(--hi);border-color:var(--hi-bd)} .bar.good{background:var(--good);border-color:var(--good-bd)}
+  .bar.dim{opacity:.35}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .badge{background:var(--accent-soft);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:14px}
+  .badge.good{background:var(--good);border-color:var(--good-bd)}
+  .badge.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .mem{margin-top:14px}
+  .mem h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;min-height:34px}
+  .chip{background:var(--seen);border:1px solid var(--seen-bd);border-radius:8px;padding:4px 10px;font-size:14px;font-weight:600}
+  .chip.look{background:var(--good);border-color:var(--good-bd)}
+  .empty{color:var(--muted);font-size:13px;font-style:italic}
+  .caption{margin:12px 0 6px;min-height:44px;font-size:15px}
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+  button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--card);
+    color:var(--fg);border-radius:9px;padding:7px 12px;transition:.12s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .counter{margin-left:auto;font-size:13px;color:var(--muted)}
+  .speed{font-size:14px;color:var(--muted);margin-top:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:6px 0 2px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .sw{width:13px;height:13px;border-radius:4px;border:2px solid}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .pcard{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.12s}
+  .pcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .pcard .n{font-size:12px;color:var(--muted)}
+  .pcard .t{font-size:17px;font-weight:700;margin:2px 0 6px}
+  .pcard .b{font-size:13px;color:var(--muted)}
+
+  .svgwrap{overflow-x:auto;padding:6px 0;text-align:center}
+  .edge{stroke:var(--border);stroke-width:2}
+  .edge.hi{stroke:var(--accent);stroke-width:3}
+  .edge.dim{opacity:.22}
+  .tnode circle{fill:var(--card);stroke:var(--border);stroke-width:2;transition:.15s}
+  .tnode text{fill:var(--fg);font-size:13px;font-weight:700}
+  .tnode.hi circle{fill:var(--hi);stroke:var(--hi-bd)}
+  .tnode.good circle{fill:var(--good);stroke:var(--good-bd)}
+  .tnode.bad circle{fill:var(--bad);stroke:var(--bad-bd)}
+  .tnode.seen circle{fill:var(--seen);stroke:var(--seen-bd)}
+  .tnode.dim{opacity:.28}
+  .grid2{display:inline-grid;gap:6px;padding:6px 0}
+  .gcell{width:44px;height:44px;border:2px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;background:var(--card);transition:.15s}
+  .gcell.hi{background:var(--hi);border-color:var(--hi-bd)} .gcell.good{background:var(--good);border-color:var(--good-bd)}
+  .gcell.seen{background:var(--seen);border-color:var(--seen-bd)} .gcell.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .gcell.dim{opacity:.35}
+</style>
+</head>
+<body><div class="wrap">
+<h1>DevRev DSA — Visual Explainers</h1>
+<p class="lead">The seven DevRev-relevant DSA topics that are <b>not</b> in the Blind 75 set — each explained with interactive, step-by-step diagrams in plain language.</p>
+<div class="card" style="background:var(--accent-soft)"><h2 style="margin-top:.2em">🧩 Start here before an interview</h2><p><a href="patterns.html"><b>The DevRev DSA Patterns Cheat Sheet</b></a> — the handful of ideas behind all six problems, each tied to a real platform concern (task trees, workflow DAGs, caches), and the exact words to say.</p></div>
+<div class="grid"><a class="pcard" href="subarray_sum_equals_k.html"><div class="n"><span class="dot" style="background:#eab308"></span> 560 · Medium</div><div class="t">Subarray Sum Equals K</div><div class="b">Count stretches that sum to k.</div></a><a class="pcard" href="sliding_window_maximum.html"><div class="n"><span class="dot" style="background:#ef4444"></span> 239 · Hard</div><div class="t">Sliding Window Maximum</div><div class="b">Rolling max over each window.</div></a><a class="pcard" href="topological_wave_scheduling.html"><div class="n"><span class="dot" style="background:#eab308"></span> DAG · Medium</div><div class="t">Topological Wave Scheduling</div><div class="b">Run a workflow in parallel waves.</div></a><a class="pcard" href="build_tree_from_flat_list.html"><div class="n"><span class="dot" style="background:#eab308"></span> Tree · Medium</div><div class="t">Build Tree from Flat List</div><div class="b">Flat {id,parent_id} rows → tree.</div></a><a class="pcard" href="lowest_common_ancestor_binary_tree.html"><div class="n"><span class="dot" style="background:#eab308"></span> 236 · Medium</div><div class="t">Lowest Common Ancestor</div><div class="b">Deepest shared parent of two nodes.</div></a><a class="pcard" href="lru_cache.html"><div class="n"><span class="dot" style="background:#eab308"></span> 146 · Medium</div><div class="t">LRU Cache</div><div class="b">O(1) cache, evict least-recently-used.</div></a><a class="pcard" href="downstream_of_a_failure.html"><div class="n"><span class="dot" style="background:#eab308"></span> BFS/DFS · Medium</div><div class="t">Downstream of a Failure</div><div class="b">Blast radius of a failed task.</div></a></div>
+<div class="card" style="margin-top:20px"><h2 style="margin-top:.2em">How this maps to the DevRev prep doc</h2><p>These cover the five ⭐ net-new items in Sections <b>4.2–4.4</b> (build-tree, LCA, topo waves, downstream-of-a-failure, LRU) plus the two <b>4.1</b> array patterns (<i>subarray sum equals k</i>, <i>sliding window maximum</i>) that Blind 75 did not include.</p><p>The runnable notebooks (worst→optimal, tests, Big-O benchmarks) live in <code>../dsa_notebooks/</code>; the diagram-driven writeup is <code>../tutorials/04_Core_DSA.md</code>.</p><p style="color:var(--muted);font-size:13px">Tip: everything works offline — just double-click any file. Press <b>▶ Play</b> or step with <b>Prev / Next</b>.</p></div>
+</div>
+</body></html>

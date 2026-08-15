@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(jupyter --version)",
+      "Bash(python -c \"import nbformat\")",
+      "Bash(python -c \"import jupyter_client\")",
+      "Bash(python -c \"import nbclient\")",
+      "Bash(pip show *)"
+    ]
+  }
+}

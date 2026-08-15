@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DevRev Technical Prep — One-Stop Plan</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --fg:#1c2230; --muted:#5b6472; --card:#ffffff; --border:#e2e6ec;
+    --accent:#3563e9; --accent-soft:#e5edff;
+    --hi:#ffe08a; --hi-bd:#e0a800; --good:#b7ecc4; --good-bd:#2f9e52;
+    --bad:#f6c9c9; --bad-bd:#d24a4a; --seen:#d7ccff; --seen-bd:#7a5cff;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.04);
+    --c1:#3563e9; --c2:#2f9e52; --c3:#7a5cff; --c4:#e0a800;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1420; --fg:#e7ebf2; --muted:#9aa4b5; --card:#171d2b; --border:#28303f;
+      --accent:#6f9bff; --accent-soft:#1c2740;
+      --hi:#6b5a1f; --hi-bd:#d8b23c; --good:#1f5133; --good-bd:#4cc178;
+      --bad:#5a2830; --bad-bd:#e07a7a; --seen:#332a63; --seen-bd:#9b83ff;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+      --c1:#6f9bff; --c2:#4cc178; --c3:#9b83ff; --c4:#d8b23c;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 18px 90px}
+  a{color:var(--accent)}
+  h1{font-size:30px;margin:.1em 0}
+  h2{font-size:22px;margin:.2em 0}
+  h3{font-size:17px;margin:0 0 6px}
+  .lead{color:var(--muted);font-size:15px;margin:.3em 0 0}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+  .pill{background:var(--accent-soft);border:1px solid var(--border);border-radius:999px;padding:4px 12px;font-size:13px}
+  .pill.ok{background:var(--good);border-color:var(--good-bd)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:20px;margin:16px 0;box-shadow:var(--shadow)}
+  .hero{background:linear-gradient(135deg,var(--accent-soft),var(--card));}
+  code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;font-size:.88em}
+  .sec{border-left:5px solid var(--accent)}
+  .sec.s1{border-left-color:var(--c1)} .sec.s2{border-left-color:var(--c2)}
+  .sec.s3{border-left-color:var(--c3)} .sec.s4{border-left-color:var(--c4)}
+  .sechead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .prio{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+  .badge{display:inline-block;border-radius:8px;padding:2px 9px;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--accent-soft)}
+  .badge.conf{background:var(--good);border-color:var(--good-bd)}
+  .badge.high{background:var(--hi);border-color:var(--hi-bd)}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+  .chip{background:var(--accent-soft);border:1px solid var(--border);border-radius:8px;padding:3px 10px;font-size:13px;color:var(--fg)}
+  .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .alink{display:inline-flex;align-items:center;gap:6px;text-decoration:none;background:var(--card);
+    border:1px solid var(--border);border-radius:10px;padding:7px 12px;font-size:14px;font-weight:600;transition:.12s;color:var(--fg)}
+  .alink:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+  .alink .em{font-size:15px}
+  .alink.prim{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .alink.prim:hover{color:#fff;opacity:.92}
+  .sub{color:var(--muted);font-size:13px;margin:4px 0 0}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin-top:6px;display:block;overflow-x:auto}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--accent-soft);font-size:13px}
+  tr td:first-child{text-align:center;font-weight:700;width:38px}
+  .prog{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 6px;margin:0 -2px}
+  .bar{height:12px;border-radius:999px;background:var(--accent-soft);border:1px solid var(--border);overflow:hidden}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--c1),var(--c2));transition:width .25s}
+  .progtxt{font-size:13px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .reset{font:inherit;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:8px;padding:3px 9px}
+  .reset:hover{border-color:var(--accent);color:var(--accent)}
+  ul.check{list-style:none;padding:0;margin:8px 0 0}
+  ul.check li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border)}
+  ul.check li:last-child{border-bottom:0}
+  ul.check input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);cursor:pointer;flex:0 0 auto}
+  ul.check label{cursor:pointer}
+  .note{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:12px 0;font-size:14px}
+  .foot{color:var(--muted);font-size:13px;margin-top:26px;text-align:center}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body><div class="wrap">
+
+<div class="card hero">
+  <h1>🎯 DevRev Technical Prep — One-Stop Plan</h1>
+  <p class="lead">Everything for the DevRev Technical Round in one place: each section of the prep doc mapped to a
+  diagram-driven tutorial, runnable code, notebooks, and interactive explainers — in the doc's own priority order.</p>
+  <div class="meta">
+    <span class="pill">👤 Sourav · Senior FDE candidate</span>
+    <span class="pill">🗂 Screening → 2 Technical → 1–2 Behavioral</span>
+    <span class="pill ok">✅ Confirmed: ≥1 round is a LeetCode-Medium on arrays</span>
+  </div>
+</div>
+
+<div class="prog">
+  <div class="bar"><i id="fill"></i></div>
+  <div class="progtxt"><span id="ptxt">0 of 0 done</span><button class="reset" id="reset">↺ reset progress</button></div>
+</div>
+
+<div class="card">
+  <h3>🧭 How to use this</h3>
+  <p class="sub" style="font-size:14px">Work <b>top-down in priority order</b> below. For each topic: read the
+  <b>📄 tutorial</b> (concepts + mermaid diagrams), skim the <b>🐍 reference code</b> / open the <b>📓 notebook</b>
+  (worst→optimal, tests, Big-O benchmarks), then <b>🖥️ play the visual explainer</b> to lock in the mechanism.
+  Tick items as you go — progress is saved in this browser. Everything works <b>offline</b>.</p>
+  <p class="sub">📓 Notebooks open in Jupyter (<code>jupyter notebook &lt;file&gt;</code>); <code>.md</code>/<code>.py</code> open as text in the browser; <code>.html</code> explainers open directly.</p>
+</div>
+
+<!-- ============ PRIORITY ORDER ============ -->
+<div class="card">
+  <div class="sechead"><h2>📋 Preparation Order</h2><span class="prio">Section 5 of the prep doc</span></div>
+  <p class="sub">Study in this order — highest interview-likelihood first. Tick each focus area as you finish it.</p>
+  <table>
+    <thead><tr><th>#</th><th>Focus area</th><th>Why it matters</th><th>Go to</th><th>Done</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><b>Array patterns</b> (sliding window, two-pointer, prefix sum, Kadane's)</td>
+        <td>Confirmed format from real DevRev reviews — highest ROI.</td>
+        <td><a href="tutorials/04_Core_DSA.md">§4.1 tutorial</a> · <a href="../DSA_Blind%2075/visualizations/index.html">Blind 75 visuals</a></td>
+        <td><input type="checkbox" class="trk" id="p1"></td></tr>
+      <tr><td>2</td><td><b>Topological sort + cycle detection</b></td>
+        <td>Matches the "workflow orchestration" language in the JD; DAG questions fit DevRev's platform.</td>
+        <td><a href="visualizations/topological_wave_scheduling.html">Wave scheduling visual</a></td>
+        <td><input type="checkbox" class="trk" id="p2"></td></tr>
+      <tr><td>3</td><td><b>Tool-calling loop, coded from scratch</b></td>
+        <td>Maps directly to DevRev's AI-native agent product surface.</td>
+        <td><a href="agent_tool_calling_demo/README.md">Agent project</a></td>
+        <td><input type="checkbox" class="trk" id="p3"></td></tr>
+      <tr><td>4</td><td><b>Pagination + retry/backoff</b></td>
+        <td>Standard senior-engineer filter question; cheap to prepare, high likelihood.</td>
+        <td><a href="tutorials/01_API_Integration.md">API Integration tutorial</a></td>
+        <td><input type="checkbox" class="trk" id="p4"></td></tr>
+      <tr><td>5</td><td><b>JSON flattening + schema drift handling</b></td>
+        <td>Quick win, commonly asked in integration-heavy interviews.</td>
+        <td><a href="tutorials/02_Data_Transformation.md">Data Transformation tutorial</a></td>
+        <td><input type="checkbox" class="trk" id="p5"></td></tr>
+      <tr><td>6</td><td><b>Hash maps</b> (LRU cache, dedup, grouping)</td>
+        <td>Rounds out DSA coverage if time permits.</td>
+        <td><a href="visualizations/lru_cache.html">LRU visual</a> · <a href="tutorials/04_Core_DSA.md">§4.3</a></td>
+        <td><input type="checkbox" class="trk" id="p6"></td></tr>
+      <tr><td>7</td><td><b>Trees / LCA</b></td>
+        <td>Lower probability but low prep cost given tree exposure from prior loops.</td>
+        <td><a href="visualizations/lowest_common_ancestor_binary_tree.html">LCA visual</a></td>
+        <td><input type="checkbox" class="trk" id="p7"></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ SECTION 1 — API ============ -->
+<div class="card sec s1">
+  <div class="sechead"><h2>1 · API Integration</h2><span class="prio">Prep priority #4</span></div>
+  <p class="sub">Pagination, retries &amp; backoff, and rate limiting — the plumbing for any integration-heavy FDE role.</p>
+  <div class="chips">
+    <span class="chip">Cursor vs offset pagination</span><span class="chip">fetch_all_pages()</span>
+    <span class="chip">Exponential backoff + jitter</span><span class="chip">Retryable vs non-retryable</span>
+    <span class="chip">Token bucket (from scratch)</span><span class="chip">Leaky vs token bucket</span>
+    <span class="chip">Shared RPM limit across workers</span><span class="chip">Idempotency / duplicate webhooks</span>
+  </div>
+  <div class="links">
+    <a class="alink prim" href="tutorials/01_API_Integration.md"><span class="em">📄</span> Tutorial (diagrams)</a>
+    <a class="alink" href="tutorials/api_integration_reference.py"><span class="em">🐍</span> Reference code (verified)</a>
+  </div>
+</div>
+
+<!-- ============ SECTION 2 — DATA TRANSFORM ============ -->
+<div class="card sec s2">
+  <div class="sechead"><h2>2 · Data Transformation</h2><span class="prio">Prep priority #5</span></div>
+  <p class="sub">Parsing and normalizing nested JSON payloads into clean, relational schemas.</p>
+  <div class="chips">
+    <span class="chip">Flatten to dot-notation keys</span><span class="chip">Nested payload → FK-linked tables</span>
+    <span class="chip">Arrays-of-objects vs primitives</span><span class="chip">Schema drift (string→object)</span>
+    <span class="chip">Missing vs null semantics</span><span class="chip">ISO-8601 date normalization</span>
+    <span class="chip">Business-key hash dedup</span><span class="chip">Validate vs target schema</span>
+  </div>
+  <div class="links">
+    <a class="alink prim" href="tutorials/02_Data_Transformation.md"><span class="em">📄</span> Tutorial (diagrams)</a>
+    <a class="alink" href="tutorials/data_transformation_reference.py"><span class="em">🐍</span> Reference code (verified)</a>
+  </div>
+</div>
+
+<!-- ============ SECTION 3 — AGENT LOOP ============ -->
+<div class="card sec s3">
+  <div class="sechead"><h2>3 · Agent Tool-Calling Loop</h2><span class="prio">Prep priority #3 · DevRev's core surface</span></div>
+  <p class="sub">The full loop: query → tool selection → call → observation → synthesis — built <b>from scratch</b> and with <b>LangGraph</b>.</p>
+  <div class="chips">
+    <span class="chip">ReAct loop + max-iteration guard</span><span class="chip">Intent → tool routing</span>
+    <span class="chip">Retry / fallback / escalate</span><span class="chip">Memoize repeated calls</span>
+    <span class="chip">Disambiguate tied tools</span><span class="chip">Confirmation gate (destructive)</span>
+    <span class="chip">State across turns</span><span class="chip">Observability / tracing</span>
+    <span class="chip">Parallel vs sequential calls</span>
+  </div>
+  <div class="links">
+    <a class="alink prim" href="tutorials/03_Agent_Tool_Calling_Loop.md"><span class="em">📄</span> Tutorial (9 diagrams)</a>
+    <a class="alink" href="agent_tool_calling_demo/README.md"><span class="em">📦</span> Project README</a>
+    <a class="alink" href="agent_tool_calling_demo/notebooks/agent_tool_calling_demo.ipynb"><span class="em">📓</span> Guided notebook</a>
+    <a class="alink" href="agent_tool_calling_demo/docs/DESIGN.md"><span class="em">📐</span> Design doc (§3.3)</a>
+  </div>
+  <p class="sub" style="margin-top:10px">Runs offline (no API key) via a deterministic rule-based brain. Source in
+  <code>agent_tool_calling_demo/src/</code> · tests in <code>tests/test_agent.py</code> · <code>requirements.txt</code> for the LangGraph setup.</p>
+  <div class="links">
+    <a class="alink" href="agent_tool_calling_demo/src/scratch_agent.py"><span class="em">🐍</span> scratch_agent.py</a>
+    <a class="alink" href="agent_tool_calling_demo/src/langgraph_agent.py"><span class="em">🐍</span> langgraph_agent.py</a>
+    <a class="alink" href="agent_tool_calling_demo/src/robustness.py"><span class="em">🐍</span> robustness.py</a>
+    <a class="alink" href="agent_tool_calling_demo/src/tools.py"><span class="em">🐍</span> tools.py</a>
+    <a class="alink" href="agent_tool_calling_demo/tests/test_agent.py"><span class="em">🧪</span> tests</a>
+  </div>
+</div>
+
+<!-- ============ SECTION 4 — CORE DSA ============ -->
+<div class="card sec s4">
+  <div class="sechead"><h2>4 · Core DSA</h2><span class="prio">Prep priorities #1, 2, 6, 7</span> <span class="badge conf">Arrays confirmed</span></div>
+  <p class="sub">Array patterns first (the confirmed format), then graph/tree/hash-map/queue patterns for workflow orchestration.</p>
+  <div class="links">
+    <a class="alink prim" href="tutorials/04_Core_DSA.md"><span class="em">📄</span> Core DSA tutorial (§4.1–4.4, 12 diagrams)</a>
+    <a class="alink" href="visualizations/index.html"><span class="em">🖥️</span> Visual explainers hub</a>
+    <a class="alink" href="visualizations/patterns.html"><span class="em">🧩</span> Patterns cheat sheet</a>
+  </div>
+
+  <div class="note">The <b>7 net-new notebooks</b> below (worst→optimal, correctness tests, empirical Big-O + log-log plot)
+  cover everything in 4.1–4.4 that <b>isn't</b> already in your Blind 75 set. Array fundamentals (Two Sum, Kadane's,
+  merge intervals, product-except-self, rotated-array search, longest substring) live in
+  <a href="../DSA_Blind%2075/visualizations/index.html">Blind 75</a> —
+  <a href="../DSA_Blind%2075/Blind75_Tracker.md">tracker</a> (75/75).</p></div>
+
+  <table>
+    <thead><tr><th>#</th><th>Topic (net-new)</th><th>DevRev tie-in</th><th>Notebook</th><th>Visual</th><th>Done</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><b>Subarray Sum Equals K</b> <span class="sub">§4.1 · prefix sum + hash map</span></td>
+        <td>Count work-windows hitting an SLA/cost target</td>
+        <td><a href="dsa_notebooks/subarray_sum_equals_k.ipynb">📓</a></td>
+        <td><a href="visualizations/subarray_sum_equals_k.html">🖥️</a></td>
+        <td><input type="checkbox" class="trk" id="d1"></td></tr>
+      <tr><td>2</td><td><b>Sliding Window Maximum</b> <span class="sub">§4.1 · monotonic deque</span></td>
+        <td>Rolling peak load / max latency on a dashboard</td>
+        <td><a href="dsa_notebooks/sliding_window_maximum.ipynb">📓</a></td>
+        <td><a href="visualizations/sliding_window_maximum.html">🖥️</a></td>
+        <td><input type="checkbox" class="trk" id="d2"></td></tr>
+      <tr><td>3</td><td><b>Topological Wave Scheduling</b> <span class="sub">§4.4 · Kahn by level</span></td>
+        <td>Run a workflow DAG as parallel-safe waves</td>
+        <td><a href="dsa_notebooks/topological_wave_scheduling.ipynb">📓</a></td>
+        <td><a href="visualizations/topological_wave_scheduling.html">🖥️</a></td>
+        <td><input type="checkbox" class="trk" id="d3"></td></tr>
+      <tr><td>4</td><td><b>Downstream of a Failure</b> <span class="sub">§4.2 · BFS/DFS reachability</span></td>
+        <td>Incident blast radius across a service graph</td>
+        <td><a href="dsa_notebooks/downstream_of_a_failure.ipynb">📓</a></td>
+        <td><a href="visualizations/downstream_of_a_failure.html">🖥️</a></td>
+        <td><input type="checkbox" class="trk" id="d4"></td></tr>
+      <tr><td>5</td><td><b>Build Tree from Flat List</b> <span class="sub">§4.2 · hash-map index</span></td>
+        <td>Sub-tickets/threads: {id, parent_id} rows → tree</td>
+        <td><a href="dsa_notebooks/build_tree_from_flat_list.ipynb">📓</a></td>
+        <td><a href="visualizations/build_tree_from_flat_list.html">🖥️</a></td>
+        <td><input type="checkbox" class="trk" id="d5"></td></tr>
+      <tr><td>6</td><td><b>Lowest Common Ancestor</b> <span class="sub">§4.2 · DFS return-up</span></td>
+        <td>Deepest shared parent of two tasks/comments</td>
+        <td><a href="dsa_notebooks/lowest_common_ancestor_binary_tree.ipynb">📓</a></td>
+        <td><a href="visualizations/lowest_common_ancestor_binary_tree.html">🖥️</a></td>
+        <td><input type="checkbox" class="trk" id="d6"></td></tr>
+      <tr><td>7</td><td><b>LRU Cache</b> <span class="sub">§4.3 · hash map + doubly linked list</span></td>
+        <td>Fixed-budget cache of task states / responses</td>
+        <td><a href="dsa_notebooks/lru_cache.ipynb">📓</a></td>
+        <td><a href="visualizations/lru_cache.html">🖥️</a></td>
+        <td><input type="checkbox" class="trk" id="d7"></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ CHECKLIST ============ -->
+<div class="grid2">
+  <div class="card">
+    <div class="sechead"><h2>✅ Before the interview</h2><span class="prio">Section 6</span></div>
+    <ul class="check">
+      <li><input type="checkbox" class="trk" id="b1"><label for="b1">Re-solve 2–3 array problems per pattern (sliding window, two-pointer, prefix sum) under time pressure.</label></li>
+      <li><input type="checkbox" class="trk" id="b2"><label for="b2">Hand-write Kahn's algorithm and a cycle-detection routine without looking it up.</label></li>
+      <li><input type="checkbox" class="trk" id="b3"><label for="b3">Code a tool-calling loop skeleton from memory (registry, dispatch, max-iteration guard).</label></li>
+      <li><input type="checkbox" class="trk" id="b4"><label for="b4">Recall the retry/backoff-with-jitter pattern — and explain <i>why jitter matters</i>.</label></li>
+      <li><input type="checkbox" class="trk" id="b5"><label for="b5">Practice explaining tradeoffs <b>out loud</b> — "needed hints" is a flagged negative signal.</label></li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="sechead"><h2>🎤 During the interview</h2><span class="prio">Section 6</span></div>
+    <ul class="check">
+      <li><input type="checkbox" class="trk" id="i1"><label for="i1">State your approach <b>and complexity</b> before coding.</label></li>
+      <li><input type="checkbox" class="trk" id="i2"><label for="i2">Narrate edge cases explicitly (empty input, single element, cycles, duplicate keys, negatives).</label></li>
+      <li><input type="checkbox" class="trk" id="i3"><label for="i3">For system-flavored questions, connect back to real experience (Databricks PS delivery, agentic AI) where natural.</label></li>
+      <li><input type="checkbox" class="trk" id="i4"><label for="i4">Reverse edge direction for upstream/root-cause; mention the visited set for cycle safety.</label></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ SOURCE DOCS ============ -->
+<div class="card">
+  <h3>📎 Source material</h3>
+  <div class="links">
+    <a class="alink" href="DevRev-Technical-Prep.pdf"><span class="em">📕</span> Prep doc (PDF)</a>
+    <a class="alink" href="DevRev-Technical-Prep.docx"><span class="em">📄</span> Prep doc (DOCX)</a>
+  </div>
+</div>
+
+<p class="foot">One-stop DevRev prep dashboard · open offline · progress saved locally in your browser.</p>
+
+</div>
+<script>
+"use strict";
+(function(){
+  var KEY = "devrev_prep_progress_v1";
+  var boxes = Array.prototype.slice.call(document.querySelectorAll("input.trk"));
+  var fill = document.getElementById("fill");
+  var ptxt = document.getElementById("ptxt");
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e){ saved = {}; }
+  boxes.forEach(function(b){ if(saved[b.id]) b.checked = true; });
+  function update(){
+    var done = boxes.filter(function(b){ return b.checked; }).length;
+    var pct = boxes.length ? Math.round(done/boxes.length*100) : 0;
+    fill.style.width = pct + "%";
+    ptxt.textContent = done + " of " + boxes.length + " done  ·  " + pct + "%";
+  }
+  function save(){
+    var o = {};
+    boxes.forEach(function(b){ if(b.checked) o[b.id] = 1; });
+    try { localStorage.setItem(KEY, JSON.stringify(o)); } catch(e){}
+  }
+  boxes.forEach(function(b){ b.addEventListener("change", function(){ save(); update(); }); });
+  document.getElementById("reset").addEventListener("click", function(){
+    boxes.forEach(function(b){ b.checked = false; });
+    try { localStorage.removeItem(KEY); } catch(e){}
+    update();
+  });
+  update();
+})();
+</script>
+</body></html>

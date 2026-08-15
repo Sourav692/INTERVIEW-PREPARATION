@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graph Patterns — Interview Cheat Sheet</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --fg:#1c2230; --muted:#5b6472; --card:#ffffff; --border:#e2e6ec;
+    --accent:#3563e9; --accent-soft:#e5edff;
+    --hi:#ffe08a; --hi-bd:#e0a800; --good:#b7ecc4; --good-bd:#2f9e52;
+    --bad:#f6c9c9; --bad-bd:#d24a4a; --seen:#d7ccff; --seen-bd:#7a5cff;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1420; --fg:#e7ebf2; --muted:#9aa4b5; --card:#171d2b; --border:#28303f;
+      --accent:#6f9bff; --accent-soft:#1c2740;
+      --hi:#6b5a1f; --hi-bd:#d8b23c; --good:#1f5133; --good-bd:#4cc178;
+      --bad:#5a2830; --bad-bd:#e07a7a; --seen:#332a63; --seen-bd:#9b83ff;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+  a{color:var(--accent)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .back{font-size:14px;text-decoration:none}
+  h1{font-size:26px;margin:.2em 0}
+  h2{font-size:20px;margin:1.5em 0 .4em}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#eab308}
+  .lead{color:var(--muted);font-size:15px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+  .idea{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:10px 0}
+  .big{font-size:17px}
+  code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;font-size:.9em}
+  .viz{overflow-x:auto;padding:8px 2px 4px}
+  .rowlabel{font-size:12px;color:var(--muted);margin:8px 0 2px}
+  .row{display:flex;gap:10px;min-width:min-content;justify-content:center}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .ptr{height:22px;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .box{width:52px;height:52px;border-radius:10px;border:2px solid var(--border);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;transition:.15s}
+  .idxlabel{font-size:11px;color:var(--muted)}
+  .box.hi{background:var(--hi);border-color:var(--hi-bd)}
+  .box.good{background:var(--good);border-color:var(--good-bd)}
+  .box.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .box.seen{background:var(--seen);border-color:var(--seen-bd)}
+  .box.dim{opacity:.35}
+  .bars{display:flex;gap:8px;align-items:flex-end;min-width:min-content;justify-content:center;padding-top:22px}
+  .barcell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .bar{width:34px;border-radius:8px 8px 0 0;background:var(--accent-soft);border:2px solid var(--border);
+    display:flex;align-items:flex-start;justify-content:center;font-size:12px;font-weight:700;padding-top:3px;color:var(--fg);transition:.15s}
+  .bar.hi{background:var(--hi);border-color:var(--hi-bd)} .bar.good{background:var(--good);border-color:var(--good-bd)}
+  .bar.dim{opacity:.35}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .badge{background:var(--accent-soft);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:14px}
+  .badge.good{background:var(--good);border-color:var(--good-bd)}
+  .badge.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .mem{margin-top:14px}
+  .mem h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;min-height:34px}
+  .chip{background:var(--seen);border:1px solid var(--seen-bd);border-radius:8px;padding:4px 10px;font-size:14px;font-weight:600}
+  .chip.look{background:var(--good);border-color:var(--good-bd)}
+  .empty{color:var(--muted);font-size:13px;font-style:italic}
+  .caption{margin:12px 0 6px;min-height:44px;font-size:15px}
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+  button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--card);
+    color:var(--fg);border-radius:9px;padding:7px 12px;transition:.12s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .counter{margin-left:auto;font-size:13px;color:var(--muted)}
+  .speed{font-size:14px;color:var(--muted);margin-top:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:6px 0 2px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .sw{width:13px;height:13px;border-radius:4px;border:2px solid}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .pcard{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.12s}
+  .pcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .pcard .n{font-size:12px;color:var(--muted)}
+  .pcard .t{font-size:17px;font-weight:700;margin:2px 0 6px}
+  .pcard .b{font-size:13px;color:var(--muted)}
+
+  .svgwrap{overflow-x:auto;padding:6px 0;text-align:center}
+  .edge{stroke:var(--border);stroke-width:2}
+  .edge.hi{stroke:var(--accent);stroke-width:3}
+  .edge.dim{opacity:.22}
+  .tnode circle{fill:var(--card);stroke:var(--border);stroke-width:2;transition:.15s}
+  .tnode text{fill:var(--fg);font-size:13px;font-weight:700}
+  .tnode.hi circle{fill:var(--hi);stroke:var(--hi-bd)}
+  .tnode.good circle{fill:var(--good);stroke:var(--good-bd)}
+  .tnode.bad circle{fill:var(--bad);stroke:var(--bad-bd)}
+  .tnode.seen circle{fill:var(--seen);stroke:var(--seen-bd)}
+  .tnode.dim{opacity:.28}
+  .grid2{display:inline-grid;gap:6px;padding:6px 0}
+  .gcell{width:44px;height:44px;border:2px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;background:var(--card);transition:.15s}
+  .gcell.hi{background:var(--hi);border-color:var(--hi-bd)} .gcell.good{background:var(--good);border-color:var(--good-bd)}
+  .gcell.seen{background:var(--seen);border-color:var(--seen-bd)} .gcell.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .gcell.dim{opacity:.35}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><a class="back" href="index.html">← All Graph problems</a></div>
+<h1>🧩 Graph Patterns — Interview Cheat Sheet</h1>
+<p class="lead">Eight problems, but only a handful of ideas. Learn to spot which one a question is asking for.</p>
+<div class="chips" style="margin:8px 0 4px"><a class="chip" href="#traverse" style="text-decoration:none">Traverse with a Visited Set (DFS / BFS)</a><a class="chip" href="#flood" style="text-decoration:none">Flood Fill on a Grid</a><a class="chip" href="#topo" style="text-decoration:none">Topological Sort (Ordering with Dependencies)</a><a class="chip" href="#uf" style="text-decoration:none">Union-Find (Group Merging)</a><a class="chip" href="#setgraph" style="text-decoration:none">A Set Can Be a Graph</a></div>
+<div class="card" id="traverse"><h2 style="margin-top:.2em">🔎 Traverse with a Visited Set (DFS / BFS)</h2><p class="big" style="margin:.2em 0">Explore a maze while chalk-marking rooms you’ve entered so you never loop.</p><div class="idea"><b>The tell (how to spot it):</b> Almost any graph task — copying, reaching, connectivity — needs a walk that won’t loop.</div><p><b>How it works:</b> Walk the graph with recursion/stack (DFS) or a queue (BFS), remembering visited nodes. DFS goes deep; BFS spreads in rings (best for fewest-steps).</p><p><b>Problems here that use it:</b> <a href="clone_graph.html">Clone Graph</a> <a href="number_of_islands.html">Number of Islands</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“I’ll traverse with DFS/BFS and a visited set so I handle each node once and don’t loop — that’s O(V+E).”</div></div><div class="card" id="flood"><h2 style="margin-top:.2em">🌊 Flood Fill on a Grid</h2><p class="big" style="margin:.2em 0">The paint-bucket tool: click a cell and the color spreads to all connected matching cells.</p><div class="idea"><b>The tell (how to spot it):</b> A <b>grid</b> where you count or spread through connected regions.</div><p><b>How it works:</b> Scan the grid; from each new region, DFS/BFS to all matching neighbors, marking them so you don’t recount. Searching backwards from borders is a powerful twist.</p><p><b>Problems here that use it:</b> <a href="number_of_islands.html">Number of Islands</a> <a href="pacific_atlantic_water_flow.html">Pacific Atlantic Water Flow</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“It’s a grid of connected regions, so I’ll flood-fill each region once — O(rows×cols).”</div></div><div class="card" id="topo"><h2 style="margin-top:.2em">🔗 Topological Sort (Ordering with Dependencies)</h2><p class="big" style="margin:.2em 0">Doing chores in an order where every prerequisite comes first.</p><div class="idea"><b>The tell (how to spot it):</b> You must <b>order</b> things under "do X before Y" rules, or detect an impossible cycle.</div><p><b>How it works:</b> Build a directed graph, count each node’s prerequisites, and repeatedly take one with none left. If some never come free, there’s a cycle.</p><p><b>Problems here that use it:</b> <a href="course_schedule.html">Course Schedule</a> <a href="alien_dictionary.html">Alien Dictionary</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“These are dependencies, so I’ll topologically sort — take zero-prerequisite nodes repeatedly; leftovers mean a cycle.”</div></div><div class="card" id="uf"><h2 style="margin-top:.2em">🧲 Union-Find (Group Merging)</h2><p class="big" style="margin:.2em 0">Merging friend circles: when two people connect, their whole circles become one.</p><div class="idea"><b>The tell (how to spot it):</b> You’re counting <b>groups</b>, or checking connectivity / cycles in an undirected graph.</div><p><b>How it works:</b> Each node starts alone. Union merges two groups; find returns a group’s leader. Joining two already-together nodes reveals a cycle.</p><p><b>Problems here that use it:</b> <a href="graph_valid_tree.html">Graph Valid Tree</a> <a href="number_of_connected_components.html">Number of Connected Components</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“I’ll use Union-Find: merge endpoints of each edge; the number of groups left is the answer, and a same-group edge is a cycle.”</div></div><div class="card" id="setgraph"><h2 style="margin-top:.2em">🧠 A Set Can Be a Graph</h2><p class="big" style="margin:.2em 0">Numbers that follow each other form invisible chains you can walk.</p><div class="idea"><b>The tell (how to spot it):</b> Items are implicitly linked (consecutive numbers, neighbors) with no explicit edges given.</div><p><b>How it works:</b> Put items in a set for O(1) lookups and ‘walk’ the implied links (e.g. from a run’s start, step to the next number).</p><p><b>Problems here that use it:</b> <a href="longest_consecutive_sequence.html">Longest Consecutive Sequence</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“The links are implicit, so I’ll use a set and only grow each chain from its start — that keeps it O(n).”</div></div><div class="card"><h2>Talking through any Graph problem</h2><p><b>1. Name the graph.</b> What are the nodes and edges? Is it directed? Is it a grid in disguise?</p><p><b>2. Look for a tell.</b> Reach / copy / connected → <i>DFS/BFS with visited</i>. Grid regions → <i>flood fill</i>. Dependencies/ordering → <i>topological sort</i>. Count groups / cycles → <i>Union-Find</i>.</p><p><b>3. Always track visited</b> so you never loop, and state the cost — most graph walks are O(V+E).</p><p><b>4. Mind the edges:</b> disconnected pieces, isolated nodes, empty graph, and cycles.</p></div></div>
+</body></html>

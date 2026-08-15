@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Array Patterns — Interview Cheat Sheet</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --fg:#1c2230; --muted:#5b6472; --card:#ffffff; --border:#e2e6ec;
+    --accent:#3563e9; --accent-soft:#e5edff;
+    --hi:#ffe08a; --hi-bd:#e0a800; --good:#b7ecc4; --good-bd:#2f9e52;
+    --bad:#f6c9c9; --bad-bd:#d24a4a; --seen:#d7ccff; --seen-bd:#7a5cff;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1420; --fg:#e7ebf2; --muted:#9aa4b5; --card:#171d2b; --border:#28303f;
+      --accent:#6f9bff; --accent-soft:#1c2740;
+      --hi:#6b5a1f; --hi-bd:#d8b23c; --good:#1f5133; --good-bd:#4cc178;
+      --bad:#5a2830; --bad-bd:#e07a7a; --seen:#332a63; --seen-bd:#9b83ff;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+  a{color:var(--accent)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .back{font-size:14px;text-decoration:none}
+  h1{font-size:26px;margin:.2em 0}
+  h2{font-size:20px;margin:1.5em 0 .4em}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#eab308}
+  .lead{color:var(--muted);font-size:15px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+  .idea{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:10px 0}
+  .big{font-size:17px}
+  code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;font-size:.9em}
+  .viz{overflow-x:auto;padding:8px 2px 4px}
+  .rowlabel{font-size:12px;color:var(--muted);margin:8px 0 2px}
+  .row{display:flex;gap:10px;min-width:min-content;justify-content:center}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .ptr{height:22px;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .box{width:52px;height:52px;border-radius:10px;border:2px solid var(--border);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;transition:.15s}
+  .idxlabel{font-size:11px;color:var(--muted)}
+  .box.hi{background:var(--hi);border-color:var(--hi-bd)}
+  .box.good{background:var(--good);border-color:var(--good-bd)}
+  .box.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .box.seen{background:var(--seen);border-color:var(--seen-bd)}
+  .box.dim{opacity:.35}
+  .bars{display:flex;gap:8px;align-items:flex-end;min-width:min-content;justify-content:center;padding-top:22px}
+  .barcell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .bar{width:34px;border-radius:8px 8px 0 0;background:var(--accent-soft);border:2px solid var(--border);
+    display:flex;align-items:flex-start;justify-content:center;font-size:12px;font-weight:700;padding-top:3px;color:var(--fg);transition:.15s}
+  .bar.hi{background:var(--hi);border-color:var(--hi-bd)} .bar.good{background:var(--good);border-color:var(--good-bd)}
+  .bar.dim{opacity:.35}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .badge{background:var(--accent-soft);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:14px}
+  .badge.good{background:var(--good);border-color:var(--good-bd)}
+  .badge.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .mem{margin-top:14px}
+  .mem h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;min-height:34px}
+  .chip{background:var(--seen);border:1px solid var(--seen-bd);border-radius:8px;padding:4px 10px;font-size:14px;font-weight:600}
+  .chip.look{background:var(--good);border-color:var(--good-bd)}
+  .empty{color:var(--muted);font-size:13px;font-style:italic}
+  .caption{margin:12px 0 6px;min-height:44px;font-size:15px}
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+  button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--card);
+    color:var(--fg);border-radius:9px;padding:7px 12px;transition:.12s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .counter{margin-left:auto;font-size:13px;color:var(--muted)}
+  .speed{font-size:14px;color:var(--muted);margin-top:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:6px 0 2px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .sw{width:13px;height:13px;border-radius:4px;border:2px solid}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .pcard{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.12s}
+  .pcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .pcard .n{font-size:12px;color:var(--muted)}
+  .pcard .t{font-size:17px;font-weight:700;margin:2px 0 6px}
+  .pcard .b{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><a class="back" href="index.html">← All Array problems</a></div>
+<h1>🧩 Array Patterns — Interview Cheat Sheet</h1>
+<p class="lead">Ten problems, but only a handful of ideas. Learn to spot which one a question is asking for.</p>
+<div class="chips" style="margin:8px 0 4px"><a class="chip" href="#mem" style="text-decoration:none">Remember What You’ve Seen (Hash Map / Set)</a><a class="chip" href="#twoptr" style="text-decoration:none">Two Fingers From Both Ends (Two Pointers)</a><a class="chip" href="#running" style="text-decoration:none">One Pass, Keep a Running Best (Kadane / Tracking)</a><a class="chip" href="#prefix" style="text-decoration:none">Build From Both Directions (Prefix / Suffix)</a><a class="chip" href="#binary" style="text-decoration:none">Halve the Search (Binary Search)</a><a class="chip" href="#sort" style="text-decoration:none">Sort First to Reveal Structure</a></div>
+<div class="card" id="mem"><h2 style="margin-top:.2em">🧠 Remember What You’ve Seen (Hash Map / Set)</h2><p class="big" style="margin:.2em 0">Like keeping a guest list at the door — you can check “have I seen this before?” instantly.</p><div class="idea"><b>The tell (how to spot it):</b> You’re searching for a <b>partner, a duplicate, or “does X exist?”</b> inside a loop.</div><p><b>How it works:</b> Walk through once. For each item, look up what you need in your memory (instant). If it’s there, done; if not, add the item and keep going. This turns a slow “check every pair” into a single pass.</p><p><b>Problems here that use it:</b> <a href="two_sum.html">Two Sum</a> <a href="contains_duplicate.html">Contains Duplicate</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“I’m searching for a match, so I’ll keep a hash set of what I’ve seen and look up the partner in one step — that makes it linear time.”</div></div><div class="card" id="twoptr"><h2 style="margin-top:.2em">👉👈 Two Fingers From Both Ends (Two Pointers)</h2><p class="big" style="margin:.2em 0">One finger at each end of a sorted row, closing in toward the middle.</p><div class="idea"><b>The tell (how to spot it):</b> The data is <b>sorted</b> (or you can sort it) and you want a <b>pair or trio</b>, or the best <b>width × height</b>.</div><p><b>How it works:</b> Start wide. Look at the two ends; based on whether their combination is too big or too small, move the finger that can only help. You cover all useful pairs in one sweep, no nested loops.</p><p><b>Problems here that use it:</b> <a href="container_with_most_water.html">Container With Most Water</a> <a href="three_sum.html">3Sum</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“Since it’s sorted, I’ll use two pointers from both ends and move the one that improves my result — that’s linear after the sort.”</div></div><div class="card" id="running"><h2 style="margin-top:.2em">🏃 One Pass, Keep a Running Best (Kadane / Tracking)</h2><p class="big" style="margin:.2em 0">Like watching a scoreboard: you don’t re-count from scratch, you just update the total as you go.</p><div class="idea"><b>The tell (how to spot it):</b> You want the <b>best run / best profit / best total</b> and each step depends only on the step before.</div><p><b>How it works:</b> Carry one or two running values as you sweep (a running total, a cheapest-so-far, a biggest-and-smallest). Update the overall best each step. Drop the running value when it stops helping.</p><p><b>Problems here that use it:</b> <a href="best_time_to_buy_and_sell_stock.html">Best Time to Buy and Sell Stock</a> <a href="maximum_subarray.html">Maximum Subarray</a> <a href="maximum_product_subarray.html">Maximum Product Subarray</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“The answer for each position only depends on the previous one, so I’ll keep a running value and the best-so-far in a single pass — linear time, no extra memory.”</div></div><div class="card" id="prefix"><h2 style="margin-top:.2em">↔️ Build From Both Directions (Prefix / Suffix)</h2><p class="big" style="margin:.2em 0">Two people fill in a form — one starts from the top, the other from the bottom — then you combine their notes.</p><div class="idea"><b>The tell (how to spot it):</b> Each answer needs <b>“everything on one side”</b> — a running sum or product to the left and/or right.</div><p><b>How it works:</b> Do one sweep left-to-right recording the running result before each spot, and one sweep right-to-left multiplying (or adding) in the rest. Combining the two directions gives each answer in constant time.</p><p><b>Problems here that use it:</b> <a href="product_of_array_except_self.html">Product of Array Except Self</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“Each result depends on everything except the current item, so I’ll precompute running products from the left and right and combine — linear time and no division.”</div></div><div class="card" id="binary"><h2 style="margin-top:.2em">✂️ Halve the Search (Binary Search)</h2><p class="big" style="margin:.2em 0">Guessing a number 1–100: guess the middle, and each guess throws away half.</p><div class="idea"><b>The tell (how to spot it):</b> The data is <b>sorted</b> (even sorted-then-rotated) and you need it <b>fast</b> (<code>O(log n)</code>).</div><p><b>How it works:</b> Look at the middle and use a simple rule — compare it to an end — to decide which half can’t hold the answer. Throw that half away and repeat. In a rotated list, first spot which half is in proper order.</p><p><b>Problems here that use it:</b> <a href="find_minimum_in_rotated_sorted_array.html">Find Minimum in Rotated Sorted Array</a> <a href="search_in_rotated_sorted_array.html">Search in Rotated Sorted Array</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“It’s sorted, so I’ll binary search — check the middle, decide which half to keep, and repeat. That’s log-n time.”</div></div><div class="card" id="sort"><h2 style="margin-top:.2em">🔣 Sort First to Reveal Structure</h2><p class="big" style="margin:.2em 0">Tidy your desk before working — once things are in order, patterns jump out.</p><div class="idea"><b>The tell (how to spot it):</b> Order would make the problem easier — duplicates sit together, or two-pointer / binary search becomes possible.</div><p><b>How it works:</b> Spend one <code>O(n log n)</code> sort up front. Afterwards, equal items are neighbors (easy to skip duplicates) and you can walk with two pointers or binary search.</p><p><b>Problems here that use it:</b> <a href="three_sum.html">3Sum</a> <a href="contains_duplicate.html">Contains Duplicate</a></p><div class="idea" style="background:var(--good);border-color:var(--good-bd)"><b>Say this in the interview:</b><br>“If I sort first, duplicates line up and I can use two pointers — the sort cost is worth the simpler, faster scan afterwards.”</div></div><div class="card"><h2>Talking through any Array problem</h2><p>A simple routine that works in interviews:</p><p><b>1. Say the brute-force first.</b> “The obvious way is to check every pair, but that’s slow (n²).” It shows you understand the problem.</p><p><b>2. Look for a tell.</b> Searching for a match → <i>remember what you’ve seen</i>. Sorted → <i>two pointers</i> or <i>binary search</i>. Best run/total → <i>running value</i>. “Everything except me” → <i>prefix/suffix</i>.</p><p><b>3. State the speed.</b> Name the time and memory of your better idea, and why it’s faster.</p><p><b>4. Think out loud and test a tiny example</b> (like the animations here) before you code.</p></div></div>
+</body></html>

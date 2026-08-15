@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linked List Cycle — Visual Explainer</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --fg:#1c2230; --muted:#5b6472; --card:#ffffff; --border:#e2e6ec;
+    --accent:#3563e9; --accent-soft:#e5edff;
+    --hi:#ffe08a; --hi-bd:#e0a800; --good:#b7ecc4; --good-bd:#2f9e52;
+    --bad:#f6c9c9; --bad-bd:#d24a4a; --seen:#d7ccff; --seen-bd:#7a5cff;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1420; --fg:#e7ebf2; --muted:#9aa4b5; --card:#171d2b; --border:#28303f;
+      --accent:#6f9bff; --accent-soft:#1c2740;
+      --hi:#6b5a1f; --hi-bd:#d8b23c; --good:#1f5133; --good-bd:#4cc178;
+      --bad:#5a2830; --bad-bd:#e07a7a; --seen:#332a63; --seen-bd:#9b83ff;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+  a{color:var(--accent)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .back{font-size:14px;text-decoration:none}
+  h1{font-size:26px;margin:.2em 0}
+  h2{font-size:20px;margin:1.5em 0 .4em}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#eab308}
+  .lead{color:var(--muted);font-size:15px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+  .idea{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:10px 0}
+  .big{font-size:17px}
+  code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;font-size:.9em}
+  .viz{overflow-x:auto;padding:8px 2px 4px}
+  .rowlabel{font-size:12px;color:var(--muted);margin:8px 0 2px}
+  .row{display:flex;gap:10px;min-width:min-content;justify-content:center}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .ptr{height:22px;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .box{width:52px;height:52px;border-radius:10px;border:2px solid var(--border);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;transition:.15s}
+  .idxlabel{font-size:11px;color:var(--muted)}
+  .box.hi{background:var(--hi);border-color:var(--hi-bd)}
+  .box.good{background:var(--good);border-color:var(--good-bd)}
+  .box.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .box.seen{background:var(--seen);border-color:var(--seen-bd)}
+  .box.dim{opacity:.35}
+  .bars{display:flex;gap:8px;align-items:flex-end;min-width:min-content;justify-content:center;padding-top:22px}
+  .barcell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .bar{width:34px;border-radius:8px 8px 0 0;background:var(--accent-soft);border:2px solid var(--border);
+    display:flex;align-items:flex-start;justify-content:center;font-size:12px;font-weight:700;padding-top:3px;color:var(--fg);transition:.15s}
+  .bar.hi{background:var(--hi);border-color:var(--hi-bd)} .bar.good{background:var(--good);border-color:var(--good-bd)}
+  .bar.dim{opacity:.35}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .badge{background:var(--accent-soft);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:14px}
+  .badge.good{background:var(--good);border-color:var(--good-bd)}
+  .badge.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .mem{margin-top:14px}
+  .mem h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;min-height:34px}
+  .chip{background:var(--seen);border:1px solid var(--seen-bd);border-radius:8px;padding:4px 10px;font-size:14px;font-weight:600}
+  .chip.look{background:var(--good);border-color:var(--good-bd)}
+  .empty{color:var(--muted);font-size:13px;font-style:italic}
+  .caption{margin:12px 0 6px;min-height:44px;font-size:15px}
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+  button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--card);
+    color:var(--fg);border-radius:9px;padding:7px 12px;transition:.12s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .counter{margin-left:auto;font-size:13px;color:var(--muted)}
+  .speed{font-size:14px;color:var(--muted);margin-top:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:6px 0 2px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .sw{width:13px;height:13px;border-radius:4px;border:2px solid}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .pcard{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.12s}
+  .pcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .pcard .n{font-size:12px;color:var(--muted)}
+  .pcard .t{font-size:17px;font-weight:700;margin:2px 0 6px}
+  .pcard .b{font-size:13px;color:var(--muted)}
+
+  .svgwrap{overflow-x:auto;padding:6px 0;text-align:center}
+  .edge{stroke:var(--border);stroke-width:2}
+  .tnode circle{fill:var(--card);stroke:var(--border);stroke-width:2;transition:.15s}
+  .tnode text{fill:var(--fg);font-size:13px;font-weight:700}
+  .tnode.hi circle{fill:var(--hi);stroke:var(--hi-bd)}
+  .tnode.good circle{fill:var(--good);stroke:var(--good-bd)}
+  .tnode.bad circle{fill:var(--bad);stroke:var(--bad-bd)}
+  .tnode.seen circle{fill:var(--seen);stroke:var(--seen-bd)}
+  .tnode.dim{opacity:.3}
+  .grid2{display:inline-grid;gap:6px;padding:6px 0}
+  .gcell{width:44px;height:44px;border:2px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;background:var(--card);transition:.15s}
+  .gcell.hi{background:var(--hi);border-color:var(--hi-bd)} .gcell.good{background:var(--good);border-color:var(--good-bd)}
+  .gcell.seen{background:var(--seen);border-color:var(--seen-bd)} .gcell.bad{background:var(--bad);border-color:var(--bad-bd)} .gcell.dim{opacity:.3}
+  .ivbar{fill:var(--accent-soft);stroke:var(--border);stroke-width:1.5}
+  .ivbar.hi{fill:var(--hi);stroke:var(--hi-bd)} .ivbar.good{fill:var(--good);stroke:var(--good-bd)}
+  .ivbar.bad{fill:var(--bad);stroke:var(--bad-bd)} .ivbar.dim{opacity:.3}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><a class="back" href="index.html">← All Linked List problems</a><span class="tag"><span class="dot" style="background:#22c55e"></span> Easy · Linked List</span></div>
+<h1>141 · Linked List Cycle</h1>
+<p class="lead">Does the list loop?</p>
+<div class="card"><h2 style="margin-top:.2em">The problem, in plain words</h2><p class="big">Does the list loop back on itself?</p><div class="idea">Two runners on a circular track always meet; on a straight one the fast one just finishes.</div><div class="legend"><span><span class="sw" style="background:var(--hi);border-color:var(--hi-bd)"></span>looking at</span><span><span class="sw" style="background:var(--seen);border-color:var(--seen-bd)"></span>remembered / kept</span><span><span class="sw" style="background:var(--good);border-color:var(--good-bd)"></span>match / answer</span><span><span class="sw" style="background:var(--bad);border-color:var(--bad-bd)"></span>ruled out</span></div></div><div class="card"><h2>The smart way — fast & slow runners</h2><div class="idea">Move <b>slow</b> one step and <b>fast</b> two steps. If the list loops, fast catches up and they land on the same node. If fast reaches the end, there’s no loop.</div><div class="viz" id="dc-viz"></div><div class="badges" id="dc-b"></div><div class="caption" id="dc-cap"></div><div class="controls" data-player="dc"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="dc-count"></span></div><p class="speed"><b>Speed:</b> one pass — <code>O(n)</code>, <code>O(1)</code> memory.</p></div><div class="card"><h2>When you'd use this</h2>See <b>"cycle / loop / find the middle"</b>? Fast & slow pointers — O(1) memory.<p><a href="patterns.html">→ See all the Linked List patterns and how to use them in an interview</a></p></div>
+</div>
+<script>
+"use strict";
+function makePlayer(name, frames, render){
+  var i=0, timer=null;
+  var controls=document.querySelector('[data-player="'+name+'"]');
+  var counter=document.getElementById(name+'-count');
+  var btn={};
+  controls.querySelectorAll('button').forEach(function(b){ btn[b.dataset.act]=b; });
+  function draw(){
+    render(frames[i], i);
+    counter.textContent='Step '+(i+1)+' / '+frames.length;
+    btn.prev.disabled=(i===0); btn.next.disabled=(i===frames.length-1);
+  }
+  function stop(){ if(timer){clearInterval(timer);timer=null;btn.play.textContent='\u25B6 Play';} }
+  function go(d){ stop(); i=Math.max(0,Math.min(frames.length-1,i+d)); draw(); }
+  btn.prev.addEventListener('click',function(){go(-1);});
+  btn.next.addEventListener('click',function(){go(1);});
+  btn.reset.addEventListener('click',function(){stop();i=0;draw();});
+  btn.play.addEventListener('click',function(){
+    if(timer){stop();return;}
+    if(i===frames.length-1){i=0;draw();}
+    btn.play.textContent='\u23F8 Pause';
+    timer=setInterval(function(){ if(i>=frames.length-1){stop();return;} i++; draw(); },1100);
+  });
+  draw();
+}
+function boxes(targetId, nums, marks, ptrs){
+  marks=marks||{}; ptrs=ptrs||{};
+  var h='<div class="row">';
+  for(var k=0;k<nums.length;k++){
+    h+='<div class="cell"><div class="ptr">'+(ptrs[k]||'')+'</div><div class="box '
+      +(marks[k]||'')+'">'+nums[k]+'</div><div class="idxlabel">'+k+'</div></div>';
+  }
+  document.getElementById(targetId).innerHTML=h+'</div>';
+}
+function bars(targetId, heights, marks, ptrs){
+  marks=marks||{}; ptrs=ptrs||{};
+  var mx=Math.max.apply(null,heights), h='<div class="bars">';
+  for(var k=0;k<heights.length;k++){
+    var px=Math.round(20+heights[k]/mx*150);
+    h+='<div class="barcell"><div class="ptr">'+(ptrs[k]||'')+'</div><div class="bar '
+      +(marks[k]||'')+'" style="height:'+px+'px">'+heights[k]+'</div><div class="idxlabel">'+k+'</div></div>';
+  }
+  document.getElementById(targetId).innerHTML=h+'</div>';
+}
+function badges(targetId, list){
+  var h='';
+  for(var k=0;k<list.length;k++) h+='<span class="badge '+(list[k].cls||'')+'">'+list[k].label+': <b>'+list[k].val+'</b></span>';
+  document.getElementById(targetId).innerHTML=h;
+}
+function chips(targetId, items){
+  if(!items.length){ document.getElementById(targetId).innerHTML='<span class="empty">(empty)</span>'; return; }
+  var h=''; for(var k=0;k<items.length;k++) h+='<span class="chip '+(items[k].cls||'')+'">'+items[k].text+'</span>';
+  document.getElementById(targetId).innerHTML=h;
+}
+
+function renderList(id, vals, marks, ptrs, cycleTo){
+  marks=marks||{}; ptrs=ptrs||{};
+  var n=vals.length, GX=76, r=18, Wd=n*GX+20, H=120, Y=64;
+  var s='<div class="svgwrap"><svg viewBox="0 0 '+Wd+' '+H+'" width="100%" style="max-width:'+Wd+'px">';
+  s+='<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--muted)"/></marker></defs>';
+  function X(i){return i*GX+40;}
+  for(var i=0;i<n-1;i++) s+='<line class="edge" x1="'+(X(i)+r)+'" y1="'+Y+'" x2="'+(X(i+1)-r)+'" y2="'+Y+'" marker-end="url(#a)"/>';
+  if(cycleTo!=null && cycleTo>=0){ var x1=X(n-1),x2=X(cycleTo);
+    s+='<path class="edge" d="M'+x1+' '+(Y+r)+' Q '+((x1+x2)/2)+' '+(Y+48)+' '+x2+' '+(Y+r)+'" fill="none" marker-end="url(#a)"/>'; }
+  for(var i=0;i<n;i++){
+    s+='<g class="tnode '+(marks[i]||'')+'"><circle cx="'+X(i)+'" cy="'+Y+'" r="'+r+'"/><text x="'+X(i)+'" y="'+(Y+5)+'" text-anchor="middle">'+vals[i]+'</text></g>';
+    if(ptrs[i]) s+='<text x="'+X(i)+'" y="'+(Y-26)+'" text-anchor="middle" fill="var(--accent)" font-size="12" font-weight="700">'+ptrs[i]+'</text>';
+  }
+  document.getElementById(id).innerHTML=s+'</svg></div>';
+}
+function renderGrid(id, board, marks){
+  marks=marks||{};
+  var s='<div class="grid2" style="grid-template-columns:repeat('+board[0].length+',auto)">';
+  for(var r=0;r<board.length;r++) for(var c=0;c<board[0].length;c++)
+    s+='<div class="gcell '+(marks[r+","+c]||'')+'">'+board[r][c]+'</div>';
+  document.getElementById(id).innerHTML=s+'</div>';
+}
+function renderIntervals(id, intervals, marks){
+  marks=marks||{};
+  var maxE=Math.max.apply(null,intervals.map(function(v){return v[1];}));
+  var minS=Math.min.apply(null,intervals.map(function(v){return v[0];}));
+  var Wd=620, unit=(Wd-60)/((maxE-minS)||1), rowH=30, H=intervals.length*rowH+16;
+  var s='<div class="svgwrap"><svg viewBox="0 0 '+Wd+' '+H+'" width="100%" style="max-width:'+Wd+'px">';
+  intervals.forEach(function(iv,i){
+    var x=30+(iv[0]-minS)*unit, w=Math.max((iv[1]-iv[0])*unit,4), y=i*rowH+6;
+    s+='<rect class="ivbar '+(marks[i]||'')+'" x="'+x+'" y="'+y+'" width="'+w+'" height="18" rx="5"/>';
+    s+='<text x="'+(x+5)+'" y="'+(y+13)+'" font-size="11" fill="var(--fg)">['+iv[0]+','+iv[1]+']</text>';
+  });
+  document.getElementById(id).innerHTML=s+'</svg></div>';
+}
+
+
+var V=[3,2,0,4], CY=1; // tail links back to index 1
+// simulate slow/fast
+var nxt=[1,2,3,CY];
+var slow=0,fast=0;
+var fr=[{cap:'slow and fast both start at the head.',s:0,f:0}];
+for(var step=0; step<8; step++){
+  slow=nxt[slow]; fast=nxt[nxt[fast]];
+  fr.push({cap:'slow \u2192 node '+V[slow]+', fast \u2192 node '+V[fast]+'.'+(slow===fast?' They met \u2014 there\u2019s a cycle!':''),s:slow,f:fast,met:slow===fast});
+  if(slow===fast) break;
+}
+makePlayer('dc',fr,function(f){
+  var m={},p={}; m[f.s]=f.met?'good':'hi'; m[f.f]=f.met?'good':'seen';
+  p[f.s]=(p[f.s]||'')+'slow'; p[f.f]=(p[f.f]?p[f.f]+' ':'')+'fast';
+  renderList('dc-viz',V,m,p,CY);
+  badges('dc-b',[{label:'status',val:f.met?'cycle found':'searching\u2026',cls:f.met?'good':''}]);
+  document.getElementById('dc-cap').innerHTML=f.cap;
+});
+</script>
+</body></html>
