@@ -1,0 +1,1537 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 3 — Error Management Design Patterns</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+  /* ============ DESIGN NOTE ============
+     "Incident Log" editorial system for a pattern-catalog reference book.
+     Palette: warm paper (#F6F1E7), near-black ink (#211D18) for body text,
+     a deep ink-blue (#2B4C6F) for "Solution" structure, a rust/amber
+     (#C4622D) for "Problem"/"Warning" states (the error-management theme),
+     and a muted forest green (#3F6B4F) for "Consequence mitigated / resolved".
+     Display face: Source Serif 4 (editorial, O'Reilly-adjacent but distinct).
+     Body/UI face: Inter. Code face: JetBrains Mono. Numbered pattern index
+     cards (P-01 style) are used because the book itself is literally a
+     numbered pattern catalog — that's structural, not decorative, here.
+  ============================================ */
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --paper: #F6F1E7;
+    --paper-raised: #FFFDF8;
+    --ink: #211D18;
+    --ink-soft: #55504A;
+    --ink-faint: #8A8378;
+    --rule: #DCD3C0;
+    --rule-strong: #C9BCA0;
+    --blue: #2B4C6F;
+    --blue-bg: #E6EDF3;
+    --blue-border: #A9C1D6;
+    --rust: #C4622D;
+    --rust-bg: #F7E9DF;
+    --rust-border: #E3AE8C;
+    --green: #3F6B4F;
+    --green-bg: #E6EEE8;
+    --green-border: #A9C7B4;
+    --amber: #A9772E;
+    --amber-bg: #F3EAD6;
+    --amber-border: #DDBE85;
+    --code-bg: #211D18;
+    --code-fg: #F1EADC;
+    --shadow: 0 1px 2px rgba(33,29,24,0.06), 0 4px 14px rgba(33,29,24,0.05);
+  }
+
+  * { box-sizing: border-box; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  a { color: var(--blue); }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Source Serif 4', serif;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  code, pre, .mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ===== Masthead ===== */
+  .masthead {
+    background: linear-gradient(180deg, #2A241B 0%, #211D18 100%);
+    color: var(--paper);
+    padding: 64px 24px 56px;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 6px solid var(--rust);
+  }
+  .masthead::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(135deg, rgba(246,241,231,0.025) 0px, rgba(246,241,231,0.025) 1px, transparent 1px, transparent 26px);
+    pointer-events: none;
+  }
+  .masthead-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #E3AE8C;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .kicker .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--rust); display: inline-block; }
+  .masthead h1 {
+    font-size: clamp(2.1rem, 5vw, 3.4rem);
+    color: var(--paper);
+    margin: 0 0 14px;
+    line-height: 1.08;
+  }
+  .masthead p.lede {
+    font-size: 1.1rem;
+    color: #D8CFC0;
+    max-width: 64ch;
+    margin: 0 0 26px;
+  }
+  .masthead .source-tag {
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    background: rgba(246,241,231,0.08);
+    border: 1px solid rgba(246,241,231,0.18);
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 6px;
+    color: #C9BCA0;
+  }
+
+  /* ===== Layout ===== */
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 24px 100px; }
+
+  .framing {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-left: 5px solid var(--ink);
+    border-radius: 8px;
+    padding: 28px 30px;
+    margin-bottom: 48px;
+    box-shadow: var(--shadow);
+  }
+  .framing h2 { margin-top: 0; font-size: 1.3rem; }
+
+  section.category {
+    margin: 56px 0 32px;
+  }
+  section.category h2 {
+    font-size: 1.6rem;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    border-bottom: 3px solid var(--rule-strong);
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+  }
+  section.category h2 .cat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--rust);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  section.category > p.intro { color: var(--ink-soft); max-width: 68ch; }
+
+  /* ===== Pattern card ===== */
+  .pattern {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    margin: 28px 0;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .pattern-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 26px;
+    background: linear-gradient(90deg, #221E19 0%, #2E2820 100%);
+    color: var(--paper);
+  }
+  .pattern-index {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    background: var(--rust);
+    color: #FFF7EF;
+    padding: 4px 9px;
+    border-radius: 5px;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+  }
+  .pattern-header h3 {
+    color: var(--paper);
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+  .pattern-body { padding: 6px 26px 26px; }
+
+  .subsec { margin-top: 26px; }
+  .subsec-label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .subsec-label .bar { width: 20px; height: 3px; border-radius: 2px; }
+  .subsec-label.problem { color: var(--rust); }
+  .subsec-label.problem .bar { background: var(--rust); }
+  .subsec-label.solution { color: var(--blue); }
+  .subsec-label.solution .bar { background: var(--blue); }
+  .subsec-label.consequences { color: var(--amber); }
+  .subsec-label.consequences .bar { background: var(--amber); }
+  .subsec-label.examples { color: var(--green); }
+  .subsec-label.examples .bar { background: var(--green); }
+
+  .subsec p { margin: 0 0 12px; }
+
+  .gotcha-item { margin-bottom: 18px; padding-left: 16px; border-left: 3px solid var(--amber-border); }
+  .gotcha-item:last-child { margin-bottom: 0; }
+  .gotcha-item .g-title { font-weight: 600; color: var(--ink); display: block; margin-bottom: 3px; }
+
+  /* ===== Callouts ===== */
+  .callout {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    border: 1px solid;
+    font-size: 0.96rem;
+  }
+  .callout .c-label { font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.95rem; }
+  .callout.note { background: var(--blue-bg); border-color: var(--blue-border); }
+  .callout.note .c-label { color: var(--blue); }
+  .callout.warning { background: var(--rust-bg); border-color: var(--rust-border); }
+  .callout.warning .c-label { color: var(--rust); }
+  .callout.case { background: var(--green-bg); border-color: var(--green-border); }
+  .callout.case .c-label { color: var(--green); }
+  .callout.say { background: var(--amber-bg); border-color: var(--amber-border); }
+  .callout.say .c-label { color: var(--amber); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout p { margin: 0 0 8px; }
+
+  /* ===== Code ===== */
+  .code-block { margin: 14px 0; border-radius: 8px; overflow: hidden; border: 1px solid #3A342A; }
+  .code-lang {
+    background: #2E2820;
+    color: #C9BCA0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 16px;
+  }
+  pre {
+    margin: 0;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+  pre code { font-family: 'JetBrains Mono', monospace; background: none; }
+
+  /* ===== Tables ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.92rem;
+    background: var(--paper-raised);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: rgba(0,0,0,0.015); }
+
+  .compare-table th:first-child, .compare-table td:first-child { font-weight: 600; color: var(--blue); }
+
+  /* ===== Diagram wrapper ===== */
+  .diagram-wrap {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 22px;
+    margin: 20px 0;
+    box-shadow: var(--shadow);
+  }
+  .diagram-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 12px;
+  }
+  .mermaid { display: flex; justify-content: center; }
+
+  /* ===== Interactive watermark widget ===== */
+  .wm-widget {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 24px;
+    margin: 20px 0;
+    box-shadow: var(--shadow);
+  }
+  .wm-widget h4 { margin: 0 0 4px; font-size: 1.05rem; }
+  .wm-widget .wm-sub { color: var(--ink-soft); font-size: 0.88rem; margin-bottom: 18px; }
+  .wm-controls { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+  .wm-controls label { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--ink-soft); display: flex; flex-direction: column; gap: 6px; }
+  .wm-controls input[type=range] { width: 180px; accent-color: var(--blue); }
+  .wm-track {
+    position: relative;
+    height: 90px;
+    background: repeating-linear-gradient(90deg, var(--rule) 0 1px, transparent 1px 60px);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: visible;
+  }
+  .wm-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--blue);
+    transition: left 0.25s ease;
+  }
+  .wm-line::after {
+    content: 'watermark';
+    position: absolute;
+    top: -20px;
+    left: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--blue);
+    white-space: nowrap;
+  }
+  .wm-event {
+    position: absolute;
+    bottom: 10px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    font-weight: 600;
+    transform: translateX(-50%);
+    transition: left 0.25s ease, background 0.2s ease;
+    cursor: default;
+    border: 2px solid;
+  }
+  .wm-event.ontime { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .wm-event.late { background: var(--rust-bg); border-color: var(--rust); color: var(--rust); }
+  .wm-legend { display: flex; gap: 20px; font-size: 0.82rem; color: var(--ink-soft); flex-wrap: wrap; }
+  .wm-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .wm-swatch { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 2px solid; }
+
+  /* ===== Cheat sheet ===== */
+  .cheatsheet {
+    margin-top: 64px;
+    background: linear-gradient(180deg, #221E19 0%, #2E2820 100%);
+    border-radius: 14px;
+    padding: 36px 30px 40px;
+    color: var(--paper);
+  }
+  .cheatsheet-head { text-align: center; margin-bottom: 28px; }
+  .cheatsheet-head .kicker { justify-content: center; color: #E3AE8C; }
+  .cheatsheet-head h2 { color: var(--paper); font-size: 1.9rem; margin: 8px 0 6px; }
+  .cheatsheet-head p { color: #C9BCA0; margin: 0; font-size: 0.95rem; }
+
+  .cheat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .cheat-card {
+    background: rgba(246,241,231,0.05);
+    border: 1px solid rgba(246,241,231,0.14);
+    border-radius: 10px;
+    padding: 18px 18px 16px;
+  }
+  .cheat-card h4 {
+    color: var(--paper);
+    font-size: 1.02rem;
+    margin: 0 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(246,241,231,0.16);
+  }
+  .cheat-row { margin-bottom: 8px; font-size: 0.86rem; }
+  .cheat-row .cl { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: #DDBE85; display: block; margin-bottom: 2px; }
+  .cheat-row .cv { color: #E9E2D3; }
+  .cheat-row.gotcha .cl { color: #E3AE8C; }
+  .cheat-row.gotcha .cv { color: #F0D9C9; }
+
+  /* ===== Further reading ===== */
+  .further {
+    margin-top: 40px;
+    padding: 22px 26px;
+    border: 1px dashed var(--rule-strong);
+    border-radius: 10px;
+    background: rgba(0,0,0,0.015);
+  }
+  .further h3 { margin-top: 0; font-size: 1.05rem; }
+  .further ul { margin: 0; padding-left: 20px; }
+  .further li { margin-bottom: 6px; color: var(--ink-soft); }
+
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 20px 0 0;
+  }
+  .toc a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    text-decoration: none;
+    background: rgba(246,241,231,0.08);
+    border: 1px solid rgba(246,241,231,0.2);
+    color: #D8CFC0;
+    padding: 6px 12px;
+    border-radius: 20px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .toc a:hover, .toc a:focus-visible { background: var(--rust); color: #FFF7EF; border-color: var(--rust); }
+
+  footer {
+    text-align: center;
+    padding: 32px 24px 60px;
+    color: var(--ink-faint);
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 640px) {
+    .masthead { padding: 44px 18px 40px; }
+    .wrap { padding: 32px 16px 70px; }
+    .pattern-header { padding: 16px 18px; flex-wrap: wrap; }
+    .pattern-body { padding: 4px 18px 20px; }
+    table { font-size: 0.82rem; }
+    th, td { padding: 8px 9px; }
+    .wm-controls input[type=range] { width: 130px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker"><span class="dot"></span>Data Engineering Design Patterns — Chapter 3</div>
+    <h1>Error Management Design Patterns</h1>
+    <p class="lede">Nothing is certain except errors and data quality issues. Seven patterns for
+    handling unprocessable records, duplicates, late data, filter regressions, and streaming
+    fault tolerance — with the exact trade-offs the book won't let you forget.</p>
+    <span class="source-tag">Source: <em>Data Engineering Design Patterns</em>, Bartosz Konieczny (O'Reilly, 2025)</span>
+    <nav class="toc">
+      <a href="#dead-letter">Dead-Letter</a>
+      <a href="#windowed-deduplicator">Windowed Deduplicator</a>
+      <a href="#late-data-detector">Late Data Detector</a>
+      <a href="#static-integrator">Static Integrator</a>
+      <a href="#dynamic-integrator">Dynamic Integrator</a>
+      <a href="#filter-interceptor">Filter Interceptor</a>
+      <a href="#checkpointer">Checkpointer</a>
+      <a href="#cheatsheet">Cheat Sheet</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="framing">
+    <h2>Chapter Framing</h2>
+    <p>Error management is the pipeline stage right after data ingestion (Chapter 2). Once data
+    flows into your system, you inherit every upstream problem: unreliable networks causing late
+    delivery, retries causing duplicates, and plain bad records breaking your logic outright. This
+    chapter groups patterns into four problem areas — unprocessable records, duplicated records,
+    late data, and filtering errors — plus a fifth on fault tolerance for long-running streaming
+    jobs.</p>
+    <div class="callout note">
+      <div class="c-label">📌 Note</div>
+      <p>Error management does <strong>not</strong> guarantee perfectly valid data. It gives you the
+      <em>feeling</em> of exactly-once delivery — true exactly-once semantics require the
+      Idempotency patterns in Chapter 4.</p>
+    </div>
+  </div>
+
+  <!-- ================= UNPROCESSABLE RECORDS ================= -->
+  <section class="category">
+    <h2><span class="cat-label">01 — Data Quality</span> Unprocessable Records</h2>
+    <p class="intro">Bad records often cause fatal failures that stop the job entirely — a
+    fail-fast approach that's unworkable for long-running streaming jobs.</p>
+    <div class="callout note">
+      <div class="c-label">📌 Note — Transient vs. nontransient errors</div>
+      <p><strong>Transient errors</strong> are temporary and recover automatically (e.g., brief DB
+      unavailability fixed by connection retries). <strong>Nontransient errors</strong> never
+      self-recover — unprocessable "poison pill" records are the classic case, requiring manual
+      intervention.</p>
+    </div>
+  </section>
+
+  <article class="pattern" id="dead-letter">
+    <div class="pattern-header">
+      <span class="pattern-index">P·01</span>
+      <h3>Dead-Letter</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsec">
+        <div class="subsec-label problem"><span class="bar"></span>Problem</div>
+        <p>A stream processing job writes visit events from a Kafka topic to an object store. Data
+        producers started generating unprocessable records, and the job began failing. For
+        <strong>three consecutive days</strong>, the fix was manual: relaunching the job and
+        altering processed offsets in checkpoint files. Not sustainable.</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label solution"><span class="bar"></span>Solution</div>
+        <p>Identify likely fail spots in the code and wrap them with a safety control — a
+        <strong>try-catch block</strong> for mapping functions, an <strong>if-else</strong> for
+        error-safe transformations. Attach the failed message as metadata for post-analysis, then
+        route erroneous events to a <strong>different destination</strong>.</p>
+        <p>When choosing that destination, weigh: <strong>resiliency</strong> (don't need a
+        dead-letter strategy for your dead-letter store), <strong>monitoring ease</strong> (know
+        when/how much you're dropping), and <strong>writing performance</strong> (extra writes
+        cost job time). Optionally close the loop with a <strong>replay pipeline</strong> that
+        re-ingests fixed records — skip this if you don't care about past data.</p>
+      </div>
+
+      <div class="diagram-wrap">
+        <div class="diagram-title">Figure — Dead-Letter architecture &amp; the snowball backfilling effect</div>
+        <div class="mermaid">
+flowchart LR
+    Src[("Kafka Topic\nvisit events")] --> Job["Stream Job\ntry-catch guard"]
+    Job -->|valid| Main[("Main Output")]
+    Job -->|failed| DL[("Dead-Letter Store\n+ failure metadata")]
+    DL --> Mon["Monitoring\nvolume + rate"]
+    DL -.optional.-> Replay["Replay Pipeline"]
+    Replay -.re-ingests.-> Main
+    Main --> C1["Consumer A"]
+    Replay -. triggers backfill .-> C1
+    C1 --> C2["Consumer B"]
+    C1 -. cascades .-> C2
+        </div>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label consequences"><span class="bar"></span>Consequences</div>
+        <div class="gotcha-item">
+          <span class="g-title">Snowball backfilling effect</span>
+          Replaying dead-lettered records via the replay pipeline can hit partitions consumers
+          already processed, forcing their own backfill — which can cascade further downstream.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Ordering and consistency</span>
+          Replaying a failed delivery out of order breaks ordering. Example: 10:00, 10:01, 10:02 —
+          if the middle record fails and gets replayed last, the store returns 10:00, 10:02, 10:01.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Implementation for error-safe functions</span>
+          Error-safe functions return <code>NULL</code> instead of throwing. You must compare
+          output to input instead of catching exceptions — and each function's error-safety
+          semantics differ, making this harder.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Hidden errors</span>
+          Keeping the job alive hides errors — potentially masking a fatal failure that should
+          stop the pipeline. Pair with an alerting layer that can still hard-stop on excessive
+          drops.
+        </div>
+      </div>
+
+      <div class="callout case">
+        <div class="c-label">🧩 Case Study</div>
+        <p>The book's running example: a stream job writing Kafka visit events to an object store,
+        failing repeatedly on unprocessable records until Dead-Letter is applied.</p>
+      </div>
+
+      <div class="callout say">
+        <div class="c-label">✅ Say this out loud</div>
+        <p>"Dead-Letter keeps my pipeline running through bad records, but it trades that
+        resilience for hidden-error risk and a potential snowball backfilling effect on
+        consumers — so I pair it with dead-letter volume monitoring and an alerting threshold
+        that can still stop the job if things go systemically wrong."</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label examples"><span class="bar"></span>Examples</div>
+        <p>Apache Flink — dead-lettering via <em>side outputs</em>:</p>
+        <div class="code-block">
+          <div class="code-lang">python</div>
+<pre><code># source omitted for brevity
+invalid_data_output: OutputTag = OutputTag('invalid_visits', Types.STRING())
+visits: DataStream = data_source.map(MapJsonToReducedVisit(invalid_data_output),
+Types.STRING())</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-lang">python</div>
+<pre><code># MapJsonToReducedVisit snippet w/ reference to the side output
+def map_rows(self, json_payload: str) -> str:
+    try:
+        evt = json.loads(json_payload)
+        evt_time = int(datetime.datetime.fromisoformat(evt['event_time']).timestamp())
+        # ... processing continues
+    except Exception as e:
+        # write to side output (dead-letter path)
+        ...</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-lang">python</div>
+<pre><code>watermark_strategy = (WatermarkStrategy
+    .for_bounded_out_of_orderness(Duration.of_seconds(5))
+    .with_timestamp_assigner(VisitTimestampAssigner()))
+data_source = env.from_source(source=kafka_source,
+    watermark_strategy=watermark_strategy, source_name="Kafka Source"
+    ).uid("Kafka Source").assign_timestamps_and_watermarks(watermark_strategy)
+late_data_output: OutputTag = OutputTag('late_events', Types.STRING())
+visits: DataStream = (data_source.map(map_json_to_visit)
+    .process(VisitLateDataProcessor(late_data_output), Types.STRING()))
+kafka_sink_valid_data: KafkaSink = ...
+kafka_sink_late_visits: KafkaSink = ...
+visits.get_side_output(late_data_output).sink_to(kafka_sink_late_visits)
+visits.sink_to(kafka_sink_valid_data)</code></pre>
+        </div>
+        <p>Error-safe transformation (batch) — writing valid and dead-lettered records separately:</p>
+        <div class="code-block">
+          <div class="code-lang">python</div>
+<pre><code>devices_to_load_with_validity_flag.persist()
+(devices_to_load_with_validity_flag.filter('is_valid IS TRUE')
+    .drop('is_valid').write.mode('overwrite')
+    .format('delta').save(f'{base_dir}/output/devices-table'))
+(devices_to_load_with_validity_flag.filter('is_valid IS FALSE')
+    .drop('is_valid').write.mode('overwrite')
+    .format('delta').save(f'{base_dir}/output/devices-dead-letter-table'))</code></pre>
+        </div>
+        <div class="callout warning">
+          <div class="c-label">⚠️ Warning</div>
+          <p>Implementing Dead-Letter without explicit failures in declarative languages like SQL
+          is challenging — you end up with verbose, hard-to-maintain queries.</p>
+        </div>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ================= DUPLICATED RECORDS ================= -->
+  <section class="category">
+    <h2><span class="cat-label">02 — Delivery Semantics</span> Duplicated Records</h2>
+    <p class="intro">Exactly-once delivery is rare in distributed systems — at-least-once is far
+    more common. If your logic must process each occurrence only once, you need deduplication.</p>
+  </section>
+
+  <article class="pattern" id="windowed-deduplicator">
+    <div class="pattern-header">
+      <span class="pattern-index">P·02</span>
+      <h3>Windowed Deduplicator</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsec">
+        <div class="subsec-label problem"><span class="bar"></span>Problem</div>
+        <p>A batch job processes visit events synchronized from a streaming layer, exposed
+        directly to business users. It must guarantee <strong>exactly-once processing</strong>
+        per distinct record — but the streaming layer frequently duplicates events via automatic
+        producer retries.</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label solution"><span class="bar"></span>Solution</div>
+        <p>Identify deduplication attributes that guarantee uniqueness, then define the
+        deduplication scope. For <strong>batch</strong>, that's usually the current dataset
+        (extending to past data costs more compute). For <strong>streaming</strong>, which is
+        unbounded, the pattern simulates "completed datasets" via <strong>time-based windows</strong>,
+        retaining seen keys in a <strong>state store</strong> for the window's duration.</p>
+        <div class="callout note">
+          <div class="c-label">📌 Note — Windows in batch</div>
+          <p>Batch has no explicit window API — it relies on an implicit global window over the
+          whole dataset. The pattern name reflects dataset framing, not a literal windowing call.</p>
+        </div>
+        <p>Batch dedup uses <code>DISTINCT</code> or a <code>WINDOW</code> function with
+        <code>row_number()</code>. Streaming must query the state store per record.</p>
+        <div class="callout note">
+          <div class="c-label">📌 Note — Three types of state store</div>
+          <p><strong>Local</strong> (memory only, fastest, loses state on failure) ·
+          <strong>Local with fault tolerance</strong> (memory + remote persistence — trades speed
+          for consistency depending on persistence frequency) · <strong>Remote</strong> (naturally
+          fault tolerant, but can hurt latency/cost).</p>
+        </div>
+      </div>
+
+      <div class="diagram-wrap">
+        <div class="diagram-title">Figure — Windowed Deduplicator (streaming) state store interaction</div>
+        <div class="mermaid">
+sequenceDiagram
+    participant Kafka as Kafka Topic
+    participant Job as Streaming Job
+    participant State as State Store
+    participant Out as Output Store
+
+    Kafka->>Job: record (visit_id, visit_time)
+    Job->>State: has key been seen in window?
+    alt key not seen
+        State-->>Job: no
+        Job->>State: record key (TTL = window)
+        Job->>Out: write record
+    else key already seen
+        State-->>Job: yes (duplicate)
+        Job->>Job: drop record
+    end
+        </div>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label consequences"><span class="bar"></span>Consequences</div>
+        <div class="gotcha-item">
+          <span class="g-title">Space vs. time trade-off</span>
+          Streaming dedup only looks within a time window. Short windows miss dupes but save
+          resources; long windows catch more but need more state-store capacity.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Idempotent producer — not enough for exactly-once delivery</span>
+          Correct deduplication ≠ exactly-once delivery. Transient-error retries can still
+          reprocess already-successful writes. Pair with a Chapter 4 idempotency pattern.
+        </div>
+      </div>
+
+      <div class="callout say">
+        <div class="c-label">✅ Say this out loud</div>
+        <p>"Windowed Deduplicator gives me exactly-once <em>processing</em> within a bounded
+        window, not exactly-once <em>delivery</em> — for the latter I pair it with an idempotency
+        pattern, since dedup and idempotency solve different parts of the duplication problem."</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label examples"><span class="bar"></span>Examples</div>
+        <p>Batch — Apache Spark <code>dropDuplicates</code>:</p>
+        <div class="code-block"><div class="code-lang">python</div>
+<pre><code>dataset = (session.read.schema('...').format('json').load(f'{base_dir}/input'))
+deduplicated = dataset.dropDuplicates(['type', 'full_name', 'version'])</code></pre></div>
+        <p>Batch — plain SQL with <code>WINDOW</code>:</p>
+        <div class="code-block"><div class="code-lang">sql</div>
+<pre><code>SELECT type, full_name, version FROM (
+    SELECT type, full_name, version,
+        ROW_NUMBER() OVER (PARTITION BY type, full_name, version ORDER BY 1) AS position
+    FROM duplicated_devices
+) WHERE position = 1</code></pre></div>
+        <p>Streaming — Apache Spark Structured Streaming:</p>
+        <div class="code-block"><div class="code-lang">python</div>
+<pre><code>event_schema = StructType([StructField("visit_id", StringType()),
+    StructField("visit_time", TimestampType())])
+deduplicated_visits = (input
+    .select(F.from_json("value", event_schema).alias("value_struct"), "value")
+    .select("value_struct.visit_time", "value_struct.visit_id", "value")
+    .withWatermark("visit_time", "10 minutes")
+    .dropDuplicates(["visit_id", "visit_time"])
+    .drop("visit_time", "visit_id"))</code></pre></div>
+        <div class="callout note">
+          <div class="c-label">📌 Note</div>
+          <p>The watermark here does double duty: it defines the late-data boundary <em>and</em>
+          controls how long the job remembers a key, so state doesn't grow indefinitely.</p>
+        </div>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ================= LATE DATA ================= -->
+  <section class="category">
+    <h2><span class="cat-label">03 — Time &amp; Arrival</span> Late Data</h2>
+    <p class="intro">Late data sounds innocent but has serious pipeline impact — three patterns
+    handle detecting it and, if valuable, folding it back in.</p>
+  </section>
+
+  <article class="pattern" id="late-data-detector">
+    <div class="pattern-header">
+      <span class="pattern-index">P·03</span>
+      <h3>Late Data Detector</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsec">
+        <div class="subsec-label problem"><span class="bar"></span>Problem</div>
+        <p>Blog visitors normally generate visit events within 15 seconds — but when users lose
+        connectivity, they buffer visits locally and flush them once reconnected. The pipeline
+        needs to detect these late events to apply a per-use-case strategy (e.g., ignore them).</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label solution"><span class="bar"></span>Solution</div>
+        <p>Define a time-based attribute for lateness (the <strong>event time</strong>, vs.
+        <strong>processing time</strong> which is never late). Aggregate it per-partition using a
+        <strong>monotonically increasing</strong> strategy — <strong>MAX</strong> is standard;
+        <strong>MIN</strong> risks a stuck-in-the-past situation. Then aggregate across all
+        partitions using MIN (follow the slowest source, buffer more), MAX (follow the fastest,
+        risk skipping slow sources), or a combination. Finally subtract an
+        <strong>allowed lateness</strong> value: <code>watermark = MAX(event time) − allowed lateness</code>.</p>
+      </div>
+
+      <div class="wm-widget">
+        <h4>Interactive: Watermark &amp; Late Record Detection</h4>
+        <div class="wm-sub">Drag the allowed-lateness slider — events left of the watermark line turn red (late).</div>
+        <div class="wm-controls">
+          <label>Allowed lateness (min)
+            <input type="range" id="latenessSlider" min="0" max="40" value="30" step="5">
+            <span id="latenessVal" class="mono">30 min</span>
+          </label>
+        </div>
+        <div class="wm-track" id="wmTrack">
+          <div class="wm-line" id="wmLine"></div>
+        </div>
+        <div class="wm-legend">
+          <span><span class="wm-swatch" style="background:var(--green-bg);border-color:var(--green)"></span>On time (≥ watermark)</span>
+          <span><span class="wm-swatch" style="background:var(--rust-bg);border-color:var(--rust)"></span>Late (&lt; watermark)</span>
+        </div>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label consequences"><span class="bar"></span>Consequences</div>
+        <div class="gotcha-item">
+          <span class="g-title">Late data capture support varies</span>
+          Spark Structured Streaming detects/ignores late events but doesn't expose a capture API;
+          Flink supports both detecting and capturing.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">MIN strategy, stuck-in-the-past, and stateful jobs</span>
+          MIN-based tracking risks an <strong>open-close-open infinite loop</strong> (reopening
+          already-emitted "completed" states when the watermark moves back) or, worse, getting
+          <strong>stuck in the past</strong> permanently if late data keeps arriving.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Max strategy and event skew</span>
+          MAX can be too aggressive under skew — e.g., 4 of 5 sources delayed 40 minutes means
+          their records get dropped as late. No silver bullet; mitigate with monitoring and the
+          Late Data Integrator patterns.
+        </div>
+      </div>
+
+      <div class="diagram-wrap">
+        <div class="diagram-title">Figure — Watermark progression &amp; late record routing</div>
+        <div class="mermaid">
+flowchart TD
+    A["Incoming events per partition"] --> B["Per-partition MAX\n(monotonic)"]
+    B --> C["Cross-partition MIN/MAX/combined"]
+    C --> D["watermark = MAX(event time) minus allowed lateness"]
+    D --> E{"event time >= watermark?"}
+    E -->|yes: on time| F["Accept into pipeline"]
+    E -->|no: late| G["Late Data Detector fires"]
+    G --> H{"Is late data valuable?"}
+    H -->|no| I["Ignore"]
+    H -->|yes| J["Late Data Integrator"]
+        </div>
+      </div>
+
+      <div class="callout say">
+        <div class="c-label">✅ Say this out loud</div>
+        <p>"I use MAX for per-partition event-time tracking to guarantee monotonicity and avoid a
+        stuck-in-the-past situation, but under high event skew, MAX can aggressively drop records
+        from lagging sources — so I pair it with late-event monitoring rather than trusting the
+        watermark blindly."</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label examples"><span class="bar"></span>Examples</div>
+        <p>Apache Spark Structured Streaming — <code>withWatermark</code>:</p>
+        <div class="code-block"><div class="code-lang">python</div>
+<pre><code>visits_events = (input_data.selectExpr('CAST(value AS STRING)')
+    .select(F.from_json('value', 'visit_id INT, event_time TIMESTAMP, page STRING')
+    .alias('visit')).selectExpr('visit.*'))
+session_window: DataFrame = (visits_events
+    .withWatermark('event_time', '1 hour')
+    .groupBy(F.window(F.col('event_time'), '10 minutes')).count())</code></pre></div>
+        <p>Apache Flink — bounded-out-of-orderness with a side output for captured late events (see
+        Dead-Letter example above for the full snippet).</p>
+      </div>
+
+    </div>
+  </article>
+
+  <article class="pattern" id="static-integrator">
+    <div class="pattern-header">
+      <span class="pattern-index">P·04</span>
+      <h3>Static Late Data Integrator</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsec">
+        <div class="subsec-label problem"><span class="bar"></span>Problem</div>
+        <p>A daily job generates blog-referral statistics, "approximate" for <strong>15
+        days</strong> — the maximum allowed late-data delay. Records older than that are skipped.
+        The team wants late data folded into the daily pipeline <strong>without running 15
+        individual jobs separately each day</strong>.</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label solution"><span class="bar"></span>Solution</div>
+        <p>Use a <strong>fixed lookback window</strong>: replay the last N days as part of every
+        run so late data folds back in automatically.</p>
+        <div class="callout note">
+          <div class="c-label">📌 Note — Easy solution for you, not for others</div>
+          <p>Switching to processing-time partitions is the easy fix — but if event time matters
+          anywhere downstream, this just relocates the problem (e.g., a 9:00 processing-time
+          partition might silently be 80% 9:00 data, 10% 8:00, 10% 7:00 data).</p>
+        </div>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label consequences"><span class="bar"></span>Consequences</div>
+        <div class="gotcha-item">
+          <span class="g-title">Snowball backfilling effect</span>
+          Same risk as Dead-Letter — consistency-conscious consumers must replay affected
+          partitions, which can cascade further downstream.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Overlapping executions and backfilling</span>
+          Naively replaying multiple executions with a static window creates overlap. With a
+          4-day window, replaying 2024-10-10 through 2024-10-12 individually reprocesses
+          overlapping date ranges — only the <em>last</em> execution needs replaying.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Pipeline trigger</span>
+          Backfill tasks must live inside the main pipeline — separate pipelines reintroduce the
+          overlapping-execution problem.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Waste of resources</span>
+          Fixed lookback periods don't always contain late data. Gate with a control task, or
+          switch to the Dynamic variant.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Time requirement</span>
+          No time-partitioning concept means no ability to detect or integrate late data at all
+          with this pattern.
+        </div>
+      </div>
+
+      <div class="callout case">
+        <div class="c-label">🧩 Case Study</div>
+        <p>A daily job generating blog-referral statistics, treated as "approximate" for 15 days —
+        the book's concrete anchor for this pattern.</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label examples"><span class="bar"></span>Examples</div>
+        <p>Apache Airflow — Dynamic Task Mapping generates one backfill task per lookback day:</p>
+        <div class="code-block"><div class="code-lang">python</div>
+<pre><code>@task
+def generate_backfilling_runs():
+    dr: DagRun = get_current_context()['dag_run']
+    backfilling_dates = []
+    days_to_backfill = 2
+    start_date_to_backfill = (dr.execution_date
+        - datetime.timedelta(days=days_to_backfill))
+    for days_to_add in range(0, days_to_backfill):
+        date_to_backfill = start_date_to_backfill + datetime.timedelta(days=days_to_add)
+        backfilling_dates.append(date_to_backfill.date().strftime('%Y-%m-%d'))
+    return backfilling_dates
+
+@task
+def integrate_late_data(late_date: str):
+    copy_file(late_date)
+    # ....
+
+integrate_late_data.expand(late_date=generate_backfilling_runs())</code></pre></div>
+      </div>
+
+    </div>
+  </article>
+
+  <article class="pattern" id="dynamic-integrator">
+    <div class="pattern-header">
+      <span class="pattern-index">P·05</span>
+      <h3>Dynamic Late Data Integrator</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsec">
+        <div class="subsec-label problem"><span class="bar"></span>Problem</div>
+        <p>The Static Integrator's 15-day window isn't enough anymore — the product owner wants
+        <strong>all</strong> late data included, even beyond 15 days, without blindly replaying a
+        fixed two-week window.</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label solution"><span class="bar"></span>Solution</div>
+        <p>Use a <strong>dynamic lookback window</strong> driven by a <strong>state table</strong>
+        tracking, per partition, the last processed time and last update time:</p>
+        <table>
+          <thead><tr><th>Partition</th><th>Last processed time</th><th>Last update time</th></tr></thead>
+          <tbody>
+            <tr><td>2024-12-17</td><td>2024-12-17T10:20</td><td>2024-12-17T03:00</td></tr>
+            <tr><td>2024-12-18</td><td>2024-12-18T09:55</td><td>2024-12-20T10:12</td></tr>
+          </tbody>
+        </table>
+        <div class="code-block"><div class="code-lang">sql</div>
+<pre><code>SELECT partition FROM state_table WHERE
+`Last update time` > `Last processed time` AND `Partition` < `Processed partition`</code></pre></div>
+        <p>Some stores expose per-partition update metadata natively (BigQuery's
+        <code>INFORMATION_SCHEMA.PARTITIONS</code>, Iceberg's <code>last_updated_at</code>) — else
+        you generate it yourself.</p>
+        <div class="callout note">
+          <div class="c-label">📌 Note — Not whole partitions</div>
+          <p>If you can isolate the entities impacted by late data, overwrite just those entities
+          instead of full partitions — better resource use, more implementation complexity.</p>
+        </div>
+      </div>
+
+      <div class="diagram-wrap">
+        <div class="diagram-title">Figure — Static vs. Dynamic Late Data Integrator flow</div>
+        <div class="mermaid">
+flowchart TD
+    subgraph Static["Static Late Data Integrator"]
+        S1["Run today's job"] --> S2["Always replay fixed\nN-day lookback"]
+        S2 --> S3["Backfill regardless of\nwhether late data exists"]
+    end
+    subgraph Dynamic["Dynamic Late Data Integrator"]
+        D1["Run today's job"] --> D2["Query state table"]
+        D2 --> D3{"Late data found?"}
+        D3 -->|yes| D4["Backfill only affected\npartitions"]
+        D3 -->|no| D5["Skip — no wasted backfill"]
+    end
+        </div>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label consequences"><span class="bar"></span>Consequences</div>
+        <div class="gotcha-item">
+          <span class="g-title">Concurrency</span>
+          Concurrent runs can double-trigger backfills for the same partition. Mitigation: add an
+          <code>Is processed</code> flag, filter on it, and gate steps on the previous run's
+          success.
+          <div class="code-block" style="margin-top:10px;"><div class="code-lang">sql</div>
+<pre><code>SELECT partition FROM state_table WHERE
+`Last update time` > `Last processed time` AND
+`Partition` < `Processed partition` AND
+`Is processed` = false</code></pre></div>
+          <div class="callout warning" style="margin-top:10px;">
+            <div class="c-label">⚠️ Warning</div>
+            <p>If the partition-generating task fails, its dependency on the previous run means
+            future executions won't run either — the pipeline gets stuck in-progress, requiring
+            manual intervention.</p>
+          </div>
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Stateful pipelines and very late data</span>
+          For stateful pipelines (e.g., Incremental Sessionizer), extremely late data can force
+          regenerating a long chain of past executions for correctness — the dynamic window alone
+          doesn't prevent heavy backfills on very late records.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Scheduling complexity</span>
+          Coordinating state-table updates, task generation, and concurrency-safe flags adds real
+          complexity versus the static approach.
+        </div>
+      </div>
+
+      <div class="callout say">
+        <div class="c-label">✅ Say this out loud</div>
+        <p>"Static Late Data Integrator trades simplicity for wasted resources and a fixed
+        lookback ceiling; Dynamic fixes both by tracking real arrival in a state table, at the
+        cost of scheduling complexity and a concurrency hazard I have to explicitly guard with an
+        'is processed' flag."</p>
+      </div>
+
+    </div>
+  </article>
+
+  <section class="category">
+    <h2><span class="cat-label">Comparison</span> Static vs. Dynamic Late Data Integrator</h2>
+    <table class="compare-table">
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Static Late Data Integrator</td>
+          <td>Late data has a known, fixed maximum delay (e.g., "arrives within 15 days")</td>
+          <td>Simple to reason about, but wastes resources on empty backfills, risks
+          overlapping-execution bugs, and can't handle late data beyond the fixed window</td>
+        </tr>
+        <tr>
+          <td>Dynamic Late Data Integrator</td>
+          <td>Late-data timing is unpredictable or exceeds any reasonable fixed window</td>
+          <td>Only backfills partitions that truly changed, but adds a state table, scheduling
+          complexity, and a concurrency hazard requiring explicit locking</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ================= FILTERING ================= -->
+  <section class="category">
+    <h2><span class="cat-label">04 — Human &amp; Logic Errors</span> Filtering</h2>
+    <p class="intro">Not every error is technical — a bad filter condition can silently drop good
+    data, and optimizers can hide which condition is to blame.</p>
+  </section>
+
+  <article class="pattern" id="filter-interceptor">
+    <div class="pattern-header">
+      <span class="pattern-index">P·06</span>
+      <h3>Filter Interceptor</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsec">
+        <div class="subsec-label problem"><span class="bar"></span>Problem</div>
+        <p>A batch job on a distributed framework was recently updated. After release, filtered
+        data volume spiked from <strong>15% to 90%</strong>. Unclear if it's a data issue or
+        software regression — the execution plan doesn't help, because the optimizer
+        <strong>collapses multiple filter expressions into one</strong>, hiding per-condition
+        statistics.</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label solution"><span class="bar"></span>Solution</div>
+        <p>Wrap each filter condition with <strong>counter logic</strong> that increments when the
+        condition filters a record out, instead of expressing the raw condition alone. Gather all
+        counters at job end.</p>
+        <p>In <strong>SQL</strong>, this is more work: use a subquery/temp table exposing each
+        condition as its own column (e.g., <code>a_is_not_null</code>), then use those columns as
+        filter predicates in the main query.</p>
+        <div class="callout note">
+          <div class="c-label">📌 Note — Stay pragmatic</div>
+          <p>Use the right tool for the job — programmatic API or SQL, whichever suits the task
+          better, even if you've been writing only SQL so far.</p>
+        </div>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label consequences"><span class="bar"></span>Consequences</div>
+        <div class="gotcha-item">
+          <span class="g-title">Runtime impact</span>
+          Small overhead from counter wrapping — local accumulators are cheap. The SQL variant
+          costs more (may need a temp table to both extract stats and filter).
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Declarative languages</span>
+          SQL is less powerful here — the programmatic API produces easier-to-maintain code for
+          this specific pattern.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">Streaming</span>
+          May require turning a stateless job stateful (added state-management overhead), plus
+          defining time boundaries for meaningful stats — otherwise you can't relate counts to
+          "now" or spot currently active filters.
+        </div>
+      </div>
+
+      <div class="callout say">
+        <div class="c-label">✅ Say this out loud</div>
+        <p>"When a filter's selectivity suddenly jumps, the execution plan alone won't tell me
+        which condition is responsible if the optimizer collapsed them — Filter Interceptor wraps
+        each condition with its own counter so I can isolate which rule changed behavior, at the
+        cost of small runtime overhead."</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label examples"><span class="bar"></span>Examples</div>
+        <p>PySpark — accumulator-wrapped filter conditions:</p>
+        <div class="code-block"><div class="code-lang">python</div>
+<pre><code>@dataclasses.dataclass
+class FilterWithAccumulator:
+    name: str
+    filter: Callable[[Any], bool]
+    accumulator: Accumulator[int]
+
+filters_with_accumulators = {
+    'type': [
+        FilterWithAccumulator('type is null', lambda device: device['type'] is not None,
+            spark_context.accumulator(0)),
+        FilterWithAccumulator('type is too short (1 chars or less)',
+            lambda device: len(device['type']) > 1, spark_context.accumulator(0))
+    ],
+    # ...
+}</code></pre></div>
+        <div class="code-block"><div class="code-lang">python</div>
+<pre><code>def filter_null_type(devices_iterator: Iterator[pandas.DataFrame]):
+    def filter_row_with_accumulator(device_row):
+        for device_row_attribute in device_row.keys():
+            for filter_with_accumulator in filters_with_accumulators[device_row_attribute]:
+                if not filter_with_accumulator.filter(device_row):
+                    filter_with_accumulator.accumulator.add(1)
+                    return False
+        return True
+
+    for devices_df in devices_iterator:
+        yield devices_df[devices_df.apply(lambda device:
+            filter_row_with_accumulator(device), axis=1) == True]
+
+valid_devices = input_dataset.mapInPandas(filter_null_type, input_dataset.schema)
+valid_devices.write.mode('append').format('delta').save(output_dir)</code></pre></div>
+        <p>SQL — filter conditions exposed as columns:</p>
+        <div class="code-block"><div class="code-lang">sql</div>
+<pre><code>SELECT * FROM (
+    SELECT
+        CASE
+            WHEN (type IS NOT NULL) IS FALSE THEN 'null_type'
+            WHEN (LEN(type) > 2) IS FALSE THEN 'short_type'
+            WHEN (full_name IS NOT NULL) IS FALSE THEN 'null_full_name'
+            WHEN (version IS NOT NULL) IS FALSE THEN 'null_version'
+            ELSE NULL
+        END AS status_flag,
+        type, full_name, version
+    FROM input)
+-- creates temp view input_with_flags, then:
+SELECT COUNT(*), status_flag FROM input_with_flags WHERE
+status_flag IS NOT NULL GROUP BY status_flag
+-- and the valid-record output:
+SELECT type, full_name, version FROM input_with_flags WHERE status_flag IS NULL</code></pre></div>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ================= FAULT TOLERANCE ================= -->
+  <section class="category">
+    <h2><span class="cat-label">05 — Recovery</span> Fault Tolerance</h2>
+    <p class="intro">Long-running streaming jobs need a way to resume without reprocessing
+    everything after a crash — an append-only log has no partition structure to lean on.</p>
+  </section>
+
+  <article class="pattern" id="checkpointer">
+    <div class="pattern-header">
+      <span class="pattern-index">P·07</span>
+      <h3>Checkpointer</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsec">
+        <div class="subsec-label problem"><span class="bar"></span>Problem</div>
+        <p>A streaming job counts unique visits in 10-minute windows. A fatal failure would stop
+        the job and force reprocessing from the very beginning. Progress needs to persist as the
+        query moves forward.</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label solution"><span class="bar"></span>Solution</div>
+        <p>Track the <strong>most recent position</strong> in the data source plus
+        <strong>computed state</strong>, in storage more durable than the job's own runtime.</p>
+        <p><strong>Where</strong> progress is recorded: <strong>framework-based</strong> (Spark
+        Structured Streaming / Flink manage it in a resilient object store) or
+        <strong>data-store-based</strong> (Kafka SDK persists offsets to
+        <code>__consumer_offsets</code>; Kinesis Client Library writes to DynamoDB).</p>
+        <p><strong>How</strong> it executes: <strong>configuration-driven</strong> (you set
+        frequency, the library handles it) or <strong>intentional/code-driven</strong> (your code
+        explicitly commits after processing, e.g., a custom Kafka consumer).</p>
+      </div>
+
+      <div class="diagram-wrap">
+        <div class="diagram-title">Figure — Checkpoint timing and delivery mode</div>
+        <div class="mermaid">
+flowchart LR
+    subgraph AL["At-Least-Once"]
+        AL1["1. Process & write"] --> AL2["2. Checkpoint"]
+    end
+    subgraph AM["At-Most-Once"]
+        AM1["1. Checkpoint"] --> AM2["2. Process & write"]
+    end
+    subgraph EO["Exactly-Once (needs Ch.4 idempotency)"]
+        EO1["Checkpoint + write\nas one idempotent unit"] --> EO2["Consistent output\nregardless of retries"]
+    end
+        </div>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label consequences"><span class="bar"></span>Consequences</div>
+        <div class="gotcha-item">
+          <span class="g-title">Delivery guarantee vs. latency trade-off</span>
+          Position tracking alone is cheap. But checkpointing state (e.g., user sessions) can be
+          much larger, with real latency impact. More frequent checkpoints → slower job, less
+          reprocessing on failure. Less frequent → faster job, more reprocessing on failure.
+        </div>
+        <div class="gotcha-item">
+          <span class="g-title">"Exactly-once feeling," not exactly-once delivery</span>
+          Distributed, asynchronous parallel tasks mean a failure mid-work before checkpointing
+          can still trigger retries that reprocess already-successful records. True exactly-once
+          delivery needs an idempotency pattern from Chapter 4 — checkpointing alone isn't enough.
+        </div>
+      </div>
+
+      <div class="callout note">
+        <div class="c-label">📌 Note — Delivery modes</div>
+        <p><strong>Exactly once</strong> — the ideal, via Chapter 4 idempotency patterns. <strong>At
+        least once</strong> — checkpoint after write; retries can duplicate. <strong>At most
+        once</strong> — checkpoint before write; failures can lose data.</p>
+      </div>
+
+      <div class="callout say">
+        <div class="c-label">✅ Say this out loud</div>
+        <p>"Checkpointer gives me fault tolerance and an 'exactly-once feeling,' but distributed,
+        asynchronous task execution means a mid-checkpoint failure can still replay
+        already-successful writes — for true exactly-once delivery I'd combine it with an
+        idempotency pattern from Chapter 4."</p>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-label examples"><span class="bar"></span>Examples</div>
+        <p>Apache Spark Structured Streaming:</p>
+        <div class="code-block"><div class="code-lang">python</div>
+<pre><code>write_query = (input_stream_data.writeStream.outputMode('update')
+    .option('checkpointLocation', f'{base_dir}/checkpoint')
+    .foreachBatch(synchronize_visits_to_files).start())</code></pre></div>
+        <div class="code-block"><div class="code-lang">text</div>
+<pre><code>$ cat /tmp/dedp/ch03/fault-tolerance/micro-batch/checkpoint/offsets/18
+# omitted two irrelevant lines
+{"visits":{"1":1276,"0":1224}}</code></pre></div>
+        <div class="callout note">
+          <div class="c-label">📌 Note</div>
+          <p>Spark writes offsets at every job iteration — regularity adds overhead but provides a
+          stronger guarantee and less duplicate-processing risk on restart.</p>
+        </div>
+        <p>Apache Flink — time-based checkpointing:</p>
+        <div class="code-block"><div class="code-lang">python</div>
+<pre><code>checkpoint_interval_30_sec = 30000
+env.enable_checkpointing(checkpoint_interval_30_sec, mode=EXACTLY_ONCE)
+(env.get_checkpoint_config().enable_externalized_checkpoints(RETAIN_ON_CANCELLATION))</code></pre></div>
+        <p><code>RETAIN_ON_CANCELLATION</code> keeps checkpoint files after failure (Flink
+        normally ties them to job-instance lifecycle). <code>EXACTLY_ONCE</code> checkpoint mode
+        guarantees each input record reflects in state exactly once, so a restart won't
+        double-count.</p>
+        <div class="callout note">
+          <div class="c-label">📌 Note</div>
+          <p>Spark 3.4.0 introduced experimental asynchronous checkpoints not tied to microbatches;
+          as of the book's writing (2024), open source Spark doesn't support state store for this
+          feature.</p>
+        </div>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ================= GOTCHAS ROUNDUP ================= -->
+  <section class="category">
+    <h2><span class="cat-label">Roundup</span> Gotchas by Pattern</h2>
+    <p class="intro">Every Consequence from this chapter, gathered in one scannable place.</p>
+
+    <div class="gotcha-item"><span class="g-title">Dead-Letter</span>
+    Snowball backfilling · ordering/consistency breaks on replay · error-safe functions are
+    harder to wrap · hides errors unless paired with alerting.</div>
+    <div class="gotcha-item"><span class="g-title">Windowed Deduplicator</span>
+    Space vs. time trade-off in streaming windows · dedup ≠ exactly-once delivery without
+    idempotency.</div>
+    <div class="gotcha-item"><span class="g-title">Late Data Detector</span>
+    Capture support varies by framework · MIN risks stuck-in-the-past · MAX risks dropping
+    skewed/slow sources.</div>
+    <div class="gotcha-item"><span class="g-title">Static Late Data Integrator</span>
+    Snowball backfilling · overlapping backfills if replayed naively · must stay inside the main
+    pipeline · wastes resources on empty backfills · needs a time-partitioning concept.</div>
+    <div class="gotcha-item"><span class="g-title">Dynamic Late Data Integrator</span>
+    Concurrency hazard without an "is processed" lock · very late data can still force large
+    re-execution chains in stateful pipelines · added scheduling complexity.</div>
+    <div class="gotcha-item"><span class="g-title">Filter Interceptor</span>
+    Small runtime overhead · much harder in SQL than programmatic APIs · streaming may require
+    going stateful plus defining time boundaries.</div>
+    <div class="gotcha-item"><span class="g-title">Checkpointer</span>
+    Latency vs. delivery-guarantee trade-off scales with checkpoint frequency and state size ·
+    only an "exactly-once feeling" without Chapter 4's idempotency patterns.</div>
+  </section>
+
+  <div class="further">
+    <h3>Further Reading</h3>
+    <ul>
+      <li><em>Fundamentals of Data Engineering</em> — referenced elsewhere in the book for
+      related data-quality foundations.</li>
+      <li>Chapter 4, "Idempotency Design Patterns" — the direct sequel to this chapter's
+      "exactly-once feeling" caveat; covers Keyed Idempotency, Sequencers, Isolated Sequencer,
+      Manifest, and Transactional Writer.</li>
+    </ul>
+  </div>
+
+  <!-- ================= CHEAT SHEET ================= -->
+  <section class="cheatsheet" id="cheatsheet">
+    <div class="cheatsheet-head">
+      <div class="kicker"><span class="dot"></span>Five Minutes Before Your Interview</div>
+      <h2>Chapter 3 Cheat Sheet</h2>
+      <p>One card per pattern — problem, solution, biggest gotcha. No prose, just the signal.</p>
+    </div>
+    <div class="cheat-grid">
+
+      <div class="cheat-card">
+        <h4>Dead-Letter</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><span class="cv">Bad records crash the pipeline</span></div>
+        <div class="cheat-row"><span class="cl">Solution</span><span class="cv">Catch/redirect bad records to a dead-letter store</span></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><span class="cv">Snowball backfilling effect on replay</span></div>
+      </div>
+
+      <div class="cheat-card">
+        <h4>Windowed Deduplicator</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><span class="cv">Retries create duplicate records</span></div>
+        <div class="cheat-row"><span class="cl">Solution</span><span class="cv">Dedup within a dataset/time window via state store</span></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><span class="cv">Space vs. time; not enough for exactly-once delivery</span></div>
+      </div>
+
+      <div class="cheat-card">
+        <h4>Late Data Detector</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><span class="cv">Records arrive after the pipeline moved on</span></div>
+        <div class="cheat-row"><span class="cl">Solution</span><span class="cv">Monotonic MAX-based watermark per partition</span></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><span class="cv">MAX can drop records from skewed/slow sources</span></div>
+      </div>
+
+      <div class="cheat-card">
+        <h4>Static Late Data Integrator</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><span class="cv">Late data within a known window is lost</span></div>
+        <div class="cheat-row"><span class="cl">Solution</span><span class="cv">Always replay a fixed lookback window</span></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><span class="cv">Wastes resources; snowball backfilling</span></div>
+      </div>
+
+      <div class="cheat-card">
+        <h4>Dynamic Late Data Integrator</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><span class="cv">Late data can arrive beyond any fixed window</span></div>
+        <div class="cheat-row"><span class="cl">Solution</span><span class="cv">Track real arrival in a state table; backfill only what changed</span></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><span class="cv">Concurrency hazard without "is processed" flag</span></div>
+      </div>
+
+      <div class="cheat-card">
+        <h4>Filter Interceptor</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><span class="cv">Can't tell which filter is dropping records</span></div>
+        <div class="cheat-row"><span class="cl">Solution</span><span class="cv">Wrap each condition with its own counter</span></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><span class="cv">Hard in SQL; adds runtime overhead</span></div>
+      </div>
+
+      <div class="cheat-card">
+        <h4>Checkpointer</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><span class="cv">Crashed job would reprocess from scratch</span></div>
+        <div class="cheat-row"><span class="cl">Solution</span><span class="cv">Persist offset + state on a defined cadence</span></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><span class="cv">Only an "exactly-once feeling" — pair with idempotency</span></div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Chapter 3 of <em>Data Engineering Design Patterns</em> by Bartosz Konieczny (O'Reilly, 2025) ·
+  Study guide generated for interview &amp; design-review preparation.
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      background: '#FFFDF8',
+      primaryColor: '#E6EDF3',
+      primaryTextColor: '#211D18',
+      primaryBorderColor: '#A9C1D6',
+      lineColor: '#8A8378',
+      secondaryColor: '#F7E9DF',
+      tertiaryColor: '#E6EEE8',
+      fontFamily: 'Inter, sans-serif',
+      fontSize: '14px'
+    },
+    flowchart: { curve: 'basis', htmlLabels: true },
+    securityLevel: 'loose'
+  });
+
+  // ===== Interactive watermark widget =====
+  (function() {
+    var slider = document.getElementById('latenessSlider');
+    var val = document.getElementById('latenessVal');
+    var track = document.getElementById('wmTrack');
+    var line = document.getElementById('wmLine');
+
+    // Fixed set of events (minutes on a 0-400px conceptual timeline, in "event minutes")
+    // MAX event time is fixed at 400 (rightmost). watermark = 400 - lateness.
+    var events = [
+      { t: 400, label: '10:07' },
+      { t: 340, label: '9:31' },
+      { t: 320, label: '9:20' },
+      { t: 250, label: '9:00' },
+      { t: 150, label: '8:15' }
+    ];
+    var trackWidthPx = 640; // logical width used for mapping t(0-400) -> px, track itself is responsive
+    var maxT = 400;
+
+    function render() {
+      var lateness = parseInt(slider.value, 10);
+      val.textContent = lateness + ' min';
+      var watermarkT = maxT - lateness; // in same minute-units as events (lateness scaled to same 0-400 axis)
+      var trackW = track.clientWidth;
+      var wmPct = (watermarkT / maxT) * 100;
+      line.style.left = 'calc(' + wmPct + '% - 1px)';
+
+      // remove old events
+      track.querySelectorAll('.wm-event').forEach(function(el){ el.remove(); });
+
+      events.forEach(function(ev, i) {
+        var pct = (ev.t / maxT) * 100;
+        var div = document.createElement('div');
+        var isLate = ev.t < watermarkT;
+        div.className = 'wm-event ' + (isLate ? 'late' : 'ontime');
+        div.style.left = pct + '%';
+        div.style.left = 'max(18px, min(calc(100% - 18px), ' + pct + '%))';
+        div.textContent = ev.label;
+        div.title = ev.label + (isLate ? ' — late' : ' — on time');
+        track.appendChild(div);
+      });
+    }
+
+    slider.addEventListener('input', render);
+    window.addEventListener('resize', render);
+    render();
+  })();
+</script>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

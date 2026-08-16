@@ -1,0 +1,775 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.15 — The DE Interview Playbook | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --purple:#c98be2;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:600;
+    margin:60px 0 18px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:18px;
+    font-weight:700;
+    margin:32px 0 12px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  .opening-lines{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:28px 28px 20px;
+    margin:28px 0 40px;
+  }
+  .opening-lines .label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    margin-bottom:16px;
+  }
+  .opening-lines blockquote{
+    font-family:var(--serif);
+    font-size:17px;
+    font-style:italic;
+    color:#eef1f5;
+    margin:0 0 18px;
+    padding-left:16px;
+    border-left:2px solid var(--amber);
+  }
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{
+    background:var(--bg-panel-raised);
+    text-align:left;
+    padding:12px 16px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    border-bottom:1px solid var(--rule);
+  }
+  td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink-dim);
+    vertical-align:top;
+  }
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul, .cheat-card ol{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-speaker.candidatea{color:var(--red);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .further-reading strong{color:var(--ink);}
+
+  .supplementary{
+    border:1px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 24px;
+    margin-top:24px;
+    background:var(--bg-panel);
+  }
+  .supplementary-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: 45-minute timeline --- */
+  .timeline-widget{display:flex;flex-direction:column;gap:16px;}
+  .timeline-track{
+    position:relative;height:60px;background:#0a0d12;border-radius:8px;overflow:hidden;
+    display:flex;
+  }
+  .timeline-phase{
+    height:100%;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:11.5px;font-weight:700;cursor:pointer;
+    transition:filter 0.2s;border-right:2px solid var(--bg);
+  }
+  .timeline-phase:last-child{border-right:none;}
+  .timeline-phase:hover, .timeline-phase.active{filter:brightness(1.25);}
+  .timeline-detail{
+    font-size:13.5px;color:var(--ink-dim);padding:16px 18px;background:#0a0d12;
+    border-left:2px solid var(--amber);border-radius:0 6px 6px 0;min-height:80px;
+  }
+  .timeline-detail h5{margin:0 0 8px;color:var(--ink);font-size:14px;}
+  .timeline-detail ul{margin:0;padding-left:18px;}
+
+  /* --- Interactive: four signals scorecard --- */
+  .signal-widget{display:flex;flex-direction:column;gap:10px;}
+  .signal-row{
+    display:grid;grid-template-columns:180px 1fr;gap:14px;align-items:center;cursor:pointer;
+    padding:10px 12px;border-radius:8px;border:1px solid transparent;transition:background 0.15s, border-color 0.15s;
+  }
+  .signal-row:hover, .signal-row.active{background:var(--bg-panel-raised);border-color:var(--rule);}
+  .signal-name{font-family:var(--mono);font-size:12.5px;font-weight:700;}
+  .signal-bar-track{height:8px;background:#0a0d12;border-radius:4px;overflow:hidden;}
+  .signal-bar-fill{height:100%;border-radius:4px;transition:width 0.5s ease;}
+  .signal-detail{
+    font-size:13.5px;color:var(--ink-dim);padding:14px 16px;margin-top:4px;
+    background:#0a0d12;border-left:2px solid var(--amber);border-radius:0 6px 6px 0;display:none;
+  }
+  .signal-detail.show{display:block;}
+
+  /* --- Interactive: A vs B comparison --- */
+  .compare-widget{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:640px){.compare-widget{grid-template-columns:1fr;}}
+  .compare-col{border-radius:10px;padding:20px;border:1px solid var(--rule);}
+  .compare-col.bad{background:var(--red-dim);border-color:#5a2e28;}
+  .compare-col.good{background:var(--green-dim);border-color:#2a4a3d;}
+  .compare-col h4{
+    font-family:var(--mono);font-size:12.5px;text-transform:uppercase;margin:0 0 14px;
+  }
+  .compare-col.bad h4{color:var(--red);}
+  .compare-col.good h4{color:var(--green);}
+  .compare-col ul{margin:0;padding-left:18px;}
+  .compare-col li{font-size:13.5px;margin-bottom:8px;color:var(--ink);}
+  .compare-outcome{
+    margin-top:14px;padding:10px 14px;border-radius:6px;font-family:var(--mono);
+    font-size:12px;font-weight:700;text-align:center;
+  }
+  .compare-col.bad .compare-outcome{background:#3f2420;color:var(--red);}
+  .compare-col.good .compare-outcome{background:#1f3a30;color:var(--green);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 15</div>
+    <h1 class="title">The DE Interview Playbook</h1>
+    <p class="subtitle">A system design interview is a 45-minute performance, not a technical
+    quiz. The interviewer isn't only scoring the final diagram — they're scoring how you got
+    there.</p>
+    <div class="chap-note">Printed as "Chapter Fourteen" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 15.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Two people audition for the same orchestra seat. Both can technically play every note
+    perfectly. One takes a breath, checks in with the conductor, and plays with real timing and
+    awareness of the room. The other launches straight into the notes, correct, but never once
+    looks up.</p>
+    <p><strong>This chapter isn't new technical material — everything technical lives in the
+    earlier chapters.</strong> It's about the performance: whether you asked before answering,
+    named what you gave up, and closed strong.</p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>Opening moves matter. Ask for constraints, size on a napkin, name the weak
+    dimension, sketch before drawing. Every senior candidate does all four; most juniors do
+    none.</blockquote>
+    <blockquote>Clarifying questions aren't a delay tactic. They're the first signal I send, and a
+    good question beats any answer.</blockquote>
+    <blockquote>Presenting under time pressure is a skill. I practice the 30-second summary at the
+    end: what I'd build, what I'd sacrifice, what I'd watch.</blockquote>
+    <blockquote>The "edge case" question is rhetorical. The interviewer wants to know whether I
+    already thought about the edge; solving it matters more than the answer itself.</blockquote>
+    <blockquote>Three signals I send by how I allocate the 45 minutes: systems thinking, trade-off
+    naming, operational instinct. Content is the fourth signal, and often the one that separates
+    candidates least.</blockquote>
+  </div>
+
+  <h2 id="two-candidates">Why Two Equally Skilled Candidates Got Completely Different Outcomes</h2>
+  <p>Two candidates, identical backgrounds, hear the same prompt: "Design a real-time analytics
+  platform."</p>
+  <p><strong>Candidate A</strong> nods and starts drawing immediately. Fifteen minutes in, the
+  interviewer interrupts: "What's the throughput?" Candidate A says, "It's scalable."</p>
+  <p><strong>Candidate B</strong> asks four questions first, sizes the problem on a napkin, names
+  tail latency as the likely weak point, and only then starts drawing.</p>
+  <p><strong>Both end up with similar architectures. Candidate A gets a "no hire." Candidate B
+  gets an offer.</strong> Compare what each candidate actually did below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Two candidates, same prompt, same architecture — different outcome</div>
+    <div class="compare-widget">
+      <div class="compare-col bad">
+        <h4>❌ Candidate A</h4>
+        <ul>
+          <li>Starts drawing in minute 1</li>
+          <li>No clarifying questions asked</li>
+          <li>No numbers sized on the board</li>
+          <li>No weak dimension named</li>
+          <li>Says "it's scalable" when pressed</li>
+        </ul>
+        <div class="compare-outcome">Verdict: NO HIRE</div>
+      </div>
+      <div class="compare-col good">
+        <h4>✅ Candidate B</h4>
+        <ul>
+          <li>Pauses ~15 seconds before speaking</li>
+          <li>Asks four specific clarifying questions</li>
+          <li>Sizes the problem on a napkin, out loud</li>
+          <li>Names tail latency as the weak dimension</li>
+          <li>Then, and only then, starts drawing</li>
+        </ul>
+        <div class="compare-outcome">Verdict: OFFER</div>
+      </div>
+    </div>
+    <p class="diagram-caption">The difference isn't the final architecture — both candidates land
+    somewhere similar. It's that the interviewer was scoring four signals, and three of them have
+    nothing to do with what ends up on the whiteboard.</p>
+  </div>
+
+  <h2 id="four-phases">Idea 1: The Interview Has Four Phases, Each With Its Own Budget</h2>
+  <p>A 45-minute interview has a clear internal structure. Click each phase below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a phase</div>
+    <div class="timeline-widget">
+      <div class="timeline-track" id="timelineTrack"></div>
+      <div class="timeline-detail" id="timelineDetail">Click a phase above to see its budget and
+      the specific moves the interviewer is watching for.</div>
+    </div>
+    <p class="diagram-caption">A candidate who asks clarifying questions in minute 1 and lands a
+    30-second summary in minute 42 has already scored half the interview before the architecture
+    even matters.</p>
+  </div>
+
+  <h2 id="phase1">Idea 2: Phase 1 — The Opening Moves (Minutes 0–5)</h2>
+  <p>A strong candidate does three things, in order, in the first five minutes:</p>
+  <ol>
+    <li><strong>Pause and think — visibly.</strong> 10 to 20 seconds. Silence signals thinking,
+    not panic.</li>
+    <li><strong>Ask four clarifying questions</strong> — throughput, freshness/SLA, consumers, and
+    the dominant scale dimension.</li>
+    <li><strong>State the weak dimension out loud.</strong> "Given the sub-minute freshness, I'd
+    expect tail latency to be the weak dimension." Being wrong is fine; being silent is the
+    failure mode.</li>
+  </ol>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Treating the interview as a technical quiz. Content is one of four signals, and at the
+    senior level it's the one that separates candidates least. A flawless architecture with no
+    clarifying questions, no sizing, no trade-offs named, and no time left for a summary loses to
+    a slightly weaker architecture that lands the other three signals well.</p>
+  </div>
+
+  <h2 id="phase2">Idea 3: Phase 2 — Sizing and Constraints (Minutes 5–15)</h2>
+  <p><strong>Size on a napkin, visibly</strong> — events × bytes × replication, storage over
+  retention, fan-out. Say the math out loud; it doesn't need to be precise, it needs to be named.
+  <strong>Name the four constraints</strong> (batch SLA, streaming freshness, schema compatibility,
+  cost ceiling) and which ones matter here. <strong>Surface the skew question</strong> — "is the
+  volume uniform, or long-tailed?" Real traffic is almost always long-tailed.</p>
+
+  <div class="callout pattern">
+    <div class="cal-label">✅ Pattern</div>
+    <p>Ask before you draw. The candidate who takes 20 seconds to think, asks four specific
+    questions, and names the weak dimension has set three strong signals in the first three
+    minutes.</p>
+  </div>
+
+  <h2 id="phase3">Idea 4: Phase 3 — Architecture and Trade-Offs (Minutes 15–35)</h2>
+  <p>Most candidates spend 90% of their interview here by instinct. A strong candidate spends
+  40–50% of the <em>total</em> interview here, balancing three things: <strong>sketch before
+  drawing in detail</strong> (a five-box flow first), <strong>name trade-offs explicitly</strong>
+  ("I'd pick X for writer diversity; Y is the alternative and I'd pick it if..."), and
+  <strong>handle edge-case probes as a signal</strong>, not a distraction — answer with a specific
+  mechanism, never "I'll handle that."</p>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>The "edge case" question is rhetorical. The interviewer already knows what a reasonable
+    answer looks like — what they're measuring is whether you'd already considered the failure
+    mode before they had to ask.</p>
+  </div>
+
+  <h2 id="phase4">Idea 5: Phase 4 — Summary and Questions (Minutes 35–45)</h2>
+  <p>The last ten minutes separate candidates more than any other phase. <strong>Volunteer a
+  30-second recap, unprompted:</strong> what I'd build, what I'd sacrifice, what I'd watch first.
+  <strong>Ask two questions of the interviewer</strong>, technical and team-specific.</p>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"Let me summarize what we ended up with, what I sacrificed, and what I'd watch."</p>
+  </div>
+
+  <h2 id="four-signals">The Four Signals the Interviewer Is Actually Scoring</h2>
+  <p>Click each signal below to see what it looks like in practice, and why it matters more (or
+  less) than you might expect.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a signal</div>
+    <div class="signal-widget" id="signalWidget"></div>
+  </div>
+
+  <h2 id="transcript">A Real Interview, Walked Through Simply</h2>
+  <p>Here's precisely where Candidate A and Candidate B's paths diverge, on the exact same prompt.</p>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer (both candidates, same prompt)</div>
+      <p>Design a real-time analytics platform. Clients across web, mobile, and connected devices
+      emit interaction events at a few million events per second globally. We need near-real-time
+      session analytics with under 5 minutes of lag, and a reliable daily summary for partner
+      dashboards by 30 minutes past the hour. Late and out-of-order events are common. Schemas
+      evolve.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidatea">Candidate A</div>
+      <p>Nods, and immediately starts sketching: a streaming tool on the left, a processing engine
+      in the middle, a table format on the right.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What's the throughput?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidatea">Candidate A</div>
+      <p>"It's scalable."</p>
+      <p><em>(The interviewer's internal scoring: no clarifying questions asked, no numbers sized,
+      no weak dimension named. Whatever the final architecture looks like, three of the four
+      signals are already weak.)</em></p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate B</div>
+      <p><em>(pauses, roughly 15 seconds)</em> Before I sketch anything — a few questions. What's
+      the guarantee around identity — a stable user ID across all surfaces, or do some devices
+      only have a session-level ID? Are there data residency or deletion requirements? What's the
+      existing ingestion and schema tooling? Is this active in multiple regions?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Use a device and session ID everywhere; a stable user ID exists for signed-in users but
+      not all devices have one. There are regional data-residency and deletion requirements. We
+      use a lakehouse on object storage, with a stream ingestion layer and a schema registry
+      already in place — though breaking changes have slipped through before. Yes, multi-region
+      active-active.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate B</div>
+      <p>Given the sub-5-minute session analytics requirement and multi-region active-active, I'd
+      expect tail latency and cross-region consistency to be the dimensions most likely to break
+      first — I'll design around both explicitly. Let me size this on a napkin: a few million
+      events per second, call it 500 bytes each, that's roughly 1.5 to 2 GB per second sustained
+      before replication...</p>
+      <p><em>(Candidate B continues through sizing, names the four constraints, surfaces the skew
+      question about session ID hot-spotting, sketches a five-box flow before drilling into any
+      one piece, names trade-offs explicitly at each major decision, answers edge-case probes with
+      specific mechanisms, and closes with a volunteered 30-second summary and two questions about
+      the team's on-call rotation.)</em></p>
+      <p><em>(The interviewer's internal scoring: all four signals landed clearly, independent of
+      how the final architecture compares to Candidate A's.)</em></p>
+    </div>
+  </div>
+
+  <h2 id="closing-questions">Common Closing Questions Worth Having Ready</h2>
+  <p>Pick two, adjusted to the conversation:</p>
+  <ul>
+    <li>What's the typical friction between the team that produces the data and the teams that
+    consume it, when a schema needs to change?</li>
+    <li>What does the on-call rotation look like, and what's a typical incident shape?</li>
+    <li>What's the team's usual build-vs-buy instinct — any recent example?</li>
+    <li>If you could rewrite one part of the current system, what would it be?</li>
+    <li>What's the rough ratio of greenfield work to migration work on the team this year?</li>
+  </ul>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Architecture-first.</strong> Starting to draw in minute one, skipping the
+    clarifying-questions and sizing signals entirely — the single most common mid-level failure
+    mode.</li>
+    <li><strong>Treating an edge-case question as a request to fully solve it on the spot.</strong>
+    Name a specific mechanism — don't launch into a ten-minute tangent.</li>
+    <li><strong>Running out of time before the summary.</strong> Without it, the interviewer's
+    lasting memory is whatever you were stuck on last, not the overall shape of what you built.</li>
+    <li><strong>Buzzword-driven answers.</strong> Naming tools without saying why each one fits
+    reads as surface-level to an experienced interviewer.</li>
+    <li><strong>No questions at the end.</strong> "I'm good" reads as disengaged. Two thoughtful,
+    team-specific questions signal genuine interest.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>Four Phases, Four Budgets</h4>
+        <ul>
+          <li><strong>0–5</strong> — pause, 4 questions, weak dimension</li>
+          <li><strong>5–15</strong> — numbers, 4 constraints, skew question</li>
+          <li><strong>15–35</strong> — sketch, trade-offs, edge cases</li>
+          <li><strong>35–45</strong> — 30-sec recap, 2 questions back</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Four Opening Questions</h4>
+        <ol>
+          <li>Throughput, peak and average?</li>
+          <li>Freshness or SLA expectation?</li>
+          <li>Who are the consumers?</li>
+          <li>Dominant scale dimension?</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>Four Signals Scored</h4>
+        <ul>
+          <li>Systems thinking</li>
+          <li>Trade-off naming</li>
+          <li>Operational instinct</li>
+          <li>Content (weakest of the four)</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>30-Second Summary Template</h4>
+        <p>What I'd build: (1 sentence)</p>
+        <p>What I'd sacrifice: (1 sentence)</p>
+        <p>What I'd watch first: (1 sentence)</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Latency Reference Numbers</h4>
+        <p>L1 cache 0.5ns · Memory 100ns · Same-DC RTT 0.5ms · SSD read 0.1ms · Cross-continent
+        150ms</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Let me ask four questions before I draw anything."</li>
+          <li>"The weak dimension I'd expect to break first is X, because Y."</li>
+          <li>"Let me summarize what we ended up with, what I sacrificed, and what I'd watch."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Treat the interview as a collaborative discussion, not a test:</strong> narrate
+      your thinking as you go, and explicitly invite the interviewer in ("Does this assumption
+      make sense?"). Reads as confidence and partnership, not uncertainty.</li>
+      <li><strong>State your plan out loud at the very start:</strong> "First I'll clarify
+      requirements, then sketch high-level architecture, then go deep on components, then discuss
+      cost and monitoring — sound good?" Signals structure before any technical content at all.</li>
+      <li><strong>A five-step lens on the same structure:</strong> clarify (10–15%), sketch
+      high-level (20–25%), deep-dive components (40–50%), cross-cutting concerns (10–15%),
+      summarize with future improvements.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>System Design Interview, Volumes 1 and 2.</strong> Alex Xu, ByteByteGo, 2020 and
+    2022. The widely used software-engineering reference — its pattern-recognition framing
+    translates to DE prompts with adjustment.</li>
+    <li><strong>"Numbers Everyone Should Know."</strong> Jeff Dean, Stanford CS295 talk, 2009. The
+    source of the latency reference numbers in this chapter's cheat sheet.</li>
+    <li><strong>Interviewing.io blog and public transcripts.</strong> 2018 onward. Real,
+    anonymized interview transcripts — one of the fastest ways to internalize pacing.</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- 45-minute timeline ----------
+const phases = [
+  {label:'0-5', name:'Opening Moves', pct:11, color:'#e8a33d',
+    detail:'<h5>Opening Moves</h5><ul><li>Pause and think, visibly (10-20 sec)</li><li>Ask four clarifying questions</li><li>State the weak dimension out loud</li></ul>'},
+  {label:'5-15', name:'Sizing & Constraints', pct:22, color:'#6fa8dc',
+    detail:'<h5>Sizing & Constraints</h5><ul><li>Size on a napkin, out loud</li><li>Name the four constraints (batch SLA, freshness, schema, cost)</li><li>Surface the skew question</li></ul>'},
+  {label:'15-35', name:'Architecture & Trade-Offs', pct:44, color:'#c98be2',
+    detail:'<h5>Architecture & Trade-Offs</h5><ul><li>Sketch before drawing in detail</li><li>Name trade-offs explicitly</li><li>Handle edge-case probes with a specific mechanism</li></ul>'},
+  {label:'35-45', name:'Summary & Q&A', pct:22, color:'#5ec9a0',
+    detail:'<h5>Summary & Q&A</h5><ul><li>Volunteer the 30-second recap, unprompted</li><li>What I\u2019d build, sacrifice, watch first</li><li>Ask two team-specific questions</li></ul>'},
+];
+const timelineTrack = document.getElementById('timelineTrack');
+const timelineDetail = document.getElementById('timelineDetail');
+phases.forEach((p,i)=>{
+  const seg = document.createElement('div');
+  seg.className = 'timeline-phase';
+  seg.style.width = p.pct + '%';
+  seg.style.background = p.color;
+  seg.style.color = '#0e1116';
+  seg.textContent = p.label + ' min';
+  seg.addEventListener('click', ()=>{
+    document.querySelectorAll('.timeline-phase').forEach(s=>s.classList.remove('active'));
+    seg.classList.add('active');
+    timelineDetail.innerHTML = p.detail;
+  });
+  seg.addEventListener('mouseenter', ()=>{ timelineDetail.innerHTML = p.detail; });
+  timelineTrack.appendChild(seg);
+});
+
+// ---------- Four signals scorecard ----------
+const signalsData = [
+  {name:'Systems Thinking', pct:90, color:'#e8a33d', detail:'Do you reason about the problem in terms of datasets, SLAs, and trade-offs, or in terms of tool names and boxes on a diagram? The first is how a senior engineer thinks; the second is how a more junior engineer thinks.'},
+  {name:'Trade-off Naming', pct:85, color:'#6fa8dc', detail:'When you pick one thing, do you say what you\u2019re giving up? Picking a tool without naming the cost is a surface-level choice. Picking a tool and naming what you sacrifice is the senior move.'},
+  {name:'Operational Instinct', pct:80, color:'#c98be2', detail:'Do you think about what breaks in production, how you\u2019d find out, and how you\u2019d recover? A candidate who never mentions what they\u2019d alert on signals they\u2019ve never operated something like what they designed.'},
+  {name:'Content', pct:45, color:'#5ec9a0', detail:'The architecture itself. Necessary, but the weakest of the four signals \u2014 most experienced candidates draw fairly similar architectures for similar prompts. What separates them is the first three.'},
+];
+const signalWidget = document.getElementById('signalWidget');
+signalsData.forEach((s,i)=>{
+  const row = document.createElement('div');
+  row.className = 'signal-row';
+  row.innerHTML = `
+    <div class="signal-name" style="color:${s.color}">${s.name}</div>
+    <div class="signal-bar-track"><div class="signal-bar-fill" style="width:0%;background:${s.color}"></div></div>
+  `;
+  const detail = document.createElement('div');
+  detail.className = 'signal-detail';
+  detail.textContent = s.detail;
+  const container = document.createElement('div');
+  container.appendChild(row);
+  container.appendChild(detail);
+  signalWidget.appendChild(container);
+
+  row.addEventListener('click', ()=>{
+    const isShown = detail.classList.contains('show');
+    document.querySelectorAll('.signal-detail').forEach(el=>el.classList.remove('show'));
+    document.querySelectorAll('.signal-row').forEach(el=>el.classList.remove('active'));
+    if(!isShown){ detail.classList.add('show'); row.classList.add('active'); }
+  });
+
+  setTimeout(()=>{ row.querySelector('.signal-bar-fill').style.width = s.pct+'%'; }, 100 + i*100);
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

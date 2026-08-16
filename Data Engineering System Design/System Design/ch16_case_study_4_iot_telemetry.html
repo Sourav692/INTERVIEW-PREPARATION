@@ -1,0 +1,388 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study 4 — IoT Telemetry | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;--bg-panel:#151a22;--bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;--ink-dim:#8b96a5;--ink-faint:#5a6472;--rule:#262e3a;
+    --amber:#e8a33d;--amber-dim:#5c451f;--red:#e2604f;--red-dim:#3f2420;
+    --green:#5ec9a0;--green-dim:#1f3a30;--blue:#6fa8dc;--purple:#c98be2;
+    --mono:"IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif:"Source Serif 4","Georgia",serif;--sans:"Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7;font-size:16px;}
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+  .masthead{border-bottom:1px solid var(--rule);padding:56px 24px 40px;
+    background:radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),var(--bg);}
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:14px;}
+  h1.title{font-family:var(--serif);font-weight:600;font-size:clamp(30px,5vw,46px);margin:0 0 12px;letter-spacing:-0.01em;}
+  .subtitle{color:var(--ink-dim);font-size:17px;max-width:640px;margin:0 0 20px;}
+  .chap-note{font-size:13px;color:var(--ink-faint);font-style:italic;border-left:2px solid var(--rule);padding-left:12px;}
+  .simple-banner{background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;border-radius:10px;padding:22px 24px;margin:28px 0;}
+  .simple-banner .sb-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);margin-bottom:10px;}
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+  .prompt-box{background:var(--bg-panel-raised);border:1px solid var(--rule);border-left:3px solid var(--blue);
+    border-radius:8px;padding:22px 24px;margin:28px 0;}
+  .prompt-box .pb-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:10px;}
+  .prompt-box p{font-style:italic;color:#eef1f5;margin:0;font-family:var(--serif);font-size:16.5px;}
+  h2{font-family:var(--serif);font-size:27px;font-weight:600;margin:60px 0 18px;padding-top:22px;border-top:1px solid var(--rule);letter-spacing:-0.01em;}
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{font-family:var(--sans);font-size:18px;font-weight:700;margin:32px 0 12px;color:var(--ink);}
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{font-family:var(--mono);background:var(--bg-panel-raised);padding:2px 6px;border-radius:4px;font-size:0.88em;color:var(--amber);}
+  .callout{border-radius:8px;padding:18px 20px;margin:22px 0;border:1px solid var(--rule);background:var(--bg-panel);}
+  .callout .cal-label{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .diagram-card{background:var(--bg-panel);border:1px solid var(--rule);border-radius:10px;padding:24px;margin:28px 0;}
+  .diagram-caption{font-size:13px;color:var(--ink-faint);margin-top:14px;font-style:italic;}
+  .diagram-hint{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;}
+  .cheat-sheet{background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);border:1.5px solid var(--amber-dim);border-radius:14px;padding:32px;margin:40px 0;}
+  .cheat-sheet-title{font-family:var(--mono);color:var(--amber);text-transform:uppercase;letter-spacing:0.14em;font-size:13px;margin-bottom:6px;}
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{background:var(--bg-panel-raised);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;}
+  .cheat-card h4{margin:0 0 10px;font-size:12.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-dim);font-family:var(--mono);}
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul, .cheat-card ol{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+  .supplementary{border:1px dashed var(--rule);border-radius:10px;padding:22px 24px;margin-top:24px;background:var(--bg-panel);}
+  .supplementary-tag{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:12px;}
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: naive vs downsampled cost --- */
+  .cost-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;}
+  @media(max-width:640px){.cost-compare{grid-template-columns:1fr;}}
+  .cost-card{border-radius:10px;padding:20px;border:1px solid var(--rule);text-align:center;}
+  .cost-card.bad{background:var(--red-dim);border-color:#5a2e28;}
+  .cost-card.good{background:var(--green-dim);border-color:#2a4a3d;}
+  .cost-card h4{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;margin:0 0 12px;}
+  .cost-card.bad h4{color:var(--red);}
+  .cost-card.good h4{color:var(--green);}
+  .cost-card .cc-storage{font-family:var(--mono);font-size:24px;font-weight:700;color:#fff;margin-bottom:6px;}
+  .cost-card .cc-monthly{font-family:var(--mono);font-size:15px;color:var(--ink-dim);}
+  .cost-diff{
+    text-align:center;margin-top:16px;padding:16px;border-radius:8px;background:#0a0d12;
+    font-family:var(--mono);font-size:15px;color:var(--amber);font-weight:700;
+  }
+
+  /* --- Interactive: retention tier explorer --- */
+  .tier-explorer{display:flex;flex-direction:column;gap:10px;}
+  .tier-item{
+    display:grid;grid-template-columns:140px 1fr 100px;gap:14px;align-items:center;
+    padding:12px 16px;border-radius:8px;cursor:pointer;background:var(--bg-panel-raised);
+    border:1px solid var(--rule);transition:border-color 0.15s;
+  }
+  .tier-item:hover, .tier-item.active{border-color:var(--amber);}
+  .tier-item-name{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink);}
+  .tier-item-bar-track{height:8px;background:#0a0d12;border-radius:4px;overflow:hidden;}
+  .tier-item-bar-fill{height:100%;border-radius:4px;transition:width 0.5s ease;}
+  .tier-item-size{font-family:var(--mono);font-size:12px;text-align:right;color:var(--ink-dim);}
+  .tier-item-detail{
+    font-size:13.5px;color:var(--ink-dim);padding:12px 16px;margin-top:2px;background:#0a0d12;
+    border-left:2px solid var(--amber);border-radius:0 6px 6px 0;display:none;
+  }
+  .tier-item-detail.show{display:block;}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 16 · Case Study 4</div>
+    <h1 class="title">IoT Telemetry at 1M Sensors/Second</h1>
+    <p class="subtitle">A naive reading of "seven years of retention at one million readings per
+    second" is architecturally impossible at any reasonable cost. The fix isn't a trick bolted on
+    later — it's a core design decision made on day one.</p>
+    <div class="chap-note">Chapter 16 is printed as "Chapter Fifteen" in the book's own running
+    heads — see the numbering note in Chapter 3. This is the fourth of four full case studies.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Imagine being asked to keep a photograph of every single second of your life for the next
+    seven years. Obviously absurd. What you'd actually want: full detail for anything unusual
+    recently, then progressively fewer representative snapshots as time passes.</p>
+    <p>Where fraud had a latency ceiling and clickstream had a schema ceiling, this case study has
+    a <strong>retention ceiling that makes naive storage infeasible</strong>. The lesson:
+    downsampling is a first-class architectural primitive, not a cleanup task.</p>
+  </div>
+
+  <div class="prompt-box">
+    <div class="pb-label">The Prompt</div>
+    <p>"Design the data platform for an industrial IoT deployment. One million sensors across
+    thousands of sites, each emitting a reading per second at peak. Real-time anomaly detection
+    within seconds. Historical trend analysis for predictive maintenance. Seven-year retention for
+    regulatory compliance."</p>
+  </div>
+
+  <h2 id="math">Idea 1: Doing the Impossible Math First — Out Loud</h2>
+  <p>"The naive reading — seven years at one million readings per second — is architecturally
+  infeasible, which I'll get to. Before I draw, a few questions specific to IoT."</p>
+  <ol>
+    <li><strong>"Always online, or offline buffering?"</strong> → Answer: intermittent
+    connectivity, sensors buffer 48 hours then dump. Late arrivals are normal, not an edge case.</li>
+    <li><strong>"Does compliance require raw, or do aggregates satisfy it?"</strong> → Answer:
+    aggregates are fine. <strong>This one answer changes required storage by three orders of
+    magnitude.</strong></li>
+    <li><strong>"Rule-based, statistical, or learned anomaly model?"</strong> → Answer:
+    threshold-based now, learned model on the roadmap.</li>
+    <li><strong>"Query pattern: aggregation, drill-down, or cross-device correlation?"</strong> →
+    Answer: mostly drill-down plus trends.</li>
+  </ol>
+
+  <h2 id="weak-dim">Idea 2: Naming Cost as THE Weak Dimension</h2>
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>The candidate named the single design decision that matters most for IoT, and quantified
+    it with a specific number — not a vague concern. Mid-level candidates treat the naive-worst-case
+    reading as an assumption to work with. Staff-level candidates catch that it changes cost by
+    three orders of magnitude, and say so before designing around a number that might be wrong.</p>
+  </div>
+
+  <h2 id="downsampling">Idea 3: Downsampling — the Architectural Centerpiece, Quantified</h2>
+  <p>Compare the naive approach against the cascading retention design below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">The single most important number in this case study</div>
+    <div class="cost-compare">
+      <div class="cost-card bad">
+        <h4>❌ Naive: 7 Years of Raw</h4>
+        <div class="cc-storage">5.5 PB</div>
+        <div class="cc-monthly">~$125,000/month</div>
+      </div>
+      <div class="cost-card good">
+        <h4>✅ Cascading Downsample Tiers</h4>
+        <div class="cc-storage">~8 TB</div>
+        <div class="cc-monthly">~$500/month</div>
+      </div>
+    </div>
+    <div class="cost-diff">Difference: $1.5M/year — about $10.5M over seven years, from one
+    architectural decision.</div>
+  </div>
+
+  <p>Click each tier below to see its resolution, duration, and size.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a tier</div>
+    <div class="tier-explorer" id="tierExplorer"></div>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>Quantifying the downsampling decision with the $125k-versus-$500 comparison, and stating
+    explicitly it's not optional, is what earns this move. A staff-level candidate makes it the
+    centerpiece of the architecture from the first sketch — at this scale, the design simply
+    doesn't work without it.</p>
+  </div>
+
+  <h2 id="architecture">Idea 4: The Architecture, in Plain Terms</h2>
+  <ul>
+    <li><strong>The gateway</strong> is the edge ingestion point (MQTT or HTTPS). Auth and
+    encryption live here; internal systems only see trusted events.</li>
+    <li><strong>The queue is the durable event log</strong>, partitioned by device ID, 3-day
+    retention — the lakehouse is the true system of record.</li>
+    <li><strong>The stream processor runs two jobs simultaneously:</strong> anomaly detection
+    against thresholds, and continuous 1-minute downsampling writing straight to the lakehouse.</li>
+    <li><strong>The lakehouse is tiered</strong> — each retention window its own table with its
+    own lifecycle policy.</li>
+    <li><strong>A nightly batch job runs the cascading rollup</strong> — 1-minute to 1-hour at the
+    90-day boundary, 1-hour to 1-day at the 1-year boundary.</li>
+    <li><strong>A small database holds device fleet metadata</strong> — firmware, calibration,
+    site assignment — queried during anomaly detection.</li>
+  </ul>
+
+  <h2 id="late-arrivals">Idea 5: Handling Late Arrivals — a Normal Pattern</h2>
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"1-hour allowed lateness in the watermark strategy is much larger than the 1-second we'd
+    use in fraud detection. IoT connectivity patterns make late arrivals normal, not exceptional."</p>
+  </div>
+  <p>1-minute aggregates can be revised up to 48 hours after their initial write. Past that, they're
+  immutable — the compliance invariant.</p>
+
+  <h2 id="breaks">Idea 6: What Breaks First at Production Scale</h2>
+  <ol>
+    <li><strong>Checkpoint duration creeping up</strong> as the device fleet grows — alert above
+    20% of the checkpoint interval.</li>
+    <li><strong>A late-arrival flood after a regional outage</strong> — up to ~1.7 billion events
+    queued at once. The backfill job needs its own autoscaling pool sized for ~10x steady-state.</li>
+    <li><strong>Device fleet metadata drift</strong> — firmware and calibration changes causing
+    false positives if the metadata database falls out of sync.</li>
+  </ol>
+
+  <h2 id="cost">Idea 7: The Real Cost Breakdown</h2>
+  <p><strong>Total IoT infrastructure cost: roughly $65k/month, or ~$780k/year.</strong> The
+  downsampling decision by itself is worth more than the entire rest of the infrastructure cost
+  combined.</p>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>"The downsampling architecture is worth $10.5 million, and it's the first number I'd put on
+    a design-review slide." A mid-level candidate says "we'll downsample for cost." A staff-level
+    candidate produces the specific dollar figure — that's what the interviewer remembers.</p>
+  </div>
+
+  <h2 id="compliance">Idea 8: Proving Compliance Without Keeping Raw Data Forever</h2>
+  <p><strong>Chain of custody:</strong> every table records lineage back to its source — the
+  message-queue offset range plus the versioned, code-signed aggregation logic that produced it.
+  Regulators accept this without requiring raw data retention, as long as the transformation is
+  reproducible from metadata.</p>
+  <p><strong>Historical aggregates are never modified after finalization</strong> — the compliance
+  invariant. A later-discovered error creates a new table with corrected logic; the old one is
+  preserved, never silently overwritten.</p>
+
+  <h2 id="summary">The 30-Second Closing Summary</h2>
+  <div class="callout say">
+    <div class="cal-label">✅ What I'd build</div>
+    <p>The message queue as the durable event log, partitioned by device ID. A stream processor
+    running anomaly detection and continuous downsampling simultaneously on the same keyed stream.
+    A tiered lakehouse with cascading nightly rollups handling tier transitions.</p>
+  </div>
+  <div class="callout say">
+    <div class="cal-label">✅ What I'd sacrifice</div>
+    <p>The two stream-processor jobs are coupled in deployment because they run on the same
+    stream. 1-minute aggregates can be revised up to 48 hours after write.</p>
+  </div>
+  <div class="callout say">
+    <div class="cal-label">✅ What I'd watch</div>
+    <p>Checkpoint duration relative to interval, late-arrival backlog size, and device-metadata
+    drift via dead-letter rate cross-referenced against expected firmware.</p>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Assuming worst-case retention without confirming it.</strong> Confirming whether
+    aggregates satisfy compliance changes the design entirely.</li>
+    <li><strong>Treating downsampling as an optimization for later.</strong> The design is
+    infeasible without it at this scale.</li>
+    <li><strong>Using the same watermark tolerance as a low-latency use case.</strong> Late
+    arrivals are normal in IoT, not an edge case.</li>
+    <li><strong>Forgetting device fleet metadata.</strong> A genuine, ongoing source of false
+    positives if not kept in sync.</li>
+    <li><strong>Not quantifying the big decision in dollars.</strong> A specific number beats a
+    vague statement every time.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>The Retention Cascade</h4>
+        <p>1-sec (7d, ~150GB) → 1-min (90d, ~6TB) → 1-hr (1yr, ~1TB) → 1-day (6yr, ~500GB).
+        ~8TB total vs. 5.5PB naive.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>The Weak Dimension</h4>
+        <p>Cost, unambiguously — quantified in eight figures over the retention horizon.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Watermark Strategy</h4>
+        <p>1 hour allowed lateness (much larger than low-latency use cases). 48-hour revision
+        window; immutable after.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>What Breaks First</h4>
+        <ul>
+          <li>Checkpoint duration creeping up</li>
+          <li>Late-arrival flood after regional outage</li>
+          <li>Device metadata drift</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>The Big Number</h4>
+        <p>$10.5M saved over 7 years from downsampling alone — more than the rest of the
+        infrastructure combined.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"The naive reading is architecturally infeasible — let me confirm the real
+          requirement."</li>
+          <li>"Downsampling is the core primitive that makes this cost-feasible."</li>
+          <li>"That one decision is worth $10.5 million over seven years."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Time-series database storage-tiering patterns</strong> apply directly here, even
+      without a purpose-built product — naming the pattern signals a proven approach rather than
+      inventing one under pressure.</li>
+      <li><strong>Always ask whether a retention number applies to raw or some representation.</strong>
+      The same requirement is often satisfiable at wildly different costs — confirming this is
+      often the highest-leverage question in the whole conversation.</li>
+      <li><strong>Real IoT-adjacent platforms report</strong> the retention/compliance conversation,
+      not the ingestion pipeline, is where the actual budget conversations happen.</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+// ---------- Retention tier explorer ----------
+const tierData = [
+  {name:'1-second', duration:'7 days', size:'~150 GB', pct:2, color:'#e2604f', detail:'Full raw resolution, kept for 7 days. Enough for forensic investigation of a recent anomaly.'},
+  {name:'1-minute', duration:'90 days', size:'~6 TB', pct:75, color:'#e8a33d', detail:'min/max/avg/p99/count per device, per minute. For recent trend analysis. The largest single tier by size.'},
+  {name:'1-hour', duration:'1 year', size:'~1 TB', pct:15, color:'#6fa8dc', detail:'Rolled up from the 1-minute tier at the 90-day boundary. For longer-horizon predictive maintenance.'},
+  {name:'1-day', duration:'6 years', size:'~500 GB', pct:8, color:'#5ec9a0', detail:'Rolled up from the 1-hour tier at the 1-year boundary. Purely for compliance reconstruction \u2014 satisfies the 7-year requirement.'},
+];
+const tierExplorer = document.getElementById('tierExplorer');
+tierData.forEach((t,i)=>{
+  const item = document.createElement('div');
+  item.className = 'tier-item';
+  item.innerHTML = `
+    <div class="tier-item-name" style="color:${t.color}">${t.name}</div>
+    <div class="tier-item-bar-track"><div class="tier-item-bar-fill" style="width:0%;background:${t.color}"></div></div>
+    <div class="tier-item-size">${t.size}</div>
+  `;
+  const detail = document.createElement('div');
+  detail.className = 'tier-item-detail';
+  detail.innerHTML = `<strong style="color:${t.color}">${t.duration}</strong> — ${t.detail}`;
+  const container = document.createElement('div');
+  container.appendChild(item);
+  container.appendChild(detail);
+  tierExplorer.appendChild(container);
+
+  item.addEventListener('click', ()=>{
+    const isShown = detail.classList.contains('show');
+    document.querySelectorAll('.tier-item-detail').forEach(el=>el.classList.remove('show'));
+    document.querySelectorAll('.tier-item').forEach(el=>el.classList.remove('active'));
+    if(!isShown){ detail.classList.add('show'); item.classList.add('active'); }
+  });
+
+  setTimeout(()=>{ item.querySelector('.tier-item-bar-fill').style.width = t.pct+'%'; }, 100 + i*100);
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

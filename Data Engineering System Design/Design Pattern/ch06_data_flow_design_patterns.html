@@ -1,0 +1,1452 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 6 — Data Flow Design Patterns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+  :root {
+    --ink-950: #0f1720;
+    --ink-900: #141f2b;
+    --ink-800: #1b2836;
+    --ink-700: #24333f;
+    --ink-600: #34465470;
+    --paper: #eef1ec;
+    --paper-dim: #c7cdc4;
+    --brass: #c99a4b;
+    --brass-bright: #e0b567;
+    --brass-dim: #8a6d3b;
+    --moss: #6f8f6a;
+    --clay: #b3624a;
+    --sky: #6f9cae;
+    --rule: #2c3b48;
+    --radius: 3px;
+    --maxw: 920px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  body {
+    margin: 0;
+    background: var(--ink-950);
+    background-image:
+      radial-gradient(1200px 600px at 15% -10%, #17222e 0%, transparent 60%),
+      radial-gradient(900px 500px at 90% 10%, #16212c 0%, transparent 55%);
+    color: var(--paper);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--brass-bright); }
+  a:focus-visible, button:focus-visible, summary:focus-visible, .toc a:focus-visible {
+    outline: 2px solid var(--brass-bright);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection { background: var(--brass-dim); color: var(--ink-950); }
+
+  /* ---------- Masthead ---------- */
+  .masthead {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 4.5rem 1.5rem 3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .kicker::before {
+    content: '';
+    width: 26px; height: 1px;
+    background: var(--brass);
+    display: inline-block;
+  }
+  h1.title {
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    line-height: 1.05;
+    margin: 0.9rem 0 0.6rem;
+    letter-spacing: -0.01em;
+  }
+  .dek {
+    font-size: 1.05rem;
+    color: var(--paper-dim);
+    max-width: 62ch;
+    margin: 0 0 1.6rem;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--paper-dim);
+  }
+  .meta-row span b { color: var(--brass-bright); font-weight: 500; }
+
+  /* ---------- Table of contents ---------- */
+  .toc-wrap { max-width: var(--maxw); margin: 0 auto; padding: 2rem 1.5rem 1rem; }
+  .toc {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 1.2rem 1.4rem;
+    background: linear-gradient(180deg, var(--ink-900), var(--ink-800));
+  }
+  .toc-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 0.7rem;
+    display: block;
+  }
+  .toc ol { columns: 2; column-gap: 2rem; margin: 0; padding-left: 1.1rem; font-size: 0.9rem; }
+  .toc li { margin-bottom: 0.35rem; break-inside: avoid; }
+  .toc a { text-decoration: none; color: var(--paper); }
+  .toc a:hover { color: var(--brass-bright); }
+  @media (max-width: 640px) { .toc ol { columns: 1; } }
+
+  /* ---------- Sections ---------- */
+  main { max-width: var(--maxw); margin: 0 auto; padding: 0 1.5rem 6rem; }
+
+  section.chapter-frame {
+    padding: 2.6rem 0 1rem;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 2.5rem;
+  }
+  section.chapter-frame p { color: var(--paper-dim); font-size: 1.02rem; }
+
+  .family-header {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.7rem;
+    margin: 3.4rem 0 0.4rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+  }
+  .family-header .family-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-950);
+    background: var(--brass);
+    padding: 0.2rem 0.55rem;
+    border-radius: 2px;
+  }
+  .family-intro { color: var(--paper-dim); margin-bottom: 1.6rem; max-width: 68ch; }
+
+  /* ---------- Pattern card w/ flow rail (signature element) ---------- */
+  .pattern-card {
+    position: relative;
+    margin: 1.6rem 0 2.4rem;
+    padding-left: 1.9rem;
+    scroll-margin-top: 1.5rem;
+  }
+  .pattern-card::before {
+    content: '';
+    position: absolute;
+    left: 0.42rem; top: 0.3rem; bottom: 0.3rem;
+    width: 2px;
+    background: linear-gradient(180deg, var(--brass) 0%, var(--brass-dim) 100%);
+  }
+  .pattern-card::after {
+    content: '';
+    position: absolute;
+    left: 0.14rem; top: 0.15rem;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--ink-950);
+    border: 2px solid var(--brass-bright);
+  }
+  .pattern-card.fan-node::after { border-color: var(--sky); }
+  .pattern-card.orch-node::after { border-color: var(--moss); }
+
+  .pattern-inner {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: linear-gradient(160deg, var(--ink-900) 0%, var(--ink-800) 100%);
+    padding: 1.5rem 1.6rem 1.7rem;
+  }
+  .pattern-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.35rem;
+    margin: 0 0 1rem;
+    color: var(--paper);
+  }
+  .pattern-name .pn-eyebrow {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brass);
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+  }
+
+  .subsec { margin-top: 1.3rem; }
+  .subsec h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sky);
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .subsec h4::before { content: ''; width: 14px; height: 1px; background: var(--rule); display: inline-block; }
+  .subsec p, .subsec li { color: var(--paper-dim); font-size: 0.96rem; }
+  .subsec ul { padding-left: 1.2rem; margin: 0.4rem 0; }
+  .subsec ul li { margin-bottom: 0.35rem; }
+  .subsec strong { color: var(--paper); }
+
+  /* ---------- Callouts ---------- */
+  .callout {
+    border-left: 3px solid var(--rule);
+    background: var(--ink-800);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 0.85rem 1.1rem;
+    margin: 0.9rem 0;
+    font-size: 0.92rem;
+  }
+  .callout .cl-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout.note { border-color: var(--sky); } .callout.note .cl-label { color: var(--sky); }
+  .callout.warning { border-color: var(--clay); } .callout.warning .cl-label { color: var(--clay); }
+  .callout.case-study { border-color: var(--moss); } .callout.case-study .cl-label { color: var(--moss); }
+  .callout.say { border-color: var(--brass); } .callout.say .cl-label { color: var(--brass-bright); }
+
+  /* ---------- Code ---------- */
+  .code-block { margin: 0.9rem 0; border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; }
+  .code-lang {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--ink-700);
+    color: var(--brass-bright);
+    padding: 0.35rem 0.8rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  pre {
+    margin: 0;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    background: #0c141c;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.83rem;
+    line-height: 1.55;
+    color: #d8ddd4;
+  }
+  code { font-family: 'IBM Plex Mono', monospace; }
+  .subsec :not(pre) > code {
+    background: var(--ink-700); padding: 0.1rem 0.35rem; border-radius: 2px; font-size: 0.85em; color: var(--brass-bright);
+  }
+
+  /* ---------- Tables ---------- */
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    min-width: 560px;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  thead th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--brass);
+    background: var(--ink-800);
+    border-bottom: 1px solid var(--brass-dim);
+  }
+  tbody tr:hover { background: var(--ink-800); }
+  td strong { color: var(--paper); }
+
+  /* ---------- Diagram widget ---------- */
+  .diagram-box {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--ink-900);
+    padding: 1.4rem;
+    margin: 1.4rem 0;
+  }
+  .diagram-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 1rem;
+  }
+  .mermaid { background: transparent; }
+
+  /* Interactive Fan-In/Fan-Out widget */
+  .flow-widget {
+    display: flex; flex-direction: column; gap: 1rem;
+  }
+  .flow-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .flow-tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    background: var(--ink-800);
+    border: 1px solid var(--rule);
+    color: var(--paper-dim);
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .flow-tab[aria-selected="true"] {
+    background: var(--brass); color: var(--ink-950); border-color: var(--brass); font-weight: 600;
+  }
+  .flow-tab:hover:not([aria-selected="true"]) { border-color: var(--brass-dim); color: var(--paper); }
+  .flow-stage { min-height: 210px; }
+  .flow-svg-caption { font-size: 0.85rem; color: var(--paper-dim); margin-top: 0.6rem; }
+
+  /* ---------- Cheat sheet ---------- */
+  .cheat-panel {
+    margin-top: 3.5rem;
+    border: 1px solid var(--brass-dim);
+    border-radius: var(--radius);
+    background: linear-gradient(155deg, #1c2a1f0d, var(--ink-900));
+    padding: 1.8rem 1.8rem 2rem;
+    position: relative;
+  }
+  .cheat-panel::before {
+    content: 'FOR THE INTERVIEW';
+    position: absolute;
+    top: -0.7rem; left: 1.6rem;
+    background: var(--brass);
+    color: var(--ink-950);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  .cheat-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin: 0.6rem 0 1.3rem;
+  }
+  .cheat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.9rem;
+  }
+  .cheat-card {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 0.9rem 1rem;
+    background: var(--ink-800);
+  }
+  .cheat-card h5 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.02rem;
+    margin: 0 0 0.5rem;
+    color: var(--brass-bright);
+  }
+  .cheat-row { font-size: 0.84rem; margin-bottom: 0.35rem; color: var(--paper-dim); }
+  .cheat-row b { color: var(--paper); font-weight: 600; }
+  .cheat-row.gotcha b { color: var(--clay); }
+
+  /* ---------- Further reading / footer ---------- */
+  .further-reading {
+    margin-top: 3rem;
+    border-top: 1px solid var(--rule);
+    padding-top: 1.6rem;
+  }
+  .further-reading h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+  .further-reading ul { padding-left: 1.2rem; color: var(--paper-dim); font-size: 0.92rem; }
+  .further-reading li { margin-bottom: 0.3rem; }
+
+  footer {
+    text-align: center;
+    padding: 2.5rem 1.5rem 3.5rem;
+    color: var(--paper-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 640px) {
+    .masthead { padding: 3rem 1.2rem 2rem; }
+    main { padding: 0 1.1rem 4rem; }
+    .pattern-inner { padding: 1.2rem 1.1rem 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <span class="kicker">Data Engineering Design Patterns · Chapter 6</span>
+  <h1 class="title">Data Flow Design Patterns</h1>
+  <p class="dek">How pipeline steps are wired together — sequencing, merging, splitting, and
+  controlling how many instances run at once. Eight named patterns, organized into four families,
+  drawn from the book's blog-analytics-platform case study.</p>
+  <div class="meta-row">
+    <span>Families: <b>4</b></span>
+    <span>Patterns: <b>8</b></span>
+    <span>Prev: <b>Ch. 5 — Data Value</b></span>
+    <span>Next: <b>Ch. 7 — Data Security</b></span>
+  </div>
+</header>
+
+<div class="toc-wrap">
+  <nav class="toc" aria-label="Table of contents">
+    <span class="toc-label">In This Chapter</span>
+    <ol>
+      <li><a href="#local-sequencer">Local Sequencer</a></li>
+      <li><a href="#isolated-sequencer">Isolated Sequencer</a></li>
+      <li><a href="#aligned-fan-in">Aligned Fan-In</a></li>
+      <li><a href="#unaligned-fan-in">Unaligned Fan-In</a></li>
+      <li><a href="#parallel-split">Parallel Split</a></li>
+      <li><a href="#exclusive-choice">Exclusive Choice</a></li>
+      <li><a href="#single-runner">Single Runner</a></li>
+      <li><a href="#concurrent-runner">Concurrent Runner</a></li>
+      <li><a href="#diagrams">Interactive Diagrams</a></li>
+      <li><a href="#tradeoffs">Trade-Off Tables</a></li>
+      <li><a href="#cheat-sheet">Cheat Sheet</a></li>
+    </ol>
+  </nav>
+</div>
+
+<main>
+
+  <section class="chapter-frame">
+    <p>Chapters 2–5 covered <em>what</em> happens to data as it moves through the pipeline
+    (ingestion, error handling, idempotency, enrichment). Chapter 6 covers <em>how the pieces are
+    wired together</em> — the dependency and execution topology. Three families, in order of
+    increasing structural complexity: <strong>Sequence</strong> (steps that run one after
+    another), <strong>Fan-In / Fan-Out</strong> (branches that merge or split), and
+    <strong>Orchestration</strong> (how many whole-pipeline instances can run at once). The
+    chapter hands off to Chapter 7 — once data flows correctly, the next concern is protecting
+    it.</p>
+  </section>
+
+  <!-- ============ SEQUENCE ============ -->
+  <h2 class="family-header"><span class="family-tag">01</span> Sequence Patterns</h2>
+  <p class="family-intro">Steps that must run in a fixed order because one depends on another's
+  output. The question these two patterns answer: should that order live in the orchestration
+  layer, or inside a single processing job?</p>
+
+  <article class="pattern-card" id="local-sequencer">
+    <div class="pattern-inner">
+      <h3 class="pattern-name"><span class="pn-eyebrow">Pattern</span>Local Sequencer</h3>
+
+      <div class="subsec">
+        <h4>Problem</h4>
+        <p>A single data processing job has grown from dozens to hundreds of lines, with
+        transformations tripling over time. It fails often, and every failure forces a restart
+        from the very beginning. Business logic can't be removed — only the structure can
+        change.</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Solution</h4>
+        <p>Decompose one large component into smaller, connected steps run <strong>sequentially</strong>,
+        ordered by actual data dependency. Example: full data ingestion (Ch. 2) as a
+        <strong>Readiness Marker</strong> task followed by a <strong>Full Loader</strong> task —
+        either as two dependent orchestration tasks, or one processing-layer unit.</p>
+        <p>Three criteria decide orchestration-layer vs. processing-layer:</p>
+        <ul>
+          <li><strong>Separation of concerns</strong> — if naming the single task is hard, you've
+          bundled too much together.</li>
+          <li><strong>Maintainability</strong> — one combined task re-runs everything on
+          backfill/retry (e.g. 10 paid API calls re-billed on every retry).</li>
+          <li><strong>Implementation effort</strong> — combining tasks forfeits the orchestrator's
+          built-in abstractions (run a query, call an API).</li>
+        </ul>
+      </div>
+
+      <div class="subsec">
+        <h4>Consequences</h4>
+        <div class="callout warning"><span class="cl-label">⚠ Warning — Boundaries</span>
+        <p>No universal rule for where to split. Over-splitting hurts readability as much as
+        under-splitting hurts maintainability.</p></div>
+      </div>
+
+      <div class="subsec">
+        <h4>Examples</h4>
+        <div class="code-block"><div class="code-lang">python · Apache Airflow</div>
+<pre>input_data_sensor >> load_data_to_table >> expose_new_table</pre></div>
+        <div class="code-block"><div class="code-lang">bash · AWS EMR</div>
+<pre>aws emr add-steps --cluster-id j=cluster_id --steps Type=Spark,Name="Spark Program",\
+ActionOnFailure=TERMINATE_CLUSTER,Args=[--class com.waitingforcode.DataLoader]
+aws emr add-steps --cluster-id j=cluster_id --steps Type=Spark,Name="Spark Program",\
+ActionOnFailure=TERMINATE_CLUSTER,Args=[--class com.waitingforcode.DataPublisher]</pre></div>
+        <div class="code-block"><div class="code-lang">python · PySpark</div>
+<pre>input_dataset: DataFrame = spark_session.read...
+valid_and_enriched_dataset_to_write: DataFrame = input_dataset...
+valid_and_enriched_dataset_to_write.write...</pre></div>
+        <div class="callout note"><span class="cl-label">📌 Note — More Than CRON</span>
+        <p>A Local Sequencer shows the power of a real orchestrator over plain CRON when building
+        advanced logic — but CRON is still valid for an isolated use case with no
+        dependencies.</p></div>
+        <div class="callout say"><span class="cl-label">✅ Say this out loud</span>
+        <p>"I split this into orchestration-layer tasks rather than one processing job, because
+        backfilling a paid-API readiness check inside a monolith would re-trigger billed calls on
+        every retry — the split directly controls cost and blast radius."</p></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="pattern-card" id="isolated-sequencer">
+    <div class="pattern-inner">
+      <h3 class="pattern-name"><span class="pn-eyebrow">Pattern</span>Isolated Sequencer</h3>
+
+      <div class="subsec">
+        <h4>Problem</h4>
+        <p>Your team cleans and enriches raw datasets for a data visualization team. Both teams
+        agree the dashboard-specific transformation shouldn't be folded into your team's
+        pipeline — your team won't own that logic. The visualization team wants only the
+        cleansed, enriched dataset.</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Solution</h4>
+        <p>Connect two <strong>physically separate</strong> pipelines. Draw the boundary either by
+        <strong>team ownership</strong> (you provide to a different team → two isolated
+        pipelines), or by <strong>pipeline complexity</strong> when you're both provider and
+        consumer of your own output.</p>
+        <p>Two mechanisms shown:</p>
+        <ul>
+          <li><strong>Data-dependency (implicit)</strong> — sensors watching for upstream output.</li>
+          <li><strong>Trigger-based (explicit)</strong> — <code>ExternalTaskMarker</code> (upstream)
+          + <code>ExternalTaskSensor</code> (downstream); the marker auto-propagates backfills.</li>
+        </ul>
+      </div>
+
+      <div class="subsec">
+        <h4>Consequences</h4>
+        <div class="callout warning"><span class="cl-label">⚠ Warning</span>
+        <p>The book names <strong>Scheduling</strong> and <strong>Communication</strong> as the
+        gotcha categories — cross-team pipelines need explicit coordination since implicit in-DAG
+        signals don't cross pipeline boundaries. <em>[verify against source page — full prose not
+        fully returned by search]</em></p></div>
+      </div>
+
+      <div class="subsec">
+        <h4>Examples</h4>
+        <div class="code-block"><div class="code-lang">python · Apache Airflow</div>
+<pre># devices_loader (upstream / provider)
+success_execution_marker = ExternalTaskMarker(
+    task_id='trigger_downstream_consumers',
+    external_dag_id='devices_aggregator',
+    external_task_id='downstream_trigger_sensor',
+)
+(input_data_sensor >> load_new_devices_to_internal_storage()
+ >> success_execution_marker)
+
+# devices_aggregator (downstream / consumer)
+parent_dag_sensor = ExternalTaskSensor(
+    task_id='downstream_trigger_sensor',
+    external_dag_id='devices_loader',
+    external_task_id='trigger_downstream_consumers',
+    allowed_states=['success'],
+    failed_states=['failed', 'skipped']
+)
+parent_dag_sensor >> load_data_to_table >> refresh_aggregates</pre></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ============ FAN-IN ============ -->
+  <h2 class="family-header"><span class="family-tag">02</span> Fan-In Patterns</h2>
+  <p class="family-intro">Branches that merge back together at a common point.</p>
+
+  <div class="callout case-study"><span class="cl-label">🧩 Case Study — running example for both Fan-In patterns</span>
+  <p>Your pipeline generates a <strong>daily</strong> aggregate of blog visits from raw visit
+  events, but the dataset is partitioned <strong>hourly</strong> to fit most other use cases.
+  Processing the whole day at once wastes that partitioning — you want to leverage it to keep
+  each job small.</p></div>
+
+  <article class="pattern-card fan-node" id="aligned-fan-in">
+    <div class="pattern-inner">
+      <h3 class="pattern-name"><span class="pn-eyebrow">Pattern</span>Aligned Fan-In</h3>
+
+      <div class="subsec">
+        <h4>Problem</h4>
+        <p>Compute a daily aggregate from 24 hourly partitions, using hourly partitioning to keep
+        each job small, then merge the 24 results into one daily output.</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Solution</h4>
+        <p>Define separate branches (one per hour) that all merge into a common merge task. Two
+        merge models at the processing layer:</p>
+        <ul>
+          <li><strong>UNION</strong> — vertical alignment; same columns, more rows.</li>
+          <li><strong>JOIN</strong> — horizontal alignment; more columns, fewer rows than UNION.</li>
+        </ul>
+        <p>Two advantages over one monolithic job: <strong>faster feedback</strong> (a broken hour
+        surfaces sooner than a full-day failure) and <strong>cheaper recovery</strong> (replay
+        only the failed hour, not all 24).</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Consequences</h4>
+        <div class="callout warning"><span class="cl-label">⚠ Infrastructure spikes</span>
+        <p>24 simultaneous jobs need elastic provisioning, or you must cap concurrency / run
+        branches incrementally.</p></div>
+        <div class="callout warning"><span class="cl-label">⚠ Scheduling skew</span>
+        <p>The merge task waits for the <em>slowest</em> parent — its trigger time is bound by the
+        longest-running branch.</p></div>
+        <div class="callout warning"><span class="cl-label">⚠ Scheduling overhead</span>
+        <p>Overly granular pipelines force the orchestrator to spend most resources on scheduling,
+        not work.</p></div>
+        <div class="callout warning"><span class="cl-label">⚠ Complexity</span>
+        <p>More decoupling → longer, harder-to-read DAGs. Ask: <em>"What tasks belong to a single
+        unit of execution?"</em> and <em>"What operations should be backfilled individually?"</em></p></div>
+      </div>
+
+      <div class="subsec">
+        <h4>Examples</h4>
+        <div class="code-block"><div class="code-lang">python · Apache Airflow</div>
+<pre>clear_context = PostgresOperator(...)
+generate_trends = PostgresOperator(...)
+
+for hour_to_load in [f"{hour:02d}" for hour in range(24)]:
+    file_sensor = FileSensor(
+        task_id=f'wait_for_{hour_to_load}',
+        filepath=input_dir + '/date={{ ds_nodash }}/hour=' + hour_to_load + '/dataset.csv'
+    )
+    visits_loader = PostgresOperator(
+        task_id=f'load_hourly_visits_{hour_to_load}',
+        params={'hour': hour_to_load}
+    )
+    clear_context >> file_sensor >> visits_loader >> generate_trends</pre></div>
+        <div class="code-block"><div class="code-lang">python · PySpark</div>
+<pre>input_dataset_1: DataFrame = ...
+input_dataset_2: DataFrame = ...
+output_dataset = input_dataset_1.unionByName(input_dataset_2)</pre></div>
+        <div class="code-block"><div class="code-lang">sql</div>
+<pre>-- Position-based UNION pitfall: combines a+c, b+b, c+a by POSITION, not name
+SELECT a, b, c FROM abc
+UNION
+SELECT c, b, a FROM cba
+-- unionByName() in PySpark combines by column name instead.</pre></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="pattern-card fan-node" id="unaligned-fan-in">
+    <div class="pattern-inner">
+      <h3 class="pattern-name"><span class="pn-eyebrow">Pattern</span>Unaligned Fan-In</h3>
+
+      <div class="subsec">
+        <h4>Problem</h4>
+        <p>The Aligned Fan-In hourly pipeline works well but can't handle a partially-failed hour
+        gracefully — a failed hour blocks the whole daily aggregate. The team decides a
+        <strong>partial</strong> dataset, filled in later, beats blocking entirely.</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Solution</h4>
+        <p>Relax "all parents must succeed." The child task can run even when some parents fail:</p>
+        <ul>
+          <li>If enough parents succeed and remaining failures are acceptable → trigger the child
+          anyway (partial dataset).</li>
+          <li>If <em>all</em> parents fail → trigger a different failure-path task (fallback /
+          error handler) instead.</li>
+        </ul>
+        <p>Implementation relies on the orchestrator's trigger condition — Airflow's
+        <code>trigger_rule</code> set to "all done" rather than the default "all success."</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Consequences</h4>
+        <div class="callout warning"><span class="cl-label">⚠ Readability</span>
+        <p>Two downstream branches (success-path, failure-path) make execution flow hard to see
+        from the DAG graph alone. <strong>Mitigation:</strong> use the orchestrator's dedicated
+        failure handling — Airflow's <code>on_failure_callback</code>, or Step Functions'
+        <code>Catch</code> field.</p></div>
+        <div class="callout warning"><span class="cl-label">⚠ Partial data</span>
+        <p>Publishing from partial parents requires communicating incompleteness, via a
+        <strong>completeness table</strong> (e.g. 12/24 succeeded → 50%), metadata tags, a
+        notification, or keeping the dataset private until 100% complete.</p></div>
+      </div>
+
+      <div class="subsec">
+        <h4>Examples</h4>
+        <div class="code-block"><div class="code-lang">python · Apache Airflow</div>
+<pre>clear_context = PostgresOperator(...)
+generate_cube = PostgresOperator(
+    # ...
+    trigger_rule=TriggerRule.ALL_DONE
+)
+
+for hour_to_load in [f"{hour:02d}" for hour in range(24)]:
+    file_sensor = FileSensor(
+        task_id=f'wait_for_{hour_to_load}',
+        filepath=input_dir + '/date={{ ds_nodash }}/hour=' + hour_to_load + '/dataset.csv'
+    )
+    visits_loader = PostgresOperator(
+        task_id=f'load_hourly_visits_{hour_to_load}',
+        params={'hour': hour_to_load}
+    )
+    clear_context >> file_sensor >> visits_loader >> generate_cube</pre></div>
+        <p style="font-size:0.88rem;color:var(--paper-dim)">Identical to the Aligned Fan-In
+        example except <code>trigger_rule=TriggerRule.ALL_DONE</code> — the rule stays hidden in
+        code and won't appear in the visual DAG graph.</p>
+        <div class="callout say"><span class="cl-label">✅ Say this out loud</span>
+        <p>"I'd default to Aligned Fan-In unless a partial-but-timely result genuinely beats a
+        complete-but-delayed one — and if I relax it, I always publish a completeness signal so
+        consumers never silently assume 100%."</p></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ============ FAN-OUT ============ -->
+  <h2 class="family-header"><span class="family-tag">03</span> Fan-Out Patterns</h2>
+  <p class="family-intro">One task feeds multiple downstream tasks — useful when one dataset
+  serves multiple teams or purposes.</p>
+
+  <article class="pattern-card fan-node" id="parallel-split">
+    <div class="pattern-inner">
+      <h3 class="pattern-name"><span class="pn-eyebrow">Pattern</span>Parallel Split</h3>
+
+      <div class="subsec">
+        <h4>Problem</h4>
+        <p>A legacy C# processing framework is being retired with no surviving documentation.
+        After reverse-engineering, you're rewriting it in Python — but since the rewrite might not
+        be perfect, you keep the old pipeline running too, writing the processed dataset to
+        <strong>two places</strong> during migration.</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Solution</h4>
+        <p>One parent task feeds at least two child tasks that run in parallel, since their logic
+        is isolated. At the processing layer, three concerns:</p>
+        <ul>
+          <li><strong>Read once</strong> — materialize the shared dataset once (SQL temp table, or
+          Spark's <code>.persist()</code>), not per branch.</li>
+          <li><strong>Isolate branches</strong> — shared/global variables must be read-only or
+          have compatible concurrent writes.</li>
+          <li><strong>Resource allocation</strong> — dedicated compute or auto-scaling for
+          time-sensitive work.</li>
+        </ul>
+      </div>
+
+      <div class="subsec">
+        <h4>Consequences</h4>
+        <div class="callout warning"><span class="cl-label">⚠ Blocked execution</span>
+        <p>Time-dependent pipelines gate on the <em>slowest</em> branch — a failure blocks all
+        subsequent runs. <strong>Mitigation:</strong> export the slow branch to its own pipeline
+        via an Isolated Sequencer dependency.</p></div>
+        <div class="callout warning"><span class="cl-label">⚠ Hardware</span>
+        <p>Differently-resourced branches (CPU-heavy vs. memory-heavy) sharing one job can't both
+        get ideal hardware. <strong>Mitigation:</strong> split like Local Sequencer — generate the
+        intermediary dataset first, then run branches separately on dedicated hardware.</p></div>
+      </div>
+
+      <div class="subsec">
+        <h4>Examples</h4>
+        <div class="code-block"><div class="code-lang">python · Apache Airflow</div>
+<pre>file_sensor = FileSensor(#...
+    task_id='input_dataset_waiter')
+for output_format in ['delta', 'csv']:
+    load_job_trigger = SparkKubernetesOperator(# ...
+        task_id=f'load_job_trigger_{output_format}',
+        params={'output_format': output_format}
+    )
+    load_job_sensor = SparkKubernetesSensor(#...
+        task_id=f'load_job_sensor_{output_format}')
+    file_sensor >> load_job_trigger >> load_job_sensor</pre></div>
+        <div class="code-block"><div class="code-lang">python · PySpark</div>
+<pre>input_dataset = (spark_session.read
+    .schema('type STRING, full_name STRING, version STRING').format('json')
+    .load(DemoConfiguration.INPUT_PATH))
+input_dataset.persist(StorageLevel.MEMORY_ONLY)
+input_dataset.write...
+input_dataset.write...</pre></div>
+        <div class="code-block"><div class="code-lang">python · Delta Lake</div>
+<pre>batch_id = 1
+app_id = 'devices-loader-v1'
+input_dataset.write.mode('append').format('delta')\
+    .option('txnVersion', batch_id).option('txnAppId', app_id)\
+    .save(DemoConfiguration.DEVICES_TABLE)</pre></div>
+        <p style="font-size:0.88rem;color:var(--paper-dim)"><code>txnVersion</code>/<code>txnAppId</code>
+        make Delta Lake writes idempotent on retry — identical replays are ignored rather than
+        duplicated.</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="pattern-card fan-node" id="exclusive-choice">
+    <div class="pattern-inner">
+      <h3 class="pattern-name"><span class="pn-eyebrow">Pattern</span>Exclusive Choice</h3>
+
+      <div class="subsec">
+        <h4>Problem</h4>
+        <p>The Parallel Split migration works well. Now the <strong>new</strong> job version
+        should run only from January 1, 2024 — backfills for prior days should still run the
+        <strong>old</strong> version — without creating a new pipeline (to preserve execution
+        history).</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Solution</h4>
+        <p>Like Parallel Split, declare at least two downstream branches — but add a
+        <strong>condition evaluator task</strong> before branching so only <em>one</em> path
+        executes. Airflow uses a branch operator; Azure Data Factory uses an if-condition
+        activity. Also applies at the processing layer via ordinary <code>if</code>/<code>else</code>.</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Consequences</h4>
+        <div class="callout warning"><span class="cl-label">⚠ Complexity factory</span>
+        <p>Branching feels natural (like application-code <code>if/else</code>), but each
+        orchestration-layer condition is a real execution branch. Heuristic: <strong>rubber duck
+        debugging</strong> — explain the pipeline to an imaginary new teammate; if it's not
+        concise, it's too complex.</p></div>
+        <div class="callout warning"><span class="cl-label">⚠ Hidden logic</span>
+        <p>Processing-layer-only branches are easy to forget weeks later. <strong>Mitigation:</strong>
+        surface the choice at the orchestration layer too, so it's visible in the DAG.</p></div>
+        <div class="callout warning"><span class="cl-label">⚠ Heavy conditions</span>
+        <p>Data-based conditions add real execution time — prefer <strong>metadata-based</strong>
+        conditions, and avoid re-reading the full dataset each time when data-based logic is
+        unavoidable.</p></div>
+      </div>
+
+      <div class="subsec">
+        <h4>Examples</h4>
+        <div class="code-block"><div class="code-lang">python · Apache Airflow</div>
+<pre>def get_output_format_route(**context):
+    migration_date = pendulum.datetime(2024, 2, 3)
+    execution_date = context['execution_date']
+    if execution_date >= migration_date:
+        return 'load_job_trigger_delta'
+    else:
+        return 'load_job_trigger_csv'
+
+format_router = BranchPythonOperator(
+    task_id='format_router',
+    python_callable=get_output_format_route,
+    provide_context=True
+)</pre></div>
+        <div class="code-block"><div class="code-lang">python · PySpark (Factory pattern)</div>
+<pre>class OutputType(str, Enum):
+    delta_lake = 'delta'
+    csv = 'csv'
+
+parser = argparse.ArgumentParser(prog='...')
+parser.add_argument('--output_type', required=True, type=OutputType)
+args = parser.parse_args()
+
+output_generation_factory = OutputGenerationFactory(args.output_type)
+spark_session = output_generation_factory.get_spark_session()
+raw_data = (spark_session.read...)
+output_generation_factory.write_devices_data(raw_data, args.output_dir)</pre></div>
+        <div class="code-block"><div class="code-lang">python · schema-driven routing</div>
+<pre>input_dataset = ...
+input_schema = detect_schema(input_dataset)
+output_location = DemoConfiguration.DEVICES_TABLE_LEGACY
+if len(input_schema.fields) >= 3:
+    output_location = DemoConfiguration.DEVICES_TABLE_SCHEMA_CHANGED</pre></div>
+        <div class="callout note"><span class="cl-label">📌 Note</span>
+        <p>The <code>OutputGenerationFactory</code> borrows the software-engineering
+        <strong>Factory</strong> pattern — hiding creation logic behind one interface instead of
+        repeating conditions across methods.</p></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ============ ORCHESTRATION ============ -->
+  <h2 class="family-header"><span class="family-tag">04</span> Orchestration Patterns</h2>
+  <p class="family-intro">How many whole-pipeline instances are allowed to run at once.</p>
+
+  <article class="pattern-card orch-node" id="single-runner">
+    <div class="pattern-inner">
+      <h3 class="pattern-name"><span class="pn-eyebrow">Pattern</span>Single Runner</h3>
+
+      <div class="subsec">
+        <h4>Problem</h4>
+        <p>A sessionization pipeline (Incremental Sessionizer, Ch. 5) was a manually-run POC with
+        no formal orchestration. Moving toward release, it needs real orchestration — and since
+        the logic is <strong>incremental</strong> (sequential), more than one instance can't
+        safely run at once.</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Solution</h4>
+        <p>Guarantee <strong>at most one</strong> execution at a time. Both Airflow and Azure Data
+        Factory support a concurrency attribute settable to 1. Without native support, implement a
+        Readiness Marker that waits for the prior run — this doesn't stop future runs from
+        queuing behind it.</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Consequences</h4>
+        <div class="callout warning"><span class="cl-label">⚠ Backfilling</span>
+        <p>Sequential-only execution makes backfilling slow — and this can't be relaxed, since
+        single concurrency is a <strong>correctness</strong> requirement, not a performance
+        choice. Only lever: check whether the whole pipeline truly needs to backfill, or just part
+        of it.</p></div>
+        <div class="callout warning"><span class="cl-label">⚠ Latency</span>
+        <p>A milder case than backfilling: <strong>stragglers</strong>. An hourly job that
+        normally takes 30 min creeping to 1.5h compounds delay run over run, and every downstream
+        consumer inherits it. <strong>Mitigation:</strong> add compute power or improve the
+        processing logic on scalable infrastructure.</p></div>
+      </div>
+
+      <div class="subsec">
+        <h4>Examples</h4>
+        <div class="code-block"><div class="code-lang">python · Apache Airflow</div>
+<pre>with DAG('visits_trend_generator', max_active_runs=1, default_args={
+    'depends_on_past': True,
+    # ...</pre></div>
+        <div class="callout note"><span class="cl-label">📌 Note</span>
+        <p>AWS EMR exposes <code>StepConcurrencyLevel</code> for cluster-wide concurrency. Azure
+        Data Factory's <strong>Concurrency</strong> setting <em>queues</em> excess runs (up to
+        100) rather than blocking — once full, scheduling returns HTTP <code>429</code>.</p></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="pattern-card orch-node" id="concurrent-runner">
+    <div class="pattern-inner">
+      <h3 class="pattern-name"><span class="pn-eyebrow">Pattern</span>Concurrent Runner</h3>
+
+      <div class="subsec">
+        <h4>Problem</h4>
+        <p>A data ingestion team pulls external at-rest data every 30–60 minutes, sometimes
+        longer. Running under Single Runner, every subsequent delivery is delayed behind a slow
+        one — even though the ingested datasets are actually <strong>independent</strong>.</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Solution</h4>
+        <p>Since datasets don't depend on each other, set concurrency higher than 1 — the
+        <strong>Concurrent Runner</strong> pattern. The orchestrator picks up the next scheduled
+        run as soon as capacity allows. "With great power comes great responsibility" — balance
+        the ceiling against overall infrastructure capacity.</p>
+      </div>
+
+      <div class="subsec">
+        <h4>Consequences</h4>
+        <div class="callout warning"><span class="cl-label">⚠ Resource starvation</span>
+        <p>In multitenant orchestrators, several high-concurrency pipelines backfilling
+        simultaneously can starve other teams' capacity. <strong>Mitigation:</strong> workload
+        management — allocate dedicated capacity per team so one team can't exceed its threshold.
+        Serverless orchestrators (e.g. Step Functions, up to 10,000 parallel child executions) may
+        avoid this entirely.</p></div>
+        <div class="callout warning"><span class="cl-label">⚠ Shared state</span>
+        <p>Touching a shared component under concurrent, nondeterministic execution causes
+        unexpected side effects — e.g. the Dynamic Late Data Integrator (Ch. 4) could trigger
+        backfilling multiple times, or not at all for some dates.</p></div>
+      </div>
+
+      <div class="subsec">
+        <h4>Examples</h4>
+        <div class="code-block"><div class="code-lang">python · Apache Airflow</div>
+<pre>with DAG('devices_loader', max_active_runs=5,
+    default_args={
+        'depends_on_past': False,
+        # ...</pre></div>
+        <div class="callout note"><span class="cl-label">📌 Note</span>
+        <p>Azure Data Factory supports concurrency and trigger-based dependency, but <strong>not</strong>
+        task-based dependency.</p></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ============ DIAGRAMS ============ -->
+  <h2 class="family-header" id="diagrams"><span class="family-tag">◆</span> Interactive Diagrams</h2>
+  <p class="family-intro">Explore the chapter's key comparisons. Click a tab to switch view.</p>
+
+  <div class="diagram-box">
+    <div class="diagram-title">Fan-In: Aligned vs. Unaligned (hover the merge task)</div>
+    <div class="flow-widget">
+      <div class="flow-tabs" role="tablist" aria-label="Fan-in comparison">
+        <button class="flow-tab" role="tab" aria-selected="true" data-target="fanin-aligned">Aligned Fan-In</button>
+        <button class="flow-tab" role="tab" aria-selected="false" data-target="fanin-unaligned">Unaligned Fan-In</button>
+      </div>
+      <div class="flow-stage" id="fanin-stage"></div>
+      <p class="flow-svg-caption" id="fanin-caption"></p>
+    </div>
+  </div>
+
+  <div class="diagram-box">
+    <div class="diagram-title">Fan-Out: Parallel Split vs. Exclusive Choice</div>
+    <div class="flow-widget">
+      <div class="flow-tabs" role="tablist" aria-label="Fan-out comparison">
+        <button class="flow-tab" role="tab" aria-selected="true" data-target="fanout-split">Parallel Split</button>
+        <button class="flow-tab" role="tab" aria-selected="false" data-target="fanout-choice">Exclusive Choice</button>
+      </div>
+      <div class="flow-stage" id="fanout-stage"></div>
+      <p class="flow-svg-caption" id="fanout-caption"></p>
+    </div>
+  </div>
+
+  <div class="diagram-box">
+    <div class="diagram-title">Orchestration timing — Single Runner vs. Concurrent Runner</div>
+    <pre class="mermaid">
+sequenceDiagram
+    participant Sched as Scheduler
+    participant SR as Single Runner (max=1)
+    participant CR as Concurrent Runner (max=5)
+    Note over Sched,SR: Strictly sequential
+    Sched->>SR: Trigger run #1 (slow: 1.5h)
+    Sched-->>SR: Run #2 queued, WAITS
+    SR->>SR: Run #1 completes
+    Sched->>SR: Run #2 starts (already delayed)
+    Note over Sched,CR: Independent datasets, parallel
+    Sched->>CR: Trigger run #1
+    Sched->>CR: Trigger run #2 (starts immediately)
+    Sched->>CR: Trigger run #3 (starts immediately)
+    </pre>
+  </div>
+
+  <div class="diagram-box">
+    <div class="diagram-title">All four families in one flow</div>
+    <pre class="mermaid">
+flowchart TB
+    subgraph Sequence["01 Sequence"]
+        direction LR
+        LS["Local Sequencer"] --> IS["Isolated Sequencer"]
+    end
+    subgraph FanIn["02 Fan-In"]
+        direction LR
+        AFI["Aligned Fan-In"]
+        UFI["Unaligned Fan-In"]
+    end
+    subgraph FanOut["03 Fan-Out"]
+        direction LR
+        PS["Parallel Split"]
+        EC["Exclusive Choice"]
+    end
+    subgraph Orch["04 Orchestration"]
+        direction LR
+        SR["Single Runner"]
+        CR["Concurrent Runner"]
+    end
+    Sequence --> FanIn
+    Sequence --> FanOut
+    FanIn --> Orch
+    FanOut --> Orch
+    </pre>
+  </div>
+
+  <!-- ============ TRADE-OFF TABLES ============ -->
+  <h2 class="family-header" id="tradeoffs"><span class="family-tag">◆</span> Trade-Off Tables</h2>
+
+  <h3 style="font-family:'Fraunces',serif;font-weight:600;color:var(--brass-bright);margin-top:2rem;">Fan-In: Aligned vs. Unaligned</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-Off</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Aligned Fan-In</strong></td>
+          <td>All branch inputs are equally required for a correct, complete result.</td>
+          <td>Simpler, single output — but one failed branch blocks the merge entirely; gated by
+          the slowest parent; infra spikes under simultaneous branches.</td>
+        </tr>
+        <tr>
+          <td><strong>Unaligned Fan-In</strong></td>
+          <td>Timely partial results beat a complete-but-delayed result; gaps can be backfilled
+          later.</td>
+          <td>Requires explicit completeness tracking or consumers silently assume 100%; dual
+          success/failure branches reduce DAG readability.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-family:'Fraunces',serif;font-weight:600;color:var(--brass-bright);margin-top:2.4rem;">Fan-Out: Parallel Split vs. Exclusive Choice</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-Off</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Parallel Split</strong></td>
+          <td>Multiple consumers genuinely need the same upstream data at the same time (e.g.
+          dual-write migration).</td>
+          <td>All branches share one hardware profile unless split further; blocks on the
+          slowest branch; must guard against duplicate writes on retry.</td>
+        </tr>
+        <tr>
+          <td><strong>Exclusive Choice</strong></td>
+          <td>Only one of several paths should execute per run (e.g. cut-over date routing).</td>
+          <td>Easy to over-branch into a "complexity factory"; hidden processing-layer logic is
+          easy to forget; data-driven conditions add runtime cost.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-family:'Fraunces',serif;font-weight:600;color:var(--brass-bright);margin-top:2.4rem;">Orchestration: Single Runner vs. Concurrent Runner</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-Off</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Single Runner</strong></td>
+          <td>Pipeline logic is incremental/stateful — correctness depends on the previous run's
+          output.</td>
+          <td>Backfilling is slow (can't parallelize — correctness-driven); stragglers compound
+          latency for every downstream consumer.</td>
+        </tr>
+        <tr>
+          <td><strong>Concurrent Runner</strong></td>
+          <td>Runs are independent of each other (e.g. unrelated external datasets).</td>
+          <td>Risk of resource starvation in multitenant orchestrators without workload
+          management; shared mutable state causes nondeterministic bugs.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============ GOTCHAS ============ -->
+  <h2 class="family-header"><span class="family-tag">◆</span> Gotchas — By Pattern</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pattern</th><th>Gotcha(s)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Local Sequencer</strong></td><td>No fixed split rule — judge by naming difficulty, backfill cost, forfeited orchestrator abstractions.</td></tr>
+        <tr><td><strong>Isolated Sequencer</strong></td><td>Scheduling and communication overhead across team/pipeline boundaries.</td></tr>
+        <tr><td><strong>Aligned Fan-In</strong></td><td>Infrastructure spikes; scheduling skew from the slowest parent; scheduling overhead; overall complexity.</td></tr>
+        <tr><td><strong>Unaligned Fan-In</strong></td><td>Reduced DAG readability; must explicitly track and communicate partial completeness.</td></tr>
+        <tr><td><strong>Parallel Split</strong></td><td>Blocked execution cascades from the slowest branch; mismatched hardware needs; retry-driven duplicate writes.</td></tr>
+        <tr><td><strong>Exclusive Choice</strong></td><td>"Complexity factory" from over-branching; hidden processing-layer logic; runtime cost of data-based conditions.</td></tr>
+        <tr><td><strong>Single Runner</strong></td><td>Slow, non-parallelizable backfilling (a correctness constraint); straggler runs compound delay.</td></tr>
+        <tr><td><strong>Concurrent Runner</strong></td><td>Resource starvation in multitenant environments; shared-state bugs under nondeterministic concurrency.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat-panel" id="cheat-sheet">
+    <h3 class="cheat-title">Cheat Sheet — five minutes before the interview</h3>
+    <div class="cheat-grid">
+
+      <div class="cheat-card">
+        <h5>Local Sequencer</h5>
+        <div class="cheat-row"><b>Problem:</b> One bloated job, hard to debug/maintain.</div>
+        <div class="cheat-row"><b>Solution:</b> Ordered, dependency-driven steps.</div>
+        <div class="cheat-row gotcha"><b>Gotcha:</b> No universal split boundary.</div>
+      </div>
+
+      <div class="cheat-card">
+        <h5>Isolated Sequencer</h5>
+        <div class="cheat-row"><b>Problem:</b> Two teams must hand off data, not merge ownership.</div>
+        <div class="cheat-row"><b>Solution:</b> Data- or trigger-based cross-pipeline dependency.</div>
+        <div class="cheat-row gotcha"><b>Gotcha:</b> Cross-boundary scheduling & comms overhead.</div>
+      </div>
+
+      <div class="cheat-card">
+        <h5>Aligned Fan-In</h5>
+        <div class="cheat-row"><b>Problem:</b> Need one daily result from 24 hourly partitions.</div>
+        <div class="cheat-row"><b>Solution:</b> Branch per hour, merge via UNION/JOIN when all succeed.</div>
+        <div class="cheat-row gotcha"><b>Gotcha:</b> Slowest parent gates everything.</div>
+      </div>
+
+      <div class="cheat-card">
+        <h5>Unaligned Fan-In</h5>
+        <div class="cheat-row"><b>Problem:</b> Aligned Fan-In blocks entirely on one failed hour.</div>
+        <div class="cheat-row"><b>Solution:</b> trigger_rule=ALL_DONE + completeness metric.</div>
+        <div class="cheat-row gotcha"><b>Gotcha:</b> Must signal incompleteness explicitly.</div>
+      </div>
+
+      <div class="cheat-card">
+        <h5>Parallel Split</h5>
+        <div class="cheat-row"><b>Problem:</b> Write the same data to two destinations.</div>
+        <div class="cheat-row"><b>Solution:</b> Materialize once (.persist()), fan out.</div>
+        <div class="cheat-row gotcha"><b>Gotcha:</b> Slowest branch blocks subsequent runs.</div>
+      </div>
+
+      <div class="cheat-card">
+        <h5>Exclusive Choice</h5>
+        <div class="cheat-row"><b>Problem:</b> Only one job variant should run per condition.</div>
+        <div class="cheat-row"><b>Solution:</b> Router/branch task before splitting.</div>
+        <div class="cheat-row gotcha"><b>Gotcha:</b> Over-branching → unreadable complexity factory.</div>
+      </div>
+
+      <div class="cheat-card">
+        <h5>Single Runner</h5>
+        <div class="cheat-row"><b>Problem:</b> Incremental logic breaks under concurrent instances.</div>
+        <div class="cheat-row"><b>Solution:</b> max_active_runs=1.</div>
+        <div class="cheat-row gotcha"><b>Gotcha:</b> Slow, non-parallelizable backfilling.</div>
+      </div>
+
+      <div class="cheat-card">
+        <h5>Concurrent Runner</h5>
+        <div class="cheat-row"><b>Problem:</b> Independent datasets needlessly serialized.</div>
+        <div class="cheat-row"><b>Solution:</b> Raise concurrency above 1.</div>
+        <div class="cheat-row gotcha"><b>Gotcha:</b> Resource starvation & shared-state bugs.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="further-reading">
+    <h3>Special Notes</h3>
+    <ul>
+      <li><strong>Apache Airflow:</strong> <code>&gt;&gt;</code> for sequencing; <code>BranchPythonOperator</code> for Exclusive Choice; <code>trigger_rule=ALL_DONE</code> for Unaligned Fan-In; <code>ExternalTaskMarker</code>/<code>ExternalTaskSensor</code> for Isolated Sequencer; <code>max_active_runs</code> + <code>depends_on_past</code> for runner control; <code>on_failure_callback</code> for clean failure handling.</li>
+      <li><strong>AWS EMR:</strong> Step API for sequencing; <code>StepConcurrencyLevel</code> for cluster-wide concurrency; <code>ActionOnFailure=TERMINATE_CLUSTER</code> avoids silently exposing partial data.</li>
+      <li><strong>Azure Data Factory:</strong> if-condition activity for Exclusive Choice; Concurrency setting queues (not blocks) excess runs up to 100, then returns HTTP 429; no task-based dependency support.</li>
+      <li><strong>Delta Lake:</strong> <code>txnVersion</code>/<code>txnAppId</code> give idempotent, retry-safe writes — directly relevant to Parallel Split.</li>
+      <li><strong>Cross-reference:</strong> the Factory software-engineering pattern used in the Exclusive Choice example.</li>
+    </ul>
+    <h3 style="margin-top:1.6rem;">Further Reading</h3>
+    <ul>
+      <li><em>Fundamentals of Data Engineering</em></li>
+      <li><em>The Cloud Data Lake</em></li>
+      <li><em>Delta Lake: The Definitive Guide</em></li>
+      <li><em>Design Patterns: Elements of Reusable Object-Oriented Software</em></li>
+      <li>Refactoring Guru (website)</li>
+      <li>OpenLineage (official website)</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>DATA ENGINEERING DESIGN PATTERNS · CHAPTER 6 OF 10 · STUDY REFERENCE</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      background: '#0f1720',
+      primaryColor: '#1b2836',
+      primaryTextColor: '#eef1ec',
+      primaryBorderColor: '#c99a4b',
+      lineColor: '#8a6d3b',
+      secondaryColor: '#24333f',
+      tertiaryColor: '#141f2b',
+      fontFamily: 'IBM Plex Sans, sans-serif',
+      fontSize: '14px',
+      actorBkg: '#1b2836',
+      actorBorder: '#c99a4b',
+      actorTextColor: '#eef1ec',
+      signalColor: '#c7cdc4',
+      signalTextColor: '#eef1ec',
+      noteBkgColor: '#24333f',
+      noteTextColor: '#eef1ec',
+      noteBorderColor: '#c99a4b'
+    },
+    securityLevel: 'loose'
+  });
+
+  // ---------- Interactive Fan-In widget ----------
+  const svgNS = 'http://www.w3.org/2000/svg';
+
+  function makeFanInSVG(mode) {
+    // mode: 'aligned' | 'unaligned'
+    const width = 760, height = 200;
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', mode === 'aligned' ? 'Aligned Fan-In diagram' : 'Unaligned Fan-In diagram');
+
+    const hours = [0, 1, 2, 3, '\u2026', 22, 23];
+    const failedIndex = 4; // hour "22" fails in unaligned mode (visual only)
+    const nodeY = 30;
+    const mergeX = width - 110, mergeY = 100;
+    const startX = 60, gapX = (mergeX - 140 - startX) / (hours.length - 1);
+
+    function line(x1, y1, x2, y2, color, dash) {
+      const l = document.createElementNS(svgNS, 'line');
+      l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+      l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+      l.setAttribute('stroke', color);
+      l.setAttribute('stroke-width', '1.6');
+      if (dash) l.setAttribute('stroke-dasharray', dash);
+      return l;
+    }
+    function circle(cx, cy, r, fill, stroke) {
+      const c = document.createElementNS(svgNS, 'circle');
+      c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
+      c.setAttribute('fill', fill); c.setAttribute('stroke', stroke); c.setAttribute('stroke-width', '2');
+      return c;
+    }
+    function text(x, y, str, opts = {}) {
+      const t = document.createElementNS(svgNS, 'text');
+      t.setAttribute('x', x); t.setAttribute('y', y);
+      t.setAttribute('font-family', 'IBM Plex Mono, monospace');
+      t.setAttribute('font-size', opts.size || '11');
+      t.setAttribute('fill', opts.fill || '#c7cdc4');
+      t.setAttribute('text-anchor', opts.anchor || 'middle');
+      t.textContent = str;
+      return t;
+    }
+
+    hours.forEach((h, i) => {
+      const x = startX + i * gapX;
+      const isFailed = mode === 'unaligned' && i === failedIndex;
+      const color = isFailed ? '#b3624a' : '#c99a4b';
+      svg.appendChild(circle(x, nodeY, 12, isFailed ? '#2a1b1b' : '#1b2836', color));
+      svg.appendChild(text(x, nodeY + 4, isFailed ? '\u2715' : '\u2713', { fill: color, size: '12' }));
+      svg.appendChild(text(x, nodeY + 30, typeof h === 'number' ? `h${String(h).padStart(2,'0')}` : h, { size: '10' }));
+      const dash = (mode === 'aligned' && isFailed) ? null : (isFailed ? '4,3' : null);
+      svg.appendChild(line(x, nodeY + 12, mergeX - 14, mergeY - 10, isFailed ? '#b3624a' : '#8a6d3b'));
+    });
+
+    // merge node
+    const mergeColor = mode === 'unaligned' ? '#6f9cae' : '#e0b567';
+    svg.appendChild(circle(mergeX, mergeY, 20, '#1b2836', mergeColor));
+    svg.appendChild(text(mergeX, mergeY - 32, mode === 'aligned' ? 'merge' : 'merge', { size: '11', fill: mergeColor }));
+    svg.appendChild(text(mergeX, mergeY + 5, mode === 'aligned' ? 'ALL' : 'DONE', { size: '9', fill: mergeColor }));
+
+    // output
+    svg.appendChild(line(mergeX + 20, mergeY, mergeX + 70, mergeY, mergeColor));
+    const outLabel = mode === 'aligned' ? 'Daily total\n(100% or blocked)' : 'Partial daily\n+ completeness %';
+    const outLines = outLabel.split('\n');
+    svg.appendChild(text(mergeX + 100, mergeY - 6, outLines[0], { anchor: 'start', size: '11', fill: '#eef1ec' }));
+    svg.appendChild(text(mergeX + 100, mergeY + 10, outLines[1], { anchor: 'start', size: '10', fill: '#c7cdc4' }));
+
+    return svg;
+  }
+
+  function makeFanOutSVG(mode) {
+    // mode: 'split' | 'choice'
+    const width = 760, height = 190;
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', mode === 'split' ? 'Parallel Split diagram' : 'Exclusive Choice diagram');
+
+    function line(x1, y1, x2, y2, color, dash) {
+      const l = document.createElementNS(svgNS, 'line');
+      l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+      l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+      l.setAttribute('stroke', color); l.setAttribute('stroke-width', '1.8');
+      if (dash) l.setAttribute('stroke-dasharray', dash);
+      return l;
+    }
+    function rect(x, y, w, h, fill, stroke, rx=4) {
+      const r = document.createElementNS(svgNS, 'rect');
+      r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', h);
+      r.setAttribute('fill', fill); r.setAttribute('stroke', stroke); r.setAttribute('stroke-width', '1.6');
+      r.setAttribute('rx', rx);
+      return r;
+    }
+    function text(x, y, str, opts = {}) {
+      const t = document.createElementNS(svgNS, 'text');
+      t.setAttribute('x', x); t.setAttribute('y', y);
+      t.setAttribute('font-family', 'IBM Plex Mono, monospace');
+      t.setAttribute('font-size', opts.size || '11');
+      t.setAttribute('fill', opts.fill || '#c7cdc4');
+      t.setAttribute('text-anchor', opts.anchor || 'middle');
+      t.textContent = str;
+      return t;
+    }
+
+    const srcX = 90, srcY = 95;
+    svg.appendChild(rect(srcX - 55, srcY - 18, 110, 36, '#1b2836', '#c99a4b'));
+    svg.appendChild(text(srcX, srcY + 4, mode === 'split' ? 'Shared input' : 'format_router'));
+
+    const branchX = 420;
+    const topY = 45, botY = 145;
+
+    if (mode === 'split') {
+      svg.appendChild(line(srcX + 55, srcY, branchX - 60, topY, '#c99a4b'));
+      svg.appendChild(line(srcX + 55, srcY, branchX - 60, botY, '#c99a4b'));
+      svg.appendChild(rect(branchX - 60, topY - 18, 130, 36, '#1b2836', '#6f9cae'));
+      svg.appendChild(text(branchX + 5, topY + 4, 'Write: Delta'));
+      svg.appendChild(rect(branchX - 60, botY - 18, 130, 36, '#1b2836', '#6f9cae'));
+      svg.appendChild(text(branchX + 5, botY + 4, 'Write: CSV'));
+      svg.appendChild(text(width/2, 20, 'BOTH branches execute', { fill: '#e0b567', size: '11' }));
+    } else {
+      svg.appendChild(line(srcX + 55, srcY, branchX - 60, topY, '#6f8f6a'));
+      svg.appendChild(line(srcX + 55, srcY, branchX - 60, botY, '#b3624a', '5,4'));
+      svg.appendChild(rect(branchX - 60, topY - 18, 150, 36, '#1b2836', '#6f8f6a'));
+      svg.appendChild(text(branchX + 15, topY + 4, 'Write: Delta \u2713', { fill: '#6f8f6a' }));
+      svg.appendChild(rect(branchX - 60, botY - 18, 150, 36, '#0c1414', '#b3624a'));
+      svg.appendChild(text(branchX + 15, botY + 4, 'Write: CSV (skipped)', { fill: '#b3624a', size: '10' }));
+      svg.appendChild(text(width/2, 20, 'exec_date >= 2024-01-01 ? ONE branch runs', { fill: '#e0b567', size: '11' }));
+    }
+
+    return svg;
+  }
+
+  function mountFanIn(mode) {
+    const stage = document.getElementById('fanin-stage');
+    stage.innerHTML = '';
+    stage.appendChild(makeFanInSVG(mode));
+    document.getElementById('fanin-caption').textContent = mode === 'aligned'
+      ? 'Every hourly branch must succeed before the merge task runs — one failure blocks the entire daily output.'
+      : 'trigger_rule = ALL_DONE lets the merge run even with a failed hour (h22 shown failed) — output ships as partial + a completeness percentage.';
+  }
+  function mountFanOut(mode) {
+    const stage = document.getElementById('fanout-stage');
+    stage.innerHTML = '';
+    stage.appendChild(makeFanOutSVG(mode));
+    document.getElementById('fanout-caption').textContent = mode === 'split'
+      ? 'Parallel Split: the shared input is read once (.persist()) and both branches always execute — used for dual-writing during a migration.'
+      : 'Exclusive Choice: a router evaluates a condition and only ONE branch executes — used for date-based cut-overs between old and new logic.';
+  }
+
+  document.querySelectorAll('.flow-tabs').forEach(tabGroup => {
+    const isFanIn = tabGroup.closest('.diagram-box').querySelector('#fanin-stage') !== null;
+    tabGroup.querySelectorAll('.flow-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabGroup.querySelectorAll('.flow-tab').forEach(b => b.setAttribute('aria-selected', 'false'));
+        btn.setAttribute('aria-selected', 'true');
+        const target = btn.dataset.target;
+        if (isFanIn) mountFanIn(target === 'fanin-aligned' ? 'aligned' : 'unaligned');
+        else mountFanOut(target === 'fanout-split' ? 'split' : 'choice');
+      });
+    });
+  });
+
+  mountFanIn('aligned');
+  mountFanOut('split');
+</script>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 6 Cram Sheet — Data Flow Design Patterns</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  :root {
+    --paper: #F6F1E7;
+    --paper-raised: #FFFDF8;
+    --ink: #211D18;
+    --ink-soft: #55504A;
+    --ink-faint: #8A8378;
+    --rule: #DCD3C0;
+    --rule-strong: #C9BCA0;
+    --blue: #2B4C6F;    --blue-bg: #E6EDF3;    --blue-border: #A9C1D6;
+    --rust: #C4622D;    --rust-bg: #F7E9DF;    --rust-border: #E3AE8C;
+    --green: #3F6B4F;   --green-bg: #E6EEE8;   --green-border: #A9C7B4;
+    --amber: #A9772E;   --amber-bg: #F3EAD6;   --amber-border: #DDBE85;
+    --purple: #6B4C8A;  --purple-bg: #EFE7F5;  --purple-border: #C7ABDB;
+    --code-bg: #211D18; --code-fg: #F1EADC;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.55;
+  }
+
+  a { color: var(--blue); }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--rust);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  ::selection { background: var(--amber-bg); }
+
+  /* ---------- Sticky header ---------- */
+  header.top {
+    position: sticky; top: 0; z-index: 20;
+    background: linear-gradient(180deg, #2A241B, #211D18);
+    color: var(--paper);
+    padding: 1.1rem 1.5rem;
+    border-bottom: 3px solid var(--rust);
+  }
+  .top-inner { max-width: 980px; margin: 0 auto; }
+  .top-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #E3AE8C;
+  }
+  .top-title {
+    font-family: 'Source Serif 4', serif;
+    font-weight: 700; font-size: 1.5rem; margin: 0.25rem 0 0.15rem;
+  }
+  .top-dek { font-size: 0.85rem; color: #C9BCA0; margin: 0 0 0.8rem; }
+  .quicknav { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .quicknav a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #F1EADC;
+    padding: 0.28rem 0.6rem;
+    border-radius: 999px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .quicknav a:hover { background: rgba(227,174,140,0.18); border-color: var(--rust); }
+
+  main { max-width: 980px; margin: 0 auto; padding: 1.6rem 1.5rem 4rem; }
+
+  /* ---------- Thread callout ---------- */
+  .thread {
+    background: var(--purple-bg);
+    border: 1px solid var(--purple-border);
+    border-left: 4px solid var(--purple);
+    border-radius: 4px;
+    padding: 1rem 1.2rem;
+    margin: 0 0 1.4rem;
+  }
+  .thread .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--purple); font-weight: 700; display: block; margin-bottom: 0.4rem;
+  }
+  .thread p { margin: 0; font-size: 0.95rem; color: var(--ink); }
+
+  /* ---------- Recall table ---------- */
+  .recall-wrap { overflow-x: auto; margin-bottom: 2.2rem; border: 1px solid var(--rule-strong); border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 680px; background: var(--paper-raised); }
+  thead th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+    background: var(--ink); color: var(--paper);
+    text-align: left; padding: 0.6rem 0.8rem;
+  }
+  tbody td { padding: 0.65rem 0.8rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #FBF7EE; }
+  tbody td:nth-child(2) { font-weight: 600; }
+  tbody td:nth-child(5) { color: var(--rust); }
+
+  /* ---------- Pattern flashcards ---------- */
+  .card {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule-strong);
+    border-radius: 6px;
+    margin-bottom: 1.1rem;
+    overflow: hidden;
+    scroll-margin-top: 6.5rem;
+  }
+  .card-head {
+    background: linear-gradient(135deg, #221E19, #2E2820);
+    color: var(--paper);
+    padding: 0.7rem 1.1rem;
+    display: flex; align-items: center; gap: 0.7rem;
+  }
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; font-weight: 700;
+    background: var(--rust); color: #211D18;
+    padding: 0.15rem 0.5rem; border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .card-head h3 { font-family: 'Source Serif 4', serif; font-weight: 600; font-size: 1.12rem; margin: 0; }
+
+  .card-body { padding: 1rem 1.1rem 1.15rem; }
+
+  .row { display: flex; gap: 10px; margin-bottom: 10px; align-items: baseline; flex-wrap: wrap; }
+  .row .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.06em;
+    text-transform: uppercase; font-weight: 700; flex-shrink: 0; width: 74px; padding-top: 2px;
+  }
+  .row .txt { flex: 1; min-width: 220px; font-size: 0.92rem; color: var(--ink); }
+  .row.problem .tag { color: var(--rust); }
+  .row.solution .tag { color: var(--blue); }
+  .row.gotcha .tag { color: var(--amber); }
+
+  .callouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.6rem; margin-top: 0.9rem; }
+  .callout {
+    border-radius: 4px; border: 1px solid; padding: 0.6rem 0.75rem; font-size: 0.83rem;
+  }
+  .callout .lbl {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; letter-spacing: 0.08em;
+    text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.3rem;
+  }
+  .callout p { margin: 0; }
+  .callout.note { background: var(--blue-bg); border-color: var(--blue-border); }
+  .callout.note .lbl { color: var(--blue); }
+  .callout.say { background: var(--amber-bg); border-color: var(--amber-border); }
+  .callout.say .lbl { color: var(--amber); }
+  .callout.faang { background: var(--rust-bg); border-color: var(--rust-border); }
+  .callout.faang .lbl { color: var(--rust); }
+  .callout.dbx { background: var(--green-bg); border-color: var(--green-border); }
+  .callout.dbx .lbl { color: var(--green); }
+  .dbx-unsure { font-style: italic; color: var(--ink-soft); }
+
+  /* ---------- Closer ---------- */
+  .closer {
+    margin-top: 2rem;
+    background: linear-gradient(180deg, #2A241B, #211D18);
+    color: var(--paper);
+    border-radius: 6px;
+    padding: 1.4rem 1.5rem;
+  }
+  .closer .lbl {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #E3AE8C; display: block; margin-bottom: 0.5rem;
+  }
+  .closer p { margin: 0; font-size: 0.94rem; color: #F1EADC; }
+  .closer strong { color: #E3AE8C; }
+
+  footer.page {
+    text-align: center; padding: 1.6rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+    color: var(--ink-faint); letter-spacing: 0.05em;
+  }
+
+  @media (max-width: 640px) {
+    .row .tag { width: 100%; }
+    main { padding: 1.2rem 1rem 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <span class="top-kicker">Data Engineering Design Patterns · Ch. 6 · Cram Sheet</span>
+    <h1 class="top-title">Data Flow Design Patterns — 2-Day Review</h1>
+    <p class="top-dek">8 patterns, flashcard-density. Scan the recall table first, then drill into any card.</p>
+    <nav class="quicknav" aria-label="Quick navigation">
+      <a href="#p1">1 Local Seq.</a>
+      <a href="#p2">2 Isolated Seq.</a>
+      <a href="#p3">3 Aligned Fan-In</a>
+      <a href="#p4">4 Unaligned Fan-In</a>
+      <a href="#p5">5 Parallel Split</a>
+      <a href="#p6">6 Exclusive Choice</a>
+      <a href="#p7">7 Single Runner</a>
+      <a href="#p8">8 Concurrent Runner</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <div class="thread">
+    <span class="lbl">The Connecting Thread</span>
+    <p>This chapter is about pipeline <strong>topology</strong>, not logic. Sequence patterns
+    decide one job vs. many. Fan-in patterns decide how branches merge back (all-or-nothing vs.
+    partial). Fan-out patterns decide how one task spawns others (all branches vs. one). Orchestration
+    patterns decide how many whole-pipeline <em>instances</em> run at once. Get the topology right
+    and readability, backfill cost, and correctness fall out of it.</p>
+  </div>
+
+  <div class="recall-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Pattern</th><th>Problem</th><th>Fix</th><th>#1 Gotcha</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Local Sequencer</td><td>One bloated job, hard to debug/maintain</td><td>Ordered, dependency-driven steps</td><td>No universal split boundary</td></tr>
+        <tr><td>2</td><td>Isolated Sequencer</td><td>Two teams must hand off data, not merge ownership</td><td>Data- or trigger-based cross-pipeline dependency</td><td>Cross-boundary scheduling & comms overhead</td></tr>
+        <tr><td>3</td><td>Aligned Fan-In</td><td>Need one daily result from 24 hourly partitions</td><td>Branch per hour, merge when ALL succeed</td><td>Slowest parent gates everything</td></tr>
+        <tr><td>4</td><td>Unaligned Fan-In</td><td>Aligned Fan-In blocks entirely on one failed hour</td><td>trigger_rule=ALL_DONE + completeness %</td><td>Must signal incompleteness explicitly</td></tr>
+        <tr><td>5</td><td>Parallel Split</td><td>Write same data to two destinations (migration)</td><td>Materialize once (.persist()), fan out</td><td>Slowest branch blocks subsequent runs</td></tr>
+        <tr><td>6</td><td>Exclusive Choice</td><td>Only one job variant should run per condition</td><td>Router/branch task before splitting</td><td>Over-branching → complexity factory</td></tr>
+        <tr><td>7</td><td>Single Runner</td><td>Incremental logic breaks under concurrent instances</td><td>max_active_runs=1</td><td>Slow, non-parallelizable backfilling</td></tr>
+        <tr><td>8</td><td>Concurrent Runner</td><td>Independent datasets needlessly serialized</td><td>Raise concurrency above 1</td><td>Resource starvation & shared-state bugs</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pattern 1 -->
+  <article class="card" id="p1">
+    <div class="card-head"><span class="chip">P·01</span><h3>Local Sequencer</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">A monolithic job (hundreds of lines, tripled transforms) fails often and every retry restarts from scratch.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Decompose into steps run in strict data-dependency order — orchestration-layer tasks or one processing unit, chosen by naming clarity, backfill cost, and lost abstractions.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">No fixed rule for the split boundary — over-splitting hurts readability as much as under-splitting hurts maintainability.</span></div>
+      <div class="callouts">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>CRON is still valid for a genuinely isolated task with zero dependencies.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"I split this at the orchestration layer because backfilling a paid-API check inside a monolith would re-trigger billed calls on every retry."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"How would you decide whether to split this?" — name the three book criteria: separation of concerns, maintainability, implementation effort.</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><span class="dbx-unsure">No dedicated feature</span> — this is Databricks Workflows task dependencies, not a Delta capability.</p></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Pattern 2 -->
+  <article class="card" id="p2">
+    <div class="card-head"><span class="chip">P·02</span><h3>Isolated Sequencer</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Your team's cleansed dataset feeds a separate team's dashboard pipeline; both must stay owned and run independently.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Connect two physically separate pipelines via implicit data-dependency sensors, or explicit ExternalTaskMarker (upstream) + ExternalTaskSensor (downstream) — the latter auto-propagates backfills.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Scheduling and communication overhead across the boundary. <span class="dbx-unsure">[verify against source page]</span></span></div>
+      <div class="callouts">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Draw the boundary by team ownership, or by pipeline complexity if you're both provider and consumer.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"I'd use ExternalTaskMarker/Sensor so a backfill upstream auto-propagates downstream, instead of relying on manual team coordination."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"How do you avoid two teams' pipelines drifting out of sync?" — answer with the marker/sensor auto-propagation, not "we'd talk."</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><span class="dbx-unsure">No dedicated feature</span> — cross-pipeline triggering stays an orchestrator concern (Airflow sensors, or Databricks Workflows job-to-job triggers via the Jobs API).</p></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Pattern 3 -->
+  <article class="card" id="p3">
+    <div class="card-head"><span class="chip">P·03</span><h3>Aligned Fan-In</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Compute one daily aggregate from 24 hourly partitions without reprocessing the whole day at once.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Branch per hour; merge via UNION (vertical) or JOIN (horizontal) — only once ALL 24 branches succeed.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Merge task gated by the slowest parent (scheduling skew), plus infra spikes and DAG complexity.</span></div>
+      <div class="callouts">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>SQL UNION is position-based by default and silently misaligns mismatched columns; Spark's unionByName() avoids this.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"A true daily total requires every hour present — a partial merge would be wrong, not just incomplete."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"What happens if hour 14 fails?" — the whole merge blocks; you only replay the failed hour, not all 24.</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><span class="dbx-unsure">No dedicated feature</span> — Databricks Workflows all-upstream-success dependencies feeding a MERGE/UNION notebook task.</p></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Pattern 4 -->
+  <article class="card" id="p4">
+    <div class="card-head"><span class="chip">P·04</span><h3>Unaligned Fan-In</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Aligned Fan-In blocks the whole daily output when just one hour fails; team wants a partial dataset released instead.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Relax the trigger (trigger_rule=ALL_DONE) so merge runs despite some parent failures; publish a completeness signal alongside the partial result.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Consumers assume 100% completeness unless you explicitly publish a completeness metric.</span></div>
+      <div class="callouts">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>The trigger-rule relaxation is invisible in the DAG graph — lives only in code, so document it.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"If I relax to Unaligned Fan-In, I always publish a completeness percentage so consumers never silently assume 100%."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"How do consumers know the data is incomplete?" — name a concrete tracking mechanism, not "we'd document it."</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><span class="dbx-unsure">No dedicated feature</span> — a completeness flag column or companion Delta table is the practical pattern, not a first-class primitive.</p></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Pattern 5 -->
+  <article class="card" id="p5">
+    <div class="card-head"><span class="chip">P·05</span><h3>Parallel Split</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Migrating a legacy framework requires writing the same processed dataset to two destinations during transition.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">One parent feeds multiple parallel children; materialize the shared dataset once (.persist() or a temp table) so it isn't re-read per branch.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Time-dependent pipelines block on the slowest branch — a failure blocks all subsequent runs.</span></div>
+      <div class="callouts">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Mismatched hardware needs (CPU vs. memory heavy) can't both get ideal resources from one job.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"I persist the shared input once to avoid duplicate reads, and use Delta's txnVersion/txnAppId to make writes idempotent on retry."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"How do you avoid processing the same data twice?" — answer: .persist()/temp-table materialization plus retry-safe writes.</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><strong>Confirmed:</strong> Delta Lake's txnVersion/txnAppId write options give idempotent, retry-safe appends — directly solves this pattern's duplicate-write risk.</p></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Pattern 6 -->
+  <article class="card" id="p6">
+    <div class="card-head"><span class="chip">P·06</span><h3>Exclusive Choice</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">A new job version should run only from a cutover date forward; backfills for prior dates use the old version, without a new pipeline.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Add a router/condition task before branching (BranchPythonOperator, ADF if-condition) so only one declared branch executes.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Over-branching → "complexity factory." Heuristic: rubber-duck debugging — if you can't explain it concisely, it's too complex.</span></div>
+      <div class="callouts">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Prefer metadata-based routing over data-based — reading the dataset to decide a route adds real runtime cost.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"I route on execution-date metadata rather than reading the dataset, so the branching decision itself adds no processing time."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"Why not just an if/else inside the job?" — hidden processing-layer logic is easy to forget; surface it at the orchestration layer instead.</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><span class="dbx-unsure">No dedicated feature</span> — Databricks Workflows conditional "Run if" task dependencies, or plain if/else inside a notebook task.</p></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Pattern 7 -->
+  <article class="card" id="p7">
+    <div class="card-head"><span class="chip">P·07</span><h3>Single Runner</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">An incremental sessionization pipeline gives wrong results if two instances execute concurrently.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Cap concurrency at exactly 1 (max_active_runs=1); without native support, use a Readiness Marker to wait on the prior run.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Backfilling is inherently slow and can't be parallelized — a correctness constraint, not a tunable trade-off.</span></div>
+      <div class="callouts">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Straggler runs (30 min creeping to 1.5h) compound delay for every downstream consumer, even outside backfill.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Single concurrency here isn't a performance choice — it's correctness, because the logic depends on the prior run's output."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"How would you speed up backfilling under Single Runner?" — honest answer: mostly you can't; check if the *whole* pipeline truly needs to re-run.</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><span class="dbx-unsure">No dedicated feature</span> — enforced via Databricks Workflows job concurrency settings (max concurrent runs = 1).</p></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Pattern 8 -->
+  <article class="card" id="p8">
+    <div class="card-head"><span class="chip">P·08</span><h3>Concurrent Runner</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Independent, unrelated dataset ingestions are needlessly serialized under Single Runner, compounding latency.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Raise the concurrency ceiling above 1 so the next run starts without waiting — balanced against overall infrastructure capacity.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">In multitenant orchestrators, several high-concurrency pipelines backfilling at once can starve other teams' scheduling capacity.</span></div>
+      <div class="callouts">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Shared mutable state under concurrency is a distinct risk — e.g. Dynamic Late Data Integrator could double-trigger or skip backfilling.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"I'd only relax to Concurrent Runner once datasets are confirmed independent, paired with workload management so one team can't starve another."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"What could go wrong with high concurrency?" — name both resource starvation *and* shared-state nondeterminism, not just infra cost.</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><span class="dbx-unsure">No dedicated feature</span> — workload isolation via Databricks Workflows concurrency limits per job plus cluster policies/pools.</p></div>
+      </div>
+    </div>
+  </article>
+
+  <div class="closer">
+    <span class="lbl">Before You Close the Laptop</span>
+    <p>Sequence → Fan-In → Fan-Out → Orchestration is the chapter's own build order. If you
+    remember one thing per family: <strong>Aligned/Single Runner favor correctness over speed;
+    Unaligned/Concurrent Runner favor speed but require you to explicitly manage the honesty gap
+    that creates</strong> — completeness metadata, workload isolation. That trade-off is what an
+    interviewer is really testing.</p>
+  </div>
+
+</main>
+
+<footer class="page">DATA ENGINEERING DESIGN PATTERNS · CHAPTER 6 CRAM SHEET · 8 PATTERNS</footer>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

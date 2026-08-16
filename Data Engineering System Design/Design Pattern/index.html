@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Patterns — Data Engineering Study Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --green:#5ec9a0;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "DM Sans","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;font-size:16px;}
+  a{color:var(--amber);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  a:focus-visible{outline:2px solid var(--amber);outline-offset:3px;}
+
+  .hero{
+    position:relative;min-height:70vh;min-height:70dvh;display:flex;flex-direction:column;justify-content:flex-end;
+    padding:32px 28px 56px;overflow:hidden;
+    background:
+      radial-gradient(ellipse 80% 60% at 14% 20%, rgba(232,163,61,0.14), transparent 55%),
+      linear-gradient(165deg, #12171f 0%, #0e1116 50%, #0a0d12 100%);
+  }
+  .hero-meta{
+    position:absolute;top:28px;left:28px;right:28px;z-index:1;
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint);
+  }
+  .hero-meta a{color:var(--ink-dim);}
+  .hero-inner{position:relative;z-index:1;max-width:920px;margin:0 auto;width:100%;}
+  .brand{
+    font-family:var(--serif);font-weight:600;font-size:clamp(34px,6vw,56px);line-height:1.08;
+    letter-spacing:-0.02em;color:#fff;margin:0 0 18px;max-width:14ch;
+  }
+  .brand span{display:block;color:var(--amber);}
+  .hero-lead{font-size:clamp(16px,2vw,18px);color:var(--ink-dim);max-width:44ch;margin:0 0 28px;}
+  .hero-cta{display:flex;flex-wrap:wrap;gap:12px;}
+  .btn{
+    display:inline-flex;align-items:center;font-family:var(--mono);font-size:13px;letter-spacing:0.04em;
+    padding:14px 22px;border-radius:6px;border:1px solid transparent;
+  }
+  .btn-primary{background:var(--amber);color:#0e1116;font-weight:700;}
+  .btn-primary:hover{background:#f0b45a;text-decoration:none;}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--rule);}
+  .btn-ghost:hover{border-color:var(--ink-faint);text-decoration:none;background:rgba(255,255,255,0.03);}
+
+  .section{max-width:920px;margin:0 auto;padding:64px 28px 40px;}
+  .section-kicker{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;}
+  .section h2{font-family:var(--serif);font-size:clamp(26px,4vw,34px);font-weight:600;margin:0 0 10px;color:#fff;}
+  .section-lead{color:var(--ink-dim);margin:0 0 36px;max-width:52ch;}
+
+  .toc{border-top:1px solid var(--rule);}
+  .toc-row{
+    display:grid;grid-template-columns:72px 1fr auto;gap:16px 20px;align-items:baseline;
+    padding:20px 8px;border-bottom:1px solid var(--rule);color:inherit;transition:background 0.15s, padding-left 0.2s;
+  }
+  .toc-row:hover{background:rgba(232,163,61,0.04);padding-left:14px;text-decoration:none;}
+  .toc-num{font-family:var(--mono);font-size:13px;color:var(--amber);font-weight:700;}
+  .toc-title{font-family:var(--serif);font-size:19px;font-weight:600;color:#fff;margin:0 0 4px;}
+  .toc-blurb{font-size:14px;color:var(--ink-dim);margin:0;max-width:56ch;}
+  .toc-arrow{font-family:var(--mono);font-size:18px;color:var(--ink-faint);align-self:center;}
+  .toc-row:hover .toc-arrow{color:var(--amber);}
+
+  .site-footer{
+    max-width:920px;margin:0 auto;padding:48px 28px 64px;border-top:1px solid var(--rule);
+    font-size:13px;color:var(--ink-faint);display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;
+  }
+  .site-footer a{color:var(--ink-dim);}
+
+  @media(max-width:640px){
+    .toc-row{grid-template-columns:48px 1fr;}
+    .toc-arrow{display:none;}
+    .hero{padding:28px 20px 48px;}
+    .hero-meta{left:20px;right:20px;top:20px;}
+    .section{padding:48px 20px 32px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero" id="top">
+  <div class="hero-meta">
+    <a href="../index.html">← Study Hub</a>
+    <a href="../Design Patter-Cram/index.html">Cram sheets →</a>
+  </div>
+  <div class="hero-inner">
+    <h1 class="brand">Design <span>Patterns</span></h1>
+    <p class="hero-lead">
+      Pattern catalog for data pipelines — ingestion through observability — ready for interviews and design reviews.
+    </p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="ch02_data_ingestion_design_patterns.html">Start with Ch.02 →</a>
+      <a class="btn btn-ghost" href="../index.html">All tracks</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section" id="chapters">
+    <div class="section-kicker">Table of contents</div>
+    <h2>Pattern chapters</h2>
+    <p class="section-lead">Nine chapters covering how data moves, fails, stores, and gets watched.</p>
+    <nav class="toc" aria-label="Design Pattern chapters">
+      <a class="toc-row" href="ch02_data_ingestion_design_patterns.html">
+        <span class="toc-num">Ch.02</span>
+        <span><span class="toc-title">Data Ingestion</span><p class="toc-blurb">Getting data in — batch, streaming, CDC, and the contracts at the boundary.</p></span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch03_error_management_design_patterns.html">
+        <span class="toc-num">Ch.03</span>
+        <span><span class="toc-title">Error Management</span><p class="toc-blurb">Retries, dead letters, quarantine, and failing loudly without losing work.</p></span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch04_idempotency_design_patterns.html">
+        <span class="toc-num">Ch.04</span>
+        <span><span class="toc-title">Idempotency</span><p class="toc-blurb">Safe replay — keys, upserts, and exactly-once illusions that survive retries.</p></span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch05_data_value_design_patterns.html">
+        <span class="toc-num">Ch.05</span>
+        <span><span class="toc-title">Data Value</span><p class="toc-blurb">Enrichment, joins, and shaping raw feeds into something the business can use.</p></span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch06_data_flow_design_patterns.html">
+        <span class="toc-num">Ch.06</span>
+        <span><span class="toc-title">Data Flow</span><p class="toc-blurb">Orchestrating movement — fan-out, fan-in, and topology choices that age well.</p></span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch07_data_security_design_patterns.html">
+        <span class="toc-num">Ch.07</span>
+        <span><span class="toc-title">Data Security</span><p class="toc-blurb">Masking, encryption, access boundaries — protecting data in motion and at rest.</p></span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch08_data_storage_design_patterns.html">
+        <span class="toc-num">Ch.08</span>
+        <span><span class="toc-title">Data Storage</span><p class="toc-blurb">Partitioning, bucketing, materialization — organizing data so queries stay cheap.</p></span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch09_data_quality_design_patterns.html">
+        <span class="toc-num">Ch.09</span>
+        <span><span class="toc-title">Data Quality</span><p class="toc-blurb">Checks, contracts, and gates that catch bad data before dashboards do.</p></span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch10_data_observability_design_patterns.html">
+        <span class="toc-num">Ch.10</span>
+        <span><span class="toc-title">Data Observability</span><p class="toc-blurb">Freshness, volume, and lineage signals — knowing when pipelines lie.</p></span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+    </nav>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span>Design Patterns · part of Data Engineering Study Hub</span>
+  <a href="../index.html">← All tracks</a>
+</footer>
+
+</body>
+</html>

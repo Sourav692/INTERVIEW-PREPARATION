@@ -1,0 +1,1056 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 8 — Data Storage Design Patterns</title>
+<style>
+  :root {
+    --paper: #F7F3EC;
+    --paper-raised: #FFFDF8;
+    --ink: #1B2A41;
+    --ink-soft: #3D4C63;
+    --ink-faint: #7A879C;
+    --brass: #B8863C;
+    --brass-deep: #8C5F24;
+    --brass-pale: #EFDFC0;
+    --rule: #D8CFBC;
+    --rule-strong: #B9AD91;
+    --note-blue: #2C6E8E;
+    --warn-red: #A13D2E;
+    --case-green: #4C6E4A;
+    --say-brass: #8C5F24;
+    --code-bg: #1B2A41;
+    --code-fg: #E9E4D6;
+    --code-accent: #D9B36C;
+    --shadow: 0 2px 10px rgba(27,42,65,0.08), 0 1px 2px rgba(27,42,65,0.06);
+    --radius: 3px;
+  }
+
+  * { box-sizing: border-box; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.65;
+    font-size: 16px;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Roboto Slab', Georgia, serif;
+    color: var(--ink);
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  a { color: var(--brass-deep); }
+
+  /* ===== Masthead ===== */
+  .masthead {
+    background: linear-gradient(180deg, var(--ink) 0%, #223350 100%);
+    color: var(--paper);
+    padding: 3.5rem 1.5rem 2.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .masthead::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(184,134,60,0.06) 0px, rgba(184,134,60,0.06) 1px, transparent 1px, transparent 48px);
+    pointer-events: none;
+  }
+  .masthead-inner { max-width: 980px; margin: 0 auto; position: relative; }
+  .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    color: var(--brass);
+    border: 1px solid rgba(184,134,60,0.5);
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
+    border-radius: 2px;
+    margin-bottom: 1.1rem;
+  }
+  .masthead h1 {
+    color: var(--paper);
+    font-size: clamp(2rem, 4.5vw, 3.1rem);
+    margin: 0 0 0.6rem;
+    letter-spacing: -0.01em;
+  }
+  .masthead .sub {
+    color: #B9C4D6;
+    font-size: 1.08rem;
+    max-width: 640px;
+    margin: 0 0 1.6rem;
+  }
+  .masthead .chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(184,134,60,0.35);
+    color: var(--brass-pale);
+    padding: 0.32rem 0.65rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  /* ===== Layout ===== */
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 1.5rem; }
+  .section { padding: 2.75rem 0; border-bottom: 1px solid var(--rule); }
+  .section:last-of-type { border-bottom: none; }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brass-deep);
+    margin: 0 0 0.6rem;
+  }
+  .section h2 { font-size: 1.7rem; margin: 0 0 1.1rem; }
+  .lede { color: var(--ink-soft); font-size: 1.02rem; max-width: 760px; }
+
+  blockquote.book-quote {
+    font-family: 'Roboto Slab', Georgia, serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--ink-soft);
+    border-left: 3px solid var(--brass);
+    padding: 0.3rem 0 0.3rem 1.2rem;
+    margin: 0 0 1.4rem;
+  }
+
+  /* ===== Pattern Cards ===== */
+  .pattern-index {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 0.6rem;
+    margin: 1.5rem 0 0;
+  }
+  .pattern-index a {
+    display: block;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--brass);
+    border-radius: var(--radius);
+    padding: 0.7rem 0.85rem;
+    text-decoration: none;
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .pattern-index a:hover, .pattern-index a:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    outline: 2px solid var(--brass);
+    outline-offset: 1px;
+  }
+  .pattern-index .num { color: var(--brass-deep); margin-right: 0.4rem; }
+
+  .pattern-card {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin: 0 0 2.2rem;
+    overflow: hidden;
+    scroll-margin-top: 1.5rem;
+  }
+  .pattern-card > .pc-head {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1.1rem 1.4rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .pc-head .pc-num {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--brass);
+    font-size: 0.85rem;
+    border: 1px solid var(--brass);
+    border-radius: 999px;
+    width: 1.9rem; height: 1.9rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pc-head h3 { color: var(--paper); margin: 0; font-size: 1.35rem; }
+  .pc-head .pc-group {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brass-pale);
+    opacity: 0.85;
+  }
+  .pc-body { padding: 1.5rem; }
+
+  .pc-subhead {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--brass-deep);
+    margin: 1.4rem 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .pc-subhead:first-child { margin-top: 0; }
+  .pc-subhead::before {
+    content: "";
+    width: 0.55rem; height: 0.55rem;
+    background: var(--brass);
+    display: inline-block;
+    transform: rotate(45deg);
+  }
+  .pc-body p { margin: 0 0 0.8rem; color: var(--ink-soft); }
+  .pc-body ul { margin: 0.4rem 0 0.8rem 1.1rem; padding: 0; color: var(--ink-soft); }
+  .pc-body li { margin-bottom: 0.4rem; }
+  .pc-body strong { color: var(--ink); }
+
+  /* ===== Callouts ===== */
+  .callout {
+    border-left: 4px solid var(--ink-faint);
+    background: #F1EEE4;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 0.85rem 1.1rem;
+    margin: 0.9rem 0;
+    font-size: 0.94rem;
+  }
+  .callout .co-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout.note { border-left-color: var(--note-blue); }
+  .callout.note .co-label { color: var(--note-blue); }
+  .callout.warning { border-left-color: var(--warn-red); background: #F5E9E4; }
+  .callout.warning .co-label { color: var(--warn-red); }
+  .callout.case { border-left-color: var(--case-green); background: #EAF0E6; }
+  .callout.case .co-label { color: var(--case-green); }
+  .callout.say { border-left-color: var(--say-brass); background: var(--brass-pale); }
+  .callout.say .co-label { color: var(--say-brass); }
+  .callout.say p { font-style: italic; color: var(--ink); }
+
+  /* ===== Code ===== */
+  .code-block {
+    background: var(--code-bg);
+    border-radius: var(--radius);
+    margin: 0.9rem 0;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--code-accent);
+    background: rgba(217,179,108,0.1);
+    padding: 0.4rem 0.9rem;
+    border-bottom: 1px solid rgba(233,228,214,0.12);
+  }
+  pre {
+    margin: 0;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 0.84rem;
+    color: var(--code-fg);
+    line-height: 1.55;
+  }
+  code { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+  .pc-body p code, .lede code, td code {
+    background: var(--brass-pale);
+    color: var(--brass-deep);
+    padding: 0.1rem 0.35rem;
+    border-radius: 2px;
+    font-size: 0.86em;
+  }
+
+  /* ===== Tables ===== */
+  .table-wrap { overflow-x: auto; margin: 1rem 0 1.6rem; border-radius: var(--radius); box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; background: var(--paper-raised); font-size: 0.92rem; }
+  thead th {
+    background: var(--ink);
+    color: var(--brass-pale);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.75rem 1rem;
+  }
+  tbody td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) { background: #F1EEE4; }
+  tbody td:first-child { font-weight: 700; font-family: 'Roboto Slab', serif; color: var(--brass-deep); white-space: nowrap; }
+
+  /* ===== Diagram wrap ===== */
+  .diagram-card {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.4rem;
+    margin: 1.2rem 0 2rem;
+  }
+  .diagram-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brass-deep);
+    margin: 0 0 1rem;
+  }
+
+  /* ===== Interactive Partition/Bucket widget ===== */
+  .widget {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .widget-controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .widget-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    background: var(--paper);
+    border: 1.5px solid var(--rule-strong);
+    color: var(--ink);
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .widget-btn:hover { border-color: var(--brass); background: var(--brass-pale); }
+  .widget-btn:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  .widget-btn.active { background: var(--ink); color: var(--brass-pale); border-color: var(--ink); }
+  .widget-stage {
+    background: var(--paper);
+    border: 1px dashed var(--rule-strong);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    min-height: 220px;
+  }
+  .grid-rows { display: flex; flex-direction: column; gap: 0.4rem; }
+  .grid-row { display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; }
+  .cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    padding: 0.4rem 0.55rem;
+    border-radius: 3px;
+    color: var(--paper);
+    min-width: 44px;
+    text-align: center;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .cell.dim { opacity: 0.25; }
+  .widget-caption { font-size: 0.86rem; color: var(--ink-soft); margin-top: 0.9rem; }
+  .widget-caption strong { color: var(--ink); }
+
+  /* Bucket colors */
+  .b0 { background: #B8863C; } .b1 { background: #4C6E4A; } .b2 { background: #2C6E8E; }
+  .b3 { background: #A13D2E; } .b4 { background: #6C5B9E; }
+
+  /* ===== Cheat sheet grid ===== */
+  .cheat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.85rem;
+  }
+  .cheat-card {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.2rem;
+    border-top: 3px solid var(--brass);
+  }
+  .cheat-card h4 {
+    color: var(--brass-pale);
+    font-size: 1.02rem;
+    margin: 0 0 0.6rem;
+  }
+  .cheat-row { margin-bottom: 0.5rem; font-size: 0.85rem; }
+  .cheat-row .cl { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brass); display: block; margin-bottom: 0.15rem; }
+  .cheat-row p { margin: 0; color: #D9DEE8; line-height: 1.45; }
+  .cheat-row.gotcha .cl { color: #E8A090; }
+  .cheat-row.gotcha p { color: #F0C9BE; }
+
+  footer {
+    text-align: center;
+    padding: 2.5rem 1.5rem 3.5rem;
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  @media (max-width: 640px) {
+    .masthead { padding: 2.5rem 1.2rem 2rem; }
+    .section { padding: 2rem 0; }
+    .pc-body { padding: 1.1rem; }
+    .pc-head { padding: 0.9rem 1.1rem; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <span class="kicker">Data Engineering Design Patterns · Ch. 8</span>
+    <h1>Data Storage Design Patterns</h1>
+    <p class="sub">Nine patterns for organizing data at rest — partitioning, bucketing, sorting, metadata, materialization, manifests, and the normalize/denormalize trade-off — from Bartosz Konieczny's pattern-catalog reference book.</p>
+    <div class="chip-row">
+      <span class="chip">9 patterns</span>
+      <span class="chip">4 pattern groups</span>
+      <span class="chip">Interview &amp; design-review prep</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- FRAMING -->
+  <section class="section">
+    <p class="section-label">Chapter Framing</p>
+    <h2>Why storage design, not just more compute</h2>
+    <blockquote class="book-quote">"Have you ever waited for a query or job longer than two minutes in a big data environment? Many of you will answer yes."</blockquote>
+    <p class="lede">Latency has two fixes: add compute (fast, reactive, expensive, usually done under pressure once users complain) or organize storage wisely up front — the preemptive path, and this chapter's subject. It follows Chapter&nbsp;7 (Security) and sits before Chapters&nbsp;9–10 (Quality &amp; Observability): storage optimizes <em>access</em> to data that quality and observability will make <em>trustworthy</em>.</p>
+
+    <div class="pattern-index">
+      <a href="#p1"><span class="num">01</span>Horizontal Partitioner</a>
+      <a href="#p2"><span class="num">02</span>Vertical Partitioner</a>
+      <a href="#p3"><span class="num">03</span>Bucket</a>
+      <a href="#p4"><span class="num">04</span>Sorter</a>
+      <a href="#p5"><span class="num">05</span>Metadata Enhancer</a>
+      <a href="#p6"><span class="num">06</span>Dataset Materializer</a>
+      <a href="#p7"><span class="num">07</span>Manifest</a>
+      <a href="#p8"><span class="num">08</span>Normalizer</a>
+      <a href="#p9"><span class="num">09</span>Denormalizer</a>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE DIAGRAM 1 -->
+  <section class="section">
+    <p class="section-label">Interactive Figure</p>
+    <h2>Horizontal Partitioner vs. Bucket — try it</h2>
+    <div class="diagram-card">
+      <p class="diagram-title">1M unique daily users — partition by user_id, or bucket into 5?</p>
+      <div class="widget">
+        <div class="widget-controls">
+          <button class="widget-btn active" id="btn-partition" onclick="setMode('partition')">Horizontal Partitioner (by user_id)</button>
+          <button class="widget-btn" id="btn-bucket" onclick="setMode('bucket')">Bucket (5 buckets, hash % 5)</button>
+        </div>
+        <div class="widget-stage" id="stage"></div>
+        <p class="widget-caption" id="caption"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARTITIONING GROUP -->
+  <section class="section">
+    <p class="section-label">Group 1 · Partitioning</p>
+    <h2>Dividing datasets so processing touches only what's relevant</h2>
+
+    <article class="pattern-card" id="p1">
+      <div class="pc-head"><span class="pc-num">1</span><h3>Horizontal Partitioner</h3><span class="pc-group">Partitioning</span></div>
+      <div class="pc-body">
+        <div class="pc-subhead">Problem</div>
+        <p>A batch job computing rolling 4-day aggregates ran fine for months, then slowed as storage grew — the filtering step (dropping records older than 4 days) got expensive. Adding compute masked it but raised cost.</p>
+
+        <div class="pc-subhead">Solution</div>
+        <p>Identify a <strong>partitioning attribute</strong> (distribution key). The store then physically isolates each value. Time-based keys are most common, sourced from either the <strong>job execution context</strong> (all rows in a run share one partition) or the <strong>dataset's event time</strong> (late data can spread writes across several partitions). Business keys (customer ID, region) work too, and keys can nest, e.g. event time + country.</p>
+
+        <div class="callout say"><span class="co-label">✅ Say this out loud</span><p>"I partition by a low-cardinality, frequently-filtered attribute — usually event time rounded to the hour or day — because that's what lets the query engine skip irrelevant partitions without exploding the metadata layer."</p></div>
+
+        <div class="pc-subhead">Consequences</div>
+        <ul>
+          <li><strong>Granularity/metadata overhead</strong> — 1M unique users partitioned by username = 1M partitions = slow listing + small files. Mitigation: use low-cardinality attributes; reach for Bucket instead.</li>
+          <li><strong>Skew</strong> — one unbalanced partition blocks a whole microbatch (blocking execution model). Mitigation: a backpressure buffer stores skewed overflow for the next microbatch, at the cost of extra latency for that partition.</li>
+          <li><strong>Mutability</strong> — changing the key needs moving all existing data. Apache Iceberg supports metadata-only partition evolution: old data stays put, new data uses the new scheme.</li>
+        </ul>
+
+        <div class="callout note"><span class="co-label">📌 Note</span><p>Sharding is a special, physical/hardware-layer case of horizontal partitioning — it doesn't require moving data across machines by itself, but sharding always does.</p></div>
+
+        <div class="pc-subhead">Examples</div>
+        <div class="code-block"><div class="code-lang">python · Apache Spark</div><pre>partitioned_users = (input_users
+    .withColumn('year', functions.year('change_date'))
+    .withColumn('month', functions.month('change_date'))
+    .withColumn('day', functions.day('change_date'))
+    .withColumn('hour', functions.hour('change_date')))
+
+(partitioned_users.write.mode('overwrite').format('delta')
+    .partitionBy('year', 'month', 'day', 'hour').save(output_dir))</pre></div>
+        <div class="code-block"><div class="code-lang">sql · PostgreSQL</div><pre>CREATE TABLE visits_all (
+  visit_id CHAR(36) NOT NULL,
+  event_time TIMESTAMP NOT NULL,
+  user_id TEXT NOT NULL,
+  page VARCHAR(20) NULL,
+  PRIMARY KEY(visit_id, event_time)
+) PARTITION BY RANGE(event_time);
+
+CREATE TABLE visits_all_20231124 PARTITION OF visits_all
+  FOR VALUES FROM('2023-11-24 00:00:00') TO ('2023-11-24 23:59:59');</pre></div>
+      </div>
+    </article>
+
+    <article class="pattern-card" id="p2">
+      <div class="pc-head"><span class="pc-num">2</span><h3>Vertical Partitioner</h3><span class="pc-group">Partitioning</span></div>
+      <div class="pc-body">
+        <div class="callout note"><span class="co-label">📌 Note</span><p>This is data storage's version of vertical partitioning. Chapter 7 covers a security-focused specialization of the same idea.</p></div>
+
+        <div class="pc-subhead">Problem</div>
+        <p>The visits dataset mixes <strong>mutable</strong> attributes (visit time, page — change every visit) with <strong>immutable</strong> ones (IP address — same all visit). Storing them together duplicates the immutable data on every row.</p>
+
+        <div class="pc-subhead">Solution</div>
+        <p>Classify attributes into groups, pick a combining key (here, <code>visit_id</code>), and write each group to its own location. Beyond storage savings, splitting lets you apply <strong>different retention or access policies</strong> per group. Unlike Horizontal Partitioner (moves whole rows), Vertical Partitioner <strong>splits</strong> a row across locations.</p>
+
+        <div class="pc-subhead">Consequences</div>
+        <ul>
+          <li><strong>Domain split</strong> — related attributes now live apart; documentation becomes essential.</li>
+          <li><strong>Querying</strong> — reconstructing a full row is harder. Mitigation: expose a combining view via Dataset Materializer.</li>
+          <li><strong>Data producer impact</strong> — producers must implement split-write logic and pay a higher network cost for multiple writes.</li>
+        </ul>
+
+        <div class="pc-subhead">Examples</div>
+        <div class="code-block"><div class="code-lang">python · Apache Spark</div><pre>input_dataset.persist()  # avoid reading input twice
+
+user_context = input_dataset.drop('browser', 'os_version', 'device_id')
+technical_context = input_dataset.select('visit_id', 'browser', 'os_version', 'device_id')
+
+user_context.write.mode('overwrite').format('delta').save(user_context_dir)
+technical_context.write.mode('overwrite').format('delta').save(technical_context_dir)</pre></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- DIAGRAM: horizontal vs vertical -->
+  <section class="section">
+    <p class="section-label">Figure 8-2</p>
+    <h2>Row movement: horizontal vs. vertical</h2>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart LR
+    subgraph Source["Source Row"]
+        R["visit_id · event_time · page · ip_address"]
+    end
+    R -->|"Horizontal: whole row moves"| H["Partition 2024/05/05/<br/>full row, one location per day"]
+    R -->|"Vertical: row is split"| V1["Mutable group:<br/>visit_id, event_time, page"]
+    R -->|"Vertical: row is split"| V2["Immutable group:<br/>visit_id, ip_address"]
+      </div>
+    </div>
+  </section>
+
+  <!-- RECORDS ORGANIZATION -->
+  <section class="section">
+    <p class="section-label">Group 2 · Records Organization</p>
+    <h2>Colocation for high-cardinality data partitioning can't handle</h2>
+
+    <article class="pattern-card" id="p3">
+      <div class="pc-head"><span class="pc-num">3</span><h3>Bucket</h3><span class="pc-group">Records Organization</span></div>
+      <div class="pc-body">
+        <div class="pc-subhead">Problem</div>
+        <p>A high-cardinality attribute (unique user ID) drives 80% of query predicates — too high-cardinality for Horizontal Partitioner without hitting metadata limits.</p>
+
+        <div class="pc-subhead">Solution</div>
+        <p>Colocate <strong>groups</strong> of rows via modular hashing: <code>hash(key) % buckets_number</code>. Fewer buckets = bigger buckets; more buckets = smaller ones. Enables two optimizations: <strong>bucket pruning</strong> (eliminate whole buckets that can't match a predicate) and <strong>shuffle-free joins</strong> (identically bucketed tables join without network exchange).</p>
+
+        <div class="callout say"><span class="co-label">✅ Say this out loud</span><p>"Bucketing is my answer when a high-cardinality column is central to my query and join patterns and partitioning would blow up the metadata layer — the cost is that the bucket count is essentially a one-way door."</p></div>
+
+        <div class="pc-subhead">Consequences</div>
+        <ul>
+          <li><strong>Mutability</strong> — bucketing schema is effectively immutable; changing column or count needs a costly backfill.</li>
+          <li><strong>Bucket size</strong> — no clean sizing strategy; sizing for today = big future buckets, predicting the future risks being wrong.</li>
+        </ul>
+
+        <div class="pc-subhead">Examples</div>
+        <div class="code-block"><div class="code-lang">sql · AWS Athena</div><pre>CREATE EXTERNAL TABLE visits (...) ...
+CLUSTERED BY (`user_id`) INTO 50 BUCKETS
+TBLPROPERTIES ('bucketing_format' = 'spark')</pre></div>
+        <div class="code-block"><div class="code-lang">python · Apache Spark</div><pre>input_dataset.write.bucketBy(50, 'user_id').saveAsTable(table_name)</pre></div>
+      </div>
+    </article>
+
+    <article class="pattern-card" id="p4">
+      <div class="pc-head"><span class="pc-num">4</span><h3>Sorter</h3><span class="pc-group">Records Organization</span></div>
+      <div class="pc-body">
+        <div class="pc-subhead">Problem</div>
+        <p>Weekly tables (for the Fast Metadata Cleaner idempotency strategy) helped maintenance but did nothing for query time. Most queries filter or sort by <code>event_time</code>.</p>
+
+        <div class="pc-subhead">Solution</div>
+        <p>Declare sort column(s) at table creation; the database organizes rows accordingly, letting queries skip whole data blocks. <strong>Z-order</strong> ("curved sort") colocates rows across multiple dimensions instead of lexicographically — in the book's two-column example, lexicographical order read <strong>9 blocks</strong> vs. Z-order's <strong>7</strong>. Native to Delta Lake / Apache Iceberg; Redshift has interleaved sort keys; BigQuery/Snowflake use classical clustered tables.</p>
+
+        <div class="callout note"><span class="co-label">📌 Note</span><p>Z-order is often called "clustering" — but mechanically it's still a sort on disk, which is why the book classifies it under Sorter rather than as its own pattern.</p></div>
+
+        <div class="pc-subhead">Consequences</div>
+        <ul>
+          <li><strong>Unsorted segments</strong> — new writes create unsorted blocks until compaction runs.</li>
+          <li><strong>Composite sort keys</strong> — queries must reference columns in the <strong>declared key order</strong> to benefit; filtering only on a later key still scans most blocks.</li>
+          <li><strong>Mutability</strong> — changing sort keys may require re-sorting the entire table.</li>
+        </ul>
+
+        <div class="pc-subhead">Examples</div>
+        <div class="code-block"><div class="code-lang">sql · GCP BigQuery</div><pre>CREATE TABLE `dedp.visits.raw_visits`
+PARTITION BY DATE(event_time)
+CLUSTER BY visit_id, page</pre></div>
+        <div class="code-block"><div class="code-lang">python · Delta Lake</div><pre>DeltaTable.forPath(spark, output_dir).optimize().executeZOrderBy(['visit_id', 'page'])</pre></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- READ PERFORMANCE OPTIMIZATION -->
+  <section class="section">
+    <p class="section-label">Group 3 · Read Performance Optimization</p>
+    <h2>Metadata- and materialization-based tricks that skip work</h2>
+
+    <div class="diagram-card">
+      <p class="diagram-title">Three ways a query skips work</p>
+      <div class="mermaid">
+flowchart TD
+    Q[Incoming Query] --> M{Metadata Enhancer:<br/>footer stats rule out file?}
+    M -->|Yes, out of range| Skip1[Skip file entirely]
+    M -->|No, must read| L{Manifest available?}
+    L -->|Yes| NoList[Skip listing —<br/>read file list from commit log]
+    L -->|No| List[Expensive object-store<br/>listing operation]
+    NoList --> Data[Read data blocks]
+    List --> Data
+    Data --> Mat{Precomputed Dataset<br/>Materializer table/view?}
+    Mat -->|Yes| Fast[Return precomputed result —<br/>no runtime join/aggregation]
+    Mat -->|No| Compute[Compute joins/aggregations<br/>at query time]
+      </div>
+    </div>
+
+    <article class="pattern-card" id="p5">
+      <div class="pc-head"><span class="pc-num">5</span><h3>Metadata Enhancer</h3><span class="pc-group">Read Performance</span></div>
+      <div class="pc-body">
+        <div class="pc-subhead">Problem</div>
+        <p>New analysts query a small subset of rows from a large partition but always load the full dataset before filtering — driving up latency and pay-as-you-go cost.</p>
+
+        <div class="pc-subhead">Solution</div>
+        <p>Persist <strong>statistics</strong> about stored records. Columnar formats (Parquet) carry a per-file <strong>footer</strong> with min/max stats computed automatically at write time — the engine checks the small footer instead of opening the large data block. Table formats (Delta Lake, Iceberg, Hudi) add commit-log-level stats (row counts, column min/max, null counts). Databases/warehouses maintain equivalent stats for the query planner.</p>
+
+        <div class="pc-subhead">Consequences</div>
+        <ul>
+          <li><strong>Overhead</strong> — extra write-time step to compute and keep stats current.</li>
+          <li><strong>Out-of-date statistics</strong> — threshold-based auto-refresh can leave stats stale after many small changes. Mitigation: manual <code>ANALYZE TABLE</code> — adds temporary read overhead.</li>
+        </ul>
+
+        <div class="pc-subhead">Examples</div>
+        <div class="code-block"><div class="code-lang">json · Parquet footer stats</div><pre>{"NumRowGroups": 1, "PathInSchema": ["Id"], "Type": "BYTE_ARRAY",
+ "NumValues": 5000, "NullCount": 0,
+ "MaxValue": "fffbe4f8-8d88-43d2-a9a5-54bf536de75b",
+ "MinValue": "0018e1dc-1b80-4410-92f6-5261d2dadf35",
+ "CompressionCodec": "SNAPPY"}</pre></div>
+        <div class="code-block"><div class="code-lang">json · Delta Lake commit log</div><pre>{"add":{"path":"part-...-c000.snappy.parquet","size":50437,
+  "stats":"{\"numRecords\":6100,
+    \"minValues\":{...},\"maxValues\":{...},
+    \"nullCount\":{\"type\":0,\"full_name\":0,\"version\":0}}"}}</pre></div>
+      </div>
+    </article>
+
+    <article class="pattern-card" id="p6">
+      <div class="pc-head"><span class="pc-num">6</span><h3>Dataset Materializer</h3><span class="pc-group">Read Performance</span></div>
+      <div class="pc-body">
+        <div class="pc-subhead">Problem</div>
+        <p>A view simplifying multi-week partitioned tables still frustrates consumers — because it re-runs its query on <strong>every</strong> access.</p>
+
+        <div class="pc-subhead">Solution</div>
+        <p>Materialize instead of recomputing: write the `SELECT`, store the result as a <strong>materialized view</strong> (some warehouses auto-refresh, e.g. Redshift's <code>AUTO REFRESH YES</code>, though timing isn't immediate) or a <strong>table</strong> (manual refresh, but gains partitioning/bucketing/sorting).</p>
+
+        <div class="callout case"><span class="co-label">🧩 Case Study</span><p>The book's incremental example keeps <code>dedp.visits_counter</code> fresh via <code>MERGE</code>-ing only rows with <code>insertion_time</code> after the previous run — combining the Incremental Loader and Merger patterns.</p></div>
+
+        <div class="pc-subhead">Consequences</div>
+        <ul>
+          <li><strong>Refresh cost</strong> — full re-runs are expensive. Mitigation: incremental refresh for insert-only workloads (Databricks/BigQuery support this, but not for every SQL operation).</li>
+          <li><strong>Data access</strong> — consistent access/retention policy across combined source tables is hard; consider the Fine-Grained Accessor pattern.</li>
+          <li><strong>Data storage overhead</strong> — trades storage for speed. Mitigation: materialize only some source datasets.</li>
+        </ul>
+
+        <div class="pc-subhead">Examples</div>
+        <div class="code-block"><div class="code-lang">sql · GCP BigQuery</div><pre>CREATE MATERIALIZED VIEW dedp.visits.visits_enriched
+OPTIONS (enable_refresh = true, refresh_interval_minutes = 15)
+AS SELECT ...</pre></div>
+        <div class="code-block"><div class="code-lang">sql · Incremental MERGE</div><pre>MERGE INTO dedp.visits_counter AS target
+USING (
+  SELECT user_id, COUNT(*) AS visits FROM dedp.visits
+  WHERE insertion_time > '2024-11-09T03:27:32' GROUP BY user_id
+) AS input
+ON target.user_id = input.user_id
+WHEN MATCHED THEN UPDATE SET count = count + input.visits
+WHEN NOT MATCHED THEN INSERT (user_id, count) VALUES (input.user_id, input.visits)</pre></div>
+      </div>
+    </article>
+
+    <article class="pattern-card" id="p7">
+      <div class="pc-head"><span class="pc-num">7</span><h3>Manifest</h3><span class="pc-group">Read Performance</span></div>
+      <div class="pc-body">
+        <div class="pc-subhead">Problem</div>
+        <p>A fast Parquet-on-object-store dataset gets slow once exposed through a data warehouse layer — the bottleneck is the <strong>listing operation</strong> discovering files.</p>
+
+        <div class="pc-subhead">Solution</div>
+        <p>List files once, or not at all. Table file formats write each transaction's file list to the <strong>commit log</strong>, so readers skip storage listing entirely. Manifests help writing too — Redshift's <code>COPY</code> can take a manifest tied to a specific job run, making loads <strong>idempotent</strong> on replay.</p>
+
+        <div class="pc-subhead">Consequences</div>
+        <ul>
+          <li><strong>Complexity</strong> — an extra (simple) creation step, easier to accept than repeated slow listing.</li>
+          <li><strong>Size</strong> — manifests can hit multiple GB with many small files or streaming producers. Early Spark Structured Streaming manifests grew so large jobs couldn't restart (fixed — <code>SPARK-27188</code>).</li>
+        </ul>
+
+        <div class="pc-subhead">Examples</div>
+        <div class="code-block"><div class="code-lang">python · Delta Lake</div><pre>devices_table = DeltaTable.forPath(spark_session, DemoConfiguration.DEVICES_TABLE)
+devices_table.generate('symlink_format_manifest')</pre></div>
+        <div class="code-block"><div class="code-lang">sql · Amazon Redshift</div><pre>COPY customer
+FROM 's3://devices/manifest_20250601_1031'
+...
+MANIFEST;
+-- manifest_20250601_1031
+{"entries": [
+  {"url":"s3://devices/dataset_1","mandatory":true},
+  {"url":"s3://devices/dataset_2","mandatory":true}]}</pre></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- DATA REPRESENTATION -->
+  <section class="section">
+    <p class="section-label">Group 4 · Data Representation</p>
+    <h2>How many tables to split a record across</h2>
+
+    <article class="pattern-card" id="p8">
+      <div class="pc-head"><span class="pc-num">8</span><h3>Normalizer</h3><span class="pc-group">Data Representation</span></div>
+      <div class="pc-body">
+        <div class="pc-subhead">Problem</div>
+        <p>The visits table mixes event-driven attributes with immutable device/OS attributes, which repeat on every row — bloating storage and slowing updates.</p>
+
+        <div class="pc-subhead">Solution</div>
+        <p>Represent each fact once. Two implementations:</p>
+        <ul>
+          <li><strong>Normal Forms (NF)</strong> — 1NF (atomic values, unique PK), 2NF (non-key columns depend on the <em>whole</em> key), 3NF (no transitive dependencies between non-key columns).</li>
+          <li><strong>Snowflake schema</strong> — a fact table (an observation) described by dimension tables, which can describe further dimensions (date → month → quarter).</li>
+        </ul>
+        <div class="callout note"><span class="co-label">📌 Note</span><p>The Normalizer's overarching goal: prioritize data <strong>consistency</strong> over performance — an update is reflected once and is immediately visible everywhere.</p></div>
+
+        <div class="pc-subhead">Consequences</div>
+        <ul>
+          <li><strong>Query cost</strong> — more joins, costly in distributed environments. Mitigation: colocate small dimension tables with big ones, or use broadcast joins (<code>spark.sql.autoBroadcastJoinThreshold</code>).</li>
+          <li><strong>Archival</strong> — dimension tables can be time-sensitive (e.g. price changes). Mitigation: apply SCD (see Static Joiner, Ch. 5).</li>
+        </ul>
+
+        <div class="pc-subhead">Examples</div>
+        <div class="code-block"><div class="code-lang">python · Apache Spark</div><pre>context = (visits_context
+    .join(ads, visits_context.ads_id == ads.id, 'left_outer').drop('id')
+    .join(browser, visits_context.browsers_id == browser.id, 'left_outer').drop('id')
+    .join(device, visits_context.devices_id == device.id, 'left_outer').drop('id'))
+
+full_visit = (visits
+    .join(context, visits.visit_id_event == context.visit_id, 'left_outer')
+    .join(users, visits.users_id == users.id, 'left_outer').drop('id')
+    .join(page_with_category, visits.pages_id == page_with_category.id, 'left_outer'))</pre></div>
+      </div>
+    </article>
+
+    <article class="pattern-card" id="p9">
+      <div class="pc-head"><span class="pc-num">9</span><h3>Denormalizer</h3><span class="pc-group">Data Representation</span></div>
+      <div class="pc-body">
+        <div class="pc-subhead">Problem</div>
+        <p>A fully relational warehouse model worked at low volume, then 80% of queries needed to join <strong>eight</strong> tables once the product took off.</p>
+
+        <div class="pc-subhead">Solution</div>
+        <p>Flatten joined tables into a single row — <strong>One Big Table</strong> (regular top-level columns) or <strong>nested structures</strong> (<code>STRUCT</code>-typed columns). A <strong>star schema</strong> is the dimensional-model version: like snowflake, but dimensions can't describe other dimensions.</p>
+        <div class="callout note"><span class="co-label">📌 Note</span><p>Normalizer and Denormalizer aren't exclusive — build a normalized model for consistency, then a denormalized copy on top for querying, synced with a Ch. 6 sequence pattern. The snowflake layer can even stay private.</p></div>
+
+        <div class="callout say"><span class="co-label">✅ Say this out loud</span><p>"I'd reach for One Big Table or a star schema when read latency dominates and the source data is closer to append-only — the update cost is the real bill you're paying for that speed."</p></div>
+
+        <div class="pc-subhead">Consequences</div>
+        <ul>
+          <li><strong>Costly updates</strong> — duplicated attributes mean one logical update touches many rows. Mitigation: treat the table as an immutable snapshot.</li>
+          <li><strong>Storage</strong> — duplication grows the footprint.</li>
+          <li><strong>Row consistency after updates</strong> — partial updates can leave the table internally inconsistent.</li>
+        </ul>
+
+        <div class="pc-subhead">Examples</div>
+        <div class="code-block"><div class="code-lang">python · One Big Table (write once, read cheap)</div><pre>full_visit = (fact_visit
+    .join(page_w_category, fact_visit.dim_page_id == page_w_category.page_id, 'left_outer')
+    .join(date_w_month_quarter, fact_visit.dim_date_id == date_w_month_quarter.date_id, 'left_outer'))
+
+full_visit.write.mode('overwrite').format('delta').save(get_one_big_table_dir())
+
+# reading — no joins needed
+visits_table = spark_session.read.format('delta').load(get_one_big_table_dir())</pre></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- DIAGRAM: normalizer vs denormalizer -->
+  <section class="section">
+    <p class="section-label">Figures 8-8 / 8-10</p>
+    <h2>Normalizer (snowflake) vs. Denormalizer (One Big Table / star)</h2>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    subgraph N["Normalizer — snowflake schema"]
+        F1[fact_visit] --> D1[dim_page]
+        F1 --> D2[dim_date]
+        D2 --> D3[dim_month]
+        D3 --> D4[dim_quarter]
+        D1 --> D5[dim_page_category]
+    end
+    subgraph DN["Denormalizer — One Big Table / star"]
+        OBT["one row: visit_id, user_id, user_name,<br/>device_id, device_full_name,<br/>page_category, month, quarter"]
+    end
+    N -->|"Flatten via JOIN, write once"| DN
+      </div>
+    </div>
+
+    <div class="diagram-card">
+      <p class="diagram-title">SCD Type 2 vs. Type 4 — supports Normalizer's Archival consequence</p>
+      <div class="mermaid">
+sequenceDiagram
+    participant App as Query (NOW())
+    participant T2 as SCD Type 2 (single table)
+    participant T4a as SCD Type 4 (current table)
+    participant T4b as SCD Type 4 (history table)
+    Note over T2: id, login, start_date, end_date
+    App->>T2: WHERE NOW() BETWEEN start_date AND end_date
+    T2-->>App: Current row returned
+    Note over T4a,T4b: Current kept separately from full history
+    App->>T4a: Query current value directly
+    T4a-->>App: Current row returned
+    App->>T4b: Query historical value as of a date
+    T4b-->>App: Historical row returned
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPARISON TABLES -->
+  <section class="section">
+    <p class="section-label">Trade-off Tables</p>
+    <h2>Pattern comparisons</h2>
+
+    <h3 style="font-size:1.1rem; margin-top:0;">Partitioning</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td>Horizontal Partitioner</td><td>Low-cardinality predicate attribute (event date, region); enables idempotency patterns like Fast Metadata Cleaner</td><td>Metadata overhead if cardinality creeps up; skew blocks microbatches; key changes need data movement</td></tr>
+        <tr><td>Vertical Partitioner</td><td>Rows mix attributes with different mutability or access/retention needs</td><td>Domain split hurts discoverability; producers pay extra write cost</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 style="font-size:1.1rem;">Records Organization</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td>Bucket</td><td>High-cardinality column central to filters/joins where partitioning would overload metadata</td><td>Bucket count is nearly a one-way door; sizing requires predicting growth</td></tr>
+        <tr><td>Sorter</td><td>Queries consistently filter/sort by known columns; want skipping without new idempotency strategy</td><td>Write-time sort overhead; composite keys need matching filter order</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 style="font-size:1.1rem;">Read Performance Optimization</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td>Metadata Enhancer</td><td>Consumers filter before touching full data blocks</td><td>Write-time overhead; stats go stale between refreshes</td></tr>
+        <tr><td>Dataset Materializer</td><td>Costly, repeated query serving many readers via a view</td><td>Refresh cost; cross-table access-policy complexity; extra storage</td></tr>
+        <tr><td>Manifest</td><td>Object-store listing dominates latency, many files or readers</td><td>Manifests can grow multi-GB with many small files</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 style="font-size:1.1rem;">Data Representation</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td>Normalizer</td><td>Consistency matters most; frequent reference-data updates; joins tolerable</td><td>Distributed join cost; time-sensitive dimensions need SCD</td></tr>
+        <tr><td>Denormalizer</td><td>Read latency dominates; source is append-only or snapshot-friendly</td><td>Costly multi-row updates; larger storage footprint</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- GOTCHAS -->
+  <section class="section">
+    <p class="section-label">Chapter-Level</p>
+    <h2>Gotchas, by pattern</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Pattern</th><th>Gotchas</th></tr></thead>
+      <tbody>
+        <tr><td>Horizontal Partitioner</td><td>High cardinality → small files/slow listing; skew blocks microbatches; key changes are costly (Iceberg's metadata-only evolution doesn't retroactively move old data)</td></tr>
+        <tr><td>Vertical Partitioner</td><td>Domain split hurts discoverability; full-row reconstruction needs a join/view; producers pay higher write cost</td></tr>
+        <tr><td>Bucket</td><td>Bucket schema near-permanent; no perfect sizing strategy against future growth</td></tr>
+        <tr><td>Sorter</td><td>Unsorted segments accumulate pre-compaction; composite key order must match query filter order; re-sorting can touch the whole table</td></tr>
+        <tr><td>Metadata Enhancer</td><td>Write-time stats overhead; threshold-based refresh leaves stats stale after many small changes</td></tr>
+        <tr><td>Dataset Materializer</td><td>Refreshes are expensive and not guaranteed immediate (BigQuery targets 5 min, can be delayed); cross-table policy enforcement is hard</td></tr>
+        <tr><td>Manifest</td><td>Can balloon with many small files/streaming writers (see historical SPARK-27188)</td></tr>
+        <tr><td>Normalizer</td><td>Distributed joins are costly even with mitigations; time-sensitive dimensions need SCD</td></tr>
+        <tr><td>Denormalizer</td><td>Updates get progressively more expensive as duplication grows; larger storage footprint</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- CASE STUDY CALLOUTS -->
+  <section class="section">
+    <p class="section-label">Running Example</p>
+    <h2>Case-study callouts</h2>
+    <div class="callout case"><span class="co-label">🧩 Case Study</span><p>Horizontal Partitioner: the blog analytics `visits` table partitioned by <code>year/month/day/hour</code> directly supports the rolling 4-day aggregate job, and nesting event time with <code>country</code> shows a real multi-level layout (<code>visits/2024/05/05/france|india|poland|usa</code>).</p></div>
+    <div class="callout case"><span class="co-label">🧩 Case Study</span><p>Vertical Partitioner: the same `visits` table separates mutable visit-context columns from the immutable IP address, tied by <code>visit_id</code>.</p></div>
+    <div class="callout case"><span class="co-label">🧩 Case Study</span><p>Dataset Materializer's incremental example builds <code>dedp.visits_counter</code>, kept fresh via <code>insertion_time</code>-filtered <code>MERGE</code>s — combining Incremental Loader and Merger.</p></div>
+    <div class="callout case"><span class="co-label">🧩 Case Study</span><p>Normalizer/Denormalizer both use the visits model: a full snowflake schema vs. a flattened One Big Table/star schema, with both write/read code paths shown side by side.</p></div>
+  </section>
+
+  <!-- SPECIAL NOTES -->
+  <section class="section">
+    <p class="section-label">Tool Quirks &amp; Further Reading</p>
+    <h2>Special notes</h2>
+    <ul style="color:var(--ink-soft); line-height:1.8;">
+      <li>Amazon Athena implements Bucket only at the <strong>logical</strong> level — it never writes data, so <code>INSERT INTO</code> on a bucketed table errors out.</li>
+      <li>Early Apache Spark Structured Streaming manifests grew unbounded until fixed (<code>SPARK-27188</code>).</li>
+      <li>Databricks and BigQuery support incremental materialized-view refresh, but not for every SQL operation.</li>
+      <li>Redshift's <code>AUTO REFRESH</code> and BigQuery's refresh interval are both best-effort, not guaranteed-immediate.</li>
+    </ul>
+    <p style="color:var(--ink-soft);"><strong>Further reading:</strong> <em>The Cloud Data Lake</em> by Rukmani Gopalan (O'Reilly, 2023) — small-files background relevant to bucketing/partitioning; dimensional modeling references for fact/dimension fundamentals; Static Joiner (Ch. 5) for SCD; sequence patterns (Ch. 6) for syncing Normalizer/Denormalizer outputs.</p>
+  </section>
+
+  <!-- CHEAT SHEET -->
+  <section class="section">
+    <p class="section-label">Scan This Before Your Interview</p>
+    <h2>Cheat Sheet</h2>
+    <div class="cheat-grid">
+      <div class="cheat-card"><h4>Horizontal Partitioner</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><p>Slow filtering as dataset grows unbounded</p></div>
+        <div class="cheat-row"><span class="cl">Solution</span><p>Physically isolate rows by low-cardinality attribute</p></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><p>High cardinality → metadata/small-files overload</p></div>
+      </div>
+      <div class="cheat-card"><h4>Vertical Partitioner</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><p>Immutable attributes duplicated every row</p></div>
+        <div class="cheat-row"><span class="cl">Solution</span><p>Split row into mutable/immutable groups, joined by key</p></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><p>Domain split hurts full-row reconstruction</p></div>
+      </div>
+      <div class="cheat-card"><h4>Bucket</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><p>High-cardinality column can't be a partition key</p></div>
+        <div class="cheat-row"><span class="cl">Solution</span><p>Hash-based colocation into fixed bucket count</p></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><p>Bucket count is nearly a one-way door</p></div>
+      </div>
+      <div class="cheat-card"><h4>Sorter</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><p>Physical organization but still full-block scans</p></div>
+        <div class="cheat-row"><span class="cl">Solution</span><p>Declare sort columns; Z-order for multi-dimension skip</p></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><p>Composite key order must match query filter order</p></div>
+      </div>
+      <div class="cheat-card"><h4>Metadata Enhancer</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><p>Queries load full dataset before filtering</p></div>
+        <div class="cheat-row"><span class="cl">Solution</span><p>Persist per-file/column stats for predicate pushdown</p></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><p>Stats go stale between threshold refreshes</p></div>
+      </div>
+      <div class="cheat-card"><h4>Dataset Materializer</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><p>View re-runs costly query on every access</p></div>
+        <div class="cheat-row"><span class="cl">Solution</span><p>Precompute into materialized view or table</p></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><p>Refresh cost and access-policy consistency</p></div>
+      </div>
+      <div class="cheat-card"><h4>Manifest</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><p>Object-store listing is slow and repeated</p></div>
+        <div class="cheat-row"><span class="cl">Solution</span><p>Record file list once (commit log or manifest file)</p></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><p>Manifest can grow multi-GB with small files</p></div>
+      </div>
+      <div class="cheat-card"><h4>Normalizer</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><p>Duplicated reference data → update anomalies</p></div>
+        <div class="cheat-row"><span class="cl">Solution</span><p>Split into normal forms or a snowflake schema</p></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><p>Distributed joins are costly; needs SCD for archival</p></div>
+      </div>
+      <div class="cheat-card"><h4>Denormalizer</h4>
+        <div class="cheat-row"><span class="cl">Problem</span><p>Too many joins tank query performance</p></div>
+        <div class="cheat-row"><span class="cl">Solution</span><p>Flatten into One Big Table or a star schema</p></div>
+        <div class="cheat-row gotcha"><span class="cl">Biggest Gotcha</span><p>Updates get expensive; storage footprint grows</p></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>Data Engineering Design Patterns — Chapter 8 Study Guide · Source: Bartosz Konieczny (O'Reilly, 2025)</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#EFDFC0',
+      primaryTextColor: '#1B2A41',
+      primaryBorderColor: '#B8863C',
+      lineColor: '#8C5F24',
+      secondaryColor: '#F1EEE4',
+      tertiaryColor: '#FFFDF8',
+      fontFamily: 'Inter, sans-serif',
+      fontSize: '14px',
+      background: '#FFFDF8'
+    },
+    flowchart: { curve: 'basis', htmlLabels: true },
+    securityLevel: 'loose'
+  });
+
+  // ===== Interactive Partition vs Bucket widget =====
+  const users = ['alice','bob','carl','dana','elle','finn','gia','hank','iris','jax'];
+  function hashCode(s){ let h=0; for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) >>> 0; } return h; }
+  const bucketColors = ['b0','b1','b2','b3','b4'];
+
+  function renderPartition(){
+    const stage = document.getElementById('stage');
+    let html = '<div class="grid-rows">';
+    users.forEach(u => {
+      html += `<div class="grid-row"><span class="cell" style="background:var(--ink); min-width:130px;">partition: ${u}</span>`;
+      html += `<span class="cell b0">${u}-row</span></div>`;
+    });
+    html += '</div>';
+    stage.innerHTML = html;
+    document.getElementById('caption').innerHTML =
+      '<strong>Horizontal Partitioner:</strong> one partition per unique user_id value. With 1M daily unique users, that\'s 1M partitions — slow listing, small-files problem. Fine for low-cardinality keys like event date; painful here.';
+  }
+
+  function renderBucket(){
+    const stage = document.getElementById('stage');
+    const buckets = {0:[],1:[],2:[],3:[],4:[]};
+    users.forEach(u => { const b = hashCode(u) % 5; buckets[b].push(u); });
+    let html = '<div class="grid-rows">';
+    for (let b=0; b<5; b++){
+      html += `<div class="grid-row"><span class="cell" style="background:var(--ink); min-width:90px;">bucket ${b}</span>`;
+      buckets[b].forEach(u => { html += `<span class="cell ${bucketColors[b]}">${u}</span>`; });
+      if (buckets[b].length === 0) html += `<span class="cell dim" style="background:var(--ink-faint);">empty</span>`;
+      html += '</div>';
+    }
+    html += '</div>';
+    stage.innerHTML = html;
+    document.getElementById('caption').innerHTML =
+      '<strong>Bucket:</strong> hash(user_id) % 5 groups many users into just 5 physical buckets. A query filtering on user_id can prune to one bucket (bucket pruning); joins on identically-bucketed tables skip the network shuffle entirely.';
+  }
+
+  function setMode(mode){
+    document.getElementById('btn-partition').classList.toggle('active', mode==='partition');
+    document.getElementById('btn-bucket').classList.toggle('active', mode==='bucket');
+    if (mode==='partition') renderPartition(); else renderBucket();
+  }
+  setMode('partition');
+</script>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

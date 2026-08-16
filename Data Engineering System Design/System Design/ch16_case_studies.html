@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.16 — Case Studies | System Design for Data Engineers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.65;
+    font-size:16px;
+  }
+  a{color:var(--amber);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  a:focus-visible{outline:2px solid var(--amber);outline-offset:3px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin:0 0 10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:28px;
+    font-weight:600;
+    margin:48px 0 16px;
+    letter-spacing:-0.01em;
+  }
+  p{margin:0 0 16px;}
+
+  .ceiling-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin:24px 0 8px;
+  }
+  @media(max-width:640px){.ceiling-grid{grid-template-columns:1fr;}}
+  .ceiling{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .ceiling .cs-num{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:6px;
+  }
+  .ceiling .cs-title{
+    font-family:var(--serif);
+    font-size:17px;
+    font-weight:600;
+    color:#fff;
+    margin:0 0 6px;
+  }
+  .ceiling .cs-ceiling{
+    font-size:13.5px;
+    color:var(--ink-dim);
+    margin:0;
+  }
+  .ceiling .cs-ceiling em{
+    color:var(--ink);
+    font-style:normal;
+    font-weight:600;
+  }
+
+  .cs-list{border-top:1px solid var(--rule);margin-top:36px;}
+  .cs-row{
+    display:grid;
+    grid-template-columns:64px 1fr auto;
+    gap:14px 18px;
+    align-items:baseline;
+    padding:24px 6px;
+    border-bottom:1px solid var(--rule);
+    color:inherit;
+    transition:background 0.15s, padding-left 0.2s;
+  }
+  .cs-row:hover{
+    background:rgba(232,163,61,0.04);
+    padding-left:12px;
+    text-decoration:none;
+  }
+  .cs-num{
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:700;
+    color:var(--amber);
+  }
+  .cs-title{
+    font-family:var(--serif);
+    font-size:20px;
+    font-weight:600;
+    color:#fff;
+    margin:0 0 4px;
+    display:block;
+  }
+  .cs-blurb{
+    font-size:14px;
+    color:var(--ink-dim);
+    margin:0;
+    max-width:54ch;
+  }
+  .cs-arrow{
+    font-family:var(--mono);
+    font-size:18px;
+    color:var(--ink-faint);
+    align-self:center;
+    transition:color 0.15s, transform 0.15s;
+  }
+  .cs-row:hover .cs-arrow{
+    color:var(--amber);
+    transform:translateX(4px);
+  }
+  @media(max-width:640px){
+    .cs-row{grid-template-columns:48px 1fr;}
+    .cs-arrow{display:none;}
+  }
+
+  .howto{
+    margin-top:40px;
+    padding:22px 24px;
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+  }
+  .howto h3{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin:0 0 12px;
+  }
+  .howto ol{margin:0;padding-left:20px;}
+  .howto li{margin-bottom:8px;color:var(--ink-dim);}
+  .howto strong{color:#fff;}
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 16</div>
+    <h1 class="title">Case Studies</h1>
+    <p class="subtitle">Four full interview walkthroughs where earlier chapters collide —
+    latency walls, cost ceilings, schema chaos, and impossible retention — under a 45-minute clock.</p>
+    <div class="chap-note">Chapter 16 is printed as "Chapter Fifteen" in the book's own running
+    heads — see the numbering note in Chapter 3. This guide cites it as Chapter 16. Each case
+    study is its own study page.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>These aren't four disconnected designs. Each case study is a <strong>different hard
+    ceiling</strong> dressed as a familiar prompt — and the interview signal is whether you name
+    that ceiling in the first five minutes.</p>
+    <p>Work them in order if you can: fraud → recommendations → clickstream → IoT. The transferable
+    patterns stack.</p>
+  </div>
+
+  <h2>The four ceilings</h2>
+  <div class="ceiling-grid">
+    <div class="ceiling">
+      <div class="cs-num">Case Study 1</div>
+      <div class="cs-title">Fraud Detection</div>
+      <p class="cs-ceiling">Hard ceiling: <em>latency</em> (blocking ≤100ms decisions)</p>
+    </div>
+    <div class="ceiling">
+      <div class="cs-num">Case Study 2</div>
+      <div class="cs-title">Recommendation Serving</div>
+      <p class="cs-ceiling">Hard ceiling: <em>cost + latency</em> (read-heavy at billion-QPS scale)</p>
+    </div>
+    <div class="ceiling">
+      <div class="cs-num">Case Study 3</div>
+      <div class="cs-title">Clickstream Analytics</div>
+      <p class="cs-ceiling">Hard ceiling: <em>schema compatibility</em> (producers change without warning)</p>
+    </div>
+    <div class="ceiling">
+      <div class="cs-num">Case Study 4</div>
+      <div class="cs-title">IoT Telemetry</div>
+      <p class="cs-ceiling">Hard ceiling: <em>retention economics</em> (naive 7-year storage is impossible)</p>
+    </div>
+  </div>
+
+  <h2>Open a case study</h2>
+  <nav class="cs-list" aria-label="Case studies">
+    <a class="cs-row" href="ch16_case_study_1_fraud_detection.html">
+      <span class="cs-num">CS.1</span>
+      <span>
+        <span class="cs-title">Real-Time Fraud Detection</span>
+        <p class="cs-blurb">Thousands of TPS, 100ms blocking decisions, seven-day reversal window — skew meets streaming under a hard latency wall.</p>
+      </span>
+      <span class="cs-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="cs-row" href="ch16_case_study_2_recommendation_serving.html">
+      <span class="cs-num">CS.2</span>
+      <span>
+        <span class="cs-title">Recommendation Serving</span>
+        <p class="cs-blurb">Millions of candidates, a two-stage retrieve-then-rank path, and a cost ceiling that kills naive full-catalog scoring.</p>
+      </span>
+      <span class="cs-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="cs-row" href="ch16_case_study_3_clickstream_analytics.html">
+      <span class="cs-num">CS.3</span>
+      <span>
+        <span class="cs-title">Clickstream Analytics at Scale</span>
+        <p class="cs-blurb">Product ships weekly; schemas drift silently. The real design problem is contracts and compatibility, not "just Kafka."</p>
+      </span>
+      <span class="cs-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="cs-row" href="ch16_case_study_4_iot_telemetry.html">
+      <span class="cs-num">CS.4</span>
+      <span>
+        <span class="cs-title">IoT Telemetry</span>
+        <p class="cs-blurb">One million sensors per second and seven years of retention — downsampling as a first-class architectural primitive.</p>
+      </span>
+      <span class="cs-arrow" aria-hidden="true">→</span>
+    </a>
+  </nav>
+
+  <aside class="howto">
+    <h3>How to use these in interview prep</h3>
+    <ol>
+      <li>Read the prompt, then <strong>pause and name the ceiling</strong> out loud before drawing boxes.</li>
+      <li>Compare your clarifying questions to the transcript — that's where mid-level vs senior separates.</li>
+      <li>Photograph the cheat sheet at the end of each case study the night before.</li>
+      <li>If a pattern feels familiar, jump back to the chapter it came from (linked in each write-up).</li>
+    </ol>
+  </aside>
+
+</div>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

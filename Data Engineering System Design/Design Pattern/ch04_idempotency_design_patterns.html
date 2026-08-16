@@ -1,0 +1,1167 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 4 — Idempotency Design Patterns</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<style>
+  :root{
+    --ink:#16202B;
+    --ink-soft:#2B3948;
+    --paper:#EDEEE9;
+    --paper-card:#F7F7F3;
+    --brass:#C08A3E;
+    --brass-deep:#8F631F;
+    --rust:#B5562B;
+    --forest:#3D6B54;
+    --slate-blue:#2E4C6D;
+    --plum:#6B4A8A;
+    --line:#D8D6CC;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+    --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    line-height:1.65;
+    font-size:17px;
+  }
+
+  ::selection{ background:var(--brass); color:var(--ink); }
+
+  a{ color:var(--brass-deep); }
+  a:focus-visible, button:focus-visible, summary:focus-visible, .toc a:focus-visible{
+    outline:3px solid var(--brass);
+    outline-offset:2px;
+  }
+
+  /* ===== Masthead ===== */
+  .masthead{
+    background:var(--ink);
+    color:var(--paper);
+    padding:56px 24px 44px;
+    position:relative;
+    overflow:hidden;
+  }
+  .masthead::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(192,138,62,0.06) 0px, rgba(192,138,62,0.06) 1px, transparent 1px, transparent 64px);
+    pointer-events:none;
+  }
+  .masthead-inner{
+    max-width:920px;
+    margin:0 auto;
+    position:relative;
+  }
+  .kicker{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin:0 0 14px;
+  }
+  .kicker span{ opacity:0.55; }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px, 5.2vw, 54px);
+    line-height:1.08;
+    margin:0 0 18px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    font-family:var(--mono);
+    font-size:14.5px;
+    color:#B9C2CC;
+    max-width:640px;
+    margin:0 0 28px;
+  }
+  .book-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink);
+    background:var(--brass);
+    padding:7px 14px;
+    border-radius:2px;
+    letter-spacing:0.04em;
+  }
+
+  /* ===== Layout shell ===== */
+  .wrap{
+    max-width:920px;
+    margin:0 auto;
+    padding:44px 24px 90px;
+  }
+
+  .lede{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-left:4px solid var(--ink);
+    padding:26px 28px;
+    margin-bottom:48px;
+  }
+  .lede p{ margin:0 0 14px; }
+  .lede p:last-child{ margin-bottom:0; }
+  .lede-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass-deep);
+    margin:0 0 10px;
+    font-weight:700;
+  }
+  .family-list{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));
+    gap:10px;
+    margin-top:16px;
+  }
+  .family-chip{
+    font-family:var(--mono);
+    font-size:12.5px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    background:var(--paper);
+    border-left:3px solid var(--brass);
+  }
+  .family-chip b{ display:block; font-size:13px; margin-bottom:2px; color:var(--ink); }
+  .family-chip span{ color:var(--ink-soft); }
+
+  /* ===== Section headers ===== */
+  h2.section-head{
+    font-family:var(--serif);
+    font-size:28px;
+    font-weight:600;
+    margin:64px 0 8px;
+    padding-bottom:12px;
+    border-bottom:2px solid var(--ink);
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+  }
+  h2.section-head .no{
+    font-family:var(--mono);
+    font-size:14px;
+    color:var(--brass-deep);
+    font-weight:700;
+  }
+
+  /* ===== Pattern Card ===== */
+  .pattern{
+    margin:38px 0 56px;
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:3px;
+    overflow:hidden;
+    scroll-margin-top:16px;
+  }
+  .pattern-head{
+    background:var(--ink);
+    color:var(--paper);
+    padding:18px 26px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .pattern-head h3{
+    font-family:var(--serif);
+    font-size:22px;
+    margin:0;
+    font-weight:600;
+  }
+  .pattern-head .fam-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    padding:5px 10px;
+    border:1px solid rgba(237,238,233,0.35);
+    color:var(--paper);
+    white-space:nowrap;
+  }
+  .pattern-body{ padding:8px 26px 26px; }
+
+  .subhead{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin:28px 0 10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .subhead::before{
+    content:"";
+    width:9px; height:9px;
+    border-radius:50%;
+    display:inline-block;
+  }
+  .subhead.problem::before{ background:var(--rust); }
+  .subhead.solution::before{ background:var(--slate-blue); }
+  .subhead.consequences::before{ background:var(--brass-deep); }
+  .subhead.examples::before{ background:var(--forest); }
+  .subhead.problem{ color:var(--rust); }
+  .subhead.solution{ color:var(--slate-blue); }
+  .subhead.consequences{ color:var(--brass-deep); }
+  .subhead.examples{ color:var(--forest); }
+
+  .pattern p{ margin:0 0 14px; }
+  .pattern ul, .pattern ol{ margin:0 0 14px; padding-left:22px; }
+  .pattern li{ margin-bottom:6px; }
+  .pattern li b, .pattern p b{ color:var(--ink); }
+
+  .cons-item{
+    margin:0 0 16px;
+    padding-left:14px;
+    border-left:3px solid var(--brass);
+  }
+  .cons-item .cname{
+    font-weight:700;
+    display:block;
+    margin-bottom:4px;
+    font-family:var(--serif);
+  }
+
+  /* ===== Callouts ===== */
+  .callout{
+    margin:18px 0;
+    padding:14px 18px;
+    border-left:4px solid;
+    background:var(--paper);
+    font-size:15.5px;
+  }
+  .callout .c-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    display:block;
+    margin-bottom:6px;
+  }
+  .callout.note{ border-color:var(--slate-blue); }
+  .callout.note .c-label{ color:var(--slate-blue); }
+  .callout.warning{ border-color:var(--rust); background:#FBF1EC; }
+  .callout.warning .c-label{ color:var(--rust); }
+  .callout.case{ border-color:var(--plum); background:#F4EFF7; }
+  .callout.case .c-label{ color:var(--plum); }
+  .callout.say{ border-color:var(--forest); background:#EFF5F1; }
+  .callout.say .c-label{ color:var(--forest); }
+  .callout p{ margin:0; }
+  .callout p + p{ margin-top:8px; }
+
+  /* ===== Code ===== */
+  .code-block{
+    margin:14px 0 20px;
+    background:var(--ink);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .code-label{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--brass);
+    padding:8px 16px;
+    border-bottom:1px solid rgba(237,238,233,0.15);
+  }
+  pre{
+    margin:0;
+    padding:16px 18px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13.3px;
+    line-height:1.6;
+    color:#E7E9E4;
+  }
+  code{ font-family:var(--mono); }
+  p code, li code{
+    background:#E4E1D4;
+    padding:1px 6px;
+    border-radius:2px;
+    font-size:0.88em;
+    color:var(--brass-deep);
+  }
+
+  /* ===== Tables ===== */
+  .table-wrap{ overflow-x:auto; margin:16px 0 24px; }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14.5px;
+    background:var(--paper);
+  }
+  caption{
+    text-align:left;
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    padding-bottom:8px;
+    font-weight:700;
+  }
+  th{
+    background:var(--ink);
+    color:var(--paper);
+    text-align:left;
+    padding:10px 14px;
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+  td{
+    padding:12px 14px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  tr:nth-child(even) td{ background:rgba(0,0,0,0.02); }
+  td b{ color:var(--ink); }
+
+  /* ===== Diagram wrapper ===== */
+  .diagram-card{
+    margin:24px 0 34px;
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:20px;
+  }
+  .diagram-card .dc-label{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--brass-deep);
+    font-weight:700;
+    margin-bottom:14px;
+  }
+  .mermaid{ display:flex; justify-content:center; }
+
+  /* interactive family-map */
+  .familymap{
+    display:grid;
+    gap:14px;
+  }
+  .fm-node{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-left:5px solid var(--brass);
+    padding:14px 16px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .fm-node:hover, .fm-node:focus-visible{
+    transform:translateX(4px);
+    box-shadow:3px 3px 0 var(--ink);
+  }
+  .fm-node summary{
+    list-style:none;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:14px;
+  }
+  .fm-node summary::-webkit-details-marker{ display:none; }
+  .fm-node summary::after{
+    content:"+";
+    font-size:18px;
+    color:var(--brass-deep);
+  }
+  .fm-node[open] summary::after{ content:"−"; }
+  .fm-node .fm-detail{
+    margin-top:10px;
+    font-family:var(--serif);
+    font-size:14.5px;
+    color:var(--ink-soft);
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+  }
+
+  /* ===== Gotchas list ===== */
+  .gotcha-group{ margin-bottom:22px; }
+  .gotcha-group h4{
+    font-family:var(--mono);
+    font-size:14px;
+    margin:0 0 8px;
+    color:var(--ink);
+    background:linear-gradient(transparent 60%, var(--brass) 60%);
+    display:inline-block;
+  }
+  .gotcha-group ul{ margin:0; padding-left:20px; }
+  .gotcha-group li{ margin-bottom:6px; font-size:15.5px; }
+
+  /* ===== Cheat sheet ===== */
+  .cheat-panel{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:4px;
+    padding:32px 28px;
+    margin:24px 0 56px;
+  }
+  .cheat-panel h2.section-head{
+    color:var(--paper);
+    border-bottom:2px solid var(--brass);
+    margin-top:0;
+  }
+  .cheat-panel h2.section-head .no{ color:var(--brass); }
+  .cheat-intro{
+    font-family:var(--mono);
+    font-size:13px;
+    color:#B9C2CC;
+    margin-bottom:24px;
+  }
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+    gap:14px;
+  }
+  .cheat-card{
+    background:#1E2A38;
+    border:1px solid #34445A;
+    border-top:3px solid var(--brass);
+    padding:16px 18px;
+    border-radius:2px;
+  }
+  .cheat-card h4{
+    font-family:var(--serif);
+    font-size:16.5px;
+    margin:0 0 10px;
+    color:var(--brass);
+  }
+  .cheat-card dl{ margin:0; }
+  .cheat-card dt{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#8FA0B3;
+    margin-top:10px;
+  }
+  .cheat-card dt:first-of-type{ margin-top:0; }
+  .cheat-card dd{
+    margin:3px 0 0;
+    font-size:14px;
+    line-height:1.5;
+    color:#E7E9E4;
+  }
+  .cheat-card dd.gotcha{ color:#F0B990; }
+
+  /* ===== Further reading ===== */
+  .reading-list{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    padding:22px 26px;
+    margin:24px 0 40px;
+  }
+  .reading-list ul{ margin:0; padding-left:20px; }
+  .reading-list li{ margin-bottom:10px; font-size:15px; }
+
+  footer{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink-soft);
+    padding:30px 24px 50px;
+    border-top:1px solid var(--line);
+  }
+
+  @media (max-width: 640px){
+    body{ font-size:16px; }
+    .masthead{ padding:40px 18px 34px; }
+    .wrap{ padding:32px 16px 70px; }
+    .pattern-head{ padding:16px 18px; }
+    .pattern-body{ padding:4px 18px 20px; }
+    h2.section-head{ font-size:23px; }
+    .pattern-head h3{ font-size:19px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="kicker">Data Engineering Design Patterns <span>— Bartosz Konieczny, O'Reilly 2025</span></p>
+    <h1 class="title">Chapter 4<br>Idempotency Design Patterns</h1>
+    <p class="subtitle">Overwriting · Updates · Database-native guarantees · Immutable datasets — a field reference for interviews and design reviews.</p>
+    <span class="book-tag">▤ 7 patterns · 4 families</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="lede">
+    <p class="lede-label">Chapter Framing</p>
+    <p>Errors are inevitable, and Chapter 3's error-management patterns handle most of the fallout — but not all of it. A retried task or job can replay writes that already succeeded. Best case: duplicates a consumer can filter out. Worst case: duplicates indistinguishable from the original records.</p>
+    <p>Idempotency is the fix — the guarantee that no matter how many times a job runs (retry, backfill, manual replay), the output stays consistent. The book anchors this in the <code>absolute()</code> function: <code>absolute(-1) == absolute(absolute(absolute(-1)))</code>. Credit goes to Maxime Beauchemin's 2018 article for popularizing the concept in data engineering.</p>
+    <div class="family-list">
+      <div class="family-chip"><b>Overwriting</b><span>Fast Metadata Cleaner, Data Overwrite</span></div>
+      <div class="family-chip"><b>Updates</b><span>Merger, Stateful Merger</span></div>
+      <div class="family-chip"><b>Database-native</b><span>Keyed Idempotency, Transactional Writer</span></div>
+      <div class="family-chip"><b>Immutable Dataset</b><span>Proxy</span></div>
+    </div>
+  </div>
+
+  <h2 class="section-head"><span class="no">01</span> Pattern Map</h2>
+  <div class="diagram-card">
+    <div class="dc-label">Interactive — click each family to see the deciding question</div>
+    <div class="familymap">
+      <details class="fm-node" open>
+        <summary><span>Overwriting — "Do you get the FULL dataset each run?"</span></summary>
+        <div class="fm-detail">Yes → replace the whole dataset. <b>Fast Metadata Cleaner</b> uses TRUNCATE/DROP (logical, fast, requires metadata-op support). <b>Data Overwrite</b> rewrites physical files (works everywhere, but I/O heavy).</div>
+      </details>
+      <details class="fm-node">
+        <summary><span>Updates — "Only incremental changes available?"</span></summary>
+        <div class="fm-detail"><b>Merger</b> combines new + existing rows via MERGE/UPSERT. <b>Stateful Merger</b> adds a state table so backfills can restore to a consistent version first.</div>
+      </details>
+      <details class="fm-node">
+        <summary><span>Database-native — "No orchestration layer, e.g. streaming?"</span></summary>
+        <div class="fm-detail"><b>Keyed Idempotency</b> generates the same key for retried writes. <b>Transactional Writer</b> uses BEGIN/COMMIT so partial writes are never visible.</div>
+      </details>
+      <details class="fm-node">
+        <summary><span>Immutable Dataset — "Must data be write-once for compliance?"</span></summary>
+        <div class="fm-detail"><b>Proxy</b> writes each run to a new versioned table, locks it, and exposes only the latest through a passthrough view.</div>
+      </details>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="dc-label">Figure 4-A — Family decision flow</div>
+    <div class="mermaid" id="fam-diagram">
+flowchart TD
+    Start["Can you get the<br/>FULL dataset each run?"]
+    Start -->|Yes| Overwrite["Overwriting family"]
+    Start -->|No, incremental only| Update["Updates family"]
+
+    Overwrite --> FMC["Fast Metadata Cleaner<br/>TRUNCATE / DROP — logical"]
+    Overwrite --> DO["Data Overwrite<br/>rewrite files — physical"]
+
+    Update --> Merger["Merger<br/>MERGE / UPSERT"]
+    Merger -->|Need backfill consistency?| SM["Stateful Merger<br/>+ state table"]
+
+    Start2["No orchestration layer?<br/>e.g. streaming job"]
+    Start2 --> DB["Database-native family"]
+    DB --> KI["Keyed Idempotency<br/>idempotent key generation"]
+    DB --> TW["Transactional Writer<br/>commit / rollback"]
+
+    Start3["Must data be<br/>write-once / immutable?"]
+    Start3 -->|Yes| Proxy["Proxy<br/>versioned tables + view"]
+    </div>
+  </div>
+
+  <!-- ============ FAST METADATA CLEANER ============ -->
+  <h2 class="section-head"><span class="no">02</span> Pattern-by-Pattern Breakdown</h2>
+
+  <article class="pattern" id="fast-metadata-cleaner">
+    <div class="pattern-head">
+      <h3>Fast Metadata Cleaner</h3>
+      <span class="fam-tag">Overwriting</span>
+    </div>
+    <div class="pattern-body">
+      <p class="subhead problem">Problem</p>
+      <p>A daily batch job processes between 500 GB and 1.5 TB of visits data events. Idempotency is guaranteed with two steps: a <code>DELETE</code> that removes all rows added by the previous run, then an <code>INSERT</code> of the newly processed rows. This worked fine for three weeks, but as the table grew, the <code>DELETE</code> task's performance degraded considerably.</p>
+
+      <p class="subhead solution">Solution</p>
+      <p><code>DELETE</code> is often a two-step operation: identify rows, then rewrite affected data files — slow at scale. <code>TRUNCATE TABLE</code> and <code>DROP TABLE</code> are <b>metadata operations</b> that skip the table scan entirely.</p>
+      <div class="callout note"><span class="c-label">📌 Note</span><p><code>TRUNCATE TABLE table_a</code> is semantically equivalent to <code>DELETE FROM table_a</code> without conditions, but doesn't perform a table scan — hence it's a metadata operation.</p></div>
+      <p>Think of the dataset as multiple physically isolated tables (e.g., weekly tables) exposed through a single logical view. The <b>idempotency granularity</b> is the physical unit that metadata operations clean and repopulate. Implementation needs three orchestration steps:</p>
+      <ol>
+        <li><b>Decide the branch</b> — analyze the execution date to start a new granularity or continue the current one (Exclusive Choice pattern).</li>
+        <li><b>Create the idempotency environment</b> — TRUNCATE (often preceded by table creation) or DROP (followed by re-creation).</li>
+        <li><b>Update the exposition layer</b> — refresh the view/union; optionally remove the table from the view before dropping it, to avoid reader errors.</li>
+      </ol>
+      <div class="callout case"><span class="c-label">🧩 Case Study</span><p>The blog analytics platform stores 52 weekly visits tables, unioned through a single view. The idempotency (and backfill) granularity is one week.</p></div>
+      <p>The pattern also applies to fully loaded tables — simply re-create the table each load, or fall back to Data Overwrite.</p>
+
+      <p class="subhead consequences">Consequences</p>
+      <div class="cons-item"><span class="cname">Granularity and backfilling boundary</span>Replay must start from the task that creates the partitioned table. Backfilling one day inside a week means rerunning that whole week's creation step. Fine-grained (per-user) backfills aren't supported — metadata ops act on whole tables.</div>
+      <div class="cons-item"><span class="cname">Metadata limits</span>Warehouses cap partitions/tables (BigQuery: 4,000 partitions; Redshift: 200,000 tables). Mitigate with a freezing step that turns mutable tables immutable on a longer cadence. Only works on stores supporting metadata ops — not object stores.</div>
+      <div class="cons-item"><span class="cname">Data exposition layer</span>The dataset no longer lives in one place; end users typically want a single access point (a view).</div>
+      <div class="cons-item"><span class="cname">Schema evolution</span>New optional fields need a separate backfill pipeline. New required fields piggyback naturally since replaying past runs re-triggers processing.</div>
+      <div class="callout say"><span class="c-label">✅ Say this out loud</span><p>TRUNCATE and DROP skip the table scan that makes DELETE slow at scale — but the idempotency granularity they create also becomes my backfill granularity, so partition size has to be chosen carefully.</p></div>
+
+      <p class="subhead examples">Examples</p>
+      <div class="code-block"><div class="code-label">python — Apache Airflow BranchPythonOperator</div><pre>def retrieve_path_for_table_creation(**context):
+    ex_date = context['execution_date']
+    should_create_table = ex_date.day_of_week == 1 or ex_date.day_of_year == 1
+    return 'create_weekly_table' if should_create_table else "dummy_task"
+
+check_if_monday_or_first_january_at_midnight = BranchPythonOperator(
+    task_id='check_if_monday_or_first_january_at_midnight',
+    provide_context=True,
+    python_callable=retrieve_path_for_table_creation
+)</pre></div>
+      <div class="code-block"><div class="code-label">python — table management branch</div><pre>create_weekly_table = PostgresOperator(  # ...
+    sql='/sql/create_weekly_table.sql'
+)
+recreate_view = PostgresViewManagerOperator(  # ...
+    view_name='visits',
+    sql='/sql/recreate_view.sql'
+)</pre></div>
+    </div>
+  </article>
+
+  <!-- ============ DATA OVERWRITE ============ -->
+  <article class="pattern" id="data-overwrite">
+    <div class="pattern-head">
+      <h3>Data Overwrite</h3>
+      <span class="fam-tag">Overwriting</span>
+    </div>
+    <div class="pattern-body">
+      <p class="subhead problem">Problem</p>
+      <p>You need a data-removal / idempotency approach that works even where metadata-only operations (TRUNCATE/DROP) aren't supported — e.g., an object store, or where a single full-table <code>INSERT OVERWRITE</code>-style replace is preferable to managing multiple physical tables. <span style="font-size:13px;color:var(--ink-soft);">[verify against source page for the book's exact framing]</span></p>
+
+      <p class="subhead solution">Solution</p>
+      <p>Where Fast Metadata Cleaner works at the logical level, Data Overwrite works at the <b>physical data level</b> — it actually rewrites files. The classic approach is <code>DELETE</code> then <code>INSERT</code>; a more concise alternative is <code>INSERT OVERWRITE</code>, which replaces the whole table with the SELECT's result (no row-level selectivity, unlike DELETE+INSERT).</p>
+      <div class="callout note"><span class="c-label">📌 Note</span><p><code>INSERT</code> doesn't require literal values — you can insert from a SELECT against another table, e.g. <code>INSERT INTO visits (id, v_time) SELECT visit_id, visit_time FROM visits_raw</code>.</p></div>
+      <p>Some stores support native overwrite loading (BigQuery's <code>LOAD DATA OVERWRITE</code>); others need a preceding TRUNCATE. Stores with time travel (table file formats, BigQuery, Snowflake) keep old blocks until retention expires or vacuum runs.</p>
+
+      <p class="subhead consequences">Consequences</p>
+      <div class="cons-item"><span class="cname">Data overhead</span>Big, unpartitioned tables get slower to overwrite over time. Mitigate with partitioning to reduce volume touched per overwrite.</div>
+      <div class="cons-item"><span class="cname">Vacuum need</span>DELETE may not remove data from disk immediately; dead blocks persist (inaccessible but present) until a vacuum process reclaims space.</div>
+      <div class="callout warning"><span class="c-label">⚠️ Warning</span><p>Spark's <code>overwrite</code> save mode is not transactional by itself — the guarantee depends entirely on the target format. Modern table file formats fix this because the delete becomes a new commit; data files stay untouched until commit succeeds.</p></div>
+      <div class="callout say"><span class="c-label">✅ Say this out loud</span><p>INSERT OVERWRITE is simpler than DELETE+INSERT, but it's a full-table replace with no row-level selectivity — on unpartitioned big tables the data-level rewrite is the real cost, which is why I'd pair it with partitioning.</p></div>
+
+      <p class="subhead examples">Examples</p>
+      <div class="code-block"><div class="code-label">sql — INSERT OVERWRITE</div><pre>INSERT OVERWRITE INTO devices SELECT * FROM devices_staging WHERE state = 'valid';</pre></div>
+      <div class="code-block"><div class="code-label">bash — BigQuery load with replace</div><pre>bq load dedp.devices gs://devices/in_20240101.csv ./info_schema.json --replace=true</pre></div>
+      <div class="code-block"><div class="code-label">python — PySpark overwrite</div><pre>input_data.write.mode('overwrite').text(job_arguments.output_dir)</pre></div>
+    </div>
+  </article>
+
+  <!-- ============ MERGER ============ -->
+  <article class="pattern" id="merger">
+    <div class="pattern-head">
+      <h3>Merger</h3>
+      <span class="fam-tag">Updates</span>
+    </div>
+    <div class="pattern-body">
+      <p class="subhead problem">Problem</p>
+      <p>A pipeline manages a stream of changes synchronized from an Apache Kafka topic via Change Data Capture. A new batch pipeline must replicate all changes into an existing Delta Lake table so the table fully reflects the source at any moment — no duplicates allowed.</p>
+
+      <p class="subhead solution">Solution</p>
+      <p>When the full dataset isn't available each run, you need to <b>combine</b> new and existing rows — implemented with the <code>MERGE</code> (a.k.a. UPSERT) command supported by most modern frameworks, table file formats, and warehouses.</p>
+      <div class="callout note"><span class="c-label">📌 Note</span><p>Idempotent processing for <i>fully available</i> datasets is simpler via an overwriting pattern. Merger is for incremental datasets where delete-and-replace isn't viable.</p></div>
+      <p>Define uniquely-identifying attributes, then define behavior per scenario:</p>
+      <ul>
+        <li><b>Insert</b> — new record absent from the current dataset.</li>
+        <li><b>Update</b> — record exists in both; new dataset likely has an updated version.</li>
+        <li><b>Delete</b> — trickiest case. Merger has no native delete; a missing record does nothing. Must be expressed as a <b>soft delete</b> (<code>is_deleted</code> flag).</li>
+      </ul>
+      <div class="code-block"><div class="code-label">sql — soft-delete MERGE</div><pre>MERGE INTO dedp.devices_output AS target
+USING dedp.devices_input AS input
+ON target.type = input.type AND target.version = input.version
+WHEN MATCHED AND input.is_deleted = true THEN
+  DELETE
+WHEN MATCHED AND input.is_deleted = false THEN
+  UPDATE SET full_name = input.full_name
+WHEN NOT MATCHED AND input.is_deleted = false THEN
+  INSERT (full_name, version, type) VALUES (input.full_name, input.version, input.type)</pre></div>
+      <div class="callout warning"><span class="c-label">⚠️ Warning</span><p>The <code>is_deleted = false</code> condition on INSERT is essential — without it, a first run could insert already-removed records you can never get rid of.</p></div>
+
+      <p class="subhead consequences">Consequences</p>
+      <div class="cons-item"><span class="cname">Uniqueness</span>Must have immutable attributes to safely identify each record — otherwise backfills can insert duplicates instead of updating.</div>
+      <div class="cons-item"><span class="cname">I/O</span>Data-block-level operation, more compute intensive than metadata patterns; mitigated by stores consulting metadata statistics to skip irrelevant files.</div>
+      <div class="cons-item"><span class="cname">Incremental datasets with backfilling</span>Backfilling from an earlier point starts from the most recent dataset version, so consumers can briefly see rows that shouldn't exist yet, until later runs catch up. Solved by Stateful Merger.</div>
+      <div class="callout say"><span class="c-label">✅ Say this out loud</span><p>Merger handles insert/update naturally through MERGE, but deletes have to be modeled as soft deletes — a missing row in an incremental feed is invisible to the merge logic, so hard deletes just can't be expressed.</p></div>
+
+      <p class="subhead examples">Examples</p>
+      <div class="code-block"><div class="code-label">sql — load then merge</div><pre>CREATE TEMPORARY TABLE changed_devices (LIKE dedp.devices);
+COPY changed_devices FROM '/data_to_load/dataset.csv' CSV DELIMITER ';' HEADER;
+
+MERGE INTO dedp.devices AS d USING changed_devices AS c_d
+ON c_d.type = d.type AND c_d.version = d.version
+WHEN MATCHED THEN
+  UPDATE SET full_name = c_d.full_name
+WHEN NOT MATCHED THEN
+  INSERT (type, full_name, version) VALUES (c_d.type, c_d.full_name, c_d.version)</pre></div>
+    </div>
+  </article>
+
+  <!-- ============ STATEFUL MERGER ============ -->
+  <article class="pattern" id="stateful-merger">
+    <div class="pattern-head">
+      <h3>Stateful Merger</h3>
+      <span class="fam-tag">Updates</span>
+    </div>
+    <div class="pattern-body">
+      <p class="subhead problem">Problem</p>
+      <p>Changes were synced between two Delta Lake tables using the Merger pattern. A week later, an issue was found in the merged dataset, and business users need a backfill — but restored first to the last valid version, since they care about consistency. Plain Merger doesn't support this.</p>
+
+      <p class="subhead solution">Solution</p>
+      <p>Extend Merger with a <b>state table</b> tracking, per execution time, which table version was produced. The pipeline gains a <b>restore</b> step at the start (backfill-only) and a <b>state update</b> step at the end.</p>
+      <div class="code-block"><div class="code-label">sql — state table</div><pre>CREATE TABLE IF NOT EXISTS `default`.`versions`
+(execution_time STRING NOT NULL, delta_table_version INT NOT NULL)</pre></div>
+      <p>Restore logic (backfill mode only):</p>
+      <ul>
+        <li>No version for prior execution time → <b>truncate</b> the table.</li>
+        <li>Recorded version differs from current latest → <b>roll back</b> to that version.</li>
+        <li>Otherwise → normal run, do nothing.</li>
+      </ul>
+      <div class="callout note"><span class="c-label">📌 Note</span><p>Without a versioned store, adapt the pattern: load raw data into a history table stamped with execution time; detect backfill mode via rows with a future execution time; rebuild using the Windowed Deduplicator pattern instead of a version rollback.</p></div>
+
+      <p class="subhead consequences">Consequences</p>
+      <div class="cons-item"><span class="cname">Versioned data stores</span>Requires a versioned store (Delta Lake, Iceberg) or the raw-history-table adaptation.</div>
+      <div class="cons-item"><span class="cname">Vacuum operations</span>Retention periods remove old files the state table points to. Mitigate by increasing retention (costs more storage) or accepting backfill limits.</div>
+      <div class="cons-item"><span class="cname">Metadata operations</span>No-data operations like compaction still create a new version. Using "the previous run's recorded version" naively misses compactions between runs — fix by using <i>(current execution's version − 1)</i> instead.</div>
+      <div class="callout say"><span class="c-label">✅ Say this out loud</span><p>Merger alone can't recover cleanly from backfilling because it only tracks the merge action, not table history. Stateful Merger adds a state table mapping execution time to table version, so a backfill can roll back before re-merging — as long as I account for no-data commits like compaction consuming a version number.</p></div>
+
+      <p class="subhead examples">Examples</p>
+      <div class="code-block"><div class="code-label">python — read current/previous version</div><pre>last_merge_version = (spark.sql('DESCRIBE HISTORY default.devices')
+    .filter('operation = "MERGE"')
+    .selectExpr('MAX(version) AS last_version').collect()[0].last_version)
+maybe_previous_job_version = spark.sql(f'''SELECT delta_table_version FROM versions
+    WHERE execution_time = "{previous_execution_time}"''').collect()</pre></div>
+      <div class="code-block"><div class="code-label">python — restoration action</div><pre>if not maybe_previous_job_version:
+    spark.sql('TRUNCATE TABLE default.devices')
+else:
+    previous_job_version = maybe_previous_job_version[0].delta_table_version
+    if previous_job_version < last_merge_version:
+        current_run_version = (spark_session.sql(f'''SELECT delta_table_version FROM
+            versions WHERE execution_time = "{currently_processed_version}"''')
+            .collect()[0].delta_table_version)
+        version_to_restore = current_run_version - 1
+        (DeltaTable.forName(spark, 'devices').restoreToVersion(previous_job_version))</pre></div>
+      <div class="code-block"><div class="code-label">python — state table update</div><pre>last_version = (spark.sql('DESCRIBE HISTORY default.devices')
+    .selectExpr('MAX(version) AS last_version').collect()[0].last_version)
+new_version_df = (spark.createDataFrame([
+    Row(execution_time=current_execution_time, delta_table_version=last_version)]))
+(DeltaTable.forName(spark_session, 'versions').alias('old_versions')
+    .merge(new_version.alias('new_version'),
+           'old_versions.execution_time = new_version.execution_time')
+    .whenMatchedUpdateAll().whenNotMatchedInsertAll().execute())</pre></div>
+
+      <div class="diagram-card">
+        <div class="dc-label">Figure 4-B — Restore-then-merge decision flow</div>
+        <div class="mermaid">
+flowchart TD
+    A["Pipeline execution starts"] --> B{"Previous execution_time<br/>has a state row?"}
+    B -->|No| C["TRUNCATE table"]
+    B -->|Yes| D{"Recorded version <<br/>current latest version?"}
+    D -->|Yes, backfilling| E["Restore table to<br/>recorded version"]
+    D -->|No, normal run| F["Do nothing"]
+    C --> G["Run MERGE operation"]
+    E --> G
+    F --> G
+    G --> H["Read new table version"]
+    H --> I["MERGE new version into<br/>state table"]
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ============ KEYED IDEMPOTENCY ============ -->
+  <article class="pattern" id="keyed-idempotency">
+    <div class="pattern-head">
+      <h3>Keyed Idempotency</h3>
+      <span class="fam-tag">Database-native</span>
+    </div>
+    <div class="pattern-body">
+      <p class="subhead problem">Problem</p>
+      <p>A streaming pipeline processes visit events to generate user sessions, buffering messages per user in a time window and writing to a key-value store. Retries must not create duplicate sessions.</p>
+
+      <p class="subhead solution">Solution</p>
+      <p>For key-based stores, idempotency comes from the <b>key generation logic</b>: generate the same key for the same logical entity every time, regardless of retries.</p>
+      <p>Start with immutable attributes to key on. If the natural key would collapse multiple sessions into one, use a composite key — but <b>event time is mutable</b>: late data can shift the derived key across restarts.</p>
+      <div class="callout warning"><span class="c-label">⚠️ Warning</span><p>Using a mutable timestamp (event time) in key generation is a trap. If a job restarts and a late record has since arrived, the recomputed key differs from the original — a new session gets created instead of resuming the old one.</p></div>
+      <p>Fix: key on an <b>immutable</b> timestamp — the broker's <b>append time</b> (Kafka: append time; Kinesis: approximate arrival timestamp; at-rest stores: added/ingestion/insertion time). This value never changes after the fact.</p>
+      <div class="code-block"><div class="code-label">sql — window keyed on ingestion_time</div><pre>SELECT ... OVER (PARTITION BY user_id ORDER BY ingestion_time ASC, visit_time ASC)</pre></div>
+      <p>The same strategy extends to file outputs: name daily job output by execution time so replays always produce the same filename — applies to partitions or whole tables too.</p>
+
+      <p class="subhead consequences">Consequences</p>
+      <div class="cons-item"><span class="cname">Database dependent</span>Works cleanly on key-based NoSQL (Cassandra, ScyllaDB, HBase). On relational DBs, duplicate primary key inserts error — need MERGE instead of INSERT. On Kafka, duplicates can be visible until async compaction catches up (though sharing the same key aids identification).</div>
+      <div class="cons-item"><span class="cname">Mutable data source</span>Compaction can expire old events. If the original keying record gets compacted away before a restart, the job derives its key from the next available record — logically breaking idempotency (though arguably reasonable, since the data genuinely changed shape).</div>
+      <div class="callout say"><span class="c-label">✅ Say this out loud</span><p>The idempotency guarantee lives entirely in the key-generation logic — key on an immutable attribute like Kafka's append time, not event time, because event time can shift under late data and silently produce a different key on restart.</p></div>
+
+      <p class="subhead examples">Examples</p>
+      <div class="code-block"><div class="code-label">sql — ScyllaDB sessions table</div><pre>CREATE TABLE sessions (
+  session_id BIGINT,
+  user_id BIGINT,
+  pages LIST&lt;TEXT&gt;,
+  ingestion_time TIMESTAMP,
+  PRIMARY KEY(session_id, user_id));</pre></div>
+      <div class="code-block"><div class="code-label">python — Spark Structured Streaming grouping</div><pre>(input_data.selectExpr('CAST(value AS STRING)', 'timestamp').select(F.from_json(
+    F.col('value'), 'user_id LONG, page STRING, event_time TIMESTAMP')
+    .alias('visit'), F.col('timestamp'))
+    .selectExpr('visit.*', 'UNIX_TIMESTAMP(timestamp) AS append_time')
+    .withWatermark('event_time', '10 seconds').groupBy(F.col('user_id')))</pre></div>
+      <div class="code-block"><div class="code-label">python — idempotent session key from earliest append time</div><pre>def map_visit_to_session(user_tuple, input_rows, current_state):
+    session_expiration_time_50_seconds_as_ms = 50 * 1000
+    user_id = user_tuple[0]
+    if current_state.hasTimedOut:
+        min_append_time, pages, = current_state.get
+        session_to_return = {
+            'user_id': [user_id],
+            'session_id': [hash(str(min_append_time))],
+            'pages': [pages]
+        }
+    else:
+        ...  # accumulation logic</pre></div>
+      <div class="code-block"><div class="code-label">python — state accumulation, earliest append time wins</div><pre>data_min_append_time = 0
+for input_df_for_group in input_rows:
+    data_min_append_time = int(input_df_for_group['append_time'].min()) * 1000
+if current_state.exists:
+    min_append_time, current_pages, = current_state.get
+    visited_pages = current_pages + pages
+    current_state.update((min_append_time, visited_pages,))
+else:
+    current_state.update((data_min_append_time, pages,))</pre></div>
+      <div class="code-block"><div class="code-label">python — Amazon Kinesis adaptation</div><pre>(spark_session.readStream.format("kinesis")
+    .load().selectExpr("CAST(data AS STRING)",
+                        "approximateArrivalTimestamp AS append_time"))</pre></div>
+      <div class="callout note"><span class="c-label">📌 Note</span><p>You can define append time externally via a Kafka producer, but it's riskier than the broker-controlled mechanism. Check the <code>log.message.timestamp.type</code> topic attribute to see which strategy is active.</p></div>
+    </div>
+  </article>
+
+  <!-- ============ TRANSACTIONAL WRITER ============ -->
+  <article class="pattern" id="transactional-writer">
+    <div class="pattern-head">
+      <h3>Transactional Writer</h3>
+      <span class="fam-tag">Database-native</span>
+    </div>
+    <div class="pattern-body">
+      <p class="subhead problem">Problem</p>
+      <p>A batch job runs on a cloud provider's unused compute capacity — 60% infrastructure savings. But whenever the provider reclaims a node, running tasks fail and retry elsewhere, rewriting data already written. Downstream consumers see duplicates and incomplete records. The job must never expose partial data.</p>
+
+      <p class="subhead solution">Solution</p>
+      <p>Lean on native database <b>transactions</b>: in-progress, uncommitted changes stay invisible to downstream readers until commit.</p>
+      <ol>
+        <li><b>Initialize</b> — <code>START TRANSACTION</code> / <code>BEGIN</code>, explicit or implicit.</li>
+        <li><b>Write</b> — changes recorded but private to the transaction.</li>
+        <li><b>Commit</b> to publish, or <b>rollback</b> to discard.</li>
+      </ol>
+      <p>Two shapes depending on processing model:</p>
+      <ul>
+        <li><b>Standalone/ELT</b> at the storage layer (BigQuery, Redshift, Snowflake) — transaction is declarative, fully store-managed.</li>
+        <li><b>Distributed ETL</b> — either a <b>local (task-based)</b> transaction (fine without retries, risky with them) or a <b>whole-job transaction</b> (opens before any task runs, commits once all finish — stronger, harder).</li>
+      </ul>
+      <div class="callout warning"><span class="c-label">⚠️ Warning</span><p>Even with writer-side transactions, a reader using <b>read uncommitted</b> isolation can still see records from a transaction that later rolls back — a classic dirty read.</p></div>
+      <p>Supported by table file formats (Delta Lake, Iceberg, Hudi), Kafka, warehouses (Redshift, BigQuery), and RDBMSes — but framework support is uneven: Kafka transactional producers are Flink-only, not available in Spark.</p>
+
+      <p class="subhead consequences">Consequences</p>
+      <div class="cons-item"><span class="cname">Commit step</span>Two extra steps (open + commit) plus conflict resolution add latency. Transactional formats only become visible once the commit log entry is written — consumers wait for the slowest task.</div>
+      <div class="cons-item"><span class="cname">Distributed processing</span>Support isn't universal — e.g., Kafka transactional producers aren't available in Spark, significantly limiting scope.</div>
+      <div class="cons-item"><span class="cname">Idempotency scope</span>Guarantee is limited to <i>the transaction itself</i>. A job restart or backfill opens a <b>new</b> transaction and can happily re-commit already-successful data.</div>
+      <div class="callout say"><span class="c-label">✅ Say this out loud</span><p>Transactions give all-or-nothing visibility — a partial write never becomes visible — but the idempotency only covers a single transaction's scope. A retry or backfill gets a brand-new transaction that can duplicate already-successful data. This solves partial-data visibility, not duplicate prevention across retries.</p></div>
+
+      <p class="subhead examples">Examples</p>
+      <div class="code-block"><div class="code-label">sql — two operations, one transaction</div><pre>CREATE TEMPORARY TABLE changed_devices_file1 (LIKE dedp.devices);
+COPY changed_devices_file1 FROM '/data_to_load/dataset_1.csv' CSV DELIMITER ';' HEADER;
+MERGE INTO dedp.devices AS d USING changed_devices_file1 AS c_d
+-- ... omitted for brevity
+
+CREATE TEMPORARY TABLE changed_devices_file2 (LIKE dedp.devices);
+COPY changed_devices_file2 FROM '/data_to_load/dataset_too_long_type.csv' CSV DELIMITER ';' HEADER;
+MERGE INTO dedp.devices AS d USING changed_devices_file1 AS c_d
+-- ... omitted for brevity
+COMMIT;</pre></div>
+      <div class="code-block"><div class="code-label">python — Flink transactional Kafka producer</div><pre>kafka_sink_valid_data = (KafkaSink.builder().set_bootstrap_servers("localhost:9094")
+    .set_record_serializer(KafkaRecordSerializationSchema.builder()
+        .set_topic('reduced_visits')
+        .set_value_serialization_schema(SimpleStringSchema())
+        .build())
+    .set_delivery_guarantee(DeliveryGuarantee.EXACTLY_ONCE)
+    .set_property('transaction.timeout.ms', str(1 * 60 * 1000))
+    .build())</pre></div>
+      <div class="callout note"><span class="c-label">📌 Note</span><p>The transaction timeout matters: exactly-once delivery relies on Flink's checkpointing, which takes time. A timeout shorter than a checkpoint means Flink can't commit before expiry.</p></div>
+
+      <div class="diagram-card">
+        <div class="dc-label">Figure 4-C — Commit visibility boundary</div>
+        <div class="mermaid">
+sequenceDiagram
+    participant Producer
+    participant Store as Data Store
+    participant Consumer
+
+    Producer->>Store: BEGIN / START TRANSACTION
+    Producer->>Store: Write record 1 (private)
+    Producer->>Store: Write record 2 (private)
+    Consumer->>Store: SELECT * (read committed)
+    Store-->>Consumer: No new rows visible yet
+    alt Success
+        Producer->>Store: COMMIT
+        Consumer->>Store: SELECT *
+        Store-->>Consumer: All records now visible
+    else Failure
+        Producer->>Store: ROLLBACK
+        Note over Store: Records discarded, never visible
+    end
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ============ PROXY ============ -->
+  <article class="pattern" id="proxy">
+    <div class="pattern-head">
+      <h3>Proxy</h3>
+      <span class="fam-tag">Immutable Dataset</span>
+    </div>
+    <div class="pattern-body">
+      <p class="subhead problem">Problem</p>
+      <p>A batch job generates a full dataset each run; historically only the most recent version was kept by overwriting the previous one. Legal now requires every past version retained — the mutable overwrite approach no longer works. The pipeline must keep every copy while exposing only the latest from a single access point.</p>
+
+      <p class="subhead solution">Solution</p>
+      <p>Named after the classic saying: "We can solve any problem by introducing an extra level of indirection." The Proxy sits between end users and physical storage, like a network proxy.</p>
+      <ol>
+        <li><b>Guarantee immutability</b> — load new data into a <i>different</i> location each run (timestamped/versioned table). Remove write permissions immediately after creation, so it's writable only once. On object stores, strengthen with native WORM locks (AWS S3 Object Lock, Azure Blob immutability policies, GCP object holds / bucket locks).</li>
+        <li><b>Create a single access point</b> — a passthrough view exposing the most recent table, with no transformation logic.</li>
+      </ol>
+
+      <p class="subhead consequences">Consequences</p>
+      <div class="cons-item"><span class="cname">Database support</span>Not every database has a convenient view abstraction; a manifest file can substitute but is more cumbersome to read.</div>
+      <div class="cons-item"><span class="cname">Immutability configuration</span>Orchestration-level enforcement alone isn't enough — typically needs infrastructure-level enforcement too (object-store locks, revoked write permissions), likely requiring the infra team.</div>
+      <div class="cons-item"><span class="cname">Permissions</span>The user managing tables must be scoped to only <i>create</i> tables — otherwise they could accidentally delete an internal table and break the immutability guarantee.</div>
+      <div class="callout say"><span class="c-label">✅ Say this out loud</span><p>Proxy gives write-once semantics by never writing to the same physical location twice — each run gets its own versioned table with write permissions revoked right after creation — and a passthrough view is the single stable access point clients query, so consumers never need to know the internal versioning scheme.</p></div>
+
+      <p class="subhead examples">Examples</p>
+      <div class="code-block"><div class="code-label">python — Airflow pipeline: load then refresh view</div><pre>load_data_to_internal_table = PostgresOperator(
+    sql='/sql/load_devices_to_weekly_table.sql'
+)
+refresh_view = PostgresOperator(  # ...
+    sql='/sql/refresh_view.sql'
+)
+load_data_to_internal_table >> refresh_view</pre></div>
+      <div class="code-block"><div class="code-label">sql — view refresh</div><pre>{% set devices_internal_table = get_devices_table_name() %}
+CREATE OR REPLACE VIEW dedp.devices AS
+SELECT * FROM {{ devices_internal_table }};</pre></div>
+      <div class="code-block"><div class="code-label">python — unique internal table name per run</div><pre>def get_devices_table_name() -> str:
+    context = get_current_context()
+    dag_run: DagRun = context['dag_run']
+    table_suffix = dag_run.start_date.strftime('%Y%m%d_%H%M%S')
+    return f'dedp.devices_internal_{table_suffix}'</pre></div>
+    </div>
+  </article>
+
+  <!-- ============ COMPARISON TABLES ============ -->
+  <h2 class="section-head"><span class="no">03</span> Trade-off Comparisons</h2>
+
+  <div class="table-wrap">
+    <table>
+      <caption>Overwriting: Fast Metadata Cleaner vs. Data Overwrite</caption>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td><b>Fast Metadata Cleaner</b></td><td>Store supports metadata operations (warehouse, lakehouse, RDBMS); dataset can be split into partitioned/versioned tables</td><td>Fastest option (no table scan), but idempotency granularity = backfill granularity, and hits partition/table quotas at scale</td></tr>
+        <tr><td><b>Data Overwrite</b></td><td>Object stores or stores without metadata-level deletes; a simpler single-table replace is acceptable</td><td>Works wherever INSERT OVERWRITE-style commands exist, but is data-level — costly on large unpartitioned tables, needs vacuum</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <caption>Updates: Merger vs. Stateful Merger</caption>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td><b>Merger</b></td><td>Incremental dataset with a reliable unique key; backfill consistency not a hard requirement</td><td>Simple MERGE logic, but backfilling from an old point can transiently expose inconsistent rows until later runs catch up</td></tr>
+        <tr><td><b>Stateful Merger</b></td><td>Same as Merger, but consumers need consistent state during backfilling (regulated/audited data)</td><td>Adds a state table + versioned-store requirement; must account for no-data commits like compaction</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <caption>Database-native: Keyed Idempotency vs. Transactional Writer</caption>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td><b>Keyed Idempotency</b></td><td>Key-based store (NoSQL especially); no orchestration layer (pure streaming job)</td><td>Simple once the key strategy is right, but key must derive from immutable attributes or restarts silently break idempotency</td></tr>
+        <tr><td><b>Transactional Writer</b></td><td>Store has native transactions; goal is to hide partial writes from consumers</td><td>Guarantees all-or-nothing visibility, but idempotency scope is limited to one transaction — retries/backfills can still duplicate</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout say" style="margin: 0 0 40px;"><span class="c-label">✅ Say this out loud</span><p>Keyed Idempotency prevents duplicate writes by making retries converge on the same key. Transactional Writer prevents partial writes from ever being visible. They solve different problems and are often used together — neither alone gives you both guarantees.</p></div>
+
+  <!-- ============ GOTCHAS ============ -->
+  <h2 class="section-head"><span class="no">04</span> Gotchas — by Pattern</h2>
+
+  <div class="gotcha-group">
+    <h4>Fast Metadata Cleaner</h4>
+    <ul>
+      <li>Backfill granularity is locked to the idempotency (partition) granularity — no fine-grained per-user backfills.</li>
+      <li>Partition/table count limits (BigQuery 4,000 partitions, Redshift 200,000 tables) — mitigate with a freezing step.</li>
+      <li>Only works where metadata operations exist — not on object stores.</li>
+      <li>Optional schema fields need a dedicated backfill pipeline; required fields piggyback on replays.</li>
+    </ul>
+  </div>
+  <div class="gotcha-group">
+    <h4>Data Overwrite</h4>
+    <ul>
+      <li>Large, unpartitioned tables slow down over time; mitigate with partitioning.</li>
+      <li>Deleted data can occupy disk until vacuum runs.</li>
+      <li>Spark's overwrite mode isn't transactional by itself — depends on target format.</li>
+    </ul>
+  </div>
+  <div class="gotcha-group">
+    <h4>Merger</h4>
+    <ul>
+      <li>Requires a genuinely unique key, or backfills can insert duplicates instead of updating.</li>
+      <li>Data-block-level operation — more compute-intensive (though modern stores optimize with statistics).</li>
+      <li>Deletes must be modeled as soft deletes; true deletes aren't natively expressible.</li>
+      <li>Backfilling from an old point transiently shows inconsistent rows — fixed by Stateful Merger.</li>
+    </ul>
+  </div>
+  <div class="gotcha-group">
+    <h4>Stateful Merger</h4>
+    <ul>
+      <li>Requires a versioned/time-travel-capable store, or a raw-history-table workaround.</li>
+      <li>Vacuum/retention limits how far back you can restore.</li>
+      <li>Compaction consumes a version number — must offset by one rather than trusting the previous run's recorded version.</li>
+    </ul>
+  </div>
+  <div class="gotcha-group">
+    <h4>Keyed Idempotency</h4>
+    <ul>
+      <li>Works cleanly on key-based NoSQL; needs MERGE on relational DBs; Kafka duplicates visible until compaction.</li>
+      <li>Keying on mutable event time breaks idempotency under late data and restarts.</li>
+      <li>Compaction can expire the original keying record, changing the derived key on restart.</li>
+    </ul>
+  </div>
+  <div class="gotcha-group">
+    <h4>Transactional Writer</h4>
+    <ul>
+      <li>Extra open/commit latency; consumers wait for the slowest task's commit.</li>
+      <li>Uneven framework support (e.g., Kafka transactional producers only via Flink).</li>
+      <li>Idempotency scope limited to the transaction — retries/backfills can still duplicate committed data.</li>
+      <li>Read-uncommitted isolation can still expose dirty reads.</li>
+    </ul>
+  </div>
+  <div class="gotcha-group">
+    <h4>Proxy</h4>
+    <ul>
+      <li>Not every database has a convenient view abstraction; manifest-file fallback is more cumbersome.</li>
+      <li>Immutability must be enforced at the infrastructure level too, not just in orchestration logic.</li>
+      <li>Permission scoping matters — delete rights on internal tables can break the immutability guarantee.</li>
+    </ul>
+  </div>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <div class="cheat-panel">
+    <h2 class="section-head"><span class="no">05</span> Cheat Sheet</h2>
+    <p class="cheat-intro">Scan this five minutes before your interview or design review.</p>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>Fast Metadata Cleaner</h4>
+        <dl>
+          <dt>Problem</dt><dd>DELETE-based idempotency degrades as the table grows</dd>
+          <dt>Solution</dt><dd>TRUNCATE/DROP on partitioned tables + a unifying view</dd>
+          <dt>Biggest gotcha</dt><dd class="gotcha">Idempotency granularity == backfill granularity</dd>
+        </dl>
+      </div>
+      <div class="cheat-card">
+        <h4>Data Overwrite</h4>
+        <dl>
+          <dt>Problem</dt><dd>Full dataset replace without metadata-op support</dd>
+          <dt>Solution</dt><dd>INSERT OVERWRITE / DELETE+INSERT at the data level</dd>
+          <dt>Biggest gotcha</dt><dd class="gotcha">Data-level rewrite is costly on big unpartitioned tables</dd>
+        </dl>
+      </div>
+      <div class="cheat-card">
+        <h4>Merger</h4>
+        <dl>
+          <dt>Problem</dt><dd>Only incremental changes available, not the full dataset</dd>
+          <dt>Solution</dt><dd>MERGE/UPSERT with insert/update/soft-delete branches</dd>
+          <dt>Biggest gotcha</dt><dd class="gotcha">Deletes need a soft-delete flag; needs a genuine unique key</dd>
+        </dl>
+      </div>
+      <div class="cheat-card">
+        <h4>Stateful Merger</h4>
+        <dl>
+          <dt>Problem</dt><dd>Merger can't restore to a consistent pre-backfill state</dd>
+          <dt>Solution</dt><dd>State table mapping execution time → table version</dd>
+          <dt>Biggest gotcha</dt><dd class="gotcha">Compaction consumes a version number — offset by one</dd>
+        </dl>
+      </div>
+      <div class="cheat-card">
+        <h4>Keyed Idempotency</h4>
+        <dl>
+          <dt>Problem</dt><dd>Retries must not create duplicate keyed writes</dd>
+          <dt>Solution</dt><dd>Generate keys from immutable attributes (append time)</dd>
+          <dt>Biggest gotcha</dt><dd class="gotcha">Keying on mutable event time breaks under late data</dd>
+        </dl>
+      </div>
+      <div class="cheat-card">
+        <h4>Transactional Writer</h4>
+        <dl>
+          <dt>Problem</dt><dd>Retried tasks expose partial/duplicate writes</dd>
+          <dt>Solution</dt><dd>Wrap writes in BEGIN...COMMIT/ROLLBACK</dd>
+          <dt>Biggest gotcha</dt><dd class="gotcha">Idempotency scope = one transaction only, not across retries</dd>
+        </dl>
+      </div>
+      <div class="cheat-card">
+        <h4>Proxy</h4>
+        <dl>
+          <dt>Problem</dt><dd>Dataset must be write-once (immutable) for compliance</dd>
+          <dt>Solution</dt><dd>Versioned tables + write-once locks + passthrough view</dd>
+          <dt>Biggest gotcha</dt><dd class="gotcha">Requires infra-level immutability enforcement, not just orchestration</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FURTHER READING ============ -->
+  <h2 class="section-head"><span class="no">06</span> Further Reading</h2>
+  <div class="reading-list">
+    <ul>
+      <li>Maxime Beauchemin, <i>"Functional Data Engineering: A Modern Paradigm for Batch Data Processing"</i> (2018) — the article credited with popularizing idempotency in data engineering.</li>
+      <li>Delta Lake, Apache Iceberg, and Apache Hudi documentation — for the specifics of <code>OPTIMIZE</code>, rewrite-data-file actions, time travel, and versioning behavior referenced throughout this chapter.</li>
+      <li>Chapter 3, "Error Management Design Patterns" — idempotency is the natural continuation of error management; read together for the full resilience picture.</li>
+      <li>Chapter 5, "Data Value Design Patterns" — the next chapter, covering what to do with data once errors and retries are handled.</li>
+    </ul>
+  </div>
+
+</div>
+
+<footer>
+  Data Engineering Design Patterns — Chapter 4 Study Reference · Source: Bartosz Konieczny, O'Reilly 2025
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      background: '#F7F7F3',
+      primaryColor: '#EDEEE9',
+      primaryBorderColor: '#16202B',
+      primaryTextColor: '#16202B',
+      lineColor: '#8F631F',
+      secondaryColor: '#C08A3E',
+      tertiaryColor: '#F7F7F3',
+      fontFamily: 'JetBrains Mono, monospace',
+      fontSize: '13px'
+    },
+    securityLevel: 'loose',
+    flowchart: { curve: 'basis', htmlLabels: true },
+    sequence: { actorMargin: 40, boxMargin: 10 }
+  });
+</script>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,797 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.13 — Reliability & Operations | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --purple:#c98be2;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:600;
+    margin:60px 0 18px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:18px;
+    font-weight:700;
+    margin:32px 0 12px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  .opening-lines{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:28px 28px 20px;
+    margin:28px 0 40px;
+  }
+  .opening-lines .label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    margin-bottom:16px;
+  }
+  .opening-lines blockquote{
+    font-family:var(--serif);
+    font-size:17px;
+    font-style:italic;
+    color:#eef1f5;
+    margin:0 0 18px;
+    padding-left:16px;
+    border-left:2px solid var(--amber);
+  }
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+
+  .pattern-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;}
+  @media(max-width:680px){.pattern-pair{grid-template-columns:1fr;}}
+  .pattern-pair .callout{margin:0;}
+
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{
+    background:var(--bg-panel-raised);
+    text-align:left;
+    padding:12px 16px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    border-bottom:1px solid var(--rule);
+  }
+  td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink-dim);
+    vertical-align:top;
+  }
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+
+  pre{
+    background:#0a0d12;
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+    margin:20px 0;
+    position:relative;
+  }
+  pre .lang{
+    position:absolute;top:10px;right:14px;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--ink-faint);
+  }
+  pre code{background:none;padding:0;color:#c3d6e8;}
+  .sql-kw{color:var(--amber);}
+  .sql-str{color:var(--green);}
+  .sql-com{color:var(--ink-faint);font-style:italic;}
+
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul, .cheat-card ol{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .further-reading strong{color:var(--ink);}
+
+  .supplementary{
+    border:1px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 24px;
+    margin-top:24px;
+    background:var(--bg-panel);
+  }
+  .supplementary-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: three-SLO dashboard toggle --- */
+  .slo-dashboard{background:#0a0d12;border-radius:10px;padding:24px;}
+  .slo-toggle-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .slo-btn{
+    font-family:var(--mono);font-size:12.5px;padding:10px 16px;border-radius:7px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .slo-btn:hover{border-color:var(--amber);color:var(--ink);}
+  .slo-btn.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .slo-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media(max-width:680px){.slo-cards{grid-template-columns:1fr 1fr;}}
+  .slo-card{
+    background:var(--bg-panel-raised);border-radius:8px;padding:16px;text-align:center;
+    border:1px solid var(--rule);
+  }
+  .slo-card .slo-label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px;}
+  .slo-card .slo-value{font-family:var(--mono);font-size:22px;font-weight:700;}
+  .slo-card .slo-status{font-size:11px;margin-top:6px;font-weight:700;}
+  .slo-card.ok .slo-value, .slo-card.ok .slo-status{color:var(--green);}
+  .slo-card.bad .slo-value, .slo-card.bad .slo-status{color:var(--red);}
+  .slo-narrative{
+    margin-top:18px;padding:14px 16px;border-radius:6px;background:#0e1116;
+    border-left:2px solid var(--amber);font-size:13.5px;color:var(--ink-dim);
+  }
+
+  /* --- Interactive: reconciliation tier picker --- */
+  .recon-picker{display:flex;flex-direction:column;gap:12px;}
+  .recon-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .recon-tab{
+    font-family:var(--mono);font-size:12.5px;padding:10px 16px;border-radius:7px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .recon-tab:hover{border-color:var(--amber);color:var(--ink);}
+  .recon-tab.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .recon-panel{background:#0a0d12;border-radius:8px;padding:20px;display:none;}
+  .recon-panel.show{display:block;}
+  .recon-panel h4{margin:0 0 10px;color:var(--amber);font-size:15px;}
+  .recon-panel p{font-size:14px;margin-bottom:10px;}
+  .recon-meter{display:flex;gap:4px;margin-top:12px;}
+  .recon-meter-seg{flex:1;height:8px;border-radius:4px;background:#1b212b;}
+  .recon-meter-seg.filled{background:var(--amber);}
+
+  /* --- Interactive: MTTR budget breakdown --- */
+  .mttr-widget{display:flex;flex-direction:column;gap:10px;}
+  .mttr-row{
+    display:grid;grid-template-columns:130px 1fr 70px;gap:14px;align-items:center;
+    padding:8px 12px;
+  }
+  .mttr-name{font-family:var(--mono);font-size:12.5px;color:var(--ink-dim);}
+  .mttr-track{height:14px;background:#0a0d12;border-radius:4px;overflow:hidden;}
+  .mttr-fill{height:100%;border-radius:4px;transition:width 0.6s ease;}
+  .mttr-val{font-family:var(--mono);font-size:13px;text-align:right;color:var(--ink);font-weight:700;}
+  .mttr-total{
+    margin-top:10px;padding:12px 16px;border-radius:6px;background:#0a0d12;
+    font-family:var(--mono);font-size:14px;color:var(--amber);font-weight:700;text-align:center;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 13</div>
+    <h1 class="title">Reliability &amp; Operations</h1>
+    <p class="subtitle">Uptime tells you the box is on. It tells you nothing about whether the
+    data inside is actually right. Real reliability means watching three separate things, not
+    one.</p>
+    <div class="chap-note">Printed as "Chapter Twelve" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 13.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Two security guards watch the same building overnight. One only checks "is the front door
+    locked?" The other also walks the halls checking nothing's missing, and checks the safe's
+    contents against the inventory sheet.</p>
+    <p>Both can honestly say "everything looked fine." Only one would actually notice if something
+    valuable quietly went missing while the doors stayed locked the whole time. <strong>A
+    pipeline can look perfectly healthy — every job green — while quietly losing or corrupting
+    data for months.</strong></p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>Freshness, completeness, and accuracy are the three SLOs that matter. Alerting on
+    uptime alone is how incidents stay invisible.</blockquote>
+    <blockquote>A good on-call runbook is written for someone who doesn't know why this DAG
+    exists. If the runbook says "page the owner," it isn't a runbook.</blockquote>
+    <blockquote>Post-mortems for DE incidents are usually about drift, not failure. The dimension
+    I designed around moved, and the system noticed three weeks late.</blockquote>
+    <blockquote>Chaos engineering for pipelines is "inject bad data" plus "delay the upstream."
+    The failure modes I catch this way are the ones production doesn't.</blockquote>
+    <blockquote>MTTR for data incidents is detection + diagnosis + rerun + reconcile. Detection is
+    usually the long pole, and it's the easiest to fix.</blockquote>
+  </div>
+
+  <h2 id="two-teams">Why "Everything's Green" Can Still Mean Something Is Badly Wrong</h2>
+  <p>Two data platforms at similar-sized payment companies run side by side. Both use the same
+  tools. Both have on-call rotations.</p>
+  <p><strong>Team A's</strong> dashboard shows 99.98% uptime. Quiet rotation. Leadership happy.
+  <strong>Team B's</strong> dashboard shows that same uptime, plus freshness, completeness, and
+  accuracy numbers — and got paged five times this quarter across the three.</p>
+  <p><strong>Six months in, finance notices monthly revenue doesn't match reality.</strong> Team
+  A's pipeline had silently lost 4% of events for three months. Nothing crashed, so nothing
+  alerted. Team B caught the same class of bug in its second week, because completeness fired the
+  moment row counts diverged.</p>
+
+  <h2 id="three-slos">Idea 1: Three Separate Promises, Not One</h2>
+  <p>Below is a live "before vs. after" — toggle between how each dashboard actually looked at the
+  time.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — toggle the scenario</div>
+    <div class="slo-dashboard">
+      <div class="slo-toggle-row">
+        <div class="slo-btn active" id="sloBtnA">Team A (uptime only)</div>
+        <div class="slo-btn" id="sloBtnB">Team B (three SLOs)</div>
+      </div>
+      <div class="slo-cards" id="sloCards"></div>
+      <div class="slo-narrative" id="sloNarrative"></div>
+    </div>
+  </div>
+
+  <ul>
+    <li><strong>Freshness</strong> — did the data arrive on time? Measured per data slice.</li>
+    <li><strong>Completeness</strong> — is all the data present? Measured by comparing row counts
+    against the source.</li>
+    <li><strong>Accuracy</strong> — do the values actually match? Measured by comparing a summary
+    calculation done two different ways.</li>
+  </ul>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>When you say "SLO" in a data engineering interview, the interviewer's next question is
+    almost always "which three?" The answer is freshness, completeness, accuracy — with a specific
+    numeric threshold for each. Not "we have SLOs." The specific three, with specific numbers.</p>
+  </div>
+
+  <h3>Three ways to check completeness, cheap to expensive</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Approach</th><th>What it does</th><th>Cost</th><th>Use it for</th></tr></thead>
+      <tbody>
+        <tr><td>Aggregate count + total</td><td>Compares one row count and one sum on each side</td><td>Cheapest</td><td>Catching a whole missing day or broken filter</td></tr>
+        <tr><td>Sampled row-level match</td><td>Joins a small sample (~1%) by ID, compares every field</td><td>Moderate</td><td>Row-level mismatches aggregates hide</td></tr>
+        <tr><td>Full row-level comparison</td><td>Every row on one side checked against every row on the other</td><td>Most expensive</td><td>Regulated data where any mismatch matters</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <pre><span class="lang">sql</span><code><span class="sql-com">-- src/code-examples/ch12/slo_reconciliation.sql
+-- Three SLOs in one query, run daily on the previous day's data.</span>
+<span class="sql-kw">WITH</span> partition_timing <span class="sql-kw">AS</span> (
+    <span class="sql-kw">SELECT</span> event_date, <span class="sql-kw">MAX</span>(ingested_at) <span class="sql-kw">AS</span> last_ingest_ts
+    <span class="sql-kw">FROM</span> warehouse.revenue_events
+    <span class="sql-kw">WHERE</span> event_date = CURRENT_DATE - <span class="sql-kw">INTERVAL</span> <span class="sql-str">'1' DAY</span>
+    <span class="sql-kw">GROUP BY</span> event_date
+),
+row_counts <span class="sql-kw">AS</span> (
+    <span class="sql-kw">SELECT</span>
+        (<span class="sql-kw">SELECT COUNT</span>(*) <span class="sql-kw">FROM</span> warehouse.revenue_events
+         <span class="sql-kw">WHERE</span> event_date = CURRENT_DATE - <span class="sql-kw">INTERVAL</span> <span class="sql-str">'1' DAY</span>) <span class="sql-kw">AS</span> target_rows,
+        (<span class="sql-kw">SELECT COUNT</span>(*) <span class="sql-kw">FROM</span> source.revenue_events_mirror
+         <span class="sql-kw">WHERE</span> event_date = CURRENT_DATE - <span class="sql-kw">INTERVAL</span> <span class="sql-str">'1' DAY</span>) <span class="sql-kw">AS</span> source_rows
+)
+<span class="sql-kw">SELECT</span>
+    ROUND(100.0 * rc.target_rows / NULLIF(rc.source_rows, 0), 3) <span class="sql-kw">AS</span> completeness_pct
+<span class="sql-kw">FROM</span> row_counts rc;</code></pre>
+
+  <h2 id="runbooks">Idea 2: A Good Runbook Is Written for the Person Who's Never Seen This Before</h2>
+  <p>A runbook needs five things: what the alert means (one sentence), the first three checks
+  with exact commands, common causes with fixes, a named escalation with a time limit, and a
+  pre-written message to send to stakeholders.</p>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>A "runbook" whose only instruction is "page the owner." That's not a runbook — it's a phone
+    number. The point is that someone who isn't the owner can still resolve the issue using it.</p>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"A good on-call runbook is written for someone who doesn't know why this DAG exists. If the
+    runbook says 'page the owner,' it isn't a runbook."</p>
+  </div>
+
+  <h2 id="drift">Idea 3: Most Data Incidents Are About Drift, Not Something Breaking</h2>
+  <p>A post-mortem for a data incident should be a <strong>drift analysis</strong>: what actually
+  drifted, why wasn't it detected the moment it started, and what closes that detection gap.</p>
+
+  <div class="callout war">
+    <div class="cal-label">⚠️ War Story</div>
+    <p>During a quarterly compliance audit, finance noticed monthly revenue in the warehouse
+    differed from real transaction totals by about 4%. A producer-side bug had been silently
+    dropping events for one merchant category for three months — a filter condition changed
+    during an unrelated refactor. The only alerting that existed was uptime-based; there was no
+    reconciliation or accuracy check at all. The fix: a three-SLO dashboard across every
+    revenue-critical pipeline, plus a quarterly accuracy audit. Six months later, a similar bug
+    introduced a 0.3% discrepancy — the accuracy check fired within 24 hours. Total exposure was
+    one day instead of three months. The investment paid for itself roughly 90 times over from
+    that one incident alone.</p>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"Post-mortems for DE incidents are usually about drift, not failure. The dimension I
+    designed around moved, and the system noticed three weeks late."</p>
+  </div>
+
+  <h2 id="chaos">Idea 4: Practice Breaking Things on Purpose, Before Production Does It for You</h2>
+  <p>Two moves, done deliberately on a schedule: <strong>inject bad data on purpose</strong>
+  (malformed fields, out-of-range values, wrong types) and <strong>delay an upstream dependency on
+  purpose</strong> (30 min, 1h, 2h). These two catch roughly 80% of the failure modes a data team
+  will actually hit in production.</p>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Borrowing chaos-engineering tools built for web services (randomly killing servers) and
+    pointing them at a data pipeline. A data pipeline's real failure modes are bad data and slow
+    upstreams — not crashed processes.</p>
+  </div>
+
+  <h2 id="transcript">A Real Interview, Walked Through Simply</h2>
+  <p>The classic reliability prompt: a business-critical pipeline, a recovery-time target, a team
+  size. Watch the candidate name the three SLOs with real numbers and budget the recovery time.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — the 2-hour recovery budget from the transcript</div>
+    <div class="mttr-widget" id="mttrWidget"></div>
+    <div class="mttr-total" id="mttrTotal"></div>
+  </div>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Write the on-call runbook and SLO agreement for a critical revenue pipeline. A 2-hour
+      recovery target.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Three questions first — what does this pipeline actually do? What's the current
+      monitoring state? How big and senior is the on-call rotation?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Daily revenue roll-up feeding finance dashboards and the quarterly auditor's report.
+      Uptime monitoring only, no runbook. Six engineers rotating weekly, two senior, four
+      mid-level.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>High-stakes finance and audit means accuracy matters more than freshness within
+      reasonable bounds — and the runbook has to work for a mid-level engineer on a Sunday, not
+      just the person who built it.</p>
+      <p>Three SLOs: freshness within 30 min 99.5% of the time, completeness within 0.1% of
+      source reconciled daily, accuracy variance under 0.1% investigated within 4 hours (paged if
+      over 1%). Recovery budget: 15 min detect, 30 min diagnose, 45 min rerun, 30 min reconcile.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What breaks first?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Reconciliation cost — a full exact count against the live system every morning adds real
+      production load. I'd sample: 1% exact row match plus a full aggregate count and total on
+      top. Cuts cost by two orders of magnitude, at maybe 10% less detection sensitivity.</p>
+      <p><em>(pauses)</em> Actually — for a pipeline feeding the quarterly auditor's report
+      specifically, 10% sensitivity loss isn't acceptable. Let me restructure: daily aggregate
+      (cheap), weekly 1% sample (moderate), quarterly full comparison timed to the close window
+      (expensive, but auditors expect it, so that load is pre-approved). Three tiers mapped to the
+      actual regulatory calendar instead of spread evenly across the year.</p>
+    </div>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Treating uptime as the whole reliability story.</strong> Green uptime with silent
+    data loss is the default failure mode of a platform that hasn't gone through this exercise.</li>
+    <li><strong>Tracking data quality as one single number.</strong> The three tracks fail
+    independently — each needs its own alert.</li>
+    <li><strong>A runbook that just says "page the owner."</strong> Name the escalation path,
+    exact commands, likely causes, and a message template.</li>
+    <li><strong>Writing post-mortems as failure timelines instead of drift analysis.</strong> Most
+    incidents are about a slow drift and a detection gap, not a crash.</li>
+    <li><strong>Never practicing failure on purpose.</strong> The failure mode production hits is
+    usually the one nobody rehearsed.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>Three Data SLOs</h4>
+        <ul>
+          <li><strong>Freshness</strong> — 99.5% within 30 min of expected time</li>
+          <li><strong>Completeness</strong> — target rows within 0.1% of source</li>
+          <li><strong>Accuracy</strong> — variance under 0.1% vs. cross-validation</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Reconciliation Tiers</h4>
+        <ol>
+          <li>Aggregate count + sum — daily, cheap</li>
+          <li>Sampled row-level (~1%) — weekly, moderate</li>
+          <li>Full row-level diff — quarterly/regulatory, expensive</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>MTTR Budget Equation</h4>
+        <p><code>recovery time = detection + diagnosis + rerun + reconcile</code></p>
+        <p>For a 2-hour target: 15 + 30 + 45 + 30 = 120 min.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Runbook Template</h4>
+        <ol>
+          <li>Alert meaning, one sentence</li>
+          <li>First three checks, with commands</li>
+          <li>Common causes with fixes</li>
+          <li>Named escalation, time limit</li>
+          <li>Pre-written stakeholder message</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>Post-Mortem as Drift Analysis</h4>
+        <ol>
+          <li>What drifted?</li>
+          <li>Why wasn't it detected sooner?</li>
+          <li>What closes the detection gap?</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Freshness, completeness, accuracy. Three SLOs, three alert routes."</li>
+          <li>"Write runbooks for someone who doesn't know the system."</li>
+          <li>"Post-mortems are drift analysis, not failure analysis."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Managed vs. build-your-own observability:</strong> below ~20 pipelines, a
+      custom three-SLO query plus a simple alert webhook is usually cheaper than any managed
+      platform. Past ~100 pipelines, buying often becomes the more sensible option.</li>
+      <li><strong>Spot/interruptible compute as accidental chaos testing:</strong> workloads that
+      run on cheaper, interruptible compute often end up more resilient, because random
+      interruptions force real answers to "can this safely resume?" before a real incident does.
+      Checkpointing, atomic writes, and clean resumability are what make a workload safe for
+      cheaper compute.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>Site Reliability Engineering (the "SRE Book").</strong> Google, 2016. The
+    foundational treatment of SLOs, error budgets, and post-mortem practice.</li>
+    <li><strong>"Blameless PostMortems and a Just Culture."</strong> John Allspaw. Etsy
+    engineering blog, 2012. The essay that named the blameless-postmortem practice.</li>
+    <li><strong>"The Data Reliability Engineering Playbook."</strong> Monte Carlo blog, 2021
+    onward. A clear practitioner writeup on applying SRE concepts to data systems.</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- Three-SLO dashboard toggle ----------
+const sloScenarios = {
+  a: {
+    label: 'Team A',
+    cards: [
+      {label:'Uptime', value:'99.98%', ok:true},
+      {label:'Freshness', value:'not tracked', ok:false},
+      {label:'Completeness', value:'not tracked', ok:false},
+      {label:'Accuracy', value:'not tracked', ok:false},
+    ],
+    narrative: 'Everything looks green. But somewhere in this pipeline, 4% of events have been silently dropped for three months — and nothing here would ever show it, because nothing here is looking for it.'
+  },
+  b: {
+    label: 'Team B',
+    cards: [
+      {label:'Uptime', value:'99.98%', ok:true},
+      {label:'Freshness', value:'99.4%', ok:true},
+      {label:'Completeness', value:'99.2%', ok:false},
+      {label:'Accuracy', value:'99.7%', ok:true},
+    ],
+    narrative: 'Completeness just dropped below threshold. The alert fires, the on-call gets the reconciliation diff attached, and the same class of bug that took Team A three months to notice gets caught in its second week.'
+  }
+};
+const sloCards = document.getElementById('sloCards');
+const sloNarrative = document.getElementById('sloNarrative');
+const sloBtnA = document.getElementById('sloBtnA');
+const sloBtnB = document.getElementById('sloBtnB');
+
+function renderSlo(key){
+  const scenario = sloScenarios[key];
+  sloCards.innerHTML = '';
+  scenario.cards.forEach(c=>{
+    const card = document.createElement('div');
+    card.className = 'slo-card ' + (c.ok ? 'ok' : 'bad');
+    card.innerHTML = `
+      <div class="slo-label">${c.label}</div>
+      <div class="slo-value">${c.value}</div>
+      <div class="slo-status">${c.ok ? '✓ HEALTHY' : (c.value === 'not tracked' ? '— NO SIGNAL' : '✗ BREACH')}</div>
+    `;
+    sloCards.appendChild(card);
+  });
+  sloNarrative.textContent = scenario.narrative;
+}
+sloBtnA.addEventListener('click', ()=>{
+  sloBtnA.classList.add('active'); sloBtnB.classList.remove('active');
+  renderSlo('a');
+});
+sloBtnB.addEventListener('click', ()=>{
+  sloBtnB.classList.add('active'); sloBtnA.classList.remove('active');
+  renderSlo('b');
+});
+renderSlo('a');
+
+// ---------- MTTR budget breakdown ----------
+const mttrPhases = [
+  {name:'Detect', minutes:15, color:'#6fa8dc'},
+  {name:'Diagnose', minutes:30, color:'#c98be2'},
+  {name:'Rerun', minutes:45, color:'#e8a33d'},
+  {name:'Reconcile', minutes:30, color:'#5ec9a0'},
+];
+const mttrWidget = document.getElementById('mttrWidget');
+const totalMinutes = mttrPhases.reduce((sum,p)=>sum+p.minutes,0);
+mttrPhases.forEach((p,i)=>{
+  const row = document.createElement('div');
+  row.className = 'mttr-row';
+  const pct = (p.minutes / totalMinutes) * 100;
+  row.innerHTML = `
+    <div class="mttr-name">${p.name}</div>
+    <div class="mttr-track"><div class="mttr-fill" style="width:0%;background:${p.color}"></div></div>
+    <div class="mttr-val">${p.minutes} min</div>
+  `;
+  mttrWidget.appendChild(row);
+  setTimeout(()=>{ row.querySelector('.mttr-fill').style.width = pct+'%'; }, 100 + i*120);
+});
+document.getElementById('mttrTotal').textContent = `Total recovery budget: ${totalMinutes} minutes (${(totalMinutes/60).toFixed(1)} hours)`;
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

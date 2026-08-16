@@ -1,0 +1,300 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch3 Error Management — Interview Cram Sheet</title>
+<style>
+  /* DESIGN NOTE: "Flashcard stack" system — condensed for scanning, not reading.
+     Same warm-paper/ink family as the full chapter doc for series consistency,
+     but flattened to single-screen cards with numbered chips, since the whole
+     point of a cram sheet is zero scroll-hunting. */
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --paper: #F6F1E7;
+    --card: #FFFDF8;
+    --ink: #211D18;
+    --ink-soft: #55504A;
+    --ink-faint: #8A8378;
+    --rule: #DCD3C0;
+    --blue: #2B4C6F;
+    --blue-bg: #E6EDF3;
+    --rust: #C4622D;
+    --rust-bg: #F7E9DF;
+    --green: #3F6B4F;
+    --green-bg: #E6EEE8;
+    --amber: #A9772E;
+    --amber-bg: #F3EAD6;
+    --purple: #6B4C8A;
+    --purple-bg: #EFE7F5;
+    --shadow: 0 1px 2px rgba(33,29,24,0.06), 0 4px 14px rgba(33,29,24,0.05);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: 'Inter', sans-serif; line-height: 1.55; }
+  h1, h2, h3 { font-family: 'Source Serif 4', serif; margin: 0; }
+  a { color: var(--blue); }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+  header {
+    background: linear-gradient(180deg, #221E19 0%, #2E2820 100%);
+    color: var(--paper);
+    padding: 34px 20px 28px;
+    border-bottom: 5px solid var(--rust);
+    position: sticky; top: 0; z-index: 10;
+  }
+  header .inner { max-width: 920px; margin: 0 auto; }
+  .badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #E3AE8C; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+  }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--rust); }
+  header h1 { font-size: clamp(1.5rem, 4vw, 2.1rem); color: var(--paper); line-height: 1.15; }
+  header p { color: #C9BCA0; font-size: 0.9rem; margin: 6px 0 0; }
+
+  .quicknav { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+  .quicknav a {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; text-decoration: none;
+    background: rgba(246,241,231,0.08); border: 1px solid rgba(246,241,231,0.2);
+    color: #D8CFC0; padding: 5px 10px; border-radius: 14px; transition: background .15s;
+  }
+  .quicknav a:hover { background: var(--rust); color: #FFF7EF; border-color: var(--rust); }
+
+  .wrap { max-width: 920px; margin: 0 auto; padding: 28px 18px 80px; }
+
+  .thread {
+    background: var(--purple-bg); border: 1px solid #C9B4DE; border-left: 5px solid var(--purple);
+    border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; font-size: 0.92rem;
+  }
+  .thread strong { color: var(--purple); }
+
+  .table-wrap { margin-bottom: 32px; overflow-x: auto; }
+  table.recall {
+    width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px;
+    overflow: hidden; box-shadow: var(--shadow); font-size: 0.85rem; min-width: 640px;
+  }
+  table.recall th {
+    background: var(--ink); color: var(--paper); font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 9px 10px; text-align: left;
+  }
+  table.recall td { padding: 9px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  table.recall tr:last-child td { border-bottom: none; }
+  table.recall tr:nth-child(even) td { background: rgba(0,0,0,0.015); }
+  table.recall td:first-child { font-weight: 700; color: var(--blue); font-family: 'JetBrains Mono', monospace; }
+  table.recall td:nth-child(2) { font-weight: 600; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+    margin-bottom: 18px; box-shadow: var(--shadow); overflow: hidden; scroll-margin-top: 190px;
+  }
+  .card-head {
+    display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+    background: linear-gradient(90deg, #221E19 0%, #2E2820 100%); color: var(--paper);
+  }
+  .chip {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; background: var(--rust);
+    color: #FFF7EF; padding: 3px 8px; border-radius: 5px; flex-shrink: 0;
+  }
+  .card-head h2 { color: var(--paper); font-size: 1.15rem; }
+
+  .card-body { padding: 16px 20px 18px; }
+
+  .row { display: flex; gap: 10px; margin-bottom: 10px; align-items: baseline; flex-wrap: wrap; }
+  .row .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase;
+    font-weight: 700; flex-shrink: 0; width: 74px; padding-top: 2px;
+  }
+  .row .txt { flex: 1; min-width: 220px; font-size: 0.92rem; }
+  .row.problem .tag { color: var(--rust); }
+  .row.solution .tag { color: var(--blue); }
+  .row.gotcha .tag { color: var(--amber); }
+
+  .callout { border-radius: 7px; padding: 10px 14px; margin: 8px 0; border: 1px solid; font-size: 0.85rem; }
+  .callout .lbl { font-weight: 700; display: block; margin-bottom: 2px; font-size: 0.82rem; }
+  .callout.note { background: var(--blue-bg); border-color: #A9C1D6; }
+  .callout.note .lbl { color: var(--blue); }
+  .callout.say { background: var(--amber-bg); border-color: #DDBE85; }
+  .callout.say .lbl { color: var(--amber); }
+  .callout.faang { background: var(--rust-bg); border-color: #E3AE8C; }
+  .callout.faang .lbl { color: var(--rust); }
+  .callout.dbx { background: var(--green-bg); border-color: #A9C7B4; }
+  .callout.dbx .lbl { color: var(--green); }
+  .callout p { margin: 0; }
+
+  .dbx-unsure { font-style: italic; color: var(--ink-soft); }
+
+  .closer {
+    margin-top: 36px; background: linear-gradient(180deg, #221E19 0%, #2E2820 100%);
+    border-radius: 14px; padding: 26px 24px; color: var(--paper); text-align: center;
+  }
+  .closer h2 { color: var(--paper); font-size: 1.3rem; margin-bottom: 8px; }
+  .closer p { color: #D8CFC0; font-size: 0.92rem; max-width: 62ch; margin: 0 auto; }
+  .closer .hl { color: #E3AE8C; font-weight: 600; }
+
+  footer { text-align: center; padding: 24px; color: var(--ink-faint); font-size: 0.78rem; }
+
+  @media (max-width: 600px) {
+    header { position: static; }
+    .row .tag { width: 100%; }
+    .card-body { padding: 12px 16px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="inner">
+    <div class="badge"><span class="dot"></span>Chapter 3 · Error Management — Cram Sheet</div>
+    <h1>Error Management Design Patterns — 2-Day Interview Prep</h1>
+    <p>7 patterns · 2–3 lines each · Note / Say-this-out-loud / FAANG pointer / Databricks angle for every pattern</p>
+    <nav class="quicknav">
+      <a href="#p1">1 Dead-Letter</a>
+      <a href="#p2">2 Dedup</a>
+      <a href="#p3">3 Late Detector</a>
+      <a href="#p4">4 Static Integ.</a>
+      <a href="#p5">5 Dynamic Integ.</a>
+      <a href="#p6">6 Filter Intercept</a>
+      <a href="#p7">7 Checkpointer</a>
+      <a href="#recall">Recall Table</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="thread">
+    <strong>The one thread tying this chapter together:</strong> every pattern here <em>reduces</em>
+    risk — none <em>eliminates</em> it. Error management only gives the <em>feeling</em> of exactly-once
+    delivery. If asked "is your pipeline exactly-once now?" — the right answer is
+    <strong>"not fully — I'd still need idempotent writes from Chapter 4."</strong>
+  </div>
+
+  <div class="table-wrap" id="recall">
+    <table class="recall">
+      <thead><tr><th>#</th><th>Pattern</th><th>Problem</th><th>Fix</th><th>#1 Gotcha</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Dead-Letter</td><td>Bad records crash the job</td><td>Catch + reroute to dead-letter store</td><td>Snowball backfill on replay</td></tr>
+        <tr><td>2</td><td>Windowed Deduplicator</td><td>Retries cause duplicates</td><td>Dedup within dataset/time window</td><td>Not real exactly-once delivery</td></tr>
+        <tr><td>3</td><td>Late Data Detector</td><td>Can't tell late vs on-time</td><td>MAX-based watermark per partition</td><td>MAX can drop skewed slow sources</td></tr>
+        <tr><td>4</td><td>Static Late Data Integrator</td><td>Fixed-window late data ignored</td><td>Always replay fixed lookback window</td><td>Wastes resources, snowball backfill</td></tr>
+        <tr><td>5</td><td>Dynamic Late Data Integrator</td><td>Late data beyond any fixed window</td><td>State table tracks real late arrivals</td><td>Concurrency hazard w/o locking</td></tr>
+        <tr><td>6</td><td>Filter Interceptor</td><td>Don't know which filter dropped data</td><td>Per-condition counters</td><td>Hard in SQL, small overhead</td></tr>
+        <tr><td>7</td><td>Checkpointer</td><td>Crash = reprocess from scratch</td><td>Persist offset + state periodically</td><td>Only "feels" exactly-once</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="p1">
+    <div class="card-head"><span class="chip">P·01</span><h2>Dead-Letter</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Bad/unparseable records crash the whole pipeline instead of failing on just that one record.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Try-catch (or if-else for error-safe functions) routes bad records to a separate dead-letter store + metadata; main pipeline keeps running.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Replaying dead-lettered records can trigger a <strong>snowball backfill</strong> downstream; also hides real failures unless you alert on volume.</span></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Transient errors self-heal (retry). Nontransient errors (poison pills) need Dead-Letter.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Dead-Letter trades pipeline uptime for hidden-error risk — I always pair it with volume-based alerting so a spike still pages someone."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Common follow-up: "what if dead-lettered records need reprocessing?" → optional replay pipeline, but flag the snowball backfill risk to consumers first.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Delta Lake handles this cleanly — write valid vs. invalid rows to two separate Delta tables (book's own <code>is_valid</code> flag example). No dedicated "dead-letter" product feature; it's just a write pattern on Delta.</p></div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="p2">
+    <div class="card-head"><span class="chip">P·02</span><h2>Windowed Deduplicator</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">At-least-once delivery + producer retries = duplicate records reaching the table.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Batch → <code>DISTINCT</code> / <code>ROW_NUMBER()</code> over the dataset. Streaming → dedup key held in a state store for a bounded time window.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Short window = cheap but may miss dupes; long window = catches more but costs more state. Dedup ≠ exactly-once <em>delivery</em>.</span></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>3 state store types: Local (fast, no fault tolerance), Local+fault-tolerant (balanced), Remote (safe, slower).</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Deduplication solves exactly-once processing, not exactly-once delivery — for the latter I'd add an idempotency pattern from Chapter 4."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Classic: "how do you dedup an unbounded stream?" → you can't fully; bound it with a time window and accept the trade-off.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Spark's native <code>dropDuplicates()</code> works as-is (batch and Structured Streaming with <code>withWatermark</code>). Delta Lake's <code>MERGE INTO</code> is a common idempotent-upsert alternative.</p></div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="p3">
+    <div class="card-head"><span class="chip">P·03</span><h2>Late Data Detector</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Users go offline, buffer events, then flush late — pipeline needs to tell "late" from "on time."</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Track event time per partition with <strong>MAX</strong> (never MIN). <code>watermark = MAX(event time) − allowed lateness</code>. Before the watermark = late.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">MIN per-partition → stuck-in-the-past risk. MAX across skewed sources → can wrongly drop a genuinely slow-but-valid source.</span></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Event time (when it happened) ≠ processing time (when you saw it). Processing time is never late.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"I always use MAX for per-partition watermarking to guarantee monotonic progress — MIN risks getting permanently stuck on one slow partition."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Whiteboard favorite — draw the watermark formula, walk one "on time" and one "late" example. They're testing the *why* behind MAX, not just the formula.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><code>.withWatermark("event_time", "1 hour")</code> is native in Structured Streaming and works the same on Databricks. Capturing dropped late records into a separate sink is <span class="dbx-unsure">not natively exposed in Spark (Flink is stronger here) — not sure Databricks has closed that gap.</span></p></div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="p4">
+    <div class="card-head"><span class="chip">P·04</span><h2>Static Late Data Integrator</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Late data has a known fixed delay (e.g., "up to 15 days") but you don't want 15 separate backfill jobs.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Every run automatically replays a <strong>fixed N-day lookback window</strong> as part of the same pipeline.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Wastes resources when nothing needs backfilling; naive multi-day replay <strong>overlaps</strong> — only the latest execution needs rerunning.</span></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Switching to processing-time partitions "solves" this too easily — it hides the event-time problem instead of fixing it.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Static Integrator is simple but wasteful — it always pays the backfill cost even when there's nothing to backfill."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Probe: "why not just rerun the whole 15-day pipeline daily?" → overlapping runs reprocess the same data redundantly; only rerun the latest execution.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Airflow's Dynamic Task Mapping (<code>expand()</code>) is the book's example — orchestration-layer, so it behaves the same whether triggered by Databricks Jobs, Airflow, or another scheduler. Not Databricks-specific.</p></div>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="p5">
+    <div class="card-head"><span class="chip">P·05</span><h2>Dynamic Late Data Integrator</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Static's fixed window isn't enough — business wants <em>all</em> late data included, even beyond 15 days.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">State table (partition, last_processed_time, last_update_time). Backfill only where <code>last_update_time &gt; last_processed_time</code>.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Concurrent runs can double-trigger without an <code>Is processed</code> flag; very late data in stateful pipelines can still force a long re-execution chain.</span></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>If you can isolate exactly which entities changed, overwrite just those instead of full partitions — more efficient, more complex.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Dynamic Integrator only backfills what actually changed, but that state table adds real scheduling complexity and a concurrency hazard I have to explicitly lock against."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Great trade-off to volunteer unprompted — Static (simple, wasteful) vs. Dynamic (efficient, complex) is a textbook system-design answer.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Maps naturally to <strong>Delta Lake table versions</strong> — the book's own example tracks <code>lastProcessedVersion</code> per partition via Delta version history instead of timestamps. Genuine Databricks/Delta strength.</p></div>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="p6">
+    <div class="card-head"><span class="chip">P·06</span><h2>Filter Interceptor</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Filtered-out volume jumps (e.g., 15% → 90%) after a code change, but the optimizer collapses filter conditions into one — can't tell which one is guilty.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Wrap <strong>each</strong> filter condition with its own counter (accumulator in code, or a CASE-based column in SQL).</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Small runtime overhead; much harder to implement cleanly in SQL than a programmatic API; streaming may force a stateful implementation.</span></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>"Stay pragmatic" — use SQL or the programmatic API, whichever the job actually calls for.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"When filter selectivity spikes, the query plan won't tell you which rule is responsible if the optimizer merged them — Filter Interceptor isolates that with per-condition counters."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Good to mention for "how do you debug a silent data quality regression?" — it's a diagnostic pattern, not a prevention one.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Spark accumulators work the same on Databricks — no special product feature. For ad hoc debugging you could also just run <code>df.filter(cond).count()</code> per condition, though that re-scans the data each time.</p></div>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="p7">
+    <div class="card-head"><span class="chip">P·07</span><h2>Checkpointer</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">A long-running streaming job would reprocess everything from scratch after a crash.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Persist offset position + computed state to durable storage on a cadence — framework-managed (Spark/Flink) or manual (custom Kafka consumer commits).</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Frequent checkpoints = slower job, less reprocessing on failure — and either way, it's only an <strong>"exactly-once feeling,"</strong> not real exactly-once delivery.</span></div>
+      <div class="callout note"><span class="lbl">📌 Note — 3 delivery modes</span><p>Exactly once (needs Ch.4 idempotency) · At-least-once (checkpoint after write → dupes possible) · At-most-once (checkpoint before write → data loss possible).</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Checkpointing alone gives an exactly-once feeling — a task can fail mid-write after processing but before committing the checkpoint, so a retry reprocesses. Real exactly-once needs idempotency on top."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>The #1 gotcha question — tests whether you actually understand delivery semantics vs. just knowing the checkpoint config flag.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Fully native — <code>checkpointLocation</code> in Structured Streaming (stored in DBFS/cloud storage) is a first-class, battle-tested Databricks capability. Strongest Databricks fit in this whole chapter.</p></div>
+    </div>
+  </div>
+
+  <div class="closer">
+    <h2>Before you close the laptop tonight</h2>
+    <p>Every pattern here is a <span class="hl">risk reducer</span>, not a guarantee. If you can say out
+    loud why each pattern <em>doesn't</em> fully solve the problem — not just what it does — you're
+    ready.</p>
+  </div>
+
+</div>
+
+<footer>Chapter 3 · <em>Data Engineering Design Patterns</em>, Bartosz Konieczny (O'Reilly, 2025) · Condensed cram sheet.</footer>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

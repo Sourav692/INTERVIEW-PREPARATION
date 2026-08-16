@@ -1,0 +1,397 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study 3 — Clickstream Analytics at Scale | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;--bg-panel:#151a22;--bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;--ink-dim:#8b96a5;--ink-faint:#5a6472;--rule:#262e3a;
+    --amber:#e8a33d;--amber-dim:#5c451f;--red:#e2604f;--red-dim:#3f2420;
+    --green:#5ec9a0;--green-dim:#1f3a30;--blue:#6fa8dc;--purple:#c98be2;
+    --mono:"IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif:"Source Serif 4","Georgia",serif;--sans:"Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7;font-size:16px;}
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+  .masthead{border-bottom:1px solid var(--rule);padding:56px 24px 40px;
+    background:radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),var(--bg);}
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:14px;}
+  h1.title{font-family:var(--serif);font-weight:600;font-size:clamp(30px,5vw,46px);margin:0 0 12px;letter-spacing:-0.01em;}
+  .subtitle{color:var(--ink-dim);font-size:17px;max-width:640px;margin:0 0 20px;}
+  .chap-note{font-size:13px;color:var(--ink-faint);font-style:italic;border-left:2px solid var(--rule);padding-left:12px;}
+  .simple-banner{background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;border-radius:10px;padding:22px 24px;margin:28px 0;}
+  .simple-banner .sb-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);margin-bottom:10px;}
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+  .prompt-box{background:var(--bg-panel-raised);border:1px solid var(--rule);border-left:3px solid var(--blue);
+    border-radius:8px;padding:22px 24px;margin:28px 0;}
+  .prompt-box .pb-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:10px;}
+  .prompt-box p{font-style:italic;color:#eef1f5;margin:0;font-family:var(--serif);font-size:16.5px;}
+  h2{font-family:var(--serif);font-size:27px;font-weight:600;margin:60px 0 18px;padding-top:22px;border-top:1px solid var(--rule);letter-spacing:-0.01em;}
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{font-family:var(--sans);font-size:18px;font-weight:700;margin:32px 0 12px;color:var(--ink);}
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{font-family:var(--mono);background:var(--bg-panel-raised);padding:2px 6px;border-radius:4px;font-size:0.88em;color:var(--amber);}
+  .callout{border-radius:8px;padding:18px 20px;margin:22px 0;border:1px solid var(--rule);background:var(--bg-panel);}
+  .callout .cal-label{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .diagram-card{background:var(--bg-panel);border:1px solid var(--rule);border-radius:10px;padding:24px;margin:28px 0;}
+  .diagram-caption{font-size:13px;color:var(--ink-faint);margin-top:14px;font-style:italic;}
+  .diagram-hint{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;}
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{background:var(--bg-panel-raised);text-align:left;padding:10px 14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--amber);border-bottom:1px solid var(--rule);}
+  td{padding:10px 14px;border-bottom:1px solid var(--rule);color:var(--ink-dim);}
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+  .cheat-sheet{background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);border:1.5px solid var(--amber-dim);border-radius:14px;padding:32px;margin:40px 0;}
+  .cheat-sheet-title{font-family:var(--mono);color:var(--amber);text-transform:uppercase;letter-spacing:0.14em;font-size:13px;margin-bottom:6px;}
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{background:var(--bg-panel-raised);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;}
+  .cheat-card h4{margin:0 0 10px;font-size:12.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-dim);font-family:var(--mono);}
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul, .cheat-card ol{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+  .supplementary{border:1px dashed var(--rule);border-radius:10px;padding:22px 24px;margin-top:24px;background:var(--bg-panel);}
+  .supplementary-tag{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:12px;}
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: schema change decision --- */
+  .decision-widget{display:flex;flex-direction:column;gap:8px;}
+  .decision-row{
+    display:grid;grid-template-columns:1fr 90px;gap:12px;align-items:center;padding:10px 14px;
+    border-radius:6px;background:var(--bg-panel-raised);cursor:pointer;font-size:13.5px;
+  }
+  .decision-change{color:var(--ink);}
+  .decision-result{
+    font-family:var(--mono);font-size:11px;font-weight:700;text-align:center;padding:5px 8px;border-radius:4px;
+  }
+  .decision-result.pass{background:var(--green-dim);color:var(--green);}
+  .decision-result.fail{background:var(--red-dim);color:var(--red);}
+  .decision-detail{
+    font-size:13px;color:var(--ink-dim);padding:12px 14px;margin-top:2px;background:#0a0d12;
+    border-left:2px solid var(--amber);border-radius:0 6px 6px 0;display:none;
+  }
+  .decision-detail.show{display:block;}
+
+  /* --- Interactive: GDPR four-part pattern --- */
+  .gdpr-widget{display:flex;flex-direction:column;gap:10px;}
+  .gdpr-step{
+    display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:8px;
+    background:var(--bg-panel-raised);border:1px solid var(--rule);cursor:pointer;transition:border-color 0.15s;
+  }
+  .gdpr-step:hover, .gdpr-step.active{border-color:var(--amber);}
+  .gdpr-num{width:28px;height:28px;border-radius:50%;background:var(--amber-dim);color:var(--amber);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;flex-shrink:0;}
+  .gdpr-label{font-size:14px;color:var(--ink);}
+  .gdpr-detail{font-size:13.5px;color:var(--ink-dim);padding:14px 16px;background:#0a0d12;border-left:2px solid var(--amber);border-radius:0 6px 6px 0;display:none;}
+  .gdpr-detail.show{display:block;}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 16 · Case Study 3</div>
+    <h1 class="title">Clickstream Analytics at Scale</h1>
+    <p class="subtitle">Product teams ship new features every week. Every large consumer company
+    running clickstream data at scale hits the exact same three problems: producers change data
+    shape without warning, consumers silently break, and the data team gets blamed.</p>
+    <div class="chap-note">Chapter 16 is printed as "Chapter Fifteen" in the book's own running
+    heads — see the numbering note in Chapter 3. This is the third of four full case studies.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Five departments quietly rely on the same shared filing cabinet — but nobody who fills it
+    tells anyone else when they change how things are labeled. One day someone renames a folder,
+    and three other departments' reports go silently wrong.</p>
+    <p>Where fraud had a latency ceiling and recommendation had a cost ceiling, this case study
+    has a <strong>schema-compatibility ceiling</strong> — a genuinely different, counterintuitive
+    shape of constraint for what sounds like "just streaming."</p>
+  </div>
+
+  <div class="prompt-box">
+    <div class="pb-label">The Prompt</div>
+    <p>"Design the clickstream analytics platform for a consumer SaaS company. Product engineering
+    teams ship new features weekly, each adding new event types and properties. Five hundred
+    million events per day at peak, growing 20% quarter over quarter. Multiple downstream
+    consumers: product dashboards, marketing attribution, ML training, BI reporting."</p>
+  </div>
+
+  <h2 id="opening">Idea 1: The First Question Isn't About Volume — It's About Schema Reality</h2>
+  <ol>
+    <li><strong>"Truly new event shapes, or new properties on existing events?"</strong> →
+    determines the real scope. Answer: mostly new properties, 2-3 genuinely new events/month.</li>
+    <li><strong>"Who owns each event type?"</strong> → surfaces the organizational gap. Answer:
+    product teams ship, data team consumes, no formal contract today.</li>
+    <li><strong>"Which downstream engines?"</strong> → decides the table format. Answer: an
+    interactive engine, a batch engine, a transform tool, BI, occasional streaming.</li>
+    <li><strong>"Freshness per consumer?"</strong> → shapes speed tiers. Real-time for ML,
+    seconds-to-minutes for dashboards, hourly for attribution, daily for reporting.</li>
+    <li><strong>"Retention and compliance?"</strong> → shapes GDPR handling. Two years hot, seven
+    years cold.</li>
+  </ol>
+
+  <h2 id="weak-dim">Idea 2: A Counterintuitive Weak Dimension — Committed To</h2>
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>"Schema compatibility is the weak dimension, not throughput or cost" is a counterintuitive
+    claim for a streaming prompt, and it's correct here. The interviewer hears the candidate
+    diagnosed the right dimension for this domain, and stated it with the producer team named as
+    the actual source of risk. A weaker candidate says "schema evolution matters" without
+    committing to it as <em>the</em> weak dimension.</p>
+  </div>
+
+  <h2 id="architecture">Idea 3: The Architecture, in Plain Terms</h2>
+  <ul>
+    <li><strong>Producers</strong> write events to a queue — but two schema checks fire before
+    anything lands.</li>
+    <li><strong>Check one, at PR time:</strong> an automated build check against the schema
+    registry, failing breaking changes with a specific error.</li>
+    <li><strong>Check two, at runtime:</strong> the queue's producer library validates against the
+    registered schema — a belt-and-suspenders layer for anything that slips past check one.</li>
+    <li><strong>A stream processor</strong> validates, enriches, and writes to the lakehouse's raw
+    zone; malformed events go to a dead-letter queue with a reason code.</li>
+    <li><strong>Two logical zones:</strong> raw (append-only, everything that passed validation)
+    and curated (modeled fact/dimension tables built nightly).</li>
+    <li><strong>Multiple engines read from both zones in parallel</strong> — the reason table
+    format choice matters so much here.</li>
+  </ul>
+
+  <h2 id="format">Idea 4: Why This Table Format, Specifically</h2>
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"Writer neutrality. Four different engines write to, or want to write to, the same tables.
+    A Spark-first format makes other engines second-class here. An update-optimized format costs
+    more than it buys us since we're append-heavy. Writer-neutral is the default for exactly this
+    multi-engine situation."</p>
+  </div>
+
+  <h2 id="breaking-change">Idea 5: What Happens When a Product Team Ships a Breaking Change</h2>
+  <p>Click each kind of schema change below to see if it passes or fails the automated check.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a change type</div>
+    <div class="decision-widget" id="decisionWidget"></div>
+  </div>
+
+  <h2 id="gdpr">Idea 6: GDPR Erasure as a Four-Part Pattern</h2>
+  <p>Click each part below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a step</div>
+    <div class="gdpr-widget" id="gdprWidget"></div>
+  </div>
+
+  <h2 id="maintenance">Idea 7: Maintenance and Cost — Applying Earlier Chapters Directly</h2>
+  <ul>
+    <li><strong>Lakehouse maintenance</strong> scheduled from day one — daily compaction, 14-day
+    snapshot expiration, weekly manifest rewrites, monthly orphan cleanup.</li>
+    <li><strong>Cost attribution</strong> focuses on the ad-hoc interactive-query engine, not
+    storage — most clickstream spend concentrates there.</li>
+    <li><strong>Materialized views at the curated zone</strong> are the single biggest cost lever
+    for BI-driven workloads — 10x to 100x cost reduction on dashboard queries.</li>
+    <li><strong>The function-on-partition-column trap</strong> shows up constantly here — analysts
+    reformatting a timestamp instead of comparing the raw partition column.</li>
+  </ul>
+
+  <h2 id="failure-signals">Idea 8: Two Failure Signals, at Two Different Timescales</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Signal Type</th><th>Example</th><th>What It Tells You</th></tr></thead>
+      <tbody>
+        <tr><td>Point-in-time</td><td>DLQ rate spike right after a producer deploy</td><td>Immediate — points at exactly which deploy to check</td></tr>
+        <tr><td>Slow trend</td><td>File-count-per-partition creeping up over weeks</td><td>Only visible if tracking the trend, not just "is today normal?"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="summary">The 30-Second Closing Summary</h2>
+  <div class="callout say">
+    <div class="cal-label">✅ What I'd build</div>
+    <p>A three-zone lakehouse fed by a message queue, with a stream processor validating and
+    enriching. The schema registry with backward compatibility is what the whole design depends
+    on, enforced in two places. Multi-engine consumption drives the table format. GDPR erasure
+    uses the four-part tombstone pattern. Maintenance is scheduled from day one.</p>
+  </div>
+  <div class="callout say">
+    <div class="cal-label">✅ What I'd sacrifice</div>
+    <p>Schema-evolution rigor upfront — the cost of integrating checks into every producer
+    pipeline, and the political cost of rejecting breaking-change PRs. The alternative — quarterly
+    contract-violation postmortems — is more expensive over any horizon longer than six months.</p>
+  </div>
+  <div class="callout say">
+    <div class="cal-label">✅ What I'd watch</div>
+    <p>DLQ rate per event type, file-count-per-partition trend, schema registry manual-registration
+    events, and per-user query-engine cost weekly.</p>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>Asking "how does your company handle the friction between the data team and product
+    engineering around schema changes?" bookends the interview — the same organizational insight
+    from Question 2 at the very start, now closing the conversation.</p>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Defaulting to throughput as the weak dimension</strong> because the prompt sounds
+    like streaming. Diagnose per domain.</li>
+    <li><strong>Picking a table format by popularity</strong> instead of by who's writing.</li>
+    <li><strong>Treating "we have a schema registry" as sufficient.</strong> The enforcement
+    mechanism is what actually prevents incidents.</li>
+    <li><strong>Forgetting the dead-letter queue in GDPR erasure.</strong> A real compliance gap.</li>
+    <li><strong>Treating schema evolution as purely technical.</strong> It's an organizational
+    contract too.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>Two Schema Checks</h4>
+        <ol>
+          <li>Automated PR check (prevents most incidents)</li>
+          <li>Runtime validation at ingestion (belt-and-suspenders)</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>Table Format Rule</h4>
+        <p>Multi-engine consumption → writer-neutral wins. Match to who's writing, not popularity.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>GDPR Erasure, Four Parts</h4>
+        <p>Tombstone → row-level delete → audit log → DLQ sweep (the part most people miss)</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Two Failure Timescales</h4>
+        <ul>
+          <li>Point-in-time: DLQ spike after a deploy</li>
+          <li>Slow trend: file count creeping up</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Biggest Cost Lever</h4>
+        <p>Materialized views at the curated zone — 10x-100x reduction on BI-driven workloads.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Schema compatibility is the weak dimension, not throughput."</li>
+          <li>"Producer PRs fail CI on breaking changes, with a deprecation path."</li>
+          <li>"The DLQ sweep is the part most people miss in GDPR erasure."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>A 10x traffic spike ("Black Friday") without breaching SLA or blowing up
+      cost:</strong> scale ingestion partitions ahead of the spike, compress payloads, decouple raw
+      ingestion from enrichment, and autoscale on backlog depth rather than a fixed schedule.</li>
+      <li><strong>Identity resolution across surfaces:</strong> device and session IDs exist
+      everywhere, but a stable user ID may only exist for signed-in users on some surfaces —
+      design for what each consumer can and can't rely on.</li>
+      <li><strong>A "customer 360" serving layer</strong> often uses the same raw/curated pattern,
+      with GDPR as a two-step deletion (soft-delete, then physical after confirming propagation)
+      plus a daily reconciliation job.</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+// ---------- Schema change decision widget ----------
+const decisionData = [
+  {change:'Adding a nullable field', result:'pass', detail:'Passes. Existing consumers reading with the old schema simply see it as absent \u2014 no break.'},
+  {change:'Adding a required field with a default', result:'pass', detail:'Passes. Old readers get the default value automatically; nothing breaks.'},
+  {change:'Adding a required field with NO default', result:'fail', detail:'Fails. Old consumers have no way to fill in a value for this field \u2014 genuinely breaking.'},
+  {change:'Renaming a field', result:'fail', detail:'Fails, with a message suggesting the proper deprecation path. A rename looks like drop-old-plus-add-new to any downstream reader.'},
+  {change:'Changing a field type', result:'fail', detail:'Fails. Type changes almost always break existing readers and any stored historical data.'},
+  {change:'Dropping a field (no consumers read it)', result:'pass', detail:'Passes \u2014 but only with explicit sign-off from the data team confirming no downstream consumer actually reads it.'},
+];
+const decisionWidget = document.getElementById('decisionWidget');
+decisionData.forEach(d=>{
+  const row = document.createElement('div');
+  row.className = 'decision-row';
+  row.innerHTML = `
+    <div class="decision-change">${d.change}</div>
+    <div class="decision-result ${d.result}">${d.result === 'pass' ? '✓ PASSES' : '✗ FAILS'}</div>
+  `;
+  const detail = document.createElement('div');
+  detail.className = 'decision-detail';
+  detail.textContent = d.detail;
+  const container = document.createElement('div');
+  container.appendChild(row);
+  container.appendChild(detail);
+  decisionWidget.appendChild(container);
+
+  row.addEventListener('click', ()=>{
+    const isShown = detail.classList.contains('show');
+    document.querySelectorAll('.decision-detail').forEach(el=>el.classList.remove('show'));
+    if(!isShown){ detail.classList.add('show'); }
+  });
+});
+
+// ---------- GDPR four-part widget ----------
+const gdprData = [
+  {label:'1. Tombstone event', detail:'When a user requests erasure, an upstream identity system publishes a tombstone event on a dedicated queue, keyed by user ID.'},
+  {label:'2. Row-level deletion in the lakehouse', detail:'The stream processor consumes the tombstone and issues a row-level delete against every table containing that user\u2019s data.'},
+  {label:'3. Audit log', detail:'Every erasure request and its corresponding delete action gets logged immutably, for later proof of compliance.'},
+  {label:'4. Dead-letter queue sweep', detail:'The part most people miss. Any of that user\u2019s events sitting unprocessed in the dead-letter queue also need to be purged \u2014 not just the successfully-processed ones. A forgotten DLQ is a genuine compliance gap.'},
+];
+const gdprWidget = document.getElementById('gdprWidget');
+gdprData.forEach((g,i)=>{
+  const step = document.createElement('div');
+  step.className = 'gdpr-step';
+  step.innerHTML = `
+    <div class="gdpr-num">${i+1}</div>
+    <div class="gdpr-label">${g.label}</div>
+  `;
+  const detail = document.createElement('div');
+  detail.className = 'gdpr-detail';
+  detail.textContent = g.detail;
+  const container = document.createElement('div');
+  container.appendChild(step);
+  container.appendChild(detail);
+  gdprWidget.appendChild(container);
+
+  step.addEventListener('click', ()=>{
+    const isShown = detail.classList.contains('show');
+    document.querySelectorAll('.gdpr-detail').forEach(el=>el.classList.remove('show'));
+    document.querySelectorAll('.gdpr-step').forEach(el=>el.classList.remove('active'));
+    if(!isShown){ detail.classList.add('show'); step.classList.add('active'); }
+  });
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

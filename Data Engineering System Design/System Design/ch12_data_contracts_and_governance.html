@@ -1,0 +1,912 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.12 — Data Contracts & Governance | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --purple:#c98be2;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:600;
+    margin:60px 0 18px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:18px;
+    font-weight:700;
+    margin:32px 0 12px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  .opening-lines{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:28px 28px 20px;
+    margin:28px 0 40px;
+  }
+  .opening-lines .label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    margin-bottom:16px;
+  }
+  .opening-lines blockquote{
+    font-family:var(--serif);
+    font-size:17px;
+    font-style:italic;
+    color:#eef1f5;
+    margin:0 0 18px;
+    padding-left:16px;
+    border-left:2px solid var(--amber);
+  }
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+
+  .pattern-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;}
+  @media(max-width:680px){.pattern-pair{grid-template-columns:1fr;}}
+  .pattern-pair .callout{margin:0;}
+
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{
+    background:var(--bg-panel-raised);
+    text-align:left;
+    padding:12px 16px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    border-bottom:1px solid var(--rule);
+  }
+  td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink-dim);
+    vertical-align:top;
+  }
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+
+  pre{
+    background:#0a0d12;
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+    margin:20px 0;
+    position:relative;
+  }
+  pre .lang{
+    position:absolute;top:10px;right:14px;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--ink-faint);
+  }
+  pre code{background:none;padding:0;color:#c3d6e8;}
+  .sql-kw{color:var(--amber);}
+  .sql-str{color:var(--green);}
+  .sql-com{color:var(--ink-faint);font-style:italic;}
+
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .further-reading strong{color:var(--ink);}
+
+  .supplementary{
+    border:1px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 24px;
+    margin-top:24px;
+    background:var(--bg-panel);
+  }
+  .supplementary-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: three-layer contract system explorer --- */
+  .layer-stack{display:flex;flex-direction:column;gap:10px;}
+  .layer-block{
+    border-radius:8px;padding:16px 20px;border:1px solid var(--rule);
+    background:var(--bg-panel-raised);cursor:pointer;transition:all 0.15s;
+  }
+  .layer-block:hover{border-color:var(--amber);}
+  .layer-block.active{border-color:var(--amber);background:var(--amber-dim);}
+  .layer-block h4{margin:0 0 4px;font-family:var(--mono);font-size:13px;color:var(--ink);}
+  .layer-block .layer-sub{font-size:12.5px;color:var(--ink-faint);}
+  .layer-detail{
+    margin-top:16px;padding:16px 18px;background:#0a0d12;border-radius:8px;
+    border-left:2px solid var(--amber);font-size:13.5px;color:var(--ink-dim);
+    display:none;
+  }
+  .layer-detail.show{display:block;}
+  .layer-detail .catches{color:var(--green);}
+  .layer-detail .misses{color:var(--red);}
+
+  /* --- Interactive: "which layer catches this?" quiz --- */
+  .quiz-card{background:#0a0d12;border-radius:10px;padding:24px;}
+  .quiz-scenario{font-size:14.5px;color:var(--ink);margin-bottom:16px;padding:14px 16px;background:var(--bg-panel-raised);border-radius:8px;}
+  .quiz-options{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .quiz-opt{
+    font-family:var(--mono);font-size:12.5px;padding:10px 16px;border-radius:7px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .quiz-opt:hover{border-color:var(--amber);}
+  .quiz-opt.correct{background:var(--green-dim);border-color:var(--green);color:#fff;}
+  .quiz-opt.incorrect{background:var(--red-dim);border-color:var(--red);color:#fff;}
+  .quiz-feedback{font-size:13.5px;color:var(--ink-dim);min-height:20px;}
+  .quiz-nav{margin-top:16px;display:flex;justify-content:flex-end;}
+  .quiz-next-btn{
+    font-family:var(--mono);font-size:12px;padding:8px 16px;border-radius:6px;
+    border:1px solid var(--amber);background:var(--amber-dim);color:#fff;cursor:pointer;
+  }
+
+  /* --- Interactive: PII cost comparison --- */
+  .pii-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:640px){.pii-compare{grid-template-columns:1fr;}}
+  .pii-card{border-radius:10px;padding:20px;border:1px solid var(--rule);}
+  .pii-card.early{background:var(--green-dim);border-color:#2a4a3d;}
+  .pii-card.late{background:var(--red-dim);border-color:#5a2a24;}
+  .pii-card h4{margin:0 0 12px;font-family:var(--mono);font-size:13px;}
+  .pii-card.early h4{color:var(--green);}
+  .pii-card.late h4{color:var(--red);}
+  .pii-cost{font-family:var(--mono);font-size:28px;font-weight:700;margin:8px 0;}
+  .pii-card.early .pii-cost{color:var(--green);}
+  .pii-card.late .pii-cost{color:var(--red);}
+  .pii-card ul{margin:12px 0 0;padding-left:18px;font-size:13px;color:var(--ink-dim);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 12</div>
+    <h1 class="title">Data Contracts &amp; Governance</h1>
+    <p class="subtitle">Every schema your pipeline reads is already a contract, whether anyone
+    wrote it down or not. The only real question is whether someone can break it silently, or
+    whether the system stops them before it ships.</p>
+    <div class="chap-note">Printed as "Chapter Eleven" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 12.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Imagine a group project with a shared spreadsheet where everyone quietly agreed what each
+    column means — but nobody wrote it down. One day, someone decides a column should hold
+    something slightly different, and doesn't tell anyone. Everyone else's work that depended on
+    it quietly breaks.</p>
+    <p><strong>A data contract just makes that unwritten agreement explicit and impossible to
+    break by accident.</strong> Every schema is already a contract. The question is only whether
+    it's enforced.</p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>A schema is a contract whether I document it or not. The question is only whether
+    the producer can break it silently.</blockquote>
+    <blockquote>Forward compatibility is the producer's promise; backward compatibility is the
+    consumer's. Mix them and you get outages.</blockquote>
+    <blockquote>Lineage isn't a compliance checkbox. It's the tool that tells the on-call which
+    table to roll back when the Monday dashboard goes red.</blockquote>
+    <blockquote>PII at scale isn't a late-stage add-on. Once it touches a pipeline, retrofit costs
+    an order of magnitude more than separation at ingest.</blockquote>
+    <blockquote>Contract enforcement goes in CI, not in the dashboard. If a contract only breaks
+    when the consumer notices, it isn't a contract.</blockquote>
+  </div>
+
+  <h2 id="two-teams">Why Two Teams Who "Both Have Documentation" Get Very Different Outcomes</h2>
+  <p>Two data teams at similarly-sized companies. Both have schemas written down in a wiki. Both
+  say the right things about "taking schema evolution seriously."</p>
+  <p><strong>Team A's</strong> contract is a wiki page last edited 18 months ago. <strong>Team
+  B's</strong> is an actual schema file checked into the producer's code, with an automated check
+  that blocks any change that would break things or accidentally drop a privacy tag.</p>
+  <p>Six months later, Team A has paged their on-call four times this quarter. Team B: zero. The
+  difference isn't the schema — it's enforcement. Team A has "contract as a hope." Team B has
+  "contract as something the code cannot ship without satisfying."</p>
+
+  <h2 id="already-contracts">Idea 1: Every Schema Is Already a Contract — the Only Question Is Enforcement</h2>
+  <p>You already have contracts, whether you call them that or not. The moment a producer writes
+  data somewhere and a consumer reads it, there's an implicit agreement about what fields mean,
+  which can be empty, and which contain sensitive personal information.</p>
+  <div class="callout signal" style="border-left-color:var(--green);">
+    <div class="cal-label" style="color:var(--green);">💡 The one idea to remember</div>
+    <p>The question was never "should we have contracts?" It was always: is the agreement
+    enforced, or can it be broken without anyone noticing until a downstream dashboard catches
+    fire?</p>
+  </div>
+  <p><strong>Three properties separate "a contract that holds" from "a contract that's just a
+  suggestion":</strong></p>
+  <ul>
+    <li><strong>Lives with the code, not in a wiki.</strong> A schema file checked into the
+    producer's own repo, versioned with their code.</li>
+    <li><strong>Compatibility is enforced automatically, before shipping.</strong> Not manually
+    reviewed — automated, applied to every change, failing fast.</li>
+    <li><strong>Violations get caught at the producer's door, not the consumer's.</strong> The
+    moment they try to ship — not at 2 AM when someone notices a broken dashboard.</li>
+  </ul>
+
+  <h2 id="disguise">Idea 2: Every Production Incident Is a Contract Violation Wearing a Disguise</h2>
+  <p>Three common incidents. Each looks different at first — each is the same problem
+  underneath.</p>
+  <ul>
+    <li><strong>The silent rename</strong> — a field gets renamed on a Thursday. By Friday, 17
+    downstream jobs fail because the old name no longer exists. Nobody was told.</li>
+    <li><strong>The silent type widening</strong> — an ID field's type gets quietly widened.
+    Values still fit for now. Six months later, values finally exceed the old type, and every
+    downstream system still expecting it starts silently writing wrong numbers.</li>
+    <li><strong>The silent privacy leak</strong> — a phone number field gets added with no
+    privacy tag. It lands in an open analytics area. Two weeks later it ends up in an external
+    export.</li>
+  </ul>
+  <p>All three are contract violations, invisible to the producer because nothing ever asked
+  them to check.</p>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Treating a contract as documentation — a wiki page nobody reads before shipping and nobody
+    updates after changing the schema. If it isn't enforced automatically before a change ships,
+    it isn't a contract. It's a suggestion.</p>
+  </div>
+
+  <h2 id="three-layers">Idea 3: The Contract System Has Three Layers, Not One</h2>
+  <p>Click each layer below to see what it catches — and, just as importantly, what it misses.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a layer</div>
+    <div class="layer-stack" id="layerStack"></div>
+  </div>
+
+  <h3>Interactive — the full system, with privacy routing threaded through</h3>
+  <div class="diagram-card">
+    <div class="diagram-hint">Static reference diagram</div>
+    <pre style="font-size:12px;line-height:1.5;"><code>Producer's repo (schema + contract file, privacy tags declared here)
+  │
+  ├──▶ Schema Registry (structural: types, required, compat mode)
+  │
+  ├──▶ Contract Tests in CI (semantic: ranges, nullability, cardinality)
+  │        └── fails the PR on any break
+  │
+  └──▶ Lineage Graph (blast radius + rollback, queryable at incident time)
+
+Producer's data splits into two zones:
+  ├──▶ PII Zone (separate keys, stricter access)
+  └──▶ Open Analytics Zone (broad access)
+         └── cross-zone access requires explicit approval
+
+  50+ downstream consumers read from the Open Analytics Zone</code></pre>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Strategy</th><th>Strengths</th><th>Weaknesses</th><th>Pick When</th></tr></thead>
+      <tbody>
+        <tr><td>Documentation in a wiki</td><td>Zero infrastructure</td><td>Enforced only by hope; drifts within a month</td><td>Never in production — prototype only</td></tr>
+        <tr><td>Schema registry at the broker</td><td>Structural enforcement on publish</td><td>Misses semantic changes, privacy-tag drops, range changes</td><td>Event-driven systems with Kafka or similar</td></tr>
+        <tr><td>Contract tests in producer CI</td><td>Catches structural and semantic changes before merge</td><td>Needs producer cooperation and CI setup</td><td>Any warehouse-first shop with git-based workflow</td></tr>
+        <tr><td>Routine validation at ingest</td><td>Catches everything, even bad data that passed CI</td><td>Adds per-event latency; failure handling needs design</td><td>High-stakes pipelines (payments, regulated, safety-critical)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <pre><span class="lang">python</span><code><span class="sql-com"># src/code-examples/ch11/contract_test.py
+# Backward-compatibility checker. Runs in the producer's own CI,
+# fails the PR on any breaking change.</span>
+<span class="sql-kw">from</span> dataclasses <span class="sql-kw">import</span> dataclass
+<span class="sql-kw">from</span> typing <span class="sql-kw">import</span> List
+
+<span class="sql-kw">@dataclass(frozen=True)</span>
+<span class="sql-kw">class</span> Field:
+    name: str
+    type: str
+    required: bool = <span class="sql-kw">False</span>
+    has_default: bool = <span class="sql-kw">False</span>
+    pii: bool = <span class="sql-kw">False</span>
+
+<span class="sql-kw">def</span> check_backward_compat(old: List[Field], new: List[Field]) -> List[str]:
+    errors: List[str] = []
+    old_by = {f.name: f <span class="sql-kw">for</span> f <span class="sql-kw">in</span> old}
+    new_by = {f.name: f <span class="sql-kw">for</span> f <span class="sql-kw">in</span> new}
+
+    <span class="sql-kw">for</span> f <span class="sql-kw">in</span> new:
+        <span class="sql-kw">if</span> f.name <span class="sql-kw">not in</span> old_by:
+            <span class="sql-kw">if</span> f.required <span class="sql-kw">and not</span> f.has_default:
+                errors.append(<span class="sql-str">"BREAKING: required field added without default"</span>)
+
+    <span class="sql-kw">for</span> f <span class="sql-kw">in</span> old:
+        nf = new_by.get(f.name)
+        <span class="sql-kw">if</span> nf <span class="sql-kw">is None</span>:
+            errors.append(<span class="sql-str">"BREAKING: field dropped"</span>)
+            <span class="sql-kw">continue</span>
+        <span class="sql-kw">if</span> nf.type != f.type:
+            errors.append(<span class="sql-str">"BREAKING: field type changed"</span>)
+        <span class="sql-kw">if</span> f.pii <span class="sql-kw">and not</span> nf.pii:
+            errors.append(<span class="sql-str">"BREAKING: field lost PII tag"</span>)
+    <span class="sql-kw">return</span> errors</code></pre>
+
+  <h3>Quick check — which layer would catch this?</h3>
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — pick an answer</div>
+    <div class="quiz-card">
+      <div class="quiz-scenario" id="quizScenario"></div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <div class="quiz-nav"><div class="quiz-next-btn" id="quizNext">Next scenario →</div></div>
+    </div>
+  </div>
+
+  <div class="callout war">
+    <div class="cal-label">⚠️ War Story</div>
+    <p>A team had a schema registry with a solid compatibility rule enforced. A producer merged a
+    change widening a required field's number type. By the registry's own rules this was
+    technically safe — old readers could still parse the wider values as long as they still fit
+    the smaller type. It shipped. Three months later, a downstream ML feature store that
+    converted the field back to the smaller type started silently overflowing once IDs passed
+    that limit. Nobody noticed for six weeks. The root cause: the consumer's own internal
+    assumption had never been registered as something the contract system tracked — only the
+    producer's side was covered. The fix: consumer expectations became a declared contract too.
+    Contracts are a two-way promise, and mixing up the two directions is exactly how outages like
+    this happen.</p>
+  </div>
+
+  <h2 id="pii">Idea 4: Handling Sensitive Personal Data — Separate It Early, or Pay 100x Later</h2>
+  <p>Every pipeline that touches user data eventually touches personal information. The decision:
+  keep it mixed in with regular data, or route it to its own separate, tightly controlled area
+  from the start.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Cost comparison</div>
+    <div class="pii-compare">
+      <div class="pii-card early">
+        <h4>✅ Separated at ingestion</h4>
+        <div class="pii-cost">~1 engineer-month</div>
+        <ul>
+          <li>Sensitive columns routed to a restricted zone from day one</li>
+          <li>~5% more compute, one extra week of upfront design</li>
+          <li>Makes the "accidentally-shared export" failure structurally impossible</li>
+        </ul>
+      </div>
+      <div class="pii-card late">
+        <h4>❌ Retrofit after 18 months mixed together</h4>
+        <div class="pii-cost">6–12 months, $1M–$5M</div>
+        <ul>
+          <li>Find every table containing it (weeks)</li>
+          <li>Rebuild or retire those tables (months)</li>
+          <li>Rebuild every query that referenced them (months)</li>
+          <li>Re-verify every downstream consumer (months)</li>
+        </ul>
+      </div>
+    </div>
+    <p class="diagram-caption">The ratio is roughly 100x. This decision gets made on day one,
+    whether anyone realizes it or not.</p>
+  </div>
+
+  <p><strong>Three structural patterns, in increasing cost:</strong></p>
+  <ul>
+    <li><strong>Token vault</strong> — sensitive fields replaced with meaningless tokens; a
+    separate service holds the real mapping. Standard at payment companies.</li>
+    <li><strong>Field-level encryption</strong> — cheaper than a vault, but leakier; watch key
+    rotation carefully.</li>
+    <li><strong>Differential privacy</strong> — statistical noise so individuals can't be
+    re-identified. Right for public aggregates, overkill for internal analytics.</li>
+  </ul>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"PII at scale isn't a late-stage add-on. Once it touches a pipeline, retrofit costs an
+    order of magnitude more than separation at ingest."</p>
+  </div>
+
+  <h2 id="transcript">A Real Interview, Walked Through Simply</h2>
+  <p>The classic governance prompt: roll out contracts across an organization with existing
+  pipelines, without breaking anything. Watch the candidate design a phased rollout — and catch a
+  flaw in their own tiering plan mid-answer.</p>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Roll out a data contract system across a 40-team organization without breaking existing
+      pipelines.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Three questions first. What do we have today? How are incidents distributed — are some
+      teams hit more often? Is there organizational appetite for asking producers to do extra
+      work?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Schemas live in a wiki, inconsistently maintained. Incidents cluster around platform and
+      revenue teams — they consume a lot of upstream data and get burned by upstream changes.
+      There's executive sponsorship pushing this.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Good — that tells me who the first consumers and producers should be. I'd roll this out
+      in three phases over 9 to 12 months: dogfooding on our own tables first, then five
+      "lighthouse" producer teams whose downstream pipelines cause the most pain, then org-wide
+      rollout to the remaining 35, tiered by criticality.</p>
+      <p><em>(pauses)</em> Actually, let me revise that tiering plan. Asking 40 teams to
+      self-label their own tables as "most critical" turns into a political negotiation — every
+      team calls their own table the most important one. Better: default everything to a middle
+      tier, then use actual usage data — reads per day, downstream job count, revenue-dashboard
+      dependency, sensitive-data content — to automatically promote or demote tables based on
+      objective signals. Let the data decide the tier, not each team's self-assessment.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What about existing schemas — how do you handle "here's where we currently stand"?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Scan and seed. Auto-generate each producer's initial contract from their current schema.
+      They review it, tag anything sensitive, and merge it as their starting point. From then on,
+      every schema change is a pull request against that contract.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What about sensitive personal data specifically?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>That's the subtle one. If it's already mixed in across existing tables, separating it is
+      its own 6-to-12-month project — not part of this rollout. New fields get tagged from day
+      one; existing sensitive data gets a separate, year-long remediation track. Doing both at
+      once is too much organizational change to absorb.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What breaks first?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Lineage freshness. If the graph lags behind actual deployments, the on-call trusts it and
+      misses a downstream consumer during an incident. Investing in keeping it fresh pays for
+      itself by the third real incident.</p>
+    </div>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Treating a contract as documentation.</strong> A wiki page a producer can break
+    silently was never actually enforced.</li>
+    <li><strong>Having a registry with no automated testing layer.</strong> It catches structural
+    breaks, not semantic changes or privacy-tag drops.</li>
+    <li><strong>Letting lineage go stale.</strong> Freshness is operational, not a nice-to-have.</li>
+    <li><strong>Waiting to separate sensitive data.</strong> Retrofitting costs roughly 100x what
+    separating from day one would.</li>
+    <li><strong>One enforcement level for 200 tables.</strong> Either too strict or too lax — tier
+    by actual criticality.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>Three Layers</h4>
+        <ul>
+          <li><strong>Schema Registry</strong> — structural rules</li>
+          <li><strong>Contract Tests in CI</strong> — semantic rules</li>
+          <li><strong>Lineage Graph</strong> — blast radius, impact analysis</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Compatibility, Two Directions</h4>
+        <p><strong>Forward</strong> — new data readable by old consumers (producer's promise).
+        <strong>Backward</strong> — new consumers can read old data (consumer's promise). Mixing
+        these up causes outages.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Enforcement Tiers</h4>
+        <p>Highest — blocks + validates at ingest + weekly lineage audit. Middle — blocks + monthly
+        audit. Lowest — warns only, on-demand lineage.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>The PII Principle</h4>
+        <p>Separate at ingestion: ~1 engineer-month. Retrofit later: 6–12 months, $1M–$5M. Roughly
+        a 100x ratio.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>PII Separation Patterns</h4>
+        <ul>
+          <li>Token vault — standard for payments/regulated</li>
+          <li>Field-level encryption — cheaper, watch key rotation</li>
+          <li>Differential privacy — public aggregates only</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Four Breaks a Registry Won't Catch</h4>
+        <ul>
+          <li>Value-range changes</li>
+          <li>Silent nullability changes</li>
+          <li>Meaning changes (same name/type)</li>
+          <li>Privacy-tag drops</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Contracts are build artifacts, not wiki pages."</li>
+          <li>"Enforce at the producer's CI, not the consumer's dashboard."</li>
+          <li>"Separate PII at ingestion. The retrofit ratio is 100x."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Where contracts live in the pipeline lifecycle:</strong> defined before code is
+      written, published to a registry that auto-rejects incompatible versions, validated again
+      at ingestion (since even a compatible schema doesn't guarantee the actual data follows the
+      rules), and enforced downstream via dbt tests or Great Expectations — turning a downstream
+      test from "defensive, just in case" into "assertive, because we know this holds."</li>
+      <li><strong>What a breaking change looks like beyond the tooling:</strong> dual-writing old
+      and new fields for a release cycle, communicating ahead of time, coordinating with ML teams
+      (feature stores break silently on missing fields) and BI teams (semantic layers need
+      remapping) — invisible work until it's skipped.</li>
+      <li><strong>Real incident examples:</strong> a payments system changing cents-as-integer to
+      dollars-as-float doubled revenue on dashboards overnight; a ride-share app sending empty
+      route data for six hours caused driver overpayments; an e-commerce platform receiving null
+      currency codes silently defaulted to the wrong currency. Contracts wouldn't have prevented
+      all of these — but each would have become a visible, immediate violation instead of silent
+      corruption discovered days later.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>Data Contracts.</strong> Andrew Jones. O'Reilly, 2023. The book-length treatment,
+    with rollout playbooks for organizations from 10 to 1000+ engineers.</li>
+    <li><strong>"The Rise of Data Contracts."</strong> Chad Sanderson. dataproducts.substack.com,
+    2022 onward. Practitioner essays with case studies.</li>
+    <li><strong>"Consumer-Driven Contracts: A Service Evolution Pattern."</strong> Ian Robinson
+    and Martin Fowler. martinfowler.com, 2006. The essay that named the pattern for services.</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- Three-layer contract system explorer ----------
+const layers = [
+  {
+    label: 'Layer 1 — Schema Registry',
+    sub: 'Structural rules: types, required fields, compatibility',
+    catches: 'Adding a required field with no default. Renaming a field. Changing a type incompatibly. Removing a field consumers still expect.',
+    misses: 'Value-range changes, silent nullability changes, meaning changes without name/type changes, privacy-tag drops.'
+  },
+  {
+    label: 'Layer 2 — Contract Tests in CI',
+    sub: 'Semantic rules: ranges, nullability, cardinality, PII tags',
+    catches: 'Range violations, nullability drift, dropped PII tags, referential-integrity breaks — all caught in the producer\u2019s own CI before merge.',
+    misses: 'Anything that isn\u2019t written as an explicit test. And it can\u2019t catch problems in data that arrives after CI already passed.'
+  },
+  {
+    label: 'Layer 3 — Lineage Graph',
+    sub: 'Blast radius during incidents, impact analysis at design time',
+    catches: 'Which downstream tables/dashboards/models depend on a given table — used for "who reads this?" and "what should I pause?"',
+    misses: 'Nothing structurally — but it only works if it stays fresh. A graph that lags behind deployment is stale exactly when you need it most.'
+  },
+];
+const layerStack = document.getElementById('layerStack');
+layers.forEach((l,i)=>{
+  const block = document.createElement('div');
+  block.className = 'layer-block';
+  block.innerHTML = `
+    <h4>${l.label}</h4>
+    <div class="layer-sub">${l.sub}</div>
+    <div class="layer-detail" id="layer-detail-${i}">
+      <span class="catches">✓ Catches:</span> ${l.catches}<br><br>
+      <span class="misses">✗ Misses:</span> ${l.misses}
+    </div>
+  `;
+  block.addEventListener('click', ()=>{
+    const detail = document.getElementById(`layer-detail-${i}`);
+    const isShown = detail.classList.contains('show');
+    document.querySelectorAll('.layer-detail').forEach(d=>d.classList.remove('show'));
+    document.querySelectorAll('.layer-block').forEach(b=>b.classList.remove('active'));
+    if(!isShown){ detail.classList.add('show'); block.classList.add('active'); }
+  });
+  layerStack.appendChild(block);
+});
+
+// ---------- "Which layer catches this?" quiz ----------
+const quizData = [
+  {
+    scenario: 'A producer renames a field from "user_email" to "email" in their next release, with no warning to consumers.',
+    options: ['Schema Registry', 'Contract Tests in CI', 'Lineage Graph'],
+    correct: 0,
+    explanation: 'Correct — a plain rename is a structural change. The Schema Registry catches this at publish time, since it breaks both forward and backward compatibility.'
+  },
+  {
+    scenario: 'A field\u2019s type stays the same, but its allowed values quietly start including negative numbers where they never could before.',
+    options: ['Schema Registry', 'Contract Tests in CI', 'Lineage Graph'],
+    correct: 1,
+    explanation: 'Correct — the type didn\u2019t change, so the registry sees nothing wrong. A range check written as a contract test is what catches this.'
+  },
+  {
+    scenario: 'A table used by 40 downstream dashboards turns out to have wrong data for the last 3 days. Which table should get rolled back, and in what order?',
+    options: ['Schema Registry', 'Contract Tests in CI', 'Lineage Graph'],
+    correct: 2,
+    explanation: 'Correct — this is a blast-radius question at incident time. The Lineage Graph tells the on-call exactly which downstream consumers depend on the broken table.'
+  },
+];
+let quizIndex = 0;
+const quizScenario = document.getElementById('quizScenario');
+const quizOptions = document.getElementById('quizOptions');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizNext = document.getElementById('quizNext');
+
+function renderQuiz(){
+  const q = quizData[quizIndex];
+  quizScenario.textContent = q.scenario;
+  quizOptions.innerHTML = '';
+  quizFeedback.textContent = '';
+  q.options.forEach((opt, idx)=>{
+    const btn = document.createElement('div');
+    btn.className = 'quiz-opt';
+    btn.textContent = opt;
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.quiz-opt').forEach(o=>{o.classList.remove('correct','incorrect');});
+      if(idx === q.correct){
+        btn.classList.add('correct');
+      } else {
+        btn.classList.add('incorrect');
+        quizOptions.children[q.correct].classList.add('correct');
+      }
+      quizFeedback.textContent = q.explanation;
+    });
+    quizOptions.appendChild(btn);
+  });
+}
+quizNext.addEventListener('click', ()=>{
+  quizIndex = (quizIndex + 1) % quizData.length;
+  renderQuiz();
+});
+renderQuiz();
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,899 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.8 — CDC & Replication | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --purple:#c98be2;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:600;
+    margin:60px 0 18px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:18px;
+    font-weight:700;
+    margin:32px 0 12px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  .opening-lines{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:28px 28px 20px;
+    margin:28px 0 40px;
+  }
+  .opening-lines .label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    margin-bottom:16px;
+  }
+  .opening-lines blockquote{
+    font-family:var(--serif);
+    font-size:17px;
+    font-style:italic;
+    color:#eef1f5;
+    margin:0 0 18px;
+    padding-left:16px;
+    border-left:2px solid var(--amber);
+  }
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+
+  .pattern-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;}
+  @media(max-width:680px){.pattern-pair{grid-template-columns:1fr;}}
+  .pattern-pair .callout{margin:0;}
+
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{
+    background:var(--bg-panel-raised);
+    text-align:left;
+    padding:12px 16px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    border-bottom:1px solid var(--rule);
+  }
+  td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink-dim);
+    vertical-align:top;
+  }
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+
+  pre{
+    background:#0a0d12;
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+    margin:20px 0;
+    position:relative;
+  }
+  pre .lang{
+    position:absolute;top:10px;right:14px;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--ink-faint);
+  }
+  pre code{background:none;padding:0;color:#c3d6e8;}
+  .sql-kw{color:var(--amber);}
+  .sql-str{color:var(--green);}
+  .sql-com{color:var(--ink-faint);font-style:italic;}
+
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .further-reading strong{color:var(--ink);}
+
+  .supplementary{
+    border:1px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 24px;
+    margin-top:24px;
+    background:var(--bg-panel);
+  }
+  .supplementary-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: polling vs log-based drift simulator --- */
+  .drift-sim{background:#0a0d12;border-radius:10px;padding:24px;}
+  .drift-toggle{display:flex;gap:8px;margin-bottom:20px;}
+  .drift-btn{
+    flex:1;font-family:var(--mono);font-size:13px;padding:12px;border-radius:8px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;text-align:center;
+  }
+  .drift-btn:hover{border-color:var(--amber);color:var(--ink);}
+  .drift-btn.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .drift-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+  .drift-row{
+    display:grid;grid-template-columns:140px 1fr 140px;gap:12px;align-items:center;
+    padding:10px 14px;border-radius:6px;background:var(--bg-panel-raised);
+    font-family:var(--mono);font-size:12.5px;
+  }
+  .drift-row.deleted{opacity:0.5;}
+  .drift-status{text-align:right;font-weight:700;}
+  .drift-status.correct{color:var(--green);}
+  .drift-status.wrong{color:var(--red);}
+  .drift-summary{
+    padding:14px 16px;border-radius:6px;font-size:13.5px;
+    background:#0e1116;border-left:2px solid var(--amber);color:var(--ink-dim);
+  }
+
+  /* --- Interactive: schema compatibility mode picker --- */
+  .schema-picker{display:flex;flex-direction:column;gap:12px;}
+  .schema-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .schema-tab{
+    font-family:var(--mono);font-size:12.5px;padding:10px 16px;border-radius:7px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .schema-tab:hover{border-color:var(--amber);color:var(--ink);}
+  .schema-tab.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .schema-panel{background:#0a0d12;border-radius:8px;padding:20px;display:none;}
+  .schema-panel.show{display:block;}
+  .schema-panel h4{margin:0 0 10px;color:var(--amber);font-size:15px;}
+  .schema-panel p{font-size:14px;margin-bottom:10px;}
+  .schema-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;}
+  .schema-item{flex:1;min-width:140px;}
+  .schema-item .si-label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px;}
+  .schema-item .si-value{font-size:13.5px;color:var(--ink);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 8</div>
+    <h1 class="title">CDC &amp; Replication</h1>
+    <p class="subtitle">CDC isn't really a piece of software — it's a promise. Every insert,
+    update, and especially every delete in the source database shows up, in order, on the other
+    end. Most cheap ways of faking this promise break it silently.</p>
+    <div class="chap-note">Printed as "Chapter Seven" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 8.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Imagine your company has a "real" database where customers place orders and update
+    profiles. Somewhere else, an analytics warehouse is supposed to show a faithful copy of that
+    same information.</p>
+    <p><strong>CDC just means:</strong> instead of periodically re-copying the whole database,
+    tell me every single thing that changed, the moment it changes. Most cheap ways of faking
+    this promise (like a nightly copy job) quietly break it in ways nobody notices until the
+    numbers are visibly wrong.</p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>Log-based CDC beats query-based CDC at every scale. The only question is whether I
+    have access to the WAL.</blockquote>
+    <blockquote>Debezium's exactly-once claim is only honest when the sink is idempotent. Without
+    that, it's at-least-once with good intentions.</blockquote>
+    <blockquote>Schema evolution is the hardest part of CDC. The schema registry is the only place
+    the compatibility matrix lives.</blockquote>
+    <blockquote>Event sourcing and CDC are the same problem solved by different teams. One is my
+    own writes as events, the other is someone else's.</blockquote>
+    <blockquote>Polling never captures DELETEs. Every replication built on a nightly SELECT
+    diverges from its source over time. The only question is when someone notices.</blockquote>
+  </div>
+
+  <h2 id="two-teams">Why Two Teams Building "The Same Thing" Get Very Different Results</h2>
+  <p>Two teams both need to keep an analytics warehouse in sync with production Postgres. Both
+  are staffed with competent engineers. Both ship in year one.</p>
+  <p><strong>Team A</strong> runs a nightly copy job — simple, well understood. <strong>Team
+  B</strong> continuously reads the database's own internal change log and streams every change
+  within a minute.</p>
+  <p>Year one, both look fine. <strong>Year two, Team A gets a call from finance:</strong> account
+  balances don't match. Every time a customer's data was deleted, that row just vanished from the
+  source — but a nightly "copy everything currently there" job never notices something is now
+  <em>missing</em>. The warehouse quietly kept 340,000 phantom customers who'd left over a year
+  earlier.</p>
+  <p><strong>Team B</strong> had sub-minute freshness, handled deletions correctly, and sailed
+  through two schema changes without incident. The difference wasn't skill — it was what each
+  approach was actually capable of promising.</p>
+
+  <h2 id="deletion-blindspot">Idea 1: A Nightly Copy Job Can Never Notice Something Was Deleted</h2>
+  <p>Imagine keeping a filing cabinet that mirrors someone else's. Once a night, you copy
+  everything currently in their cabinet into yours. Now imagine they remove a folder entirely —
+  shredded, returned, legally destroyed. Next time you copy "everything currently there," you
+  simply won't see that folder. But nothing ever told you to <em>remove</em> it from your own
+  cabinet either — so it just stays forever.</p>
+  <p>Try the simulator below — switch between the two approaches and watch what happens when a
+  row gets deleted at the source.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — toggle the approach, then watch row 3</div>
+    <div class="drift-sim">
+      <div class="drift-toggle" id="driftToggle"></div>
+      <div class="drift-rows" id="driftRows"></div>
+      <div class="drift-summary" id="driftSummary"></div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Approach</th><th>Plain description</th><th>The catch</th><th>Use it when</th></tr></thead>
+      <tbody>
+        <tr><td>Log-based (the safe default)</td><td>Read the database's own internal change log directly</td><td>Needs special access, a bit different per database engine</td><td>Any real, changing data source you have access to</td></tr>
+        <tr><td>Query-based (polling)</td><td>Periodically ask "what changed since last time?"</td><td>Never sees deletions — silently drifts wrong</td><td>Only safe for data that's never deleted</td></tr>
+        <tr><td>Trigger-based</td><td>A small program on the source fires on every change</td><td>Slows down every write on the live database</td><td>Legacy systems with no other option</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Using a nightly full-table copy as your replication strategy for anything that can be
+    updated or deleted. It's quietly wrong for every deletion, and becomes painfully slow once the
+    source table passes about 10 TB.</p>
+  </div>
+
+  <h2 id="wal">Idea 2: Read the Database's Own Diary Instead of Asking It Questions</h2>
+  <p>Every real database keeps an internal, ultra-reliable record of everything that's ever
+  happened to it — inserts, updates, deletes, in exact order. Postgres calls this the
+  <strong>WAL</strong> (write-ahead log); MySQL calls its version the binlog.</p>
+  <div class="callout signal" style="border-left-color:var(--green);">
+    <div class="cal-label" style="color:var(--green);">💡 The one idea to remember</div>
+    <p>Instead of periodically asking the database "what changed?", just quietly read its own
+    diary. That diary is authoritative — the exact same record the database trusts for its own
+    crash recovery — so deletions get captured just as reliably as everything else.</p>
+  </div>
+  <p><strong>Debezium</strong> is the standard open-source tool that does this — it tails the WAL
+  and turns every change into a structured event with a consistent shape: the row's value
+  <strong>before</strong>, its value <strong>after</strong>, and what kind of change it was.</p>
+
+  <h3>Interactive — the standard log-based CDC pipeline</h3>
+  <p>Click each stage to see what it does.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a stage</div>
+    <div id="cdcPipeline"></div>
+    <div class="drift-summary" id="cdcDetail" style="margin-top:16px;">Click a stage above to see
+    what it does in the pipeline.</div>
+  </div>
+
+  <p>Two things worth saying out loud in an interview: <strong>one feed per source table</strong>
+  (mixing tables into a shared feed breaks ordering guarantees), and <strong>a schema registry
+  sits alongside as a gatekeeper</strong> — every event carries a schema reference, and the
+  registry can reject an incompatible change right at registration time, not three days later in a
+  broken dashboard.</p>
+
+  <h2 id="schema">Idea 3: Schema Changes Are the Hardest Part — and the Registry Is What Saves You</h2>
+  <p>Source systems change shape over time. If nothing is watching, a schema change can silently
+  break everything downstream. Click each compatibility mode below to see what it allows.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — select a compatibility mode</div>
+    <div class="schema-picker">
+      <div class="schema-tabs" id="schemaTabs"></div>
+      <div id="schemaPanels"></div>
+    </div>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>When you say "Debezium," the interviewer's next question is almost always about schema
+    evolution. The answer they want: a specific compatibility mode plus a specific rollout story —
+    "BACKWARD compatibility; producer team gets an automated check that rejects breaking changes;
+    renames go through a deprecation cycle with dual-write for a quarter." Saying "we manage
+    schema changes" and stopping there is not the answer.</p>
+  </div>
+
+  <h2 id="exactly-once">Idea 4: "Exactly-Once" Only Holds True If the Destination Cooperates</h2>
+  <p>Debezium reliably delivers events <strong>at least once</strong> — a message might arrive
+  twice, but never silently vanish. Whether a duplicate causes a duplicate row in your warehouse is
+  entirely up to how the destination is built.</p>
+
+  <pre><span class="lang">sql</span><code><span class="sql-com">-- src/code-examples/ch07/apply_cdc_merge.sql
+-- Apply a small batch of CDC events safely. Take the newest event
+-- per primary key and MERGE it in — duplicates become harmless no-ops.</span>
+<span class="sql-kw">MERGE INTO</span> warehouse.users <span class="sql-kw">AS</span> t
+<span class="sql-kw">USING</span> (
+    <span class="sql-kw">SELECT</span>
+        COALESCE(after.user_id, before.user_id) <span class="sql-kw">AS</span> user_id,
+        after.email, after.plan_tier, op, ts_ms,
+        ROW_NUMBER() <span class="sql-kw">OVER</span> (
+            <span class="sql-kw">PARTITION BY</span> COALESCE(after.user_id, before.user_id)
+            <span class="sql-kw">ORDER BY</span> ts_ms <span class="sql-kw">DESC</span>
+        ) <span class="sql-kw">AS</span> rn
+    <span class="sql-kw">FROM</span> cdc_events_users
+    <span class="sql-kw">WHERE</span> event_date = CURRENT_DATE
+) <span class="sql-kw">AS</span> s
+<span class="sql-kw">ON</span> t.user_id = s.user_id <span class="sql-kw">AND</span> s.rn = 1
+<span class="sql-kw">WHEN MATCHED AND</span> s.op = <span class="sql-str">'d'</span> <span class="sql-kw">THEN DELETE</span>
+<span class="sql-kw">WHEN MATCHED AND</span> s.op <span class="sql-kw">IN</span> (<span class="sql-str">'c'</span>, <span class="sql-str">'u'</span>) <span class="sql-kw">THEN UPDATE SET</span>
+    email = s.email, plan_tier = s.plan_tier,
+    updated_at = FROM_UNIXTIME(s.ts_ms / 1000)
+<span class="sql-kw">WHEN NOT MATCHED AND</span> s.op <span class="sql-kw">IN</span> (<span class="sql-str">'c'</span>, <span class="sql-str">'u'</span>) <span class="sql-kw">THEN INSERT</span> (
+    user_id, email, plan_tier, updated_at
+) <span class="sql-kw">VALUES</span> (
+    s.user_id, s.email, s.plan_tier, FROM_UNIXTIME(s.ts_ms / 1000)
+);</code></pre>
+
+  <div class="pattern-pair">
+    <div class="callout antipattern">
+      <div class="cal-label">❌ Anti-Pattern</div>
+      <p>Trusting Debezium's "exactly-once" claim without checking whether your destination is
+      idempotent. It delivers at-least-once to Kafka — turning that into true end-to-end
+      exactly-once is the destination's job.</p>
+    </div>
+    <div class="callout say">
+      <div class="cal-label">✅ Say this out loud</div>
+      <p>"Debezium's exactly-once claim is only honest when the sink is idempotent. Without that,
+      it's at-least-once with good intentions."</p>
+    </div>
+  </div>
+
+  <h2 id="snapshot">Idea 5: The First-Time Copy Costs More Than People Expect</h2>
+  <p>Before streaming <em>changes</em>, CDC needs a starting point — a full copy of the table as
+  it exists right now, called a <strong>snapshot</strong>. This is often the most underestimated
+  cost in the whole setup.</p>
+  <p><strong>Snapshot time scales with data size:</strong> roughly 500 GB ≈ 2–6 hours; 10 TB can
+  take multiple days. Teams that don't budget for this end up with an accidental "free" SLA on day
+  one, then spend their first week explaining why the warehouse looks empty.</p>
+
+  <div class="callout pattern">
+    <div class="cal-label">✅ Pattern</div>
+    <p>Make the destination idempotent before you trust any "exactly-once" claim. The MERGE
+    pattern (latest event per primary key wins) is the actual answer — not whatever a vendor's
+    marketing page promises.</p>
+  </div>
+
+  <h2 id="transcript">A Real Interview, Walked Through Simply</h2>
+  <p>The standard CDC prompt: a live production database, a warehouse target, a freshness
+  requirement. Watch the candidate work through log access, schema evolution, destination safety,
+  and the snapshot cost — and correct their own plan mid-answer.</p>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Replicate a live Postgres database to a columnar warehouse. Two hundred tables, 500 GB
+      total, sub-minute freshness, schema changes expected over the next six months.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Before I sketch anything — four questions. Can we turn on the database's internal
+      replication log for reading? Of the 200 tables, how many genuinely need sub-minute
+      freshness? Who owns schema changes on the source side? And does the warehouse support an
+      insert-or-update operation?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Yes, approved. About 30 tables are customer-facing and need sub-minute; the other 170 can
+      be slower. No formal schema agreement — the app team just merges changes as part of normal
+      feature work. Warehouse is Iceberg on S3 with Trino, and yes, it supports that operation.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Good — so that's really two pipelines, not one. And the schema-change safety net is
+      something we have to build, not just configure.</p>
+      <p>Here's the shape: a log-reading tool on Postgres, 30 hot tables flowing into their own
+      feeds keyed by primary key, the other 170 through a slower once-a-day path. Schema registry
+      with "safe changes only" turned on. Warehouse applies changes every 30 seconds.</p>
+      <p><em>(pauses)</em> Actually, let me walk that back. I said the other 170 could go through
+      a slower "just copy everything nightly" path — but "slow-moving" and "never has anything
+      deleted" aren't the same thing. Any of those 170 tables that can have a row removed would
+      silently drift wrong under a plain nightly copy, exactly like the phantom-customer problem.
+      I'd run all 200 tables through the same log-reading approach, and only change how often each
+      group gets written to the destination — every 30 seconds for the hot 30, once nightly for
+      the rest. Same safe approach, different delivery speed, and deletions get handled correctly
+      everywhere.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What if this pipeline goes down for 24 hours?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Two outcomes. If the database's retained log history covers that gap, the pipeline
+      resumes and catches up — duplicates during catch-up are harmless since the destination is
+      idempotent. If retention didn't cover it, we're forced into a full rebuild, which for 500 GB
+      costs around five hours. I'd size log retention for at least seven days specifically so a
+      24-hour outage never forces that rebuild.</p>
+    </div>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Assuming a periodic "copy everything" query captures deletions.</strong> It
+    doesn't. Every replication built on a periodic query quietly drifts from its source.</li>
+    <li><strong>Trusting "exactly-once" without checking the destination.</strong> The pipeline
+    gives at-least-once; making the final result exactly-once is the destination's job.</li>
+    <li><strong>Skipping the schema registry.</strong> "We'll manage changes as they come" doesn't
+    work — a registry is the only enforcement that catches problems before deployment.</li>
+    <li><strong>Forgetting the cost of the first full copy.</strong> 500 GB ≈ 5 hours; 10 TB can
+    be multiple days. Missing this from your timeline turns week one into a fire drill.</li>
+    <li><strong>Mixing multiple tables into a single shared feed.</strong> Breaks ordering
+    guarantees and makes correct processing impossible.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>Three Ways to Do CDC</h4>
+        <ul>
+          <li><strong>Log-based</strong> (default) — reads the database's own log directly</li>
+          <li><strong>Query-based</strong> — silently misses deletions</li>
+          <li><strong>Trigger-based</strong> — portable, but slows every write</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>The Event Shape</h4>
+        <p>Operation type (create/update/delete), value before, value after, timestamp for
+        ordering. One feed per source table.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Schema Compatibility Modes</h4>
+        <ul>
+          <li><strong>BACKWARD</strong> — new reads old, the common default</li>
+          <li><strong>FORWARD</strong> — old reads new, less common</li>
+          <li><strong>FULL</strong> — both, strictest</li>
+          <li><strong>NONE</strong> — no validation</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Making the Destination Safe</h4>
+        <ol>
+          <li>Idempotent MERGE on primary key — duplicates become no-ops</li>
+          <li>Two-phase commit — cleaner, harder to implement</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>Initial Snapshot Cost</h4>
+        <p>500 GB ≈ 3–5 hours. 10 TB ≈ 2–4 days. Budget this into the timeline explicitly.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Log-based CDC beats query-based at every scale."</li>
+          <li>"Polling never captures deletions."</li>
+          <li>"Exactly-once lives in the sink, not the broker."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>CDC's rough edges in practice:</strong> schema evolution needs ongoing tracking,
+      repartitioning a source table can cause historical inconsistencies, and some SaaS-hosted
+      databases don't expose their internal logs publicly at all.</li>
+      <li><strong>CDC as the backbone of everything downstream:</strong> lakehouse tables need
+      insert-or-update support, feature stores rely on change-based updates, and backfills can
+      reuse the same CDC logs to rebuild tables from scratch.</li>
+      <li><strong>Event sourcing, the close cousin:</strong> the same idea — a replayable log of
+      everything that happened — shows up as "event sourcing" when a team designs their own
+      system to emit events for their own writes. CDC is for someone else's database; event
+      sourcing is for your own.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>Debezium Documentation.</strong> debezium.io/documentation. The authoritative
+    reference for per-database connectors, the event format, and operational tuning.</li>
+    <li><strong>Designing Data-Intensive Applications, Chapter 11: Stream Processing.</strong>
+    Martin Kleppmann, O'Reilly, 2017. The foundational treatment of CDC and event sourcing.</li>
+    <li><strong>"The Log."</strong> Jay Kreps. LinkedIn Engineering, 2013. The philosophical
+    foundation for treating CDC as "someone else's writes, as events."</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- Polling vs log-based drift simulator ----------
+const driftModes = [
+  {id:'log', label:'Log-Based CDC'},
+  {id:'poll', label:'Query-Based (Polling)'},
+];
+const driftToggle = document.getElementById('driftToggle');
+const driftRows = document.getElementById('driftRows');
+const driftSummary = document.getElementById('driftSummary');
+let currentDriftMode = 'log';
+
+const baseRows = [
+  {id:1, label:'Row 1', event:'unchanged'},
+  {id:2, label:'Row 2', event:'updated'},
+  {id:3, label:'Row 3', event:'DELETED at source'},
+  {id:4, label:'Row 4', event:'unchanged'},
+];
+
+driftModes.forEach((m,i)=>{
+  const btn = document.createElement('div');
+  btn.className = 'drift-btn' + (i===0?' active':'');
+  btn.textContent = m.label;
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.drift-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentDriftMode = m.id;
+    renderDrift();
+  });
+  driftToggle.appendChild(btn);
+});
+
+function renderDrift(){
+  driftRows.innerHTML = '';
+  baseRows.forEach(r=>{
+    const row = document.createElement('div');
+    const isDeleted = r.event === 'DELETED at source';
+    let status, statusClass, rowClass = '';
+
+    if(currentDriftMode === 'log'){
+      if(isDeleted){
+        status = '✓ removed correctly'; statusClass = 'correct'; rowClass = 'deleted';
+      } else {
+        status = '✓ in sync'; statusClass = 'correct';
+      }
+    } else {
+      if(isDeleted){
+        status = '✗ still in warehouse!'; statusClass = 'wrong';
+      } else {
+        status = '✓ in sync'; statusClass = 'correct';
+      }
+    }
+
+    row.className = 'drift-row ' + rowClass;
+    row.innerHTML = `
+      <div>${r.label}</div>
+      <div>${r.event}</div>
+      <div class="drift-status ${statusClass}">${status}</div>
+    `;
+    driftRows.appendChild(row);
+  });
+
+  if(currentDriftMode === 'log'){
+    driftSummary.innerHTML = '<strong style="color:var(--green);">Log-based:</strong> the deletion event itself is captured from the WAL, so Row 3 gets correctly removed from the destination too.';
+  } else {
+    driftSummary.innerHTML = '<strong style="color:var(--red);">Query-based:</strong> the periodic "what changed?" query only ever sees rows that still exist. Row 3 is gone from the source, so it is simply never selected — and nothing ever tells the destination to remove it. It sits there forever, silently wrong.';
+  }
+}
+renderDrift();
+
+// ---------- CDC pipeline interactive diagram ----------
+const cdcStages = [
+  {label:'Postgres (source)', detail:'The live production database — the source of truth. Every insert, update, and delete happens here first.', color:'#5ec9a0'},
+  {label:'WAL (change diary)', detail:'The database\u2019s own internal, ultra-reliable log of everything that happened, in order. Used for the database\u2019s own crash recovery — CDC just reads it too.', color:'#6fa8dc'},
+  {label:'Debezium', detail:'Reads the WAL via the database\u2019s native replication protocol and turns each change into a structured event: before value, after value, operation type.', color:'#c98be2'},
+  {label:'Kafka (one feed per table)', detail:'Each source table gets its own ordered feed. Mixing tables into one shared feed would break the ordering guarantee CDC correctness depends on.', color:'#e8a33d'},
+  {label:'Schema Registry', detail:'Checks every new schema version against the configured compatibility rule, and rejects incompatible changes right at registration — before they can break anything downstream.', color:'#e2604f'},
+  {label:'Sink → Target store', detail:'Applies changes to the destination using an idempotent MERGE keyed by primary key, so duplicate events (from retries) are harmless no-ops.', color:'#5ec9a0'},
+];
+const cdcPipeline = document.getElementById('cdcPipeline');
+const cdcDetail = document.getElementById('cdcDetail');
+const cdcRow = document.createElement('div');
+cdcRow.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;';
+cdcStages.forEach(s=>{
+  const chip = document.createElement('div');
+  chip.style.cssText = `font-family:var(--mono);font-size:12px;padding:10px 14px;border-radius:7px;background:var(--bg-panel-raised);border:1px solid var(--rule);cursor:pointer;color:var(--ink);transition:border-color 0.15s;flex:1;min-width:130px;text-align:center;`;
+  chip.textContent = s.label;
+  chip.addEventListener('mouseenter', ()=>{
+    chip.style.borderColor = s.color;
+    cdcDetail.innerHTML = `<strong style="color:${s.color}">${s.label}</strong> — ${s.detail}`;
+  });
+  chip.addEventListener('mouseleave', ()=>{ chip.style.borderColor = 'var(--rule)'; });
+  chip.addEventListener('click', ()=>{
+    cdcDetail.innerHTML = `<strong style="color:${s.color}">${s.label}</strong> — ${s.detail}`;
+  });
+  cdcRow.appendChild(chip);
+});
+cdcPipeline.appendChild(cdcRow);
+
+// ---------- Schema compatibility mode picker ----------
+const schemaData = [
+  {
+    id:'backward', label:'BACKWARD',
+    body:`New schema can still read data written with the old schema. This is the common default
+    and what most teams want.`,
+    allowed:'Add an optional field, delete a field that had a default, widen a type',
+    forbidden:'Add a required field with no default, rename a field, narrow a type',
+    rollout:'Consumers upgrade at their own pace'
+  },
+  {
+    id:'forward', label:'FORWARD',
+    body:`Old schema can still read data written with the new schema. Less common than
+    BACKWARD.`,
+    allowed:'Delete an optional field, add a required field with a default',
+    forbidden:'Anything that would break an old reader',
+    rollout:'Producers upgrade first, consumers follow'
+  },
+  {
+    id:'full', label:'FULL',
+    body:`Both BACKWARD and FORWARD apply at the same time. The strictest mode.`,
+    allowed:'Only purely additive, nullable changes',
+    forbidden:'Almost everything else',
+    rollout:'Expensive to maintain, but catches the most mistakes'
+  },
+  {
+    id:'none', label:'NONE',
+    body:`No validation at all — effectively disables schema safety checks.`,
+    allowed:'Any change',
+    forbidden:'Nothing is blocked',
+    rollout:'Only safe if another mechanism (e.g. contract tests in CI) enforces safety instead'
+  },
+];
+const schemaTabs = document.getElementById('schemaTabs');
+const schemaPanels = document.getElementById('schemaPanels');
+schemaData.forEach((s,i)=>{
+  const tab = document.createElement('div');
+  tab.className = 'schema-tab' + (i===0?' active':'');
+  tab.textContent = s.label;
+  schemaTabs.appendChild(tab);
+
+  const panel = document.createElement('div');
+  panel.className = 'schema-panel' + (i===0?' show':'');
+  panel.id = 'schema-'+s.id;
+  panel.innerHTML = `
+    <h4>${s.label}</h4>
+    <p>${s.body}</p>
+    <div class="schema-row">
+      <div class="schema-item"><div class="si-label">Allowed</div><div class="si-value">${s.allowed}</div></div>
+      <div class="schema-item"><div class="si-label">Forbidden</div><div class="si-value">${s.forbidden}</div></div>
+      <div class="schema-item"><div class="si-label">Rollout</div><div class="si-value">${s.rollout}</div></div>
+    </div>
+  `;
+  schemaPanels.appendChild(panel);
+
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.schema-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.schema-panel').forEach(p=>p.classList.remove('show'));
+    tab.classList.add('active');
+    document.getElementById('schema-'+s.id).classList.add('show');
+  });
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

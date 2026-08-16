@@ -1,0 +1,1081 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.3 — Fundamentals of Scale | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.65;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  /* Header / masthead */
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  h2{
+    font-family:var(--serif);
+    font-size:28px;
+    font-weight:600;
+    margin:64px 0 20px;
+    padding-top:24px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:19px;
+    font-weight:700;
+    margin:36px 0 14px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:8px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  /* Opening lines block */
+  .opening-lines{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:28px 28px 20px;
+    margin:28px 0 40px;
+  }
+  .opening-lines .label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    margin-bottom:16px;
+  }
+  .opening-lines blockquote{
+    font-family:var(--serif);
+    font-size:17px;
+    font-style:italic;
+    color:#eef1f5;
+    margin:0 0 18px;
+    padding-left:16px;
+    border-left:2px solid var(--amber);
+  }
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+
+  /* Callouts */
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+
+  .pattern-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;}
+  @media(max-width:680px){.pattern-pair{grid-template-columns:1fr;}}
+  .pattern-pair .callout{margin:0;}
+
+  /* Tables */
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{
+    background:var(--bg-panel-raised);
+    text-align:left;
+    padding:12px 16px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    border-bottom:1px solid var(--rule);
+  }
+  td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink-dim);
+    vertical-align:top;
+  }
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+
+  /* Code blocks */
+  pre{
+    background:#0a0d12;
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+    margin:20px 0;
+    position:relative;
+  }
+  pre .lang{
+    position:absolute;top:10px;right:14px;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--ink-faint);
+  }
+  pre code{background:none;padding:0;color:#c3d6e8;}
+  .sql-kw{color:var(--amber);}
+  .sql-str{color:var(--green);}
+  .sql-com{color:var(--ink-faint);font-style:italic;}
+
+  /* Diagram containers */
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  /* Cheat sheet */
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul{padding-left:16px;margin:0;}
+
+  /* Interactive widget: 5 dimensions */
+  .dim-widget{display:flex;flex-direction:column;gap:10px;}
+  .dim-row{
+    display:grid;
+    grid-template-columns:160px 1fr;
+    gap:14px;
+    align-items:center;
+    cursor:pointer;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid transparent;
+    transition:background 0.15s, border-color 0.15s;
+  }
+  .dim-row:hover, .dim-row.active{
+    background:var(--bg-panel-raised);
+    border-color:var(--rule);
+  }
+  .dim-name{
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .dim-bar-track{
+    height:8px;
+    background:#0a0d12;
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .dim-bar-fill{
+    height:100%;
+    border-radius:4px;
+    transition:width 0.4s ease;
+  }
+  .dim-detail{
+    font-size:13.5px;
+    color:var(--ink-dim);
+    padding:14px 16px;
+    margin-top:4px;
+    background:#0a0d12;
+    border-left:2px solid var(--amber);
+    border-radius:0 6px 6px 0;
+    display:none;
+  }
+  .dim-detail.show{display:block;}
+
+  /* Interactive: coupling cascade slider */
+  .cascade-widget{
+    background:#0a0d12;
+    border-radius:10px;
+    padding:24px;
+  }
+  .cascade-control{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-bottom:24px;
+    flex-wrap:wrap;
+  }
+  .cascade-control label{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--ink-dim);
+  }
+  .cascade-control input[type=range]{
+    flex:1;
+    min-width:160px;
+    accent-color:var(--amber);
+  }
+  .cascade-mult{
+    font-family:var(--mono);
+    font-size:20px;
+    font-weight:700;
+    color:var(--amber);
+    min-width:48px;
+  }
+  .cascade-rows{display:flex;flex-direction:column;gap:12px;}
+  .cascade-item{
+    display:grid;
+    grid-template-columns:140px 1fr 90px;
+    gap:14px;
+    align-items:center;
+  }
+  .cascade-label{font-family:var(--mono);font-size:12.5px;color:var(--ink-dim);}
+  .cascade-track{height:10px;background:#1b212b;border-radius:5px;overflow:hidden;}
+  .cascade-fill{height:100%;border-radius:5px;transition:width 0.3s ease;}
+  .cascade-val{
+    font-family:var(--mono);
+    font-size:13px;
+    text-align:right;
+    color:var(--ink);
+    font-weight:700;
+  }
+
+  /* Interview transcript */
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+
+  /* Nav footer */
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .further-reading strong{color:var(--ink);}
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 3</div>
+    <h1 class="title">Fundamentals of Scale</h1>
+    <p class="subtitle">At scale, a pipeline doesn't run out of capacity — it runs out of its
+    weakest dimension. A staff-level data engineer names that dimension before the cluster does.
+    This chapter teaches the napkin math and the naming discipline.</p>
+    <div class="chap-note">Printed as "Chapter Two" in the book's own running heads — the outer
+    Table of Contents counts the Preface as chapter 1, so this guide cites it as Chapter 3.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end</div>
+    <blockquote>Before I pick a tool, I want to size the workload on a napkin: events per second,
+    payload size, retention, fan-out. That tells me whether this is a 4-node Postgres problem or a
+    Kafka-and-Iceberg problem.</blockquote>
+    <blockquote>The first thing I look for at scale is skew — not keys, not partitions, not
+    tenants. Average throughput lies; the p99 of a single partition is where the pipeline actually
+    breaks.</blockquote>
+    <blockquote>I'd rather pay the coordination cost upfront with idempotent writes than pay it in
+    reruns, when the retry logic inevitably duplicates.</blockquote>
+    <blockquote>Doubling ingest isn't doubling cost. It doubles storage volume, which doubles
+    network, which can quadruple tail latency if I haven't partitioned for it.</blockquote>
+    <blockquote>The move from "works" to "works at scale" is usually not a new tool. It's a
+    boundary I forgot to enforce: backpressure, watermarks, rate limits, or a dead-letter
+    path.</blockquote>
+  </div>
+
+  <h2 id="five-dimensions">The Five Dimensions</h2>
+  <p>Here's the prompt: <em>"This ingestion pipeline moves ten thousand events per second. Size it
+  for a million."</em></p>
+  <p>The <strong>junior answer</strong> reaches for Kafka. The <strong>mid-level answer</strong>
+  reaches for Spark. The <strong>staff answer</strong> reaches for a napkin — because every word
+  after "size it" needs something specific. The interviewer is testing whether you know which
+  part of your pipeline will fail first.</p>
+  <p>A pipeline at scale has five dimensions a data engineer cares about. Click each one below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a dimension</div>
+    <div class="dim-widget" id="dimWidget"></div>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>At a whiteboard, name all five dimensions out loud and point to the one you think will
+    break first. The interviewer isn't grading the prediction. They're checking whether you know
+    there are five, and whether you can pick one with a reason.</p>
+  </div>
+
+  <h2 id="naming">Why the Naming Matters</h2>
+  <p>A system you can design is a system other people can also design. You can talk yourself
+  through a lakehouse on Iceberg with Trino on top and get nine-tenths of the way to a sensible
+  design without saying anything a strong candidate wouldn't also say. The part that actually
+  decides the interview is the other test:</p>
+  <div class="callout signal" style="border-left-color:var(--ink-dim);">
+    <p style="font-family:var(--serif);font-style:italic;font-size:17px;color:#eef1f5;">"Here's
+    what I expect to fail first, here's how I'd measure it, here's what I'd do if I'm wrong."</p>
+  </div>
+  <p>That sentence is the difference between the interviewer reading you as mid-level and reading
+  you as staff. Designing is the easy half. <strong>Naming</strong> is the half that separates
+  engineers who have shipped scale from engineers who have drawn it.</p>
+
+  <h2 id="napkin-math">Napkin Math</h2>
+  <p>You can't name the weakest dimension without numbers, and you won't get numbers out of an
+  interviewer without asking for them. Three multiplications cover ninety percent of cases:</p>
+  <ol>
+    <li><strong>Sustained write throughput</strong> = events/sec × bytes/event × replication
+    factor. This is what the network and the disk actually see.</li>
+    <li><strong>Storage budget</strong> = sustained write throughput × retention, divided by your
+    expected compression ratio.</li>
+    <li><strong>Real I/O</strong> = writes × downstream fan-out × retry factor. Every
+    stream-processing consumer, every reporting replica, every audit mirror counts.</li>
+  </ol>
+  <p>Two references calibrate the intuition: <strong>Jeff Dean's latency numbers</strong> still
+  hold, and they'll sanity-check any design that implies a physically impossible op.
+  <strong>Brendan Gregg's USE method</strong> gives three signals for any resource:
+  <strong>U</strong>tilization, <strong>S</strong>aturation, <strong>E</strong>rrors.</p>
+
+  <h3>Worked example — sizing a payments pipeline at peak</h3>
+  <pre><span class="lang">spec</span><code>Load: 1M events/sec peak, 200k avg
+Payload: 600 bytes per event
+Replication: 3x on Kafka
+Retention: 7 days hot, 90 days cold
+Consumers: 5 groups (fraud, enrich, ledger, audit, analytics)
+
+Sustained write (peak):
+  1M × 600B × 3 = 1.8 GB/sec  =  14.4 Gbps per AZ
+
+7 days hot, raw:
+  1.8 GB/sec × 86,400 × 7 = 1.1 PB
+  At 4x columnar compression: ~275 TB
+
+Effective read (steady-state):
+  1.8 × 5 consumers × 1.2 retry factor = 10.8 GB/sec
+
+Verdict:
+  Kafka: fine on 4 brokers.
+  S3: linear in retention, cheap.
+  Read: 10.8 GB/sec is where you'll sweat.</code></pre>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>When you do napkin math out loud, the interviewer is listening for whether you know which
+    numbers matter. Events per second tells them you asked. Replication times payload tells them
+    you know where the bytes actually go. Fan-out tells them you can separate writes from
+    effective reads — and separating those two is the move that lets you pick the right
+    bottleneck.</p>
+  </div>
+
+  <h2 id="skew">Skew — the Dimension That Eats Averages</h2>
+  <p>Average throughput is a politician's answer. You can't partition for it, alert on it, or
+  provision against it. Production runs on the p99 of a single partition, and at real scale that
+  p99 is almost always one order of magnitude worse than the mean.</p>
+  <p>Skew comes in three flavors, in order of frequency:</p>
+  <ul>
+    <li><strong>Hot key</strong> — one account, product, or session ID takes 30–40% of traffic.
+    The long tail isn't a rhetorical flourish; it's the actual distribution.</li>
+    <li><strong>Hot partition</strong> — the hot key maps to one partition; that worker pins at
+    100% CPU while nine others look healthy on a dashboard.</li>
+    <li><strong>Hot tenant</strong> — the multi-tenant version. One customer bursts at 20× the
+    mean and co-tenants see delays they can't explain, because the dashboard averages it away.</li>
+  </ul>
+
+  <div class="pattern-pair">
+    <div class="callout antipattern">
+      <div class="cal-label">❌ Anti-Pattern</div>
+      <p>Naming a tool before naming a number. "I'd use Kafka and scale from there" lands as
+      confidence theater. A 500-event/sec pipeline doesn't need Kafka.</p>
+    </div>
+    <div class="callout pattern">
+      <div class="cal-label">✅ Pattern</div>
+      <p>Size first, tool second. Sustained throughput, then storage budget, then fan-out, then
+      the tool. If the numbers don't rule anything out, say so and ask for the SLO.</p>
+    </div>
+  </div>
+
+  <h3>Detecting skew before it burns you</h3>
+  <pre><span class="lang">sql</span><code><span class="sql-com">-- src/code-examples/ch02/detect_hot_partitions.sql
+-- Flag partitions carrying more than 3x the mean message volume.
+-- Run nightly against a warehouse export of Kafka topic offsets.</span>
+<span class="sql-kw">WITH</span> per_partition <span class="sql-kw">AS</span> (
+  <span class="sql-kw">SELECT</span> topic, partition, <span class="sql-kw">SUM</span>(message_count) <span class="sql-kw">AS</span> events
+  <span class="sql-kw">FROM</span> kafka_topic_offsets
+  <span class="sql-kw">WHERE</span> event_date = CURRENT_DATE - <span class="sql-kw">INTERVAL</span> <span class="sql-str">'1' DAY</span>
+  <span class="sql-kw">GROUP BY</span> topic, partition
+),
+baseline <span class="sql-kw">AS</span> (
+  <span class="sql-kw">SELECT</span> topic, AVG(events) <span class="sql-kw">AS</span> mean_events
+  <span class="sql-kw">FROM</span> per_partition <span class="sql-kw">GROUP BY</span> topic
+)
+<span class="sql-kw">SELECT</span>
+  p.topic, p.partition, p.events, b.mean_events,
+  ROUND(p.events / b.mean_events, 2) <span class="sql-kw">AS</span> skew_ratio
+<span class="sql-kw">FROM</span> per_partition p
+<span class="sql-kw">JOIN</span> baseline b <span class="sql-kw">USING</span> (topic)
+<span class="sql-kw">WHERE</span> p.events > 3 * b.mean_events
+<span class="sql-kw">ORDER BY</span> skew_ratio <span class="sql-kw">DESC</span>;</code></pre>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Option</th><th>Strengths</th><th>Weaknesses</th><th>Pick When</th></tr></thead>
+      <tbody>
+        <tr><td>Key salting (suffix 0–9)</td><td>Easy to ship, keeps a partitioning scheme</td><td>Reads must reassemble across N partitions</td><td>You own the write path and read can union</td></tr>
+        <tr><td>Range partitioning</td><td>Locality for scans, rebalance by pivot</td><td>Still get a hot range on time-correlated writes</td><td>Keys have natural numeric or time order</td></tr>
+        <tr><td>Consistent hashing w/ vnodes</td><td>Rebalances without full reshuffle, elastic</td><td>Indirection layer, vnode count needs tuning</td><td>You add/remove shards without downtime</td></tr>
+        <tr><td>Dedicated shard for the whale</td><td>Surgical, leaves the fleet untouched</td><td>Threat identification and routing logic required</td><td>Short tail of keys is 20%+ of traffic</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout war">
+    <div class="cal-label">⚠️ War Story</div>
+    <p>A payments team partitioned their ledger topic by <code>user_id</code>. For 99.9% of users
+    this was fine. A single merchant — a flash-sale retailer — accounted for 38% of daily volume.
+    Its partition pinned one consumer at max CPU every night when a cron job kicked off. The team
+    found it six weeks in, when a retry storm from that consumer backfilled far enough to starve
+    the downstream enrichment queue for an hour. The fix was two lines of routing config: a
+    dedicated shard for the top 0.1 percent of accounts.</p>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>When you say "we'll partition by <code>user_id</code>," the interviewer's next question is
+    "what happens when one user is 40 percent of the traffic?" They're testing whether you
+    remember real traffic is a log-tailed distribution, and whether you have a move ready before
+    they have to ask.</p>
+  </div>
+
+  <h2 id="running-system">From a Design to a Running System</h2>
+  <p>You've sized the pipeline on a napkin, named the weakest dimension, and checked for skew.
+  That gets you to a design. It doesn't get you to a running system. Three disciplines keep a
+  sized pipeline standing even when you're wrong about which dimension fails first: <strong>idempotent
+  writes</strong>, <strong>enforced boundaries</strong>, and <strong>the multi-dimensional cost of
+  scaling any one axis</strong>.</p>
+
+  <h3>Idempotency: writes that survive retries</h3>
+  <p>Idempotency is the contract that says: calling the same operation twice produces the same
+  outcome as calling it once. Three mechanisms cover almost every real case.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Option</th><th>Strengths</th><th>Weaknesses</th><th>Pick When</th></tr></thead>
+      <tbody>
+        <tr><td>Hash-fingerprint dedup</td><td>Zero client cooperation, easy to ship</td><td>Collapses semantically genuine duplicates</td><td>Ingestion dedup where duplicates are always bugs</td></tr>
+        <tr><td>Client-supplied idempotency key</td><td>Distinguishes retries from second-intent writes</td><td>Client must cooperate, you carry a key table</td><td>Payment-like ops where same-payload ≠ same-intent</td></tr>
+        <tr><td>Log replay from committed offset</td><td>Free when already on Kafka</td><td>Requires deterministic processing top to bottom</td><td>Stream processing that fits a pure functional model</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <pre><span class="lang">python</span><code><span class="sql-com"># src/code-examples/ch02/idempotent_writer.py
+# Idempotent ledger writer. Same key, same payload: no-op.
+# Same key, different payload: raise (caller confused two ops).</span>
+<span class="sql-kw">import</span> hashlib
+<span class="sql-kw">from</span> dataclasses <span class="sql-kw">import</span> dataclass
+
+<span class="sql-kw">@dataclass</span>
+<span class="sql-kw">class</span> LedgerEntry:
+    account_id: str
+    amount_cents: int
+    idempotency_key: str
+
+<span class="sql-kw">def</span> write_entry(conn, entry: LedgerEntry) -> bool:
+    fp = hashlib.sha256(
+        f<span class="sql-str">"{entry.account_id}|{entry.amount_cents}"</span>.encode()
+    ).hexdigest()
+    <span class="sql-kw">with</span> conn.cursor() <span class="sql-kw">as</span> cur:
+        cur.execute(
+            <span class="sql-str">"""
+            INSERT INTO ledger_idempotency (key, fingerprint, written_at)
+            VALUES (%s, %s, NOW())
+            ON CONFLICT (key) DO NOTHING
+            RETURNING key
+            """</span>,
+            (entry.idempotency_key, fp),
+        )
+        <span class="sql-kw">if</span> cur.fetchone() <span class="sql-kw">is None</span>:
+            cur.execute(
+                <span class="sql-str">"SELECT fingerprint FROM ledger_idempotency WHERE key = %s"</span>,
+                (entry.idempotency_key,),
+            )
+            (seen_fp,) = cur.fetchone()
+            <span class="sql-kw">if</span> seen_fp != fp:
+                <span class="sql-kw">raise</span> ValueError(
+                    <span class="sql-str">"idempotency key reused with a different payload"</span>
+                )
+            <span class="sql-kw">return False</span>
+        cur.execute(
+            <span class="sql-str">"INSERT INTO ledger (account_id, amount_cents) VALUES (%s, %s)"</span>,
+            (entry.account_id, entry.amount_cents),
+        )
+    <span class="sql-kw">return True</span></code></pre>
+
+  <div class="pattern-pair">
+    <div class="callout pattern">
+      <div class="cal-label">✅ Pattern</div>
+      <p>Put the idempotency key in the request path, not just the database schema. A consumer
+      that replays a message should never write a second row.</p>
+    </div>
+    <div class="callout antipattern">
+      <div class="cal-label">❌ Anti-Pattern</div>
+      <p>Relying on <code>ON CONFLICT DO NOTHING</code> as your sole idempotency mechanism. It
+      hides retries — the caller can't tell success-first-time from failed-second-time.</p>
+    </div>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>When you say "I'd make the writes idempotent," the interviewer isn't grading the claim.
+    They're listening for which of three mechanisms you'd pick, and whether you've thought about
+    the hard edge: "what happens when two clients legitimately want to make the same write?"</p>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"For payments I'd take a client-supplied idempotency key because an honest retry and a
+    second-intent duplicate don't arrive at the server the same way, and the idempotency table is
+    the only place I can tell them apart."</p>
+  </div>
+
+  <h3>Boundaries: how a pipeline fails loudly</h3>
+  <p>Pipelines rarely break by stopping. They break by continuing past the point where they should
+  have stopped. Boundaries are how you get the pipeline to fail loudly. Five are enough, mapped
+  onto a canonical stream pipeline below — hover each to see what it catches.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — hover a stage</div>
+    <div id="boundaryDiagram"></div>
+  </div>
+
+  <div class="callout war">
+    <div class="cal-label">⚠️ War Story</div>
+    <p>A streaming dedupe job at a retailer had no watermark and no DLQ. One upstream service
+    started emitting events with timestamps from 1970 after a clock-sync bug. The job tried to
+    window them against three decades of real events and ran out of RAM. The blast radius wasn't
+    the one bad event — it was the six hours of real events the job was holding onto when it
+    crashed. Two lines of watermark config would have dropped the 1970 events as late.</p>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"I'd put backpressure at the gateway, a DLQ on the parse step, and a watermark on the
+    windowing operator. That way 'stuck' has a definition, 'bad record' has a home, and 'too many
+    requests' is a 429 instead of a memory leak."</p>
+  </div>
+
+  <h3>The multi-dimensional cost of scaling one axis</h3>
+  <p>You agreed to double throughput in a standup. You didn't say the four other things you also
+  agreed to. Drag the slider to see how a throughput multiplier cascades across the system.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — drag to scale</div>
+    <div class="cascade-widget">
+      <div class="cascade-control">
+        <label for="cascadeSlider">Throughput multiplier:</label>
+        <input type="range" id="cascadeSlider" min="1" max="10" step="0.5" value="2">
+        <span class="cascade-mult" id="cascadeMultVal">2.0×</span>
+      </div>
+      <div class="cascade-rows" id="cascadeRows"></div>
+    </div>
+    <p class="diagram-caption">Storage stays flat because retention is fixed; tail latency grows
+    nonlinearly once utilization crosses ~70% (M/M/1 queueing behavior) — this is the number that
+    surprises people who only budgeted for linear cost.</p>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>When the interviewer asks "can we scale this 10x?" they want three dimensions priced, not
+    an enthusiastic yes: cost (storage and compute), tail latency (p99, p99.9), and operational
+    overhead (rebalancing, on-call load). Pricing all three is the answer.</p>
+  </div>
+
+  <h2 id="observability">Observability: the Operational Read</h2>
+  <p>A dashboard can tell you the system is on fire. It can't tell you which of the five
+  dimensions set the fire, or whether you should have seen it coming six weeks ago. The mapping
+  below is one-to-one: each dimension has a canonical observable and a drift signal to alert on.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dimension</th><th>Canonical Observable</th><th>Alert On</th></tr></thead>
+      <tbody>
+        <tr><td>Throughput</td><td>Events/sec in vs out, by topic</td><td>Rate drop &gt;20% vs 7-day baseline, 5 min sustained</td></tr>
+        <tr><td>Storage</td><td>Current PB and 7-day growth slope</td><td>Runway under 30 days at current slope</td></tr>
+        <tr><td>Coordination</td><td>Consumer-group lag, rebalance events</td><td>Lag trending up, rebalances &gt;N/hour</td></tr>
+        <tr><td>Skew</td><td>Coefficient of variation across partitions</td><td>CV &gt;0.8 or top-1 partition &gt;10% of volume</td></tr>
+        <tr><td>Tail latency</td><td>p99 and p99.9 at the serving edge</td><td>SLO breach, 2 min sustained</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"For this pipeline I'd instrument three signals and alert on two. Consumer lag per
+    partition, because it's the first place backpressure shows up. Partition CV, because it's the
+    first place drift shows up. And p99.9 at the serving edge, because it's the last place the
+    customer notices."</p>
+  </div>
+
+  <h2 id="drift">Drift: the Weakest Dimension Moves</h2>
+  <p>The system you designed six months ago isn't the system you have today. Key distributions
+  shift as a product grows. Tenants get bigger. New features change traffic shape. The weakest
+  dimension — the one you named at design time — moves.</p>
+  <ul>
+    <li><strong>Key-distribution drift</strong> — a roughly uniform key distribution becomes one
+    tenant at 18% of traffic a year later.</li>
+    <li><strong>Volume drift</strong> as products outgrow original sizing assumptions.</li>
+    <li><strong>Retention drift</strong> as compliance quietly extends "how long we keep this."</li>
+    <li><strong>Consumer-count drift</strong> as more teams subscribe, multiplying read I/O nobody
+    re-budgeted for.</li>
+  </ul>
+
+  <h2 id="transcript">Interview Transcript Excerpt — Fraud Detection Under Load</h2>
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What breaks first under load?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Feature-store p99. The hot window — velocity per card over the last 60 seconds — sits in
+      Redis with a TTL. At peak, those Redis shards get around 50,000 reads per second across five
+      features per transaction. If Redis p99 drifts from 1ms to 10ms, my total latency budget
+      blows up. That's what I'd alert on: Redis p99.9 sustained above 5ms.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Boundaries?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Rate limit at the gateway per merchant. Circuit breaker between Flink and the feature
+      store, failing to a conservative default for a cooldown window if Redis latency blows up.
+      DLQ on the parse step. Watermark on the Flink job with one second of allowed lateness.
+      Backpressure at the Kafka consumer so Flink slows its read when downstream is saturated.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>How would you know, six months from now, that your design is still right?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Quarterly audit. I'd rerun the napkin math against current numbers: is the merchant
+      distribution still long-tailed with the same concentration? Is tail still the dimension I'm
+      pressuring? Is feature-store p99 still the leading indicator? If any of those have drifted,
+      the design needs revision before an incident forces it.</p>
+    </div>
+  </div>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>The Five Dimensions</h4>
+        <p>Throughput · Storage · Coordination · Skew · Tail latency</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Napkin Math</h4>
+        <ul>
+          <li>Write throughput = events/sec × bytes × replication</li>
+          <li>Storage budget = write throughput × retention ÷ compression</li>
+          <li>Real I/O = write throughput × fan-out × retry factor</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Skew Triggers</h4>
+        <p><code>skew_ratio &gt; 3</code> · top-1 partition &gt; 10% of topic · CV &gt; 0.8</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Idempotency Mechanisms</h4>
+        <ul>
+          <li>Hash fingerprint — zero cooperation, collapses genuine dupes</li>
+          <li>Client idempotency key (Stripe) — retry vs. second intent</li>
+          <li>Log replay from committed offset — free on Kafka, needs determinism</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Five Boundaries</h4>
+        <p>Backpressure · Rate limit · Circuit breaker · Dead-letter queue · Watermark</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Coupling Cascade, 2× Throughput</h4>
+        <p>Writes 2x · Network 2x · Tail 3–4x · Brokers +2 · Storage unchanged</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Observability Alert Thresholds</h4>
+        <ul>
+          <li>Consumer-lag trend climbing for a week</li>
+          <li>Partition CV &gt; 0.8</li>
+          <li>p99.9 SLO breach, 2 min sustained</li>
+          <li>Storage runway &lt; 30 days</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Staff-Level Lines</h4>
+        <ul>
+          <li>"Size first, tool second."</li>
+          <li>"Average throughput is a politician's answer."</li>
+          <li>"I'd run a quarterly dimension audit."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>"The Tail at Scale."</strong> Jeff Dean and Luiz Barroso. <em>Communications of the
+    ACM</em>, February 2013. Pair with Dean's 2009 Stanford talk <em>"Numbers Everyone Should
+    Know"</em> for the latency numbers.</li>
+    <li><strong>Designing Data-Intensive Applications.</strong> Martin Kleppmann. O'Reilly, 2017.
+    Read chapters 5–7 for partitioning, replication, and consistency.</li>
+    <li><strong>"Idempotency in the Stripe API."</strong> Brandur Leach. stripe.com/blog, 2017. The
+    canonical engineering writeup on client-supplied idempotency keys.</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- Five Dimensions interactive widget ----------
+const dims = [
+  {name:"Throughput", color:"#e8a33d", pct:70, detail:"How many bytes/sec the wire actually sustains end to end — separate from the advertised peak for one stage in isolation."},
+  {name:"Storage", color:"#5ec9a0", pct:55, detail:"Hot plus cold, after compression, at today's retention policy plus tomorrow's audit requirement."},
+  {name:"Coordination", color:"#6fa8dc", pct:60, detail:"Ordering, idempotency, and the cost of agreeing across machines about what happened. Exactly-once guarantees live here."},
+  {name:"Skew", color:"#e2604f", pct:85, detail:"The shape of load across partitions, keys, and tenants — almost always worse than your dashboard says."},
+  {name:"Tail Latency", color:"#c98be2", pct:90, detail:"p99 and p99.9 at the serving edge — the number your customers actually feel, not the average on your slide."}
+];
+const dimWidget = document.getElementById('dimWidget');
+dims.forEach((d,i)=>{
+  const row = document.createElement('div');
+  row.className = 'dim-row';
+  row.innerHTML = `
+    <div class="dim-name">${d.name}</div>
+    <div class="dim-bar-track"><div class="dim-bar-fill" style="width:0%;background:${d.color}"></div></div>
+  `;
+  const detail = document.createElement('div');
+  detail.className = 'dim-detail';
+  detail.textContent = d.detail;
+  const container = document.createElement('div');
+  container.appendChild(row);
+  container.appendChild(detail);
+  dimWidget.appendChild(container);
+
+  row.addEventListener('click', ()=>{
+    const isShown = detail.classList.contains('show');
+    document.querySelectorAll('.dim-detail').forEach(el=>el.classList.remove('show'));
+    document.querySelectorAll('.dim-row').forEach(el=>el.classList.remove('active'));
+    if(!isShown){ detail.classList.add('show'); row.classList.add('active'); }
+  });
+
+  setTimeout(()=>{ row.querySelector('.dim-bar-fill').style.width = d.pct+'%'; }, 100 + i*80);
+});
+
+// ---------- Boundary pipeline interactive diagram (SVG) ----------
+const boundaryData = [
+  {id:'gateway', label:'API Gateway', x:40, catches:'Noisy-neighbor starvation', tag:'Rate Limit', color:'#e8a33d'},
+  {id:'queue', label:'Queue (Kafka)', x:220, catches:'Queue runaway, OOM, out-of-disk', tag:'Backpressure', color:'#6fa8dc'},
+  {id:'stream', label:'Stream Processor (Flink)', x:420, catches:'Silent "stuck stream" from late data', tag:'Watermark', color:'#5ec9a0'},
+  {id:'store', label:'Store (Iceberg)', x:660, catches:'Cascading failure across stages', tag:'Circuit Breaker', color:'#c98be2'},
+];
+const svgNS = "http://www.w3.org/2000/svg";
+const svg = document.createElementNS(svgNS, "svg");
+svg.setAttribute("viewBox", "0 0 800 220");
+svg.setAttribute("width", "100%");
+svg.style.overflow = "visible";
+svg.style.fontFamily = "IBM Plex Mono, monospace";
+
+const dlqX = 740, dlqY = 150;
+
+// connecting line
+const line = document.createElementNS(svgNS, "line");
+line.setAttribute("x1", 100); line.setAttribute("y1", 60);
+line.setAttribute("x2", 740); line.setAttribute("y2", 60);
+line.setAttribute("stroke", "#262e3a"); line.setAttribute("stroke-width", "2");
+svg.appendChild(line);
+
+let boundaryTooltip;
+boundaryData.forEach((n, idx)=>{
+  const g = document.createElementNS(svgNS, "g");
+  g.style.cursor = "pointer";
+
+  const rect = document.createElementNS(svgNS, "rect");
+  rect.setAttribute("x", n.x); rect.setAttribute("y", 30);
+  rect.setAttribute("width", 130); rect.setAttribute("height", 60);
+  rect.setAttribute("rx", 8);
+  rect.setAttribute("fill", "#1b212b");
+  rect.setAttribute("stroke", "#262e3a");
+  rect.setAttribute("stroke-width", "1.5");
+  g.appendChild(rect);
+
+  const text = document.createElementNS(svgNS, "text");
+  text.setAttribute("x", n.x+65); text.setAttribute("y", 55);
+  text.setAttribute("text-anchor","middle");
+  text.setAttribute("fill", "#dfe6ee");
+  text.setAttribute("font-size", "12");
+  text.textContent = n.label;
+  g.appendChild(text);
+
+  const tagRect = document.createElementNS(svgNS, "rect");
+  tagRect.setAttribute("x", n.x); tagRect.setAttribute("y", 100);
+  tagRect.setAttribute("width", 130); tagRect.setAttribute("height", 26);
+  tagRect.setAttribute("rx", 6);
+  tagRect.setAttribute("fill", n.color);
+  tagRect.setAttribute("opacity", "0.18");
+  tagRect.setAttribute("stroke", n.color);
+  g.appendChild(tagRect);
+
+  const tagText = document.createElementNS(svgNS, "text");
+  tagText.setAttribute("x", n.x+65); tagText.setAttribute("y", 117);
+  tagText.setAttribute("text-anchor","middle");
+  tagText.setAttribute("fill", n.color);
+  tagText.setAttribute("font-size", "10.5");
+  tagText.setAttribute("font-weight","700");
+  tagText.textContent = n.tag;
+  g.appendChild(tagText);
+
+  g.addEventListener('mouseenter', ()=>{
+    rect.setAttribute("stroke", n.color);
+    rect.setAttribute("stroke-width", "2");
+    showBoundaryTooltip(n);
+  });
+  g.addEventListener('mouseleave', ()=>{
+    rect.setAttribute("stroke", "#262e3a");
+    rect.setAttribute("stroke-width", "1.5");
+  });
+
+  svg.appendChild(g);
+});
+
+// DLQ node
+const dlqG = document.createElementNS(svgNS, "g");
+const dlqRect = document.createElementNS(svgNS, "rect");
+dlqRect.setAttribute("x", 300); dlqRect.setAttribute("y", 160);
+dlqRect.setAttribute("width", 200); dlqRect.setAttribute("height", 50);
+dlqRect.setAttribute("rx", 8);
+dlqRect.setAttribute("fill", "#3f2420");
+dlqRect.setAttribute("stroke", "#e2604f");
+dlqRect.setAttribute("stroke-width", "1.5");
+dlqG.appendChild(dlqRect);
+const dlqText = document.createElementNS(svgNS, "text");
+dlqText.setAttribute("x", 400); dlqText.setAttribute("y", 190);
+dlqText.setAttribute("text-anchor", "middle");
+dlqText.setAttribute("fill", "#e2604f");
+dlqText.setAttribute("font-size", "12");
+dlqText.setAttribute("font-weight", "700");
+dlqText.textContent = "Dead-Letter Queue";
+dlqG.appendChild(dlqText);
+dlqG.addEventListener('mouseenter', ()=>{
+  showBoundaryTooltip({label:'Dead-Letter Queue', catches:'Poison messages / schema drift — quarantined with a reason tag, not dropped', tag:'Re-drive required', color:'#e2604f'});
+});
+svg.appendChild(dlqG);
+
+const dashLine = document.createElementNS(svgNS, "line");
+dashLine.setAttribute("x1", 400); dashLine.setAttribute("y1", 90);
+dashLine.setAttribute("x2", 400); dashLine.setAttribute("y2", 160);
+dashLine.setAttribute("stroke", "#e2604f");
+dashLine.setAttribute("stroke-width", "1.5");
+dashLine.setAttribute("stroke-dasharray", "4,3");
+svg.appendChild(dashLine);
+
+document.getElementById('boundaryDiagram').appendChild(svg);
+
+const tooltipDiv = document.createElement('div');
+tooltipDiv.style.cssText = "margin-top:16px;padding:14px 16px;background:#0a0d12;border-radius:6px;font-size:13.5px;color:#8b96a5;min-height:24px;border-left:2px solid #262e3a;";
+tooltipDiv.textContent = "Hover a stage above to see what boundary protects it and what it catches.";
+document.getElementById('boundaryDiagram').appendChild(tooltipDiv);
+
+function showBoundaryTooltip(n){
+  tooltipDiv.style.borderLeftColor = n.color;
+  tooltipDiv.innerHTML = `<strong style="color:${n.color}">${n.tag}</strong> — ${n.catches}`;
+}
+
+// ---------- Coupling cascade slider ----------
+const cascadeMetrics = [
+  {label:'Writes', color:'#e8a33d', calc:(m)=> m, max:10, fmt:(v)=>v.toFixed(1)+'x'},
+  {label:'Network', color:'#6fa8dc', calc:(m)=> m, max:10, fmt:(v)=>v.toFixed(1)+'x'},
+  {label:'Tail latency', color:'#e2604f', calc:(m)=> m<=1?1: Math.pow(m,1.8), max:60, fmt:(v)=>v.toFixed(1)+'x'},
+  {label:'Coordination', color:'#c98be2', calc:(m)=> 1 + (m-1)*0.6, max:10, fmt:(v)=>v.toFixed(1)+'x'},
+  {label:'Storage', color:'#5ec9a0', calc:(m)=> 1, max:10, fmt:(v)=>v.toFixed(1)+'x (fixed retention)'},
+];
+const cascadeRows = document.getElementById('cascadeRows');
+cascadeMetrics.forEach(m=>{
+  const row = document.createElement('div');
+  row.className = 'cascade-item';
+  row.innerHTML = `
+    <div class="cascade-label">${m.label}</div>
+    <div class="cascade-track"><div class="cascade-fill" id="fill-${m.label}" style="width:10%;background:${m.color}"></div></div>
+    <div class="cascade-val" id="val-${m.label}">1.0x</div>
+  `;
+  cascadeRows.appendChild(row);
+});
+
+function updateCascade(mult){
+  document.getElementById('cascadeMultVal').textContent = mult.toFixed(1)+'×';
+  cascadeMetrics.forEach(m=>{
+    const val = m.calc(mult);
+    const pct = Math.min(100, (val / m.max) * 100);
+    document.getElementById(`fill-${m.label}`).style.width = pct+'%';
+    document.getElementById(`val-${m.label}`).textContent = m.fmt(val);
+  });
+}
+document.getElementById('cascadeSlider').addEventListener('input', (e)=>{
+  updateCascade(parseFloat(e.target.value));
+});
+updateCascade(2);
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

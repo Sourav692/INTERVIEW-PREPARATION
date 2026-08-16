@@ -1,0 +1,788 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.14 — Cost at Scale | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --purple:#c98be2;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:600;
+    margin:60px 0 18px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:18px;
+    font-weight:700;
+    margin:32px 0 12px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  .opening-lines{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:28px 28px 20px;
+    margin:28px 0 40px;
+  }
+  .opening-lines .label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    margin-bottom:16px;
+  }
+  .opening-lines blockquote{
+    font-family:var(--serif);
+    font-size:17px;
+    font-style:italic;
+    color:#eef1f5;
+    margin:0 0 18px;
+    padding-left:16px;
+    border-left:2px solid var(--amber);
+  }
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+
+  .pattern-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;}
+  @media(max-width:680px){.pattern-pair{grid-template-columns:1fr;}}
+  .pattern-pair .callout{margin:0;}
+
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{
+    background:var(--bg-panel-raised);
+    text-align:left;
+    padding:12px 16px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    border-bottom:1px solid var(--rule);
+  }
+  td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink-dim);
+    vertical-align:top;
+  }
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+
+  pre{
+    background:#0a0d12;
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+    margin:20px 0;
+    position:relative;
+  }
+  pre .lang{
+    position:absolute;top:10px;right:14px;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--ink-faint);
+  }
+  pre code{background:none;padding:0;color:#c3d6e8;}
+  .sql-kw{color:var(--amber);}
+  .sql-str{color:var(--green);}
+  .sql-com{color:var(--ink-faint);font-style:italic;}
+
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul, .cheat-card ol{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+  .t-line strong.wk{color:var(--amber);}
+
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .further-reading strong{color:var(--ink);}
+
+  .supplementary{
+    border:1px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 24px;
+    margin-top:24px;
+    background:var(--bg-panel);
+  }
+  .supplementary-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: storage tier cost bars --- */
+  .tier-widget{display:flex;flex-direction:column;gap:16px;}
+  .tier-bars{
+    display:flex;align-items:flex-end;gap:20px;height:180px;padding:0 12px;
+    border-bottom:2px solid var(--rule);
+  }
+  .tier-bar-col{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+    height:100%;cursor:pointer;
+  }
+  .tier-bar{
+    width:100%;max-width:90px;border-radius:6px 6px 0 0;
+    transition:height 0.6s cubic-bezier(0.2,0.8,0.2,1), filter 0.2s;
+  }
+  .tier-bar-col:hover .tier-bar{filter:brightness(1.2);}
+  .tier-bar-label{font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);margin-top:10px;text-align:center;}
+  .tier-bar-val{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .tier-detail{
+    font-size:13.5px;color:var(--ink-dim);padding:14px 16px;background:#0a0d12;
+    border-left:2px solid var(--amber);border-radius:0 6px 6px 0;min-height:24px;
+  }
+
+  /* --- Interactive: reservation calculator --- */
+  .resv-calc{background:#0a0d12;border-radius:10px;padding:24px;}
+  .resv-controls{margin-bottom:20px;}
+  .resv-controls label{
+    display:block;font-family:var(--mono);font-size:12px;color:var(--ink-dim);margin-bottom:10px;
+  }
+  .resv-controls input[type=range]{width:100%;accent-color:var(--amber);}
+  .resv-val{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--amber);margin-top:6px;}
+  .resv-result{
+    background:var(--bg-panel-raised);border-radius:8px;padding:18px;text-align:center;
+  }
+  .resv-result-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--ink-faint);}
+  .resv-result-value{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--green);margin:6px 0;}
+  .resv-result.danger .resv-result-value{color:var(--red);}
+  .resv-result-sub{font-size:12.5px;color:var(--ink-dim);}
+
+  /* --- Interactive: Pareto spend chart --- */
+  .pareto-widget{display:flex;flex-direction:column;gap:6px;}
+  .pareto-row{display:grid;grid-template-columns:90px 1fr 60px;gap:10px;align-items:center;}
+  .pareto-label{font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);}
+  .pareto-track{height:14px;background:#0a0d12;border-radius:4px;overflow:hidden;}
+  .pareto-fill{height:100%;border-radius:4px;transition:width 0.5s ease;}
+  .pareto-val{font-family:var(--mono);font-size:12px;text-align:right;color:var(--ink);}
+  .pareto-callout{
+    margin-top:14px;padding:12px 16px;border-radius:6px;background:#0a0d12;
+    border-left:2px solid var(--amber);font-size:13px;color:var(--ink-dim);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 14</div>
+    <h1 class="title">Cost at Scale</h1>
+    <p class="subtitle">Cutting a data platform's bill by 30–40% is almost never about getting a
+    better vendor deal. It's about finding which queries scan more than they need to, and moving
+    the right data to a cheaper shelf.</p>
+    <div class="chap-note">Printed as "Chapter Thirteen" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 14.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Two roommates both want to cut the household bill. One negotiates a slightly better
+    electricity rate. The other actually walks through the house and finds the water heater's
+    been running full blast 24/7 for no reason.</p>
+    <p><strong>Negotiating helps a little. Finding the actual waste helps a lot.</strong> That's
+    the whole chapter — cost optimization is a design discipline, not a billing one.</p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>Storage cost grows linearly; compute cost grows with the square of optimization
+    neglect. A query that scans a partition isn't the same as a query that scans the table.</blockquote>
+    <blockquote>Cold tiering pays for itself the first time someone needs 90-day retention on a
+    dataset that's hot-queried for two days after ingestion.</blockquote>
+    <blockquote>Reserved vs. on-demand is a bet about workload predictability. I can state the
+    forecast error I'm willing to accept.</blockquote>
+    <blockquote>Cost per query is a user-level metric, not an aggregate. Five percent of users
+    cause eighty percent of the bill, and you can't fix that by tuning the warehouse.</blockquote>
+    <blockquote>The best compute cost is the compute I didn't spend. Every dollar saved on a
+    recurring query is saved every time it runs.</blockquote>
+  </div>
+
+  <h2 id="two-teams">Why Two Teams With the Same Starting Bill Ended Up Nowhere Near Each Other</h2>
+  <p>Two platforms, same tech stack, both paying $1.2M a month. <strong>Team A's</strong> finance
+  lead negotiated a 15% vendor discount — saved $180k a month, everyone celebrated.</p>
+  <p><strong>Team B</strong> identified their top 20 most expensive queries (1% of volume, 60% of
+  compute cost), pre-computed the worst five, moved 70% of cold data to a cheap archive tier, and
+  switched 60% of compute to discounted reserved capacity. <strong>They saved $480k a month and
+  never talked to a vendor.</strong></p>
+  <p>Same stack, same starting bill. Team B treated cost as a design problem. Team A treated it as
+  a billing problem.</p>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Treating cost optimization as vendor negotiation. A vendor discount is capped at whatever
+    margin they're willing to give up — usually 10–20%. Architectural headroom underneath is often
+    2x to 5x that, and entirely in your own control. Negotiation is a closing move, not an opening
+    one.</p>
+  </div>
+
+  <h2 id="where-money-goes">Idea 1: Where the Money Actually Goes</h2>
+  <p>A typical data platform bill, in order of size: <strong>Compute (50–70%)</strong> — the
+  biggest and most variable lever. <strong>Storage (20–30%)</strong> — steady, predictable, the
+  easiest lever. <strong>Data movement (5–15%)</strong> — easy to forget until it's large.
+  <strong>Third-party tools (5–15%)</strong> — often growing fastest.</p>
+  <p>Optimization effort should follow the line items — not whichever one is easiest to talk
+  about in a meeting.</p>
+
+  <h2 id="compute-nonlinear">Idea 2: Storage Cost Is Simple. Compute Cost Is Not.</h2>
+  <p><strong>Storage is linear</strong> — twice the data, roughly twice the cost. <strong>Compute
+  is not</strong>, in two separate ways: cost scales with bytes scanned (not query complexity), and
+  cost compounds with how often a query runs.</p>
+  <p>A $1 query run hourly costs ~$730/month. A $50 query run hourly costs ~$36,000/month. The
+  same absolute fix saves 10x more on the expensive, frequent query.</p>
+
+  <pre><span class="lang">sql</span><code><span class="sql-com">-- src/code-examples/ch13/cost_attribution.sql
+-- Rank users by 30-day compute cost. Typical shape: top 10 users
+-- = 60% of the bill, top 20 = 80%.</span>
+<span class="sql-kw">WITH</span> user_query_stats <span class="sql-kw">AS</span> (
+    <span class="sql-kw">SELECT</span>
+        user_email, <span class="sql-kw">COUNT</span>(*) <span class="sql-kw">AS</span> query_count,
+        <span class="sql-kw">SUM</span>(bytes_scanned) <span class="sql-kw">AS</span> total_bytes_scanned,
+        ROUND(<span class="sql-kw">SUM</span>(bytes_scanned) / POWER(2, 40) * 5.00, 2) <span class="sql-kw">AS</span> est_cost_usd
+    <span class="sql-kw">FROM</span> warehouse.query_history
+    <span class="sql-kw">WHERE</span> start_time >= CURRENT_DATE - <span class="sql-kw">INTERVAL</span> <span class="sql-str">'30' DAY</span>
+    <span class="sql-kw">GROUP BY</span> user_email
+)
+<span class="sql-kw">SELECT</span> user_email, query_count, est_cost_usd,
+    RANK() <span class="sql-kw">OVER</span> (<span class="sql-kw">ORDER BY</span> est_cost_usd <span class="sql-kw">DESC</span>) <span class="sql-kw">AS</span> cost_rank
+<span class="sql-kw">FROM</span> user_query_stats
+<span class="sql-kw">ORDER BY</span> cost_rank <span class="sql-kw">LIMIT</span> 20;</code></pre>
+
+  <h3>Interactive — where the bill actually concentrates</h3>
+  <div class="diagram-card">
+    <div class="diagram-hint">A typical Pareto shape from real attribution data</div>
+    <div class="pareto-widget" id="paretoWidget"></div>
+    <div class="pareto-callout">Top 5 users: ~40% of bill. Top 10: ~60%. Top 20: ~80%. The long
+    tail of hundreds of other users is mostly noise — optimizing them wastes effort that should go
+    toward the top 20.</div>
+  </div>
+
+  <div class="callout war">
+    <div class="cal-label">⚠️ War Story</div>
+    <p>A data platform team at a consumer SaaS company was paying $900k a month in warehouse
+    costs. A single day building a cost-attribution report revealed 62% of the bill came from just
+    14 users — nine running BI dashboards against raw tables, three running ad-hoc queries asking
+    for every column against tables organized for a different filter pattern, two doing legitimate
+    ML prep. The fix: pre-computed summary tables for the dashboards (one week), a per-query cost
+    alert (two days), and an office-hours session with the three ad-hoc users (one afternoon).
+    Nobody talked to a vendor. Six weeks later the bill was $420k — a 53% reduction. The users
+    weren't doing anything malicious; nobody had ever shown them what their own queries cost.</p>
+  </div>
+
+  <h2 id="storage-tiering">Idea 3: Storage Tiering — The Cheapest, Easiest Win</h2>
+  <p>Cloud storage providers publish tiers roughly 10x apart end to end. Click each one below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a tier</div>
+    <div class="tier-widget">
+      <div class="tier-bars" id="tierBars"></div>
+      <div class="tier-detail" id="tierDetail">Click a bar above to see when that tier makes
+      sense and its rough cost per terabyte per month.</div>
+    </div>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"Cold tiering pays for itself the first time someone needs 90-day retention on a dataset
+    that's hot-queried for two days after ingestion."</p>
+  </div>
+
+  <h2 id="reserved">Idea 4: Reserved vs. On-Demand — A Bet on Predictability</h2>
+  <p>Most vendors discount 20–40% for committing upfront to a baseline usage level. The size of
+  that commitment should be driven by one number: <strong>how accurate is your usage
+  forecast?</strong> Try the calculator below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — adjust your measured forecast error</div>
+    <div class="resv-calc">
+      <div class="resv-controls">
+        <label for="forecastError">Measured forecast error (how far off predictions typically are)</label>
+        <input type="range" id="forecastError" min="0" max="50" step="1" value="10">
+        <div class="resv-val" id="forecastErrorVal">10%</div>
+      </div>
+      <div class="resv-result" id="resvResultBox">
+        <div class="resv-result-label">Recommended commitment level</div>
+        <div class="resv-result-value" id="resvResultVal">85% of baseline</div>
+        <div class="resv-result-sub" id="resvResultSub">High predictability — commit aggressively and capture the max discount.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"Reserved vs. on-demand is a bet about workload predictability. I can state the forecast
+    error I'm willing to accept."</p>
+  </div>
+
+  <h2 id="attribution">Idea 5: Knowing Who's Actually Spending the Money</h2>
+  <p>A single aggregate bill hides where money goes. Per-user, per-query attribution is the single
+  most useful cost report — it turns "the warehouse is expensive" into "this pipeline costs
+  $80/month and the owner can cut it 60% with a one-week refactor."</p>
+  <p>Three things a useful attribution system needs: <strong>per-query cost</strong> (already
+  tracked by most warehouses' system logs), <strong>per-user rollups</strong>, and
+  <strong>monthly budget alerts</strong> at 50/80/100% — that trigger a conversation, not a block.</p>
+
+  <div class="callout pattern">
+    <div class="cal-label">✅ Pattern</div>
+    <p>Ship per-user cost dashboards before any cost-reduction effort. Attribution is the
+    precondition; optimization follows. The cheapest way to save $100k a month is often showing
+    the top five spenders their own numbers.</p>
+  </div>
+
+  <h2 id="transcript">A Real Interview, Walked Through Simply</h2>
+  <p>The classic cost prompt: a specific savings target, no capability loss, no vendor migration.
+  Watch the candidate sequence by speed of payoff — and catch their own reservation math mid-answer.</p>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Cut the monthly bill by 40% without reducing capabilities or migrating vendors. Current
+      bill: $1.2M/month.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Is the bill growing, flat, or shrinking? What does cost attribution look like today? Is
+      there existing storage tiering?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Growing 8% a quarter. Rough team-level attribution only. Everything on the standard
+      storage tier, no tiering policy.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>So this is cost cut plus growth control. Four workstreams, sequenced by payoff speed:
+      <strong class="wk">(1) attribution</strong> — ship a per-user dashboard in 2 weeks, the
+      precondition for everything else. <strong class="wk">(2) storage tiering</strong> — auto-tier
+      cold data, ~$120k/month saved, ~10% of bill, low risk. <strong class="wk">(3) query
+      optimization</strong> — materialize and rewrite the top 20 expensive queries, ~$200k/month,
+      ~17% of bill. <strong class="wk">(4) reservation tuning</strong> — commit 70% of the new
+      baseline after optimization lands.</p>
+      <p><em>(pauses)</em> Let me actually sanity-check that reservation number instead of just
+      asserting it. 70% reserved at a 30% discount is 21% savings on that portion — on a
+      post-optimization $600k/month bill, that's roughly $126k saved. Matches my estimate. But our
+      8%-per-quarter growth could push us past the commitment within the year — if we grow 32%
+      over the coming year, the overage eats into the discount.</p>
+      <p>Actually, I'd revise down to 60% committed instead of 70% — about $100k saved instead of
+      $126k, but it protects us if growth accelerates.</p>
+      <p>Cumulative: ~36%, close to but short of 40%. I'd add a fifth workstream:
+      <strong class="wk">(5) dashboard refresh renegotiation</strong> — most dashboards refresh
+      every 15 minutes by default; auditing the top 10 and moving the ones that don't need
+      sub-hour freshness to hourly/daily cuts dashboard compute ~80%, roughly $80k/month. Total:
+      ~43%.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What are the risks?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Reservation timing — commit after optimization lands, not before, or we lock in excess
+      capacity based on the old, wasteful baseline. Dashboard refresh pushback — needs executive
+      backing, since the loudest users tend to overstate how much freshness they actually need.
+      Attribution gaming — once users see their own costs, some will route through shared service
+      accounts to hide. Need a tagging policy before attribution ships.</p>
+    </div>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Starting with vendor negotiation.</strong> The discount ceiling is their margin,
+    usually 10–20%. The architecture's ceiling is 2x to 5x that.</li>
+    <li><strong>Optimizing without attribution first.</strong> You cut something visible, not
+    something expensive. Net savings are close to nothing.</li>
+    <li><strong>Committing to reserved capacity without measuring forecast error.</strong> You
+    commit to capacity the workload won't use — the penalty cancels the discount.</li>
+    <li><strong>Deferring storage tiering.</strong> The easiest win, left on the table because
+    nobody scheduled the short job to set it up.</li>
+    <li><strong>Treating cost as a quarterly project instead of an ongoing habit.</strong> Savings
+    regress within 2–3 quarters without a monthly review.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>Where the Money Goes</h4>
+        <p>Compute 50–70% · Storage 20–30% · Data movement 5–15% · Third-party tools 5–15%</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Storage Tiers (~10x Apart)</h4>
+        <p>Hot ~$23/TB/mo · Warm ~$12 · Cold ~$4 · Archive ~$1</p>
+        <p>Default: hot 30 days, warm to 180, cold/archive after.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Compute, Two Dimensions</h4>
+        <ul>
+          <li>Scales with bytes scanned, not query complexity</li>
+          <li>Compounds with frequency — prioritize (cost × runs)</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Reservation by Forecast Error</h4>
+        <ul>
+          <li>Under 10% error → commit 80–90%</li>
+          <li>10–30% error → commit 50–70%</li>
+          <li>Over 30% error → minimal or none</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Optimization Priority Order</h4>
+        <ol>
+          <li>Build attribution (~2 weeks)</li>
+          <li>Materialize top 5–10 recurring queries</li>
+          <li>Rewrite function-on-partition, SELECT * anti-patterns</li>
+          <li>Route dashboards to pre-aggregates</li>
+          <li>Tune reservations, after the above</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Attribution before optimization."</li>
+          <li>"Architecture before vendor negotiation."</li>
+          <li>"The best compute cost is the compute you didn't spend."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Spot/interruptible compute as a deliberate cost lever:</strong> fault-tolerant,
+      non-urgent workloads (backfills, ETL rewrites, ML training, compaction) can run 70–100% on
+      cheaper interruptible compute, at 60–90% lower cost. Latency-sensitive or stateful workloads
+      stay on guaranteed capacity. Most platforms blend both.</li>
+      <li><strong>Serverless vs. dedicated clusters is a separate cost trade-off:</strong>
+      serverless is cost-effective for bursty, short-lived work with no idle cost, but can get
+      expensive at high sustained volume since it doesn't benefit from a long-running cluster's
+      caching or locality. Real platforms typically run both — serverless for ingestion and
+      ad-hoc queries, clusters for continuous heavy lifting.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>Site Reliability Engineering (the "SRE Book"), on error budgets and capacity
+    planning.</strong> Google, 2016. The forecasting and capacity-commitment thinking in this
+    chapter borrows directly from SRE's approach to capacity planning under uncertainty.</li>
+    <li><strong>Cloud provider pricing documentation (AWS, GCP, Azure)</strong> for storage tiers
+    and reserved capacity. Specific numbers shift; the roughly-10x tiering shape has stayed
+    consistent across providers for years.</li>
+    <li><strong>Your own warehouse's query history system view</strong> (Snowflake's
+    <code>QUERY_HISTORY</code>, BigQuery's <code>INFORMATION_SCHEMA.JOBS</code>, Redshift's
+    <code>STL_QUERY</code>). The attribution data already exists — the work is turning it into
+    dollars.</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- Storage tier bars ----------
+const tierData = [
+  {label:'Hot', pct:100, cost:'~$23/TB/mo', color:'#e2604f', detail:'Hot (Standard) — sub-100ms reads, no retrieval fee. Right for data queried regularly, day to day.'},
+  {label:'Warm', pct:52, cost:'~$12/TB/mo', color:'#e8a33d', detail:'Warm (Infrequent-Access) — same speed when accessed, but a retrieval fee applies. Pays back above roughly a 45-day access interval.'},
+  {label:'Cold', pct:17, cost:'~$4/TB/mo', color:'#6fa8dc', detail:'Cold (Archive-Instant) — milliseconds to read, a larger retrieval fee. Right for data queried less than once a quarter.'},
+  {label:'Archive', pct:4, cost:'~$1/TB/mo', color:'#5ec9a0', detail:'Deep Archive — minutes to hours to retrieve. True long-term retention, rarely if ever read. About a 20th the price of Hot.'},
+];
+const tierBars = document.getElementById('tierBars');
+const tierDetail = document.getElementById('tierDetail');
+tierData.forEach((t,i)=>{
+  const col = document.createElement('div');
+  col.className = 'tier-bar-col';
+  col.innerHTML = `
+    <div class="tier-bar-val">${t.cost}</div>
+    <div class="tier-bar" style="height:0%;background:${t.color}"></div>
+    <div class="tier-bar-label">${t.label}</div>
+  `;
+  col.addEventListener('click', ()=>{ tierDetail.textContent = t.detail; });
+  col.addEventListener('mouseenter', ()=>{ tierDetail.textContent = t.detail; });
+  tierBars.appendChild(col);
+  setTimeout(()=>{ col.querySelector('.tier-bar').style.height = t.pct+'%'; }, 100 + i*100);
+});
+
+// ---------- Reservation calculator ----------
+const forecastError = document.getElementById('forecastError');
+const forecastErrorVal = document.getElementById('forecastErrorVal');
+const resvResultBox = document.getElementById('resvResultBox');
+const resvResultVal = document.getElementById('resvResultVal');
+const resvResultSub = document.getElementById('resvResultSub');
+
+function updateResv(){
+  const err = parseInt(forecastError.value);
+  forecastErrorVal.textContent = err + '%';
+  let commitPct, sub, danger = false;
+  if(err < 10){
+    commitPct = '80\u201390%'; sub = 'High predictability \u2014 commit aggressively and capture the max discount.';
+  } else if(err <= 30){
+    commitPct = '50\u201370%'; sub = 'Medium predictability \u2014 commit to your usage floor, balance discount against risk.';
+  } else {
+    commitPct = 'Minimal or none'; sub = 'Low predictability \u2014 the penalty for over-committing outweighs the discount.';
+    danger = true;
+  }
+  resvResultVal.textContent = commitPct + ' of baseline';
+  resvResultSub.textContent = sub;
+  resvResultBox.classList.toggle('danger', danger);
+}
+forecastError.addEventListener('input', updateResv);
+updateResv();
+
+// ---------- Pareto spend chart ----------
+const paretoData = [
+  {label:'Top 5', pct:40, color:'#e2604f'},
+  {label:'Top 10', pct:60, color:'#e8a33d'},
+  {label:'Top 20', pct:80, color:'#5ec9a0'},
+  {label:'Everyone else', pct:20, color:'#6fa8dc'},
+];
+const paretoWidget = document.getElementById('paretoWidget');
+paretoData.forEach((p,i)=>{
+  const row = document.createElement('div');
+  row.className = 'pareto-row';
+  row.innerHTML = `
+    <div class="pareto-label">${p.label}</div>
+    <div class="pareto-track"><div class="pareto-fill" style="width:0%;background:${p.color}"></div></div>
+    <div class="pareto-val">${p.pct}%</div>
+  `;
+  paretoWidget.appendChild(row);
+  setTimeout(()=>{ row.querySelector('.pareto-fill').style.width = p.pct+'%'; }, 100 + i*100);
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

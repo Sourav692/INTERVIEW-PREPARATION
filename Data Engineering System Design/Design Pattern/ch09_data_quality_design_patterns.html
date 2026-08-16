@@ -1,0 +1,1245 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 9 — Data Quality Design Patterns</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+  :root{
+    --paper:#F7F4EC;
+    --paper-dim:#EFEADE;
+    --ink:#1B2430;
+    --ink-soft:#3A4454;
+    --teal:#3D7068;
+    --teal-deep:#26463F;
+    --amber:#B5652B;
+    --amber-soft:#F3E3D2;
+    --teal-soft:#E1EDE9;
+    --line:#D8D2C2;
+    --code-bg:#20282F;
+    --code-text:#E7E2D2;
+    --card-shadow: 0 1px 0 rgba(27,36,48,0.06), 0 8px 24px -12px rgba(27,36,48,0.18);
+    --radius: 3px;
+  }
+
+  @font-face{
+    font-family:'FallbackSlab';
+    src: local('Georgia');
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family: 'Source Sans Pro', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height:1.6;
+    font-size:16px;
+  }
+
+  h1,h2,h3,h4{
+    font-family: 'Roboto Slab', Georgia, 'Times New Roman', serif;
+    font-weight:700;
+    color:var(--ink);
+    letter-spacing:-0.01em;
+  }
+
+  code, pre, .mono{
+    font-family:'JetBrains Mono','Fira Code', ui-monospace, Menlo, Consolas, monospace;
+  }
+
+  a{color:var(--teal-deep);}
+
+  /* ===== Masthead ===== */
+  .masthead{
+    background: var(--ink);
+    color: var(--paper);
+    padding: 56px 24px 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  .masthead::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(247,244,236,0.035) 0px, rgba(247,244,236,0.035) 1px, transparent 1px, transparent 64px);
+    pointer-events:none;
+  }
+  .masthead-inner{
+    max-width: 980px;
+    margin: 0 auto;
+    position:relative;
+  }
+  .kicker{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color: #9FD6C8;
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .kicker .seal{
+    width:20px;height:20px;
+    border:1.5px solid #9FD6C8;
+    border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:11px;
+  }
+  .masthead h1{
+    color:var(--paper);
+    font-size: clamp(2rem, 5vw, 3.1rem);
+    margin: 0 0 12px;
+    line-height:1.08;
+  }
+  .masthead p.lede{
+    color:#C9CFD9;
+    max-width:640px;
+    font-size:1.05rem;
+    margin:0 0 28px;
+  }
+  .cat-pills{
+    display:flex; gap:10px; flex-wrap:wrap;
+  }
+  .cat-pill{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    padding:7px 12px;
+    border:1px solid rgba(159,214,200,0.4);
+    border-radius:20px;
+    color:#9FD6C8;
+    background: rgba(159,214,200,0.06);
+  }
+
+  /* ===== Layout ===== */
+  .wrap{max-width:980px; margin:0 auto; padding: 44px 24px 100px;}
+  section{margin-bottom:56px;}
+  .section-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--teal-deep);
+    margin-bottom:8px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .section-label::before{
+    content:"";
+    width:22px;height:1px;background:var(--teal);
+  }
+  h2.chapter-h{
+    font-size:1.85rem;
+    margin:0 0 20px;
+    padding-bottom:14px;
+    border-bottom:2px solid var(--ink);
+  }
+  h3.cat-h{
+    font-size:1.3rem;
+    margin: 0 0 18px;
+    color: var(--teal-deep);
+  }
+
+  p{margin:0 0 14px;}
+
+  /* ===== Callouts ===== */
+  .callout{
+    border-left:4px solid var(--teal);
+    background: var(--teal-soft);
+    padding: 14px 18px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 18px 0;
+    font-size:0.96rem;
+  }
+  .callout .label{
+    font-weight:700;
+    display:block;
+    margin-bottom:4px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.8rem;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+  }
+  .callout.note{border-left-color:var(--teal); background:var(--teal-soft);}
+  .callout.note .label{color:var(--teal-deep);}
+  .callout.warning{border-left-color:var(--amber); background:var(--amber-soft);}
+  .callout.warning .label{color:#8A4A1E;}
+  .callout.case-study{border-left-color:#5B4B8A; background:#EDE8F5;}
+  .callout.case-study .label{color:#3F3266;}
+  .callout.say{border-left-color:#1B6B4F; background:#E4F0EA;}
+  .callout.say .label{color:#144F3A;}
+  .callout p:last-child{margin-bottom:0;}
+
+  /* ===== Pattern Card ===== */
+  .pattern-card{
+    background:#FFFFFF;
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--card-shadow);
+    margin-bottom: 34px;
+    overflow:hidden;
+  }
+  .pattern-head{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding: 20px 24px;
+    background: linear-gradient(90deg, var(--ink) 0%, var(--teal-deep) 130%);
+  }
+  .pattern-seal{
+    flex:0 0 auto;
+    width:38px;height:38px;
+    border-radius:50%;
+    border:2px solid #9FD6C8;
+    display:flex;align-items:center;justify-content:center;
+    color:#9FD6C8;
+    font-family:'Roboto Slab', serif;
+    font-weight:700;
+    font-size:1rem;
+  }
+  .pattern-head h4{
+    color:var(--paper);
+    margin:0;
+    font-size:1.25rem;
+  }
+  .pattern-head .pattern-eyebrow{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    color:#9FD6C8;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    margin-bottom:2px;
+  }
+  .pattern-body{padding: 24px 28px 28px;}
+
+  .subhead{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--ink-soft);
+    margin: 22px 0 8px;
+    padding-bottom:6px;
+    border-bottom:1px solid var(--line);
+  }
+  .subhead:first-child{margin-top:0;}
+  .subhead.problem{color:#8A4A1E;}
+  .subhead.solution{color:var(--teal-deep);}
+  .subhead.consequences{color:#6B4F1E;}
+  .subhead.examples{color:#2E4A6E;}
+
+  /* ===== Code ===== */
+  .code-block{
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: var(--radius);
+    margin: 10px 0 18px;
+    overflow:hidden;
+  }
+  .code-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:#9FD6C8;
+    background: rgba(159,214,200,0.08);
+    padding:6px 14px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  pre{
+    margin:0;
+    padding:16px;
+    overflow-x:auto;
+    font-size:0.85rem;
+    line-height:1.55;
+  }
+
+  /* ===== Tables ===== */
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin: 12px 0 20px;
+    font-size:0.92rem;
+    background:#fff;
+  }
+  caption{
+    text-align:left;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--teal-deep);
+    margin-bottom:8px;
+  }
+  th{
+    background: var(--ink);
+    color: var(--paper);
+    text-align:left;
+    padding:10px 14px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  td{
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  tr:nth-child(even) td{background: #FBF9F3;}
+
+  /* ===== Diagram wrapper ===== */
+  .diagram-wrap{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+    margin: 18px 0 24px;
+    overflow-x:auto;
+  }
+  .diagram-caption{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    margin-bottom:10px;
+  }
+
+  /* ===== Interactive AWAP diagram ===== */
+  .awap-widget{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+    margin:18px 0 24px;
+  }
+  .awap-tabs{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+  .awap-tab{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    padding:7px 14px;
+    border:1px solid var(--teal);
+    border-radius:20px;
+    background:#fff;
+    color:var(--teal-deep);
+    cursor:pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .awap-tab:hover{background:var(--teal-soft);}
+  .awap-tab.active{background:var(--teal); color:#fff;}
+  .awap-tab:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+  .awap-stage{min-height:190px;}
+  .awap-flow{
+    display:flex;
+    align-items:center;
+    gap:0;
+    flex-wrap:wrap;
+    row-gap:14px;
+  }
+  .awap-node{
+    font-size:0.82rem;
+    padding:12px 14px;
+    border-radius:var(--radius);
+    border:1.5px solid var(--ink);
+    background:var(--paper);
+    min-width:120px;
+    text-align:center;
+    cursor:default;
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .awap-node.gate{
+    border-color:var(--teal);
+    background:var(--teal-soft);
+    color:var(--teal-deep);
+    font-weight:700;
+  }
+  .awap-node.gate:hover, .awap-node.gate:focus-visible{
+    transform:translateY(-2px);
+    box-shadow:0 6px 14px -6px rgba(61,112,104,0.5);
+    outline:none;
+  }
+  .awap-node.gate:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+  .awap-arrow{
+    font-size:1.2rem;
+    color:var(--ink-soft);
+    padding:0 10px;
+  }
+  .awap-detail{
+    margin-top:14px;
+    font-size:0.88rem;
+    color:var(--ink-soft);
+    background:var(--paper-dim,#EFEADE);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    display:none;
+  }
+  .awap-detail.visible{display:block;}
+
+  /* ===== Cheat sheet ===== */
+  .cheat-panel{
+    background: var(--ink);
+    border-radius: var(--radius);
+    padding: 30px 26px 8px;
+    color: var(--paper);
+  }
+  .cheat-panel h2{
+    color:var(--paper);
+    font-size:1.6rem;
+    margin:0 0 6px;
+  }
+  .cheat-panel .sub{
+    color:#9FD6C8;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.8rem;
+    margin-bottom:24px;
+    display:block;
+  }
+  .cheat-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap:16px;
+    margin-bottom:26px;
+  }
+  .cheat-card{
+    background: rgba(247,244,236,0.05);
+    border:1px solid rgba(159,214,200,0.25);
+    border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .cheat-card h5{
+    margin:0 0 10px;
+    font-family:'Roboto Slab', serif;
+    color:#9FD6C8;
+    font-size:1rem;
+  }
+  .cheat-row{margin-bottom:8px; font-size:0.85rem;}
+  .cheat-row .k{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:#8B93A0;
+    margin-bottom:2px;
+  }
+  .cheat-row .v{color:#E7E2D2;}
+  .cheat-row.gotcha .v{color:#F0C09A;}
+
+  /* ===== Further reading ===== */
+  .reading-list{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px 26px;
+  }
+  .reading-list ul{margin:0; padding-left:20px;}
+  .reading-list li{margin-bottom:8px; font-size:0.94rem;}
+
+  footer{
+    text-align:center;
+    padding:32px 24px 60px;
+    color:var(--ink-soft);
+    font-size:0.82rem;
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  @media (max-width:640px){
+    .masthead{padding:40px 18px 32px;}
+    .wrap{padding:32px 16px 80px;}
+    .pattern-body{padding:18px 18px 22px;}
+    .pattern-head{padding:16px 18px;}
+    .awap-flow{flex-direction:column; align-items:stretch;}
+    .awap-arrow{transform:rotate(90deg); text-align:center; padding:4px 0;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; scroll-behavior:auto !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker"><span class="seal">✓</span> Data Engineering Design Patterns · Chapter 9</div>
+    <h1>Data Quality Design Patterns</h1>
+    <p class="lede">Trust is a mutual transaction between data producer and consumer. This chapter
+    covers the checkpoints that keep that transaction honest — from pipeline-level audits to
+    schema contracts to ongoing observation of datasets that never stop changing.</p>
+    <div class="cat-pills">
+      <span class="cat-pill">Quality Enforcement</span>
+      <span class="cat-pill">Schema Consistency</span>
+      <span class="cat-pill">Quality Observation</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ===================== FRAMING ===================== -->
+  <section>
+    <div class="section-label">Chapter Framing</div>
+    <h2 class="chapter-h">Where This Chapter Sits</h2>
+    <p>Even with ingestion, error handling, idempotency, value-add, flow, security, and storage
+    patterns all correctly in place, a dataset can still be irrelevant to its consumers — or worse,
+    silently wrong — if data quality issues go unnoticed. This chapter groups its patterns into
+    three categories, each solving a different piece of the trust problem, before handing off to
+    Chapter 10 (Data Observability) for monitoring and alerting on top of these guards.</p>
+
+    <div class="callout case-study">
+      <span class="label">🧩 Case Study</span>
+      <p>Across this chapter, examples run on the blog analytics platform's visits pipeline —
+      the same dataset introduced in Chapter 1. The AWAP pattern's opening scenario (a false
+      50% visitor-drop alarm that triggered a real marketing decision) is the book's central,
+      recurring illustration of what happens when quality enforcement is missing.</p>
+    </div>
+
+    <div class="diagram-wrap">
+      <div class="diagram-caption">Chapter flow — three categories, in the order the book presents them</div>
+      <div class="mermaid">
+flowchart LR
+    A["Ch. 8\nData Storage"] --> B["Ch. 9: Data Quality"]
+    B --> C["Ch. 10\nData Observability"]
+    subgraph B[" "]
+      direction TB
+      E["Quality Enforcement\nAWAP · Constraints Enforcer"]
+      S["Schema Consistency\nSchema Compat. Enforcer · Schema Migrator"]
+      O["Quality Observation\nOffline Observer · Online Observer"]
+      E --> S --> O
+    end
+    style A fill:#EFEADE,stroke:#D8D2C2,color:#1B2430
+    style C fill:#EFEADE,stroke:#D8D2C2,color:#1B2430
+    style E fill:#E1EDE9,stroke:#3D7068,color:#26463F
+    style S fill:#E1EDE9,stroke:#3D7068,color:#26463F
+    style O fill:#E1EDE9,stroke:#3D7068,color:#26463F
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CATEGORY 1 ===================== -->
+  <section>
+    <div class="section-label">Category 1 of 3</div>
+    <h2 class="chapter-h">Quality Enforcement</h2>
+    <p>Stop an incomplete, inconsistent, or inaccurate dataset from ever reaching downstream
+    consumers.</p>
+
+    <!-- AWAP -->
+    <div class="pattern-card">
+      <div class="pattern-head">
+        <div class="pattern-seal">01</div>
+        <div>
+          <span class="pattern-eyebrow">Pattern</span>
+          <h4>Audit-Write-Audit-Publish (AWAP)</h4>
+        </div>
+      </div>
+      <div class="pattern-body">
+
+        <div class="callout note">
+          <span class="label">📌 Note</span>
+          <p>AWAP evolves the <strong>Write-Audit-Publish (WAP)</strong> pattern, originated by
+          Michelle Ufford at DataWorks Summit 2017. AWAP's addition: an earlier audit gate on
+          the raw <em>input</em>, not just the transformed output.</p>
+        </div>
+
+        <div class="subhead problem">Problem</div>
+        <p>A daily batch ETL job generates user-visit statistics. Unique visitors dropped
+        <strong>50%</strong> over a week — the product team believed it and launched a marketing
+        campaign in response. It later turned out the aggregation itself was miscomputed, not a
+        real traffic drop. The team demanded this could never happen silently again.</p>
+
+        <div class="subhead solution">Solution</div>
+        <p>Add explicit audit gates at two points: an input audit (lightweight — format, size,
+        schema-presence checks) before transformation, and an output audit (row- and
+        dataset-level business rules, like unit tests running on live data) after. Click each gate
+        below to see what it checks.</p>
+
+        <div class="awap-widget">
+          <div class="awap-tabs" role="tablist" aria-label="AWAP pipeline mode">
+            <button class="awap-tab active" data-mode="batch" role="tab" aria-selected="true">Batch Pipeline</button>
+            <button class="awap-tab" data-mode="window" role="tab" aria-selected="false">Streaming — Window-Based</button>
+            <button class="awap-tab" data-mode="staging" role="tab" aria-selected="false">Streaming — Staging-Based</button>
+          </div>
+          <div class="awap-stage" id="awapStage"></div>
+        </div>
+
+        <p>An audit failure needn't be a hard stop — the book allows <strong>data dispatching</strong>
+        (promote valid rows, park invalid ones separately) and <strong>nonblocking audit</strong>
+        (publish anyway, but annotate the dataset with a quality summary).</p>
+
+        <div class="callout say">
+          <span class="label">✅ Say this out loud</span>
+          <p>"AWAP extends unit tests onto real production data — tests are a static snapshot,
+          but datasets evolve, so AWAP is how we keep validating against the dataset's current
+          shape, not just what it looked like when we wrote the tests."</p>
+        </div>
+
+        <div class="subhead consequences">Consequences</div>
+        <table>
+          <thead><tr><th>Gotcha</th><th>Detail &amp; Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>Compute cost</td><td>Metadata checks are cheap; row-level validation is expensive — an accepted cost of guaranteed quality.</td></tr>
+            <tr><td>Rules coverage</td><td>Today's rules may miss tomorrow's dataset shape. Never treat AWAP-controlled pipelines as 100% reliable — pair with Quality Observation.</td></tr>
+            <tr><td>Streaming latency</td><td>Asserting something like a NULL-distribution within a window delays delivery by the window's accumulation period.</td></tr>
+            <tr><td>An issue may not be an issue</td><td>A volume spike or drop isn't automatically a bug (e.g., a legitimate viral traffic spike). Not every audit failure needs to be critical — some should just alert.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="subhead examples">Examples</div>
+        <div class="code-block">
+          <div class="code-label">Python · Apache Airflow + PostgreSQL — batch pipeline</div>
+          <pre><code>audit_file_to_load = PythonOperator(
+    task_id='audit_file_to_load',
+    python_callable=local_validate_the_file_before_processing
+)
+transform_file = PythonOperator(
+    task_id='transform_file',
+    python_callable=flatten_input_visits_to_csv
+)
+def local_validate_flatten_visits():
+    validate_flatten_visits(get_current_context())
+audit_transformed_file = PythonOperator(
+    task_id='audit_transformed_file',
+    python_callable=local_validate_flatten_visits
+)
+load_flattened_visits_to_final_table = PostgresOperator(
+    task_id='load_flattened_visits_to_final_table',
+    sql='/sql/load_file_to_visits_table.sql'
+)
+(next_partition_sensor >> audit_file_to_load >> transform_file
+ >> audit_transformed_file >> load_flattened_visits_to_final_table)</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-label">Python · Apache Spark Structured Streaming — staging-based AWAP</div>
+          <pre><code># Job 1 — write transformed records to a Delta Lake staging table
+write_query = (visits.writeStream
+    .trigger(processingTime='15 seconds')
+    .option('checkpointLocation', checkpoint_dir)
+    .foreachBatch(write_dataset_to_staging_table).start())
+
+# Job 2 — stream the staging table, audit, route to final or errors
+visits = (spark_session.readStream.format('delta')
+    .option('maxBytesPerTrigger', 20000000)
+    .table(get_staging_visits_table())
+    .withColumn('is_valid', row_validation_expression)
+)
+write_query = (visits.writeStream
+    .trigger(processingTime='30 seconds')
+    .option('checkpointLocation', checkpoint_dir)
+    .foreachBatch(audit_dataset_and_write_to_output_table)
+    .start())</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Constraints Enforcer -->
+    <div class="pattern-card">
+      <div class="pattern-head">
+        <div class="pattern-seal">02</div>
+        <div>
+          <span class="pattern-eyebrow">Pattern</span>
+          <h4>Constraints Enforcer</h4>
+        </div>
+      </div>
+      <div class="pattern-body">
+        <div class="subhead problem">Problem</div>
+        <p>A batch pipeline processing visits has run cleanly for months but has started producing
+        <strong>random NULL values</strong> in required fields. The job is already complex — the
+        ask is to fail the load declaratively, without adding validation code to the pipeline.</p>
+
+        <div class="subhead solution">Solution</div>
+        <p>Delegate validation to the database or storage format. Identify the attributes needing
+        rules, then assign constraints from four categories:</p>
+        <table>
+          <caption>Constraint categories</caption>
+          <thead><tr><th>Type</th><th>What It Guarantees</th></tr></thead>
+          <tbody>
+            <tr><td>Type</td><td>Every value for an attribute is always the same type — backbone of Schema Consistency.</td></tr>
+            <tr><td>Nullability</td><td>Attribute is always present, or explicitly allowed to be missing.</td></tr>
+            <tr><td>Value</td><td>Value must satisfy a comparison, e.g. <code>x &lt;= NOW()</code>, <code>x BETWEEN 1901 AND 2000</code>.</td></tr>
+            <tr><td>Integrity</td><td>A referenced value must exist in another table (common in normalized/relational schemas).</td></tr>
+          </tbody>
+        </table>
+        <p>Supported natively by Delta Lake's <code>CHECK</code> operator, and by serialization
+        formats like Protobuf (type constraints natively; value constraints via <code>protovalidate</code>).</p>
+
+        <div class="subhead consequences">Consequences</div>
+        <table>
+          <thead><tr><th>Gotcha</th><th>Detail &amp; Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>All-or-nothing semantics</td><td>Transactional constraints reject the whole batch if any row fails, and databases usually stop at the first error — multiple round trips needed to find every issue.</td></tr>
+            <tr><td>Data producer shift</td><td>Constraints are producer-oriented. A field nullable in the DB may still be required for some consumers, who then need their own extra checks.</td></tr>
+            <tr><td>Constraints coverage</td><td>Not all rule types are supported everywhere (e.g., integrity constraints in table file formats) — AWAP-style code checks fill the gap.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="subhead examples">Examples</div>
+        <div class="code-block">
+          <div class="code-label">SQL · Delta Lake — type, nullability &amp; value constraints</div>
+          <pre><code>CREATE TABLE default.visits (
+  visit_id STRING NOT NULL,
+  event_time TIMESTAMP NOT NULL
+) USING delta;
+
+ALTER TABLE default.visits ADD CONSTRAINT
+  event_time_not_in_the_future CHECK (event_time &lt; NOW() + INTERVAL "1 SECOND")</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-label">Protobuf · protovalidate — type &amp; value constraints</div>
+          <pre><code>message Visit {
+  string visit_id = 1 [(buf.validate.field).string.min_len = 5];
+  google.protobuf.Timestamp event_time = 2 [
+    (buf.validate.field).timestamp.lt_now = true,
+    (buf.validate.field).required = true];
+  string user_id = 3 [(buf.validate.field).required = true];
+  string page = 4 [(buf.validate.field).cel = {
+    message: "Page cannot end with an html extension"
+    expression: "this.endsWith('html') == false"
+  }, (buf.validate.field).required = true];
+}</code></pre>
+        </div>
+        <div class="callout warning">
+          <span class="label">⚠️ Verify</span>
+          <p>[verify against source page] — the constraint-category table above is synthesized
+          into tabular form from the book's prose for scanability; content traces to the
+          Solution section text.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CATEGORY 2 ===================== -->
+  <section>
+    <div class="section-label">Category 2 of 3</div>
+    <h2 class="chapter-h">Schema Consistency</h2>
+    <p>Constraints solve value-level consistency. This category tackles producers changing the
+    <strong>schema itself</strong> without warning.</p>
+
+    <!-- Schema Compatibility Enforcer -->
+    <div class="pattern-card">
+      <div class="pattern-head">
+        <div class="pattern-seal">03</div>
+        <div>
+          <span class="pattern-eyebrow">Pattern</span>
+          <h4>Schema Compatibility Enforcer</h4>
+        </div>
+      </div>
+      <div class="pattern-body">
+        <div class="subhead problem">Problem</div>
+        <p>A sessionization job ran fine for months. Then the upstream team removed fields they
+        assumed were "obsolete," and the job failed repeatedly for a month. The ask: prevent any
+        schema-breaking change from happening in the first place.</p>
+
+        <div class="subhead solution">Solution</div>
+        <div class="diagram-wrap">
+          <div class="diagram-caption">Three enforcement modes, by data store</div>
+          <div class="mermaid">
+flowchart TD
+    Start["Schema Compatibility<br/>Enforcement"] --> M1["Via External<br/>Service / Library"]
+    Start --> M2["Implicit<br/>with Inserts"]
+    Start --> M3["Event-Driven<br/>for DDL"]
+    M1 --> M1D["Kafka Schema Registry validates changes<br/>against a configured rule; or Avro<br/>SchemaValidator (no rule config)"]
+    M2 --> M2D["Table file formats / relational DBs:<br/>constraints at table creation<br/>implicitly set the compatibility mode"]
+    M3 --> M3D["PostgreSQL / SQL Server event triggers<br/>run before DDL ops (DROP/RENAME);<br/>roll back incompatible changes,<br/>or revoke ALTER TABLE entirely"]
+    style Start fill:#1B2430,stroke:#1B2430,color:#F7F4EC
+    style M1 fill:#E1EDE9,stroke:#3D7068,color:#26463F
+    style M2 fill:#E1EDE9,stroke:#3D7068,color:#26463F
+    style M3 fill:#E1EDE9,stroke:#3D7068,color:#26463F
+          </div>
+        </div>
+        <table>
+          <caption>Compatibility modes</caption>
+          <thead><tr><th>Mode</th><th>Allowed Actions</th><th>Semantics</th></tr></thead>
+          <tbody>
+            <tr><td>Backward</td><td>Delete field, add optional field</td><td>Newer-schema consumer can read older-schema data</td></tr>
+            <tr><td>Forward</td><td>Add field, delete optional field</td><td>Older-schema consumer can read newer-schema data</td></tr>
+            <tr><td>Full</td><td>Add/delete optional field</td><td>Both directions hold simultaneously</td></tr>
+          </tbody>
+        </table>
+        <div class="callout note">
+          <span class="label">📌 Note — Transitive vs. Non-Transitive</span>
+          <p>Transitive compatibility must hold across <em>all</em> past/future versions, not just
+          adjacent ones. Worked example: <code>Order(v0)</code> has <code>order_id</code> only;
+          <code>v1</code> adds <code>amount DOUBLE DEFAULT 0.0</code> (fine); <code>v2</code> makes
+          <code>amount</code> required. <code>v1→v2</code> is fine non-transitively, but
+          <code>v0→v2</code> breaks transitively — a v2 consumer can't safely read v0 data.</p>
+        </div>
+
+        <div class="subhead consequences">Consequences</div>
+        <table>
+          <thead><tr><th>Gotcha</th><th>Detail &amp; Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>Interaction overhead</td><td>An external registry adds a validation round trip to every write.</td></tr>
+            <tr><td>Schema evolution</td><td>Every change must satisfy the compatibility level — a simple rename can require "add new + deprecate old" (solved by Schema Migrator, next).</td></tr>
+          </tbody>
+        </table>
+
+        <div class="subhead examples">Examples</div>
+        <div class="code-block">
+          <div class="code-label">JSON · Kafka Schema Registry — forward-compatible schema</div>
+          <pre><code>{"type": "record", "namespace": "com.waitingforcode.model", "name": "Visit",
+ "fields": [
+   {"name": "visit_id", "type": "string"},
+   {"name": "event_time", "type": "int", "logicalType": "time"}
+ ]}</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-label">Console · Rejected write — missing required field</div>
+          <pre><code>confluent_kafka.avro.error.ClientError: Incompatible Avro schema:409 message:
+{'error_code': 409, 'message': 'Schema being registered is incompatible with
+an earlier schema for subject "visits_forward-value",
+details: [{errorType:'READER_FIELD_MISSING_DEFAULT_VALUE',
+description:'The field 'visit_id' at path '/fields/0' in
+the old schema has no default value and is missing in the new schema',
+...</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-label">Console · Delta Lake — implicit enforcement rejects unrecognized column</div>
+          <pre><code>pyspark.errors.exceptions.captured.AnalysisException: A schema mismatch detected when
+writing to the Delta table
+...
+Table schema:               Data schema:
+root                        root
+-- visit_id: string          -- visit_id: string
+-- page: string               -- page: string
+                               -- ad_id: string   &lt;-- unexpected</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schema Migrator -->
+    <div class="pattern-card">
+      <div class="pattern-head">
+        <div class="pattern-seal">04</div>
+        <div>
+          <span class="pattern-eyebrow">Pattern</span>
+          <h4>Schema Migrator</h4>
+        </div>
+      </div>
+      <div class="pattern-body">
+        <div class="subhead problem">Problem</div>
+        <p>Fields have been added over time without ever bothering consumers, resulting in a
+        message with <strong>up to 60 attributes</strong> scattered with no grouping. Consumers
+        want related attributes grouped (e.g., <code>login</code>, <code>email</code>,
+        <code>age</code> → a single <code>user</code> entity) — a genuine breaking change the
+        team wants to make safely.</p>
+
+        <div class="subhead solution">Solution</div>
+        <p>Schema Compatibility Enforcer only <em>blocks</em> incompatible changes — it can't help
+        you <em>perform</em> one. Three scenarios:</p>
+        <table>
+          <thead><tr><th>Scenario</th><th>When It Applies</th></tr></thead>
+          <tbody>
+            <tr><td>Rename</td><td>An attribute name is wrong or confusing.</td></tr>
+            <tr><td>Type change</td><td>Simplifying after multiple changes, or optimizing (e.g., text date-time → epoch).</td></tr>
+            <tr><td>Removal</td><td>Only when 100% certain no downstream consumers use the attribute.</td></tr>
+          </tbody>
+        </table>
+        <p>For rename/type-change: create the new field alongside the old, agree a transition
+        grace period during which both are populated, then drop the old field once the deadline
+        passes.</p>
+
+        <div class="callout warning">
+          <span class="label">⚠️ Warning</span>
+          <p>The Schema Migrator <strong>requires non-transitive compatibility</strong>. Transitive
+          compatibility guarantees consistency across every version, which makes field removal or
+          renaming impossible by definition.</p>
+        </div>
+        <div class="callout note">
+          <span class="label">📌 Note</span>
+          <p>To confirm an attribute is actually unused before removing it, the book points to the
+          <strong>Fine-Grained Tracker</strong> pattern (Chapter 10) for data lineage.</p>
+        </div>
+
+        <div class="subhead consequences">Consequences</div>
+        <table>
+          <thead><tr><th>Gotcha</th><th>Detail &amp; Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>Size impact</td><td>Running old + new fields during the grace period costs storage, network, and I/O. Protobuf's "Proto Best Practices" warns against hundreds of fields — each, even unpopulated, costs at least 65 bytes, risking Java compilation limits.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="subhead examples">Examples</div>
+        <div class="callout warning">
+          <span class="label">⚠️ Verify</span>
+          <p>[verify against source page] — distinct migration code snippets beyond the
+          Kafka/Delta examples already shown under Schema Compatibility Enforcer were not
+          resurfaced by a targeted second search. Re-search before treating this as complete.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CATEGORY 3 ===================== -->
+  <section>
+    <div class="section-label">Category 3 of 3</div>
+    <h2 class="chapter-h">Quality Observation</h2>
+    <p>Enforcement rules reflect what you knew at the time you wrote them. Observation patterns
+    keep them honest as the dataset evolves.</p>
+
+    <!-- Offline Observer -->
+    <div class="pattern-card">
+      <div class="pattern-head">
+        <div class="pattern-seal">05</div>
+        <div>
+          <span class="pattern-eyebrow">Pattern</span>
+          <h4>Offline Observer</h4>
+        </div>
+      </div>
+      <div class="pattern-body">
+        <div class="subhead problem">Problem</div>
+        <p>A new pipeline has had few quality issues so far. Experience says this won't last as
+        the upstream dataset evolves. The ask: monitor value distributions and null counts per
+        column, <strong>without blocking</strong> the main pipeline.</p>
+
+        <div class="subhead solution">Solution</div>
+        <p>Build a separate observability job that runs independently — potentially on a
+        completely different schedule (e.g., generators run all day, observability runs at
+        night to avoid resource contention).</p>
+        <div class="callout note">
+          <span class="label">📌 Note — Observability ≠ Auditing</span>
+          <p>An audit is <strong>blocking</strong> — it can halt the pipeline. Observability is
+          <strong>nonblocking</strong> — it surfaces issues without preventing the pipeline from
+          continuing.</p>
+        </div>
+
+        <div class="subhead consequences">Consequences</div>
+        <table>
+          <thead><tr><th>Gotcha</th><th>Detail &amp; Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>Time accuracy</td><td>Since it can run on any schedule, insight may arrive after downstream consumers already processed the flawed dataset.</td></tr>
+            <tr><td>Compute resources</td><td>Running less often than the generator means a bigger backlog per run — can cost more compute than frequent small runs. Sampling trades completeness for cost.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="subhead examples">Examples</div>
+        <div class="code-block">
+          <div class="code-label">SQL · idempotent state tracking (Airflow + PostgreSQL)</div>
+          <pre><code>-- record_new_observation_state: track first/last row IDs for idempotency
+INSERT INTO dedp.visits_monitoring_state (execution_time, first_row_id, last_row_id)
+SELECT
+  '{{ execution_date }}' AS execution_time,
+  MIN(id) AS first_row_id, MAX(id) AS last_row_id
+FROM dedp.visits_output
+WHERE id > COALESCE(
+  (SELECT last_row_id FROM dedp.visits_monitoring_state WHERE
+   execution_time = '{{ prev_execution_date }}'::TIMESTAMP),
+  0
+)</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-label">Python · Apache Spark Structured Streaming — offline observation + profiling</div>
+          <pre><code>visits_to_observe = (input_data_stream
+    .selectExpr('CAST(value AS STRING)')
+    .select(functions.from_json(functions.col('value'), visit_schema).alias('visit'))
+    .selectExpr('visit.*')
+    .select('visit_id', 'event_time', 'user_id', 'page', 'context.referral', ...)
+)
+query = (visits_to_observe.writeStream.foreachBatch(generate_and_write_observations)
+    .option('checkpointLocation', checkpoint_location).start())
+
+def generate_profile_html_report(visits_dataframe: DataFrame, batch_version: int):
+    profile = ProfileReport(visits_dataframe, minimal=True)
+    profile.to_file(f'{base_dir}/profile_{batch_version}.html')</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-label">Python · lag detection</div>
+          <pre><code>def get_last_offsets_per_partition(self) -> Dict[str, int]:
+    last_processed_offsets = self._read_last_processed_offsets()
+    last_available_offsets = self._read_last_available_offsets()
+    offsets_lag = {}
+    for partition, offset in last_available_offsets.items():
+        lag = offset - last_processed_offsets[partition]
+        offsets_lag[partition] = lag
+    return offsets_lag</code></pre>
+        </div>
+        <div class="callout note">
+          <span class="label">📌 Note</span>
+          <p><code>ydata-profiling</code> generates an HTML data-profile report describing dataset
+          characteristics — used to add, modify, or delete quality rules going forward.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Online Observer -->
+    <div class="pattern-card">
+      <div class="pattern-head">
+        <div class="pattern-seal">06</div>
+        <div>
+          <span class="pattern-eyebrow">Pattern</span>
+          <h4>Online Observer</h4>
+        </div>
+      </div>
+      <div class="pattern-body">
+        <div class="subhead problem">Problem</div>
+        <p>Analytics colleagues found an unexpected format in the <code>zip_code</code> field — a
+        regression upstream. The Offline Observer <em>did</em> detect it, but only ran weekly, so
+        consumers found out first. The ask: shrink that detection-to-discovery gap.</p>
+
+        <div class="subhead solution">Solution</div>
+        <p>Keep the same observation-metrics job, but embed it directly into the data generation
+        pipeline so insight is available immediately, not on a delayed schedule.</p>
+        <div class="diagram-wrap">
+          <div class="diagram-caption">Batch placement — Parallel Split vs. Local Sequencer</div>
+          <div class="mermaid">
+flowchart LR
+    T["Transform"] --> PS{"Orchestration<br/>Choice"}
+    PS -->|"Parallel Split"| P1["Load Dataset"]
+    PS -->|"Parallel Split"| P2["Observation Job"]
+    PS -->|"Local Sequencer"| L1["Load Dataset"] --> L2["Observation Job"]
+    style T fill:#1B2430,stroke:#1B2430,color:#F7F4EC
+    style PS fill:#F3E3D2,stroke:#B5652B,color:#8A4A1E
+    style P1 fill:#E1EDE9,stroke:#3D7068,color:#26463F
+    style P2 fill:#E1EDE9,stroke:#3D7068,color:#26463F
+    style L1 fill:#E1EDE9,stroke:#3D7068,color:#26463F
+    style L2 fill:#E1EDE9,stroke:#3D7068,color:#26463F
+          </div>
+        </div>
+        <p>In streaming, observation logic must be embedded <em>inside</em> the same job — it can't
+        run as a fully separate pipeline. Sampling offsets the risk of observation logic destabilizing
+        the job.</p>
+        <div class="callout note">
+          <span class="label">📌 Note</span>
+          <p>Observability isn't limited to data — it also covers technical metadata (CPU, memory,
+          disk usage), typically near-real-time and therefore naturally at home in the Online
+          Observer pattern.</p>
+        </div>
+
+        <div class="subhead consequences">Consequences</div>
+        <table>
+          <thead><tr><th>Gotcha</th><th>Detail &amp; Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>Extra delays</td><td>Local Sequencer adds the observation step to the critical path, delaying pipeline completion.</td></tr>
+            <tr><td>Parallel splits</td><td>Running observation and loading concurrently risks reading a partially-valid dataset mid-load, producing a misleading quality read.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="subhead examples">Examples</div>
+        <div class="callout warning">
+          <span class="label">⚠️ Verify</span>
+          <p>[verify against source page] — code specific to the Online Observer's in-job
+          streaming placement beyond the architecture shown in Figures 9-5/9-6 was not distinctly
+          returned by search, separate from the Offline Observer's streaming example above.
+          Re-search "Online Observer Spark Structured Streaming" before treating further code as
+          complete.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== COMPARISON TABLES ===================== -->
+  <section>
+    <div class="section-label">Synthesis</div>
+    <h2 class="chapter-h">Trade-Off Comparisons</h2>
+
+    <table>
+      <caption>Quality Enforcement — AWAP vs. Constraints Enforcer</caption>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td><strong>AWAP</strong></td><td>Custom, flexible, code-level business-rule validation; you control the pipeline logic</td><td>Compute cost scales with checks; rules go stale; streaming adds window latency</td></tr>
+        <tr><td><strong>Constraints Enforcer</strong></td><td>Declarative validation delegated to DB/storage format, no pipeline code</td><td>All-or-nothing rejection; producer-oriented; some constraint types unsupported everywhere</td></tr>
+      </tbody>
+    </table>
+
+    <table>
+      <caption>Schema Consistency — Compatibility Enforcer vs. Migrator</caption>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Schema Compat. Enforcer</strong></td><td>Prevent any incompatible schema change outright</td><td>Every change constrained by compatibility level; renames awkward under transitive rules</td></tr>
+        <tr><td><strong>Schema Migrator</strong></td><td>Perform a breaking change safely, with a consumer grace period</td><td>Requires non-transitive compatibility; dual-field period costs storage/network/I/O</td></tr>
+      </tbody>
+    </table>
+
+    <table>
+      <caption>Quality Observation — Offline vs. Online Observer</caption>
+      <thead><tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Offline Observer</strong></td><td>Monitoring must never touch production resources; some delay is acceptable</td><td>Time-accuracy lag; infrequent runs raise per-run compute cost</td></tr>
+        <tr><td><strong>Online Observer</strong></td><td>Near-real-time detection needed</td><td>Adds critical-path latency, or risks partial-data reads; streaming failures can hit the whole job</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===================== CHEAT SHEET ===================== -->
+  <section>
+    <div class="cheat-panel">
+      <h2>Cheat Sheet</h2>
+      <span class="sub">Scan this five minutes before your interview or design review</span>
+      <div class="cheat-grid">
+
+        <div class="cheat-card">
+          <h5>01 · Audit-Write-Audit-Publish</h5>
+          <div class="cheat-row"><span class="k">Problem</span><span class="v">False "50% drop" alarm triggered a real business decision</span></div>
+          <div class="cheat-row"><span class="k">Solution</span><span class="v">Two audit gates (pre/post-transform), like unit tests on live data</span></div>
+          <div class="cheat-row gotcha"><span class="k">Biggest Gotcha</span><span class="v">Not every audit failure is a real issue — don't over-alarm</span></div>
+        </div>
+
+        <div class="cheat-card">
+          <h5>02 · Constraints Enforcer</h5>
+          <div class="cheat-row"><span class="k">Problem</span><span class="v">Random NULLs in required fields, no pipeline-level validation</span></div>
+          <div class="cheat-row"><span class="k">Solution</span><span class="v">Delegate type/nullability/value/integrity rules to DB or storage format</span></div>
+          <div class="cheat-row gotcha"><span class="k">Biggest Gotcha</span><span class="v">All-or-nothing rejection; first-error-only feedback</span></div>
+        </div>
+
+        <div class="cheat-card">
+          <h5>03 · Schema Compatibility Enforcer</h5>
+          <div class="cheat-row"><span class="k">Problem</span><span class="v">Upstream silently dropped "obsolete" fields, broke the job repeatedly</span></div>
+          <div class="cheat-row"><span class="k">Solution</span><span class="v">Enforce backward/forward/full compatibility via registry, inserts, or DDL triggers</span></div>
+          <div class="cheat-row gotcha"><span class="k">Biggest Gotcha</span><span class="v">Rigid compatibility makes simple renames hard</span></div>
+        </div>
+
+        <div class="cheat-card">
+          <h5>04 · Schema Migrator</h5>
+          <div class="cheat-row"><span class="k">Problem</span><span class="v">60 sprawling attributes need regrouping without breaking consumers</span></div>
+          <div class="cheat-row"><span class="k">Solution</span><span class="v">New field alongside old, agreed grace period, then retire old field</span></div>
+          <div class="cheat-row gotcha"><span class="k">Biggest Gotcha</span><span class="v">Dual-field grace period costs storage/network/I/O</span></div>
+        </div>
+
+        <div class="cheat-card">
+          <h5>05 · Offline Observer</h5>
+          <div class="cheat-row"><span class="k">Problem</span><span class="v">Need non-blocking monitoring that never touches production resources</span></div>
+          <div class="cheat-row"><span class="k">Solution</span><span class="v">Independent observability job on its own schedule (e.g., nightly)</span></div>
+          <div class="cheat-row gotcha"><span class="k">Biggest Gotcha</span><span class="v">Time-accuracy lag — consumers may see bad data first</span></div>
+        </div>
+
+        <div class="cheat-card">
+          <h5>06 · Online Observer</h5>
+          <div class="cheat-row"><span class="k">Problem</span><span class="v">Weekly-only observation meant customers found a regression first</span></div>
+          <div class="cheat-row"><span class="k">Solution</span><span class="v">Embed observation into the pipeline (Parallel Split / Local Sequencer / in-job)</span></div>
+          <div class="cheat-row gotcha"><span class="k">Biggest Gotcha</span><span class="v">Adds latency, or risks reading partially-valid data</span></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FURTHER READING ===================== -->
+  <section>
+    <div class="section-label">Reference</div>
+    <h2 class="chapter-h">Further Reading &amp; Special Notes</h2>
+    <div class="reading-list">
+      <ul>
+        <li>Michelle Ufford, "Whoops, the Numbers Are Wrong! Scaling Data Quality @ Netflix" (DataWorks Summit 2017) — origin talk for Write-Audit-Publish.</li>
+        <li><code>protovalidate</code> GitHub repository — full capabilities beyond what's shown here.</li>
+        <li>Protobuf "Proto Best Practices" — field-count guidance relevant to Schema Migrator's size impact.</li>
+        <li><code>ydata-profiling</code> official documentation — setup for the profiling reports used in Offline Observer.</li>
+        <li>Chapter 10, "Data Observability Design Patterns" — Fine-Grained Tracker (lineage, referenced by Schema Migrator) and the detection/tracking patterns that build on this chapter.</li>
+      </ul>
+    </div>
+    <div class="callout note" style="margin-top:20px;">
+      <span class="label">📌 Special Note — Tool Quirk</span>
+      <p>PostgreSQL and SQL Server both support <strong>DDL event triggers</strong> for the Schema
+      Compatibility Enforcer's event-driven mode — this capability is not universal across
+      relational databases.</p>
+    </div>
+  </section>
+
+</div>
+
+<footer>Data Engineering Design Patterns · Chapter 9 study reference · Source: Bartosz Konieczny, O'Reilly (2025)</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#E1EDE9',
+      primaryTextColor: '#26463F',
+      primaryBorderColor: '#3D7068',
+      lineColor: '#3A4454',
+      fontFamily: 'JetBrains Mono, monospace',
+      fontSize: '13px'
+    },
+    flowchart: { curve: 'basis', htmlLabels: true }
+  });
+
+  // ---- Interactive AWAP diagram ----
+  var awapData = {
+    batch: {
+      nodes: [
+        {label:'Input Data', gate:false},
+        {label:'Audit #1\n(input)', gate:true, detail:'Fast checks: file format, size, schema-presence. Example: confirming a CSV has columns a, b, c from just the first line — avoids reading the full dataset twice.'},
+        {label:'Transform', gate:false},
+        {label:'Audit #2\n(output)', gate:true, detail:'Extension of local unit tests running on the real dataset — e.g., asserting columns a, b, c are never NULL after transformation.'},
+        {label:'Publish', gate:false}
+      ]
+    },
+    window: {
+      nodes: [
+        {label:'Streaming\nTransform', gate:false},
+        {label:'Processing-Time\nWindow Closes', gate:false},
+        {label:'Audit\nBuffered Records', gate:true, detail:'Strategy applied to the closed window: fail the batch, dispatch valid/invalid separately, or ignore (nonblocking annotate).'},
+        {label:'Publish', gate:false}
+      ]
+    },
+    staging: {
+      nodes: [
+        {label:'Streaming\nTransform', gate:false},
+        {label:'Write to\nStaging Layer', gate:false},
+        {label:'Separate\nAudit Job', gate:true, detail:'A second streaming job reads the staging table and runs data quality controls, independent of the generation job — the classical WAP shape.'},
+        {label:'Promote to\nFinal Output', gate:false}
+      ]
+    }
+  };
+
+  function renderAwap(mode){
+    var stage = document.getElementById('awapStage');
+    var data = awapData[mode];
+    var html = '<div class="awap-flow">';
+    data.nodes.forEach(function(n, i){
+      var cls = 'awap-node' + (n.gate ? ' gate' : '');
+      var attrs = n.gate ? ' tabindex="0" role="button" data-detail="' + i + '" aria-expanded="false"' : '';
+      html += '<div class="' + cls + '"' + attrs + '>' + n.label.replace(/\n/g,'<br>') + '</div>';
+      if(i < data.nodes.length - 1){ html += '<span class="awap-arrow">→</span>'; }
+    });
+    html += '</div><div class="awap-detail" id="awapDetail"></div>';
+    stage.innerHTML = html;
+
+    var gates = stage.querySelectorAll('.awap-node.gate');
+    gates.forEach(function(g){
+      function toggle(){
+        var idx = g.getAttribute('data-detail');
+        var detailEl = document.getElementById('awapDetail');
+        var isOpen = detailEl.classList.contains('visible') && detailEl.getAttribute('data-current') === idx;
+        gates.forEach(function(x){ x.setAttribute('aria-expanded','false'); });
+        if(isOpen){
+          detailEl.classList.remove('visible');
+          detailEl.removeAttribute('data-current');
+        } else {
+          detailEl.textContent = data.nodes[idx].detail;
+          detailEl.classList.add('visible');
+          detailEl.setAttribute('data-current', idx);
+          g.setAttribute('aria-expanded','true');
+        }
+      }
+      g.addEventListener('click', toggle);
+      g.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); }
+      });
+    });
+  }
+
+  document.querySelectorAll('.awap-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      document.querySelectorAll('.awap-tab').forEach(function(t){
+        t.classList.remove('active');
+        t.setAttribute('aria-selected','false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected','true');
+      renderAwap(tab.getAttribute('data-mode'));
+    });
+  });
+
+  renderAwap('batch');
+</script>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

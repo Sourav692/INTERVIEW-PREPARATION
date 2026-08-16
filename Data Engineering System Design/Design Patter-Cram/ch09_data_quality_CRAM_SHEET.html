@@ -1,0 +1,377 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch9 Data Quality — Interview Cram Sheet</title>
+<style>
+  /* DESIGN NOTE: "Flashcard stack" system, matching the Ch3 cram sheet identity —
+     warm-paper/ink family for series consistency, flattened to single-screen
+     scan cards with numbered chips. Teal = trust/quality accent carried over
+     from the full Ch9 reference doc; amber reserved for gotchas/warnings only. */
+  :root{
+    --paper:#F7F4EC;
+    --ink:#1B2430;
+    --ink-soft:#3A4454;
+    --teal:#3D7068;
+    --teal-deep:#26463F;
+    --teal-soft:#E1EDE9;
+    --amber:#B5652B;
+    --amber-soft:#F3E3D2;
+    --line:#D8D2C2;
+    --code-bg:#20282F;
+    --code-text:#E7E2D2;
+    --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Sans Pro','Segoe UI',system-ui,-apple-system,sans-serif;
+    line-height:1.55;
+    font-size:16px;
+  }
+  h1,h2,h3,h4{font-family:'Roboto Slab',Georgia,'Times New Roman',serif; font-weight:700; letter-spacing:-0.01em; margin:0;}
+  code{font-family:'JetBrains Mono','Fira Code',ui-monospace,Menlo,Consolas,monospace;}
+
+  .masthead{
+    background:var(--ink);
+    color:var(--paper);
+    padding:36px 20px 28px;
+    text-align:center;
+  }
+  .masthead .kicker{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.75rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:#9FD6C8;
+    margin-bottom:10px;
+  }
+  .masthead h1{font-size:clamp(1.5rem,4.5vw,2.2rem); color:var(--paper); margin-bottom:8px;}
+  .masthead p{color:#C9CFD9; font-size:0.92rem; max-width:520px; margin:0 auto;}
+
+  .wrap{max-width:900px; margin:0 auto; padding:28px 18px 70px;}
+
+  /* Recall table */
+  .recall{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    margin-bottom:32px;
+    box-shadow:0 1px 0 rgba(27,36,48,0.05), 0 6px 18px -10px rgba(27,36,48,0.15);
+  }
+  .recall-head{
+    background:var(--ink);
+    color:var(--paper);
+    padding:12px 18px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+  }
+  table{width:100%; border-collapse:collapse; font-size:0.86rem;}
+  th{
+    background:var(--teal-soft);
+    color:var(--teal-deep);
+    text-align:left;
+    padding:9px 12px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.68rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    border-bottom:2px solid var(--teal);
+  }
+  td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tr:nth-child(even) td{background:#FBF9F3;}
+  td.gotcha{color:#8A4A1E;}
+
+  /* Nav chips */
+  .nav-chips{
+    display:flex; flex-wrap:wrap; gap:8px;
+    margin-bottom:32px;
+  }
+  .nav-chip{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.76rem;
+    padding:7px 13px;
+    border:1px solid var(--teal);
+    border-radius:20px;
+    background:#fff;
+    color:var(--teal-deep);
+    text-decoration:none;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .nav-chip:hover, .nav-chip:focus-visible{background:var(--teal); color:#fff; outline:none;}
+  .nav-chip:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+
+  /* Cards */
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:0 1px 0 rgba(27,36,48,0.05), 0 6px 18px -10px rgba(27,36,48,0.15);
+    margin-bottom:22px;
+    scroll-margin-top:16px;
+  }
+  .card-head{
+    display:flex; align-items:center; gap:12px;
+    padding:14px 18px;
+    background:linear-gradient(90deg, var(--ink) 0%, var(--teal-deep) 140%);
+  }
+  .card-num{
+    width:32px;height:32px;
+    border-radius:50%;
+    border:2px solid #9FD6C8;
+    display:flex;align-items:center;justify-content:center;
+    color:#9FD6C8;
+    font-family:'Roboto Slab',serif;
+    font-weight:700;
+    font-size:0.9rem;
+    flex:0 0 auto;
+  }
+  .card-head h3{color:var(--paper); font-size:1.08rem;}
+  .card-body{padding:18px 20px 20px;}
+
+  .line{margin-bottom:9px; font-size:0.94rem;}
+  .line .k{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    margin-right:6px;
+  }
+  .line.problem .k{color:#8A4A1E;}
+  .line.solution .k{color:var(--teal-deep);}
+  .line.gotcha .k{color:#6B4F1E;}
+
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 4px;}
+
+  .callout{
+    border-left:4px solid var(--teal);
+    background:var(--teal-soft);
+    padding:10px 14px;
+    border-radius:0 var(--radius) var(--radius) 0;
+    margin:10px 0;
+    font-size:0.86rem;
+  }
+  .callout .label{
+    font-weight:700;
+    display:block;
+    margin-bottom:3px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+  }
+  .callout.note{border-left-color:var(--teal); background:var(--teal-soft);}
+  .callout.note .label{color:var(--teal-deep);}
+  .callout.say{border-left-color:#1B6B4F; background:#E4F0EA;}
+  .callout.say .label{color:#144F3A;}
+  .callout.faang{border-left-color:var(--amber); background:var(--amber-soft);}
+  .callout.faang .label{color:#8A4A1E;}
+  .callout.warn{border-left-color:#A33; background:#F5E1DD;}
+  .callout.warn .label{color:#7A2A1E;}
+  .callout.databricks{
+    border-left-color:#2E4A6E; background:#E3E9F1; margin-top:12px;
+  }
+  .callout.databricks .label{color:#1F3550;}
+  .callout p{margin:0;}
+
+  .thread{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:var(--radius);
+    padding:26px 24px;
+    margin-top:36px;
+  }
+  .thread h2{color:var(--paper); font-size:1.2rem; margin-bottom:12px;}
+  .thread p{color:#D6DAE1; font-size:0.94rem; margin:0;}
+  .thread strong{color:#9FD6C8;}
+
+  .back-top{
+    position:fixed;
+    bottom:18px; right:18px;
+    background:var(--teal);
+    color:#fff;
+    border:none;
+    border-radius:50%;
+    width:42px; height:42px;
+    font-size:1rem;
+    cursor:pointer;
+    box-shadow:0 4px 12px -4px rgba(27,36,48,0.4);
+    display:none;
+  }
+  .back-top.visible{display:block;}
+  .back-top:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+
+  @media (max-width:640px){
+    .wrap{padding:20px 14px 60px;}
+    table{font-size:0.78rem;}
+    th, td{padding:7px 8px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="kicker">Data Engineering Design Patterns · Chapter 9</div>
+  <h1>Data Quality — Cram Sheet</h1>
+  <p>6 patterns, 2–3 lines each. Last-two-days-before-the-interview version. Full detail lives in the long-form reference doc.</p>
+</div>
+
+<div class="wrap">
+
+  <div class="recall">
+    <div class="recall-head">One-Page Recall Table</div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Pattern</th><th>One-line Problem</th><th>One-line Fix</th><th>#1 Gotcha</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>AWAP</td><td>Bad data silently reaches consumers</td><td>Audit gate before + after transform</td><td class="gotcha">Not every failure is a real issue</td></tr>
+        <tr><td>2</td><td>Constraints Enforcer</td><td>Pipeline code shouldn't own validation</td><td>Push rules to DB/storage declaratively</td><td class="gotcha">All-or-nothing, first-error-only</td></tr>
+        <tr><td>3</td><td>Schema Compat. Enforcer</td><td>Producer breaks schema without warning</td><td>Backward/forward/full compat mode</td><td class="gotcha">Renames become add-new + deprecate</td></tr>
+        <tr><td>4</td><td>Schema Migrator</td><td>Need a breaking change done safely</td><td>New + old field in parallel + deadline</td><td class="gotcha">Needs non-transitive compat; costs size</td></tr>
+        <tr><td>5</td><td>Offline Observer</td><td>Monitoring can't touch prod resources</td><td>Separate job, independent schedule</td><td class="gotcha">Time-accuracy lag</td></tr>
+        <tr><td>6</td><td>Online Observer</td><td>Weekly checks = consumers find it first</td><td>Embed observation into the pipeline</td><td class="gotcha">Adds latency or partial-data risk</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="nav-chips">
+    <a class="nav-chip" href="#p1">01 AWAP</a>
+    <a class="nav-chip" href="#p2">02 Constraints Enforcer</a>
+    <a class="nav-chip" href="#p3">03 Schema Compat. Enforcer</a>
+    <a class="nav-chip" href="#p4">04 Schema Migrator</a>
+    <a class="nav-chip" href="#p5">05 Offline Observer</a>
+    <a class="nav-chip" href="#p6">06 Online Observer</a>
+  </div>
+
+  <!-- Pattern 1 -->
+  <div class="card" id="p1">
+    <div class="card-head"><div class="card-num">01</div><h3>Audit-Write-Audit-Publish (AWAP)</h3></div>
+    <div class="card-body">
+      <div class="line problem"><span class="k">Problem</span>Unique visitors "dropped 50%" — marketing paused a campaign over it — but the real bug was a broken aggregation, not a real traffic drop.</div>
+      <div class="line solution"><span class="k">Solution</span>Two audit gates: cheap input-side checks (format/size/schema) before transform, real business-rule checks (row + dataset level) after — like unit tests running on live data.</div>
+      <div class="line gotcha"><span class="k">Gotcha</span>Compute cost scales with validation depth; rules go stale; an audit failure isn't automatically a real issue (e.g., a legit viral traffic spike).</div>
+
+      <div class="callout note"><span class="label">📌 Note</span><p>AWAP evolves Michelle Ufford's <strong>Write-Audit-Publish (WAP)</strong> — the "audit" prefix is the added <em>input</em>-side gate WAP didn't have.</p></div>
+      <div class="callout say"><span class="label">✅ Say this out loud</span><p>"AWAP extends unit tests onto real production data — tests are static, but datasets evolve, so AWAP validates against the dataset's current shape, not what it looked like when the tests were written."</p></div>
+      <div class="callout faang"><span class="label">🎯 FAANG pointer</span><p>Interviewers probe whether you'll treat every audit failure as a hard stop. Right answer: failures can also be <strong>dispatched</strong> (valid rows promoted, invalid parked) or <strong>nonblocking</strong> (published with a quality flag) — not just fail/pass.</p></div>
+      <div class="callout databricks"><span class="label">🧱 Databricks</span><p>Confirmed — staging-based AWAP maps directly onto two chained Structured Streaming jobs writing to a Delta staging table, then auditing before promoting (<code>checkpointLocation</code> + <code>foreachBatch</code>, native Delta features from the book).</p></div>
+    </div>
+  </div>
+
+  <!-- Pattern 2 -->
+  <div class="card" id="p2">
+    <div class="card-head"><div class="card-num">02</div><h3>Constraints Enforcer</h3></div>
+    <div class="card-body">
+      <div class="line problem"><span class="k">Problem</span>Random NULLs appearing in required fields; team wants the load itself to fail on bad data, without adding validation code to an already-complex pipeline.</div>
+      <div class="line solution"><span class="k">Solution</span>Delegate to the database/storage format declaratively — four constraint types: type, nullability, value, integrity.</div>
+      <div class="line gotcha"><span class="k">Gotcha</span>All-or-nothing rejection (one bad row kills the whole batch); DBs usually stop at the first error — multiple round trips needed to find every issue.</div>
+
+      <div class="callout note"><span class="label">📌 Note</span><p>Constraints are <strong>producer-oriented</strong> — a field nullable in the DB may still be required for a specific consumer, who then needs their own extra check on top.</p></div>
+      <div class="callout say"><span class="label">✅ Say this out loud</span><p>"Constraints Enforcer trades flexibility for simplicity — declarative, no pipeline code, but it can't do partial dispatch like AWAP. I use it for hard business rules, AWAP for nuanced failure handling."</p></div>
+      <div class="callout faang"><span class="label">🎯 FAANG pointer</span><p>Classic trap: "why not just use Constraints Enforcer for everything?" Answer: coverage gaps (e.g., integrity constraints aren't universal) and all-or-nothing semantics make AWAP the flexible complement, not a replacement.</p></div>
+      <div class="callout databricks"><span class="label">🧱 Databricks</span><p>Fully native — Delta Lake's <code>CHECK</code> constraint (<code>ALTER TABLE ... ADD CONSTRAINT</code>) enforces value rules and raises <code>DELTA_VIOLATE_CONSTRAINT_WITH_VALUES</code> / <code>DELTA_NOT_NULL_CONSTRAINT_VIOLATED</code> on violation — straight from the book's own example.</p></div>
+    </div>
+  </div>
+
+  <!-- Pattern 3 -->
+  <div class="card" id="p3">
+    <div class="card-head"><div class="card-num">03</div><h3>Schema Compatibility Enforcer</h3></div>
+    <div class="card-body">
+      <div class="line problem"><span class="k">Problem</span>Upstream team dropped fields they assumed were "obsolete"; a sessionization job broke repeatedly for a month as a result.</div>
+      <div class="line solution"><span class="k">Solution</span>Enforce backward (new reads old), forward (old reads new), or full compatibility — via external registry (Kafka Schema Registry), implicit table/DB constraints, or DDL event triggers (Postgres/SQL Server).</div>
+      <div class="line gotcha"><span class="k">Gotcha</span>Registry checks add a round trip per write; rigid compatibility can turn a simple rename into "add new field + deprecate old."</div>
+
+      <div class="callout note"><span class="label">📌 Note — Transitive vs. non-transitive</span><p>Transitive compatibility must hold across <em>every</em> version, not just adjacent ones. Trap: v0→v1 and v1→v2 both look fine individually, but v0→v2 can still break (e.g., a field goes optional-with-default in v1, then required in v2 — a v2 reader can't safely parse v0 data).</p></div>
+      <div class="callout say"><span class="label">✅ Say this out loud</span><p>"I pick backward compatibility when consumers upgrade independently of producers, forward when producers must ship ahead of consumers, and full when I need both — though full is the most restrictive on what changes are even allowed."</p></div>
+      <div class="callout faang"><span class="label">🎯 FAANG pointer</span><p>Be ready to work through the transitive-vs-nontransitive Order-schema example live — it's the book's own proof that "compatible at each step" doesn't imply "compatible end-to-end."</p></div>
+      <div class="callout databricks"><span class="label">🧱 Databricks</span><p>Partially confirmed — Delta Lake enforces schema implicitly on write (rejects unrecognized columns with an <code>AnalysisException</code>, per the book). Not sure about a first-class, explicit backward/forward/full compatibility <em>mode</em> on Delta tables the way Kafka Schema Registry offers — flag this if asked.</p></div>
+    </div>
+  </div>
+
+  <!-- Pattern 4 -->
+  <div class="card" id="p4">
+    <div class="card-head"><div class="card-num">04</div><h3>Schema Migrator</h3></div>
+    <div class="card-body">
+      <div class="line problem"><span class="k">Problem</span>A visit-event schema has grown to ~60 loosely organized fields; consumers want related attributes grouped (e.g., login/email/age → one user struct) without a hard break.</div>
+      <div class="line solution"><span class="k">Solution</span>Add the new field alongside the old, agree a grace period where both are populated, then retire the old field. Covers rename, type change, and removal.</div>
+      <div class="line gotcha"><span class="k">Gotcha</span>Requires non-transitive compatibility (transitive rules block removal/rename by definition); dual-field period costs storage/network/I/O — Protobuf explicitly warns against high field counts.</div>
+
+      <div class="callout warn"><span class="label">⚠️ Warning</span><p>This pattern only works if Schema Compatibility Enforcer is <em>not</em> set to transitive — that's a prerequisite, not an implementation detail to skip.</p></div>
+      <div class="callout say"><span class="label">✅ Say this out loud</span><p>"Schema Compatibility Enforcer stops bad changes from happening; Schema Migrator is how you make a good breaking change happen safely — dual-write during a grace period, then cut over."</p></div>
+      <div class="callout faang"><span class="label">🎯 FAANG pointer</span><p>Good pattern for "how do you rename a column in production without breaking anyone" — the two-field-plus-deadline answer is exactly what this formalizes.</p></div>
+      <div class="callout databricks"><span class="label">🧱 Databricks</span><p>Not sure about a dedicated Databricks/Delta feature for the dual-field grace-period mechanic itself — the book doesn't call one out. Fine-Grained Tracker (Ch. 10, often via Unity Catalog lineage) is what confirms a field is truly unused before removal.</p></div>
+    </div>
+  </div>
+
+  <!-- Pattern 5 -->
+  <div class="card" id="p5">
+    <div class="card-head"><div class="card-num">05</div><h3>Offline Observer</h3></div>
+    <div class="card-body">
+      <div class="line problem"><span class="k">Problem</span>A new pipeline is currently clean, but experience says the upstream dataset will drift. Need to monitor distributions/null rates without blocking or slowing the main pipeline.</div>
+      <div class="line solution"><span class="k">Solution</span>A fully separate observability job, on its own schedule (e.g., nightly, decoupled from hourly generation) — nonblocking by design.</div>
+      <div class="line gotcha"><span class="k">Gotcha</span>Time-accuracy lag (issues surface only after consumers already processed bad data); infrequent runs process bigger backlogs, sometimes costing more per run than frequent small ones.</div>
+
+      <div class="callout note"><span class="label">📌 Note — Observability ≠ Auditing</span><p>Audit = <strong>blocking</strong> (can halt the pipeline). Observability = <strong>nonblocking</strong> (surfaces issues, pipeline keeps moving). This distinction is asked about directly.</p></div>
+      <div class="callout say"><span class="label">✅ Say this out loud</span><p>"Offline Observer decouples monitoring from production resources entirely — the cost is time accuracy, since insight can lag behind what consumers already saw."</p></div>
+      <div class="callout faang"><span class="label">🎯 FAANG pointer</span><p>Expect "why not just always audit in-line?" — answer with the resource-isolation trade-off, then pivot to Online Observer as the fix when time accuracy matters more.</p></div>
+      <div class="callout databricks"><span class="label">🧱 Databricks</span><p>Confirmed — the book's Spark Structured Streaming example uses <code>ydata-profiling</code>'s <code>ProfileReport</code> for HTML data profiles, plus a lag-detection function comparing checkpointed vs. latest offsets; both run natively on Databricks compute against Delta/Kafka sources.</p></div>
+    </div>
+  </div>
+
+  <!-- Pattern 6 -->
+  <div class="card" id="p6">
+    <div class="card-head"><div class="card-num">06</div><h3>Online Observer</h3></div>
+    <div class="card-body">
+      <div class="line problem"><span class="k">Problem</span>A zip_code format regression was caught by the Offline Observer — but only a week later, after consumers had already found it themselves.</div>
+      <div class="line solution"><span class="k">Solution</span>Embed the same observation logic into the generation pipeline. Batch: Parallel Split (alongside loading) or Local Sequencer (right after). Streaming: must be embedded in-job.</div>
+      <div class="line gotcha"><span class="k">Gotcha</span>Local Sequencer adds latency to the critical path; Parallel Split risks reading a partially-loaded/partially-valid dataset mid-write.</div>
+
+      <div class="callout note"><span class="label">📌 Note</span><p>Observability isn't data-only — it also covers technical metadata (CPU/memory/disk), which naturally fits the Online Observer's near-real-time nature.</p></div>
+      <div class="callout say"><span class="label">✅ Say this out loud</span><p>"Offline vs. Online Observer is a straight trade of time for accuracy — Online closes the detection gap but either slows the pipeline down or risks observing data mid-flight."</p></div>
+      <div class="callout faang"><span class="label">🎯 FAANG pointer</span><p>If asked to pick one, the correct move is contextual: "It depends on whether false-negative risk (Offline's lag) or pipeline-latency risk (Online's overhead) is worse for this dataset's SLA."</p></div>
+      <div class="callout databricks"><span class="label">🧱 Databricks</span><p>Not sure about a distinct Databricks-native "Online Observer" code path beyond general Structured Streaming <code>foreachBatch</code> composition — the book doesn't show streaming-specific Online Observer code beyond the architecture description. Don't overstate a dedicated feature here.</p></div>
+    </div>
+  </div>
+
+  <div class="thread">
+    <h2>The One Thread Tying This Chapter Together</h2>
+    <p>Enforcement (AWAP, Constraints Enforcer) stops bad data from shipping <strong>today</strong>.
+    Schema Consistency (Compatibility Enforcer, Migrator) stops the shape of <strong>tomorrow's</strong>
+    data from silently breaking you. Observation (Offline, Online Observer) is the feedback loop
+    that tells you when today's enforcement rules have gone stale — because datasets are dynamic,
+    and the rules you wrote last quarter won't cover what changed since. If an interviewer asks
+    "how do you know your data quality rules are still correct?" — the answer isn't "I wrote good
+    rules once," it's <strong>"I have an observation pattern watching for drift the rules
+    themselves can't see."</strong></p>
+  </div>
+
+</div>
+
+<button class="back-top" id="backTop" aria-label="Back to top">↑</button>
+
+<script>
+  var btn = document.getElementById('backTop');
+  window.addEventListener('scroll', function(){
+    if(window.scrollY > 400){ btn.classList.add('visible'); }
+    else { btn.classList.remove('visible'); }
+  });
+  btn.addEventListener('click', function(){
+    window.scrollTo({top:0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  });
+</script>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

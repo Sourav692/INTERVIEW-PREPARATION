@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Design for Data Engineers — Interview Playbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.65;
+    font-size:16px;
+  }
+  a{color:var(--amber);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  a:focus-visible{
+    outline:2px solid var(--amber);
+    outline-offset:3px;
+  }
+
+  /* —— Hero: one composition —— */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:32px 28px 56px;
+    overflow:hidden;
+    background:
+      radial-gradient(ellipse 90% 70% at 12% 18%, rgba(232,163,61,0.14), transparent 55%),
+      radial-gradient(ellipse 60% 50% at 88% 72%, rgba(94,201,160,0.06), transparent 50%),
+      linear-gradient(165deg, #12171f 0%, #0e1116 45%, #0a0d12 100%);
+  }
+  .hero::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:
+      linear-gradient(rgba(38,46,58,0.35) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(38,46,58,0.35) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image:linear-gradient(180deg, rgba(0,0,0,0.45), transparent 70%);
+    pointer-events:none;
+  }
+  .hero-inner{
+    position:relative;
+    z-index:1;
+    max-width:920px;
+    margin:0 auto;
+    width:100%;
+  }
+  .brand{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(36px, 7vw, 64px);
+    line-height:1.08;
+    letter-spacing:-0.02em;
+    color:#fff;
+    margin:0 0 20px;
+    max-width:14ch;
+    animation:rise 0.8s ease both;
+  }
+  .brand span{
+    display:block;
+    color:var(--amber);
+  }
+  .hero-lead{
+    font-size:clamp(16px, 2.2vw, 19px);
+    color:var(--ink-dim);
+    max-width:42ch;
+    margin:0 0 32px;
+    animation:rise 0.8s ease 0.12s both;
+  }
+  .hero-cta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    animation:rise 0.8s ease 0.22s both;
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:0.04em;
+    padding:14px 22px;
+    border-radius:6px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:background 0.2s, border-color 0.2s, transform 0.2s;
+  }
+  .btn-primary{
+    background:var(--amber);
+    color:#0e1116;
+    font-weight:700;
+  }
+  .btn-primary:hover{
+    background:#f0b45a;
+    text-decoration:none;
+    transform:translateY(-1px);
+  }
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink);
+    border-color:var(--rule);
+  }
+  .btn-ghost:hover{
+    border-color:var(--ink-faint);
+    text-decoration:none;
+    background:rgba(255,255,255,0.03);
+  }
+  .hero-meta{
+    position:absolute;
+    top:28px;
+    left:28px;
+    right:28px;
+    z-index:1;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    animation:fade 1s ease both;
+  }
+  .hero-meta a{
+    color:var(--ink-dim);
+  }
+
+  @keyframes rise{
+    from{opacity:0;transform:translateY(18px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  @keyframes fade{
+    from{opacity:0;}
+    to{opacity:1;}
+  }
+
+  /* —— Chapters —— */
+  .section{
+    max-width:920px;
+    margin:0 auto;
+    padding:72px 28px 40px;
+  }
+  .section-kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:12px;
+  }
+  .section h2{
+    font-family:var(--serif);
+    font-size:clamp(26px, 4vw, 34px);
+    font-weight:600;
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+    color:#fff;
+  }
+  .section-lead{
+    color:var(--ink-dim);
+    margin:0 0 40px;
+    max-width:52ch;
+  }
+
+  .toc{
+    border-top:1px solid var(--rule);
+  }
+  .toc-row{
+    display:grid;
+    grid-template-columns:72px 1fr auto;
+    gap:16px 20px;
+    align-items:baseline;
+    padding:22px 8px;
+    border-bottom:1px solid var(--rule);
+    color:inherit;
+    transition:background 0.15s, padding-left 0.2s;
+  }
+  .toc-row:hover{
+    background:rgba(232,163,61,0.04);
+    padding-left:14px;
+    text-decoration:none;
+  }
+  .toc-num{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--amber);
+    font-weight:700;
+  }
+  .toc-title{
+    font-family:var(--serif);
+    font-size:20px;
+    font-weight:600;
+    color:#fff;
+    margin:0 0 4px;
+  }
+  .toc-blurb{
+    font-size:14px;
+    color:var(--ink-dim);
+    margin:0;
+    max-width:56ch;
+  }
+  .toc-arrow{
+    font-family:var(--mono);
+    font-size:18px;
+    color:var(--ink-faint);
+    align-self:center;
+    transition:color 0.15s, transform 0.15s;
+  }
+  .toc-row:hover .toc-arrow{
+    color:var(--amber);
+    transform:translateX(4px);
+  }
+
+  .missing{
+    margin-top:48px;
+    padding:24px 26px;
+    background:var(--bg-panel);
+    border:1px dashed var(--rule);
+    border-radius:10px;
+  }
+  .missing h3{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin:0 0 14px;
+  }
+  .missing-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 10px;
+    margin:0;
+    padding:0;
+    list-style:none;
+  }
+  .missing-list li{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink-faint);
+    padding:6px 10px;
+    border:1px solid var(--rule);
+    border-radius:4px;
+  }
+
+  .site-footer{
+    max-width:920px;
+    margin:0 auto;
+    padding:48px 28px 64px;
+    border-top:1px solid var(--rule);
+    font-size:13px;
+    color:var(--ink-faint);
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .site-footer a{color:var(--ink-dim);}
+
+  @media(max-width:640px){
+    .toc-row{
+      grid-template-columns:48px 1fr;
+    }
+    .toc-arrow{display:none;}
+    .hero{padding:28px 20px 48px;}
+    .hero-meta{left:20px;right:20px;top:20px;}
+    .section{padding:56px 20px 32px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation:none !important;
+      transition:none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero" id="top">
+  <div class="hero-meta">
+    <a href="../index.html">← Study Hub</a>
+    <a href="#chapters">All chapters ↓</a>
+  </div>
+  <div class="hero-inner">
+    <h1 class="brand">System Design <span>for Data Engineers</span></h1>
+    <p class="hero-lead">
+      A self-contained interview playbook — FAANG signals, war stories, trade-off tables,
+      and cheat sheets you can photograph before the loop.
+    </p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="ch03_fundamentals_of_scale.html">Start with Ch.3 →</a>
+      <a class="btn btn-ghost" href="#case-studies">Case studies</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section" id="chapters">
+    <div class="section-kicker">Table of contents</div>
+    <h2>Chapters ready to study</h2>
+    <p class="section-lead">
+      Deep-dive chapters plus four full Chapter 16 case studies from the System Design V2
+      playbook. Open any one — each page has prev/next navigation back to this hub.
+    </p>
+
+    <nav class="toc" aria-label="Chapter list">
+      <a class="toc-row" href="ch03_fundamentals_of_scale.html">
+        <span class="toc-num">Ch.03</span>
+        <span>
+          <span class="toc-title">Fundamentals of Scale</span>
+          <p class="toc-blurb">Napkin math, five dimensions of scale, and naming the bottleneck before the cluster does.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch04_storage_engines.html">
+        <span class="toc-num">Ch.04</span>
+        <span>
+          <span class="toc-title">Storage Engines</span>
+          <p class="toc-blurb">Row vs column, LSM vs B-tree, local disk vs object store — the decision you can't renegotiate.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch05_data_modeling_at_scale.html">
+        <span class="toc-num">Ch.05</span>
+        <span>
+          <span class="toc-title">Data Modeling at Scale</span>
+          <p class="toc-blurb">Star schemas, wide vs narrow tables, and SCDs — which future questions stay cheap to answer.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch06_batch_systems.html">
+        <span class="toc-num">Ch.06</span>
+        <span>
+          <span class="toc-title">Batch Systems</span>
+          <p class="toc-blurb">Idempotency, retries, and designing overnight jobs that assume things will break.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch07_streaming_systems.html">
+        <span class="toc-num">Ch.07</span>
+        <span>
+          <span class="toc-title">Streaming Systems</span>
+          <p class="toc-blurb">Watermarks, late data, and why streaming is a different set of promises than fast batch.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch08_cdc_and_replication.html">
+        <span class="toc-num">Ch.08</span>
+        <span>
+          <span class="toc-title">CDC &amp; Replication</span>
+          <p class="toc-blurb">Log-based change capture, ordering guarantees, and the deletes that cheap syncs miss.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch09_lakehouse_and_table_formats.html">
+        <span class="toc-num">Ch.09</span>
+        <span>
+          <span class="toc-title">Lakehouse &amp; Table Formats</span>
+          <p class="toc-blurb">Iceberg, Hudi, Delta — bookkeeping that makes object storage behave like a real table.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch10_query_engines.html">
+        <span class="toc-num">Ch.10</span>
+        <span>
+          <span class="toc-title">Query Engines</span>
+          <p class="toc-blurb">You pay for bytes scanned, not rows returned — prune, partition, and push predicates.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch11_orchestration.html">
+        <span class="toc-num">Ch.11</span>
+        <span>
+          <span class="toc-title">Orchestration</span>
+          <p class="toc-blurb">DAGs as contracts: retries, SLAs, and what happens when a dependency fails at 3am.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch12_data_contracts_and_governance.html">
+        <span class="toc-num">Ch.12</span>
+        <span>
+          <span class="toc-title">Data Contracts &amp; Governance</span>
+          <p class="toc-blurb">Schemas as enforceable contracts — break them in CI, not in production dashboards.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch13_reliability_and_operations.html">
+        <span class="toc-num">Ch.13</span>
+        <span>
+          <span class="toc-title">Reliability &amp; Operations</span>
+          <p class="toc-blurb">Uptime ≠ correctness. Watch freshness, completeness, and accuracy as three separate signals.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch14_cost_at_scale.html">
+        <span class="toc-num">Ch.14</span>
+        <span>
+          <span class="toc-title">Cost at Scale</span>
+          <p class="toc-blurb">Cut 30–40% by fixing scan waste and storage tiering — not by renegotiating the vendor deal.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch15_de_interview_playbook.html">
+        <span class="toc-num">Ch.15</span>
+        <span>
+          <span class="toc-title">The DE Interview Playbook</span>
+          <p class="toc-blurb">The 45-minute performance: clarify, trade off out loud, and close like a staff engineer.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch16_case_studies.html">
+        <span class="toc-num">Ch.16</span>
+        <span>
+          <span class="toc-title">Case Studies</span>
+          <p class="toc-blurb">Four full interview walkthroughs — fraud, recommendations, clickstream, IoT — each with a different hard ceiling.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+    </nav>
+  </section>
+
+  <section class="section" id="case-studies">
+    <div class="section-kicker">Chapter 16</div>
+    <h2>Case studies</h2>
+    <p class="section-lead">
+      Each case study is a standalone interview design. Work them in order — the ceilings stack.
+    </p>
+
+    <nav class="toc" aria-label="Case study list">
+      <a class="toc-row" href="ch16_case_study_1_fraud_detection.html">
+        <span class="toc-num">CS.1</span>
+        <span>
+          <span class="toc-title">Real-Time Fraud Detection</span>
+          <p class="toc-blurb">Blocking ≤100ms decisions at thousands of TPS — skew meets streaming under a hard latency wall.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch16_case_study_2_recommendation_serving.html">
+        <span class="toc-num">CS.2</span>
+        <span>
+          <span class="toc-title">Recommendation Serving</span>
+          <p class="toc-blurb">Retrieve-then-rank over millions of candidates — a read-heavy problem with a real cost ceiling.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch16_case_study_3_clickstream_analytics.html">
+        <span class="toc-num">CS.3</span>
+        <span>
+          <span class="toc-title">Clickstream Analytics at Scale</span>
+          <p class="toc-blurb">Producers change schemas without warning — the ceiling is compatibility, not Kafka throughput.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="toc-row" href="ch16_case_study_4_iot_telemetry.html">
+        <span class="toc-num">CS.4</span>
+        <span>
+          <span class="toc-title">IoT Telemetry</span>
+          <p class="toc-blurb">1M sensors/sec and seven years of retention — downsampling as a day-one design decision.</p>
+        </span>
+        <span class="toc-arrow" aria-hidden="true">→</span>
+      </a>
+    </nav>
+
+    <aside class="missing" aria-label="Chapters not yet generated">
+      <h3>Not generated yet</h3>
+      <ul class="missing-list">
+        <li>Ch.02 Why System Design</li>
+      </ul>
+    </aside>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span>System Design · part of <a href="../index.html">Data Engineering Study Hub</a></span>
+  <a href="#top">Back to top ↑</a>
+</footer>
+
+</body>
+</html>

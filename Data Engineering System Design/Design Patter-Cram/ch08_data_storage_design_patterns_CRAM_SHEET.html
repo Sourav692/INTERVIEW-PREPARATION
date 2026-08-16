@@ -1,0 +1,336 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch8 Data Storage — Interview Cram Sheet</title>
+<style>
+  /* DESIGN NOTE: "Flashcard stack" — condensed for scanning, not reading.
+     Same archival-ledger family (paper/ink/brass) as the full Ch.8 doc for
+     series consistency, flattened to single-screen cards with numbered chips
+     and a sticky quick-nav, since a cram sheet's whole point is zero scroll-hunting. */
+  :root {
+    --paper: #F7F3EC;
+    --paper-raised: #FFFDF8;
+    --ink: #1B2A41;
+    --ink-soft: #3D4C63;
+    --ink-faint: #7A879C;
+    --brass: #B8863C;
+    --brass-deep: #8C5F24;
+    --brass-pale: #EFDFC0;
+    --rule: #D8CFBC;
+    --note-blue: #2C6E8E;
+    --note-bg: #E6EEF2;
+    --say-brass: #8C5F24;
+    --say-bg: #F3E6C8;
+    --faang-red: #A13D2E;
+    --faang-bg: #F5E5DF;
+    --green: #4C6E4A;
+    --green-bg: #E7EFE3;
+    --code-bg: #1B2A41;
+    --code-fg: #E9E4D6;
+    --shadow: 0 2px 10px rgba(27,42,65,0.08), 0 1px 2px rgba(27,42,65,0.06);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.55; font-size: 15.5px;
+  }
+  h1, h2 { font-family: 'Roboto Slab', Georgia, serif; color: var(--ink); }
+
+  header {
+    background: linear-gradient(180deg, var(--ink) 0%, #223350 100%);
+    color: var(--paper); padding: 1.6rem 1.2rem; position: sticky; top: 0; z-index: 10;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  header .inner { max-width: 960px; margin: 0 auto; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--brass-pale);
+    border: 1px solid rgba(184,134,60,0.5); padding: 0.25rem 0.6rem; border-radius: 999px;
+    margin-bottom: 0.6rem;
+  }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brass); display: inline-block; }
+  header h1 { color: var(--paper); font-size: 1.5rem; margin: 0 0 0.3rem; }
+  header p { color: #B9C4D6; font-size: 0.88rem; margin: 0 0 0.9rem; }
+
+  .quicknav { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .quicknav a {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    color: var(--brass-pale); text-decoration: none;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(184,134,60,0.3);
+    padding: 0.3rem 0.6rem; border-radius: 999px; white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .quicknav a:hover, .quicknav a:focus-visible { background: rgba(184,134,60,0.25); outline: 2px solid var(--brass); outline-offset: 1px; }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 1.4rem 1.2rem 3rem; }
+
+  .thread {
+    background: var(--brass-pale); border: 1px solid var(--rule);
+    border-left: 4px solid var(--brass); border-radius: 4px;
+    padding: 0.9rem 1.1rem; margin-bottom: 1.4rem; font-size: 0.92rem; color: var(--ink);
+  }
+  .thread strong { color: var(--brass-deep); }
+
+  .card {
+    background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 6px;
+    box-shadow: var(--shadow); margin-bottom: 1rem; overflow: hidden; scroll-margin-top: 8rem;
+  }
+  .card-head {
+    background: var(--ink); color: var(--paper);
+    padding: 0.7rem 1rem; display: flex; align-items: center; gap: 0.6rem;
+  }
+  .card-head .num {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--brass);
+    border: 1px solid var(--brass); border-radius: 50%;
+    width: 1.6rem; height: 1.6rem; display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .card-head h2 { color: var(--paper); font-size: 1.02rem; margin: 0; }
+  .card-body { padding: 0.9rem 1.1rem 1.1rem; }
+  .row { margin-bottom: 0.55rem; font-size: 0.9rem; }
+  .row .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--brass-deep); font-weight: 700; margin-right: 0.35rem;
+  }
+  .row p { display: inline; margin: 0; color: var(--ink-soft); }
+  .row.problem .tag { color: var(--faang-red); }
+  .row.solution .tag { color: var(--green); }
+
+  .callout {
+    border-radius: 4px; padding: 0.55rem 0.8rem; margin: 0.5rem 0; font-size: 0.86rem;
+    border-left: 3px solid var(--ink-faint);
+  }
+  .callout .lbl { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.72rem; display: block; margin-bottom: 0.2rem; }
+  .callout p { margin: 0; }
+  .callout.note { background: var(--note-bg); border-left-color: var(--note-blue); }
+  .callout.note .lbl { color: var(--note-blue); }
+  .callout.say { background: var(--say-bg); border-left-color: var(--say-brass); }
+  .callout.say .lbl { color: var(--say-brass); }
+  .callout.say p { font-style: italic; }
+  .callout.faang { background: var(--faang-bg); border-left-color: var(--faang-red); }
+  .callout.faang .lbl { color: var(--faang-red); }
+  .callout.dbx { background: var(--green-bg); border-left-color: var(--green); }
+  .callout.dbx .lbl { color: var(--green); }
+  code {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85em;
+    background: var(--brass-pale); color: var(--brass-deep); padding: 0.08rem 0.32rem; border-radius: 2px;
+  }
+
+  h2.section-title {
+    font-size: 1.15rem; margin: 2rem 0 0.9rem; padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--brass); scroll-margin-top: 8rem;
+  }
+
+  .table-wrap { overflow-x: auto; border-radius: 6px; box-shadow: var(--shadow); margin-bottom: 1.4rem; }
+  table { width: 100%; border-collapse: collapse; background: var(--paper-raised); font-size: 0.84rem; }
+  thead th {
+    background: var(--ink); color: var(--brass-pale);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.06em;
+    text-transform: uppercase; text-align: left; padding: 0.55rem 0.7rem;
+  }
+  tbody td { padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tbody tr:nth-child(even) { background: #F1EEE4; }
+  tbody td:nth-child(2) { font-weight: 700; color: var(--brass-deep); font-family: 'Roboto Slab', serif; white-space: nowrap; }
+  tbody td:first-child { font-family: 'JetBrains Mono', monospace; color: var(--ink-faint); text-align: center; }
+
+  .closer {
+    margin-top: 1.8rem; background: linear-gradient(180deg, var(--ink) 0%, #223350 100%);
+    border-radius: 8px; padding: 1.4rem 1.3rem; color: var(--paper); text-align: center;
+  }
+  .closer h2 { color: var(--paper); font-size: 1.15rem; margin: 0 0 0.5rem; }
+  .closer p { color: #C7D0DE; font-size: 0.9rem; max-width: 62ch; margin: 0 auto; line-height: 1.55; }
+  .closer .hl { color: var(--brass-pale); font-weight: 700; }
+
+  footer { text-align: center; padding: 1.8rem; color: var(--ink-faint); font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; }
+
+  @media (max-width: 600px) {
+    header { position: static; }
+    .row .tag { display: block; margin-bottom: 0.1rem; }
+    .card-body { padding: 0.8rem 0.9rem 1rem; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header>
+  <div class="inner">
+    <div class="badge"><span class="dot"></span>Chapter 8 · Data Storage — Cram Sheet</div>
+    <h1>Data Storage Design Patterns — 2-Day Interview Prep</h1>
+    <p>9 patterns · 2–3 lines each · Note / Say-this-out-loud / FAANG pointer / Databricks angle for every pattern</p>
+    <nav class="quicknav">
+      <a href="#p1">1 Horiz. Part.</a>
+      <a href="#p2">2 Vert. Part.</a>
+      <a href="#p3">3 Bucket</a>
+      <a href="#p4">4 Sorter</a>
+      <a href="#p5">5 Metadata Enh.</a>
+      <a href="#p6">6 Materializer</a>
+      <a href="#p7">7 Manifest</a>
+      <a href="#p8">8 Normalizer</a>
+      <a href="#p9">9 Denormalizer</a>
+      <a href="#recall">Recall Table</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="thread">
+    <strong>The one thread tying this chapter together:</strong> every pattern trades <em>one resource for another</em> —
+    never eliminates cost, just moves it. If asked "does this optimization just make things faster for free?" —
+    the right answer is <strong>"no — it's faster reads paid for with slower writes, more storage, or harder updates."</strong>
+  </div>
+
+  <article class="card" id="p1">
+    <div class="card-head"><span class="num">1</span><h2>Horizontal Partitioner</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><p>Filtering a growing dataset (e.g. "last 4 days") gets slower and slower as more data lands.</p></div>
+      <div class="row solution"><span class="tag">Solution</span><p>Physically isolate rows by a low-cardinality distribution key — usually event time, hour/day granularity.</p></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Sharding is a physical/hardware-layer special case of horizontal partitioning — not the same thing.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"I partition by a low-cardinality, frequently-filtered attribute — usually event time rounded to the hour or day — so the engine can skip irrelevant partitions without exploding the metadata layer."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Classic follow-up — "what if you partitioned by user_id instead?" Tests the small-files/metadata-overload failure mode.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Fully native — <code>PARTITIONED BY</code> at table creation, or <code>.partitionBy()</code> in Spark writes; visible via <code>DESCRIBE TABLE EXTENDED</code>.</p></div>
+    </div>
+  </article>
+
+  <article class="card" id="p2">
+    <div class="card-head"><span class="num">2</span><h2>Vertical Partitioner</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><p>Mutable and immutable attributes are stored together, duplicating the immutable ones on every row.</p></div>
+      <div class="row solution"><span class="tag">Solution</span><p>Split the row into groups by mutability/access needs, joined back by a shared key (e.g. <code>visit_id</code>).</p></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>This is the storage-focused version — Chapter 7 covers the same idea applied to security.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Vertical Partitioner trades read simplicity for storage savings and per-group policy flexibility — I use it when attribute groups have genuinely different retention or access needs."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Expect "how do you reconstruct the full row?" — answer is Dataset Materializer or a view, not a schema redesign.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>No dedicated feature — implemented manually via separate table writes (<code>.select()</code>/<code>.drop()</code> + <code>.persist()</code> to avoid double reads).</p></div>
+    </div>
+  </article>
+
+  <h2 class="section-title">Records Organization</h2>
+
+  <article class="card" id="p3">
+    <div class="card-head"><span class="num">3</span><h2>Bucket</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><p>A high-cardinality column (e.g. user_id) drives most query predicates but is too high-cardinality to partition on.</p></div>
+      <div class="row solution"><span class="tag">Solution</span><p>Hash-based colocation — <code>hash(key) % N</code> buckets — enables bucket pruning and shuffle-free joins.</p></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Popularized by Apache Hive; now in Spark and AWS Athena (Athena is logical-only — never writes data).</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Bucketing is my answer when a high-cardinality column is central to filters and joins and partitioning would blow up the metadata layer — the cost is that the bucket count is essentially a one-way door."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>They'll probe whether you know bucket count is near-immutable — resizing means a full backfill.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><code>bucketBy()</code> works on Databricks, but <strong>not recommended with Delta Lake</strong> — Delta's own file-skipping/Z-order generally supersedes it. Flag this trade-off if asked.</p></div>
+    </div>
+  </article>
+
+  <article class="card" id="p4">
+    <div class="card-head"><span class="num">4</span><h2>Sorter</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><p>Data is already organized (e.g. weekly tables) but queries still scan whole blocks.</p></div>
+      <div class="row solution"><span class="tag">Solution</span><p>Declare sort column(s) at table creation; use Z-order for multi-column "curved sort" skipping.</p></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Z-order gets called "clustering" but it's mechanically still a disk sort — the book classifies it under Sorter, not as its own pattern.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Lexicographical sort only helps if my query filters match the declared key order — if I need to skip blocks on any of several columns interchangeably, Z-order is the right call."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Book's own number to cite: lexicographical order read 9 data blocks vs. Z-order's 7 on the same two-column predicate — concrete proof multi-dimensional skipping wins.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Fully native — <code>OPTIMIZE ... ZORDER BY (...)</code> on Delta tables. One of the strongest, most commonly used Databricks-specific capabilities in this chapter.</p></div>
+    </div>
+  </article>
+
+  <h2 class="section-title">Read Performance Optimization</h2>
+
+  <article class="card" id="p5">
+    <div class="card-head"><span class="num">5</span><h2>Metadata Enhancer</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><p>Consumers load the full dataset before filtering, driving up latency and cloud cost.</p></div>
+      <div class="row solution"><span class="tag">Solution</span><p>Persist per-file/per-column stats (Parquet footers, commit-log min/max/null counts) so the engine skips files without opening them.</p></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Table formats (Delta, Iceberg, Hudi) layer extra commit-log stats on top of Parquet's own footer stats.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Predicate pushdown via file-level stats is close to free at read time — the real cost is keeping those stats fresh, which is a write-time and maintenance concern."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Watch for "what if stats are stale?" — threshold-based auto-refresh can lag; <code>ANALYZE TABLE</code> fixes it but adds temporary read overhead.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Fully native and automatic — Delta Lake collects column stats (min/max/null count) in the transaction log on every write; no config needed for the default 32 columns.</p></div>
+    </div>
+  </article>
+
+  <article class="card" id="p6">
+    <div class="card-head"><span class="num">6</span><h2>Dataset Materializer</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><p>A view simplifying a costly multi-table query still feels slow — it re-runs the query on every access.</p></div>
+      <div class="row solution"><span class="tag">Solution</span><p>Precompute into a materialized view (some auto-refresh) or a table (manual refresh, but gains partitioning/bucketing/sorting).</p></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Incremental refresh (only new rows) is the standard mitigation for insert-only workloads — full refresh is the expensive default.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"The materialized-view-vs-table choice comes down to who owns the refresh — automatic but less predictable, or manual but fully composable with other storage optimizations."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>They may ask you to sketch the incremental-refresh SQL — it's a <code>MERGE</code> filtered by <code>insertion_time &gt; last_run</code>, combining Incremental Loader + Merger.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Native materialized views exist (Unity Catalog, DLT/Lakeflow pipelines) with automatic incremental refresh where possible — one of the chapter's strongest confirmed Databricks capabilities.</p></div>
+    </div>
+  </article>
+
+  <article class="card" id="p7">
+    <div class="card-head"><span class="num">7</span><h2>Manifest</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><p>Object-store file listing is the dominant latency cost once a Parquet dataset is exposed through a warehouse layer.</p></div>
+      <div class="row solution"><span class="tag">Solution</span><p>Record the file list once — automatically (table format commit logs) or as an explicit manifest — so readers skip the listing call.</p></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Manifests also help writing — Redshift's <code>COPY ... MANIFEST</code> ties a load to a fixed file list, making replays idempotent.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"A manifest turns an O(n) listing call into an O(1) metadata read — the only real cost is that the manifest itself can grow large with many small files or a continuous streaming writer."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Good war story: early Spark Structured Streaming manifests grew unbounded and could block job restarts (SPARK-27188) — shows a real historical failure mode.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Fully native and automatic — Delta Lake's transaction log <strong>is</strong> the manifest; readers never list files directly. <code>generate('symlink_format_manifest')</code> exists for non-Delta readers (Presto/Athena/BigQuery).</p></div>
+    </div>
+  </article>
+
+  <h2 class="section-title">Data Representation</h2>
+
+  <article class="card" id="p8">
+    <div class="card-head"><span class="num">8</span><h2>Normalizer</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><p>Immutable reference attributes (device, OS) are duplicated on every event row, bloating storage and slowing updates.</p></div>
+      <div class="row solution"><span class="tag">Solution</span><p>Split into Normal Forms (1NF/2NF/3NF) or a snowflake schema (fact table + dimensions describing dimensions) — one fact represented once.</p></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>The overarching goal is consistency over performance — an update lands once and is visible everywhere immediately.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"I reach for Normalizer when reference data changes often and consistency matters more than read latency — the tax is paid in JOINs, partially offset with colocation or broadcast joins."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>They'll test the archival angle — time-sensitive dimensions (e.g. changing prices) need SCD Type 2/4, not just a plain Normalizer.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>No single dedicated "Normalizer" feature — a modeling choice implemented with standard Delta tables + <code>MERGE</code>. Broadcast joins tunable via <code>spark.sql.autoBroadcastJoinThreshold</code>.</p></div>
+    </div>
+  </article>
+
+  <article class="card" id="p9">
+    <div class="card-head"><span class="num">9</span><h2>Denormalizer</h2></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><p>A fully relational model needs 8-table joins for 80% of queries — read latency collapses as volume grows.</p></div>
+      <div class="row solution"><span class="tag">Solution</span><p>Flatten into One Big Table (regular columns) or nested <code>STRUCT</code>s, or a star schema (fact + flat dimensions, no nested dimensions).</p></div>
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Normalizer and Denormalizer aren't exclusive — build normalized for consistency, then a denormalized copy on top for reads, kept in sync via a Chapter 6 sequence pattern.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"I'd reach for One Big Table or a star schema when read latency dominates and the source is close to append-only — the update cost is the real bill you're paying for that speed."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Classic trap: "does denormalizing always help?" Only if you can treat the table as an immutable snapshot; otherwise costly multi-row updates eat the gains.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>No dedicated feature — regular Delta writes with <code>JOIN</code> + <code>write.mode('overwrite')</code>. <code>STRUCT</code>/nested columns are natively supported by Delta's Parquet-based storage.</p></div>
+    </div>
+  </article>
+
+  <h2 class="section-title" id="recall">One-Page Recall Table</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Pattern</th><th>One-Line Problem</th><th>One-Line Fix</th><th>#1 Gotcha</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Horizontal Partitioner</td><td>Growing dataset, slow filters</td><td>Physically isolate rows by low-cardinality key</td><td>High cardinality → metadata/small-files overload</td></tr>
+        <tr><td>2</td><td>Vertical Partitioner</td><td>Immutable attrs duplicated per row</td><td>Split row into groups by mutability</td><td>Full-row reconstruction needs a join/view</td></tr>
+        <tr><td>3</td><td>Bucket</td><td>High-cardinality key, can't partition</td><td>Hash % N colocation</td><td>Bucket count is a near one-way door</td></tr>
+        <tr><td>4</td><td>Sorter</td><td>Organized but still full-block scans</td><td>Declare sort cols; Z-order for multi-dim</td><td>Composite key order must match filter order</td></tr>
+        <tr><td>5</td><td>Metadata Enhancer</td><td>Full-dataset load before filtering</td><td>Persist file/column stats for pushdown</td><td>Stats go stale between refreshes</td></tr>
+        <tr><td>6</td><td>Dataset Materializer</td><td>View re-runs costly query every time</td><td>Precompute into view/table</td><td>Refresh cost + cross-table access policy</td></tr>
+        <tr><td>7</td><td>Manifest</td><td>Slow, repeated object-store listing</td><td>Record file list once (commit log/manifest)</td><td>Manifest can balloon with many small files</td></tr>
+        <tr><td>8</td><td>Normalizer</td><td>Duplicated reference data, update anomalies</td><td>Normal forms or snowflake schema</td><td>Distributed joins costly; needs SCD for archival</td></tr>
+        <tr><td>9</td><td>Denormalizer</td><td>Too many joins tank query time</td><td>One Big Table or star schema</td><td>Updates get expensive as duplication grows</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="closer">
+    <h2>The One Thread Tying This Chapter Together</h2>
+    <p>Every pattern trades <span class="hl">one resource for another</span> — partitioning/bucketing trade write-time organization for read-time speed; Metadata Enhancer/Manifest trade a small write-time step for skipping expensive reads; Materializer trades storage for compute; Normalizer trades query simplicity for consistency, and Denormalizer trades it right back. If asked "does X just make things faster for free?" — the right answer is <span class="hl">"no — it's faster reads paid for with slower writes, more storage, or harder updates; the skill is picking which side of that trade your workload can afford."</span></p>
+  </div>
+
+</div>
+
+<footer>Data Engineering Design Patterns — Chapter 8 Cram Sheet · Source: Bartosz Konieczny (O'Reilly, 2025)</footer>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

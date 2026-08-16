@@ -1,0 +1,365 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 2 Cram Sheet — Data Ingestion Design Patterns</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root{
+    --paper:#F6F1E7; --paper-raised:#FFFDF8;
+    --ink:#211D18; --ink-soft:#55504A; --ink-faint:#8A8378;
+    --rule:#DCD3C0; --rule-strong:#C9BCA0;
+    --blue:#2B4C6F; --blue-bg:#E6EDF3; --blue-border:#A9C1D6;
+    --rust:#C4622D; --rust-bg:#F7E9DF; --rust-border:#E3AE8C;
+    --green:#3F6B4F; --green-bg:#E6EEE8; --green-border:#A9C7B4;
+    --amber:#A9772E; --amber-bg:#F3EAD6; --amber-border:#DDBE85;
+    --purple:#6B4C8A; --purple-bg:#EFE7F5; --purple-border:#CBB6DC;
+    --code-bg:#211D18; --code-fg:#F1EADC;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Inter', -apple-system, sans-serif; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:var(--blue); }
+  a:focus-visible, button:focus-visible{
+    outline:3px solid var(--rust); outline-offset:2px; border-radius:2px;
+  }
+
+  /* ---------- Sticky header ---------- */
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg, #2A241B, #211D18);
+    border-bottom:3px solid var(--rust);
+    padding:1.1rem 1.5rem 1rem;
+  }
+  header.top .inner{ max-width:980px; margin:0 auto; }
+  header.top .kicker{
+    font-family:'JetBrains Mono', monospace; font-size:0.68rem;
+    letter-spacing:0.16em; text-transform:uppercase; color:#D9A876;
+    display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;
+  }
+  header.top .kicker::before{ content:"◆"; color:var(--rust); }
+  header.top h1{
+    font-family:'Source Serif 4', serif; font-weight:600; color:#FBF7ED;
+    font-size:clamp(1.3rem, 3.4vw, 1.85rem); margin:0 0 0.2rem;
+  }
+  header.top .lede{ color:#C9C0B0; font-size:0.86rem; max-width:70ch; margin:0 0 0.8rem; }
+  .quicknav{ display:flex; flex-wrap:wrap; gap:0.4rem; }
+  .quicknav a{
+    font-family:'JetBrains Mono', monospace; font-size:0.68rem; text-decoration:none;
+    color:#EDE3D2; background:rgba(255,255,255,0.08); border:1px solid rgba(230,180,130,0.35);
+    padding:0.28rem 0.6rem; border-radius:20px; white-space:nowrap;
+    transition:background 0.15s ease;
+  }
+  .quicknav a:hover{ background:rgba(230,180,130,0.22); }
+
+  main{ max-width:980px; margin:0 auto; padding:1.6rem 1.5rem 4rem; }
+
+  /* ---------- Thread callout ---------- */
+  .thread{
+    background:var(--purple-bg); border-left:4px solid var(--purple);
+    border-radius:6px; padding:1rem 1.2rem; margin:0 0 1.6rem;
+  }
+  .thread .lbl{
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:0.72rem;
+    letter-spacing:0.08em; text-transform:uppercase; color:var(--purple);
+    display:block; margin-bottom:0.35rem;
+  }
+  .thread p{ margin:0; font-size:0.93rem; color:var(--ink); }
+
+  /* ---------- Recall table ---------- */
+  .recall-wrap{ margin:0 0 2rem; }
+  .recall-wrap .cap{
+    font-family:'JetBrains Mono', monospace; font-size:0.7rem; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--ink-faint); margin-bottom:0.5rem;
+  }
+  table{
+    width:100%; border-collapse:collapse; background:var(--paper-raised);
+    border:1px solid var(--rule); border-radius:8px; overflow:hidden; font-size:0.86rem;
+  }
+  thead th{
+    background:var(--ink); color:var(--paper); text-align:left; padding:0.6rem 0.8rem;
+    font-family:'JetBrains Mono', monospace; font-size:0.68rem; letter-spacing:0.05em; text-transform:uppercase;
+  }
+  tbody td{ padding:0.6rem 0.8rem; border-bottom:1px solid var(--rule); vertical-align:top; }
+  tbody tr:nth-child(even){ background:#F1EADA; }
+  tbody tr:last-child td{ border-bottom:none; }
+  .table-wrap{ overflow-x:auto; }
+
+  /* ---------- Pattern cards ---------- */
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule); border-radius:10px;
+    margin:0 0 1.3rem; overflow:hidden; scroll-margin-top:9.5rem;
+  }
+  .card .head{
+    background:linear-gradient(135deg, #221E19, #2E2820);
+    padding:0.75rem 1.1rem; display:flex; align-items:baseline; gap:0.7rem; flex-wrap:wrap;
+  }
+  .card .head .chip{
+    font-family:'JetBrains Mono', monospace; font-size:0.72rem; font-weight:700;
+    color:#211D18; background:var(--rust); padding:0.15rem 0.5rem; border-radius:4px;
+    letter-spacing:0.02em;
+  }
+  .card .head h2{
+    font-family:'Source Serif 4', serif; font-weight:600; color:#FBF7ED;
+    font-size:1.15rem; margin:0;
+  }
+  .card .body{ padding:0.9rem 1.1rem 1.1rem; }
+
+  .row{ display:flex; gap:10px; margin-bottom:10px; align-items:baseline; flex-wrap:wrap; }
+  .row .tag{
+    font-family:'JetBrains Mono', monospace; font-size:0.66rem; letter-spacing:0.06em;
+    text-transform:uppercase; font-weight:700; flex-shrink:0; width:74px; padding-top:2px;
+  }
+  .row .txt{ flex:1; min-width:220px; font-size:0.92rem; }
+  .row.problem .tag{ color:var(--rust); }
+  .row.solution .tag{ color:var(--blue); }
+  .row.gotcha .tag{ color:var(--amber); }
+
+  /* ---------- Callouts ---------- */
+  .callout{
+    border-left:4px solid; border-radius:4px; padding:0.6rem 0.85rem;
+    margin:0.6rem 0; font-size:0.86rem;
+  }
+  .callout .lbl{
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:0.68rem;
+    text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:0.2rem;
+  }
+  .callout p{ margin:0.15rem 0; }
+  .callout.note{ background:var(--blue-bg); border-color:var(--blue); }
+  .callout.note .lbl{ color:var(--blue); }
+  .callout.say{ background:var(--amber-bg); border-color:var(--amber); }
+  .callout.say .lbl{ color:var(--amber); }
+  .callout.faang{ background:var(--rust-bg); border-color:var(--rust); }
+  .callout.faang .lbl{ color:var(--rust); }
+  .callout.dbx{ background:var(--green-bg); border-color:var(--green); }
+  .callout.dbx .lbl{ color:var(--green); }
+  .dbx-unsure{ font-style:italic; color:var(--ink-soft); }
+
+  /* ---------- Closer ---------- */
+  .closer{
+    background:linear-gradient(180deg, #2A241B, #211D18);
+    border-radius:10px; padding:1.6rem 1.7rem; margin-top:2rem; color:#EDE3D2;
+  }
+  .closer .lbl{
+    font-family:'JetBrains Mono', monospace; font-size:0.7rem; letter-spacing:0.12em;
+    text-transform:uppercase; color:#D9A876; margin-bottom:0.5rem; display:block;
+  }
+  .closer p{ margin:0; font-size:0.93rem; line-height:1.6; }
+  .closer strong{ color:#FBF7ED; }
+
+  footer{
+    text-align:center; font-family:'JetBrains Mono', monospace; font-size:0.68rem;
+    color:var(--ink-faint); padding:1.6rem 1.5rem 2.5rem;
+  }
+
+  @media (max-width:640px){
+    header.top{ padding:0.9rem 1.1rem 0.85rem; }
+    main{ padding:1.2rem 1.1rem 3rem; }
+    .row .tag{ width:100%; }
+    .card .body{ padding:0.8rem 0.9rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div class="kicker">Data Engineering Design Patterns · Cram Sheet</div>
+    <h1>Chapter 2 — Data Ingestion Design Patterns</h1>
+    <p class="lede">Last-minute recall: 8 patterns, one line each for Problem / Solution / Gotcha, plus interview-ready lines.</p>
+    <nav class="quicknav" aria-label="Jump to pattern">
+      <a href="#p1">1 Full Loader</a>
+      <a href="#p2">2 Incremental Loader</a>
+      <a href="#p3">3 CDC</a>
+      <a href="#p4">4 Passthrough Repl.</a>
+      <a href="#p5">5 Transformation Repl.</a>
+      <a href="#p6">6 Compactor</a>
+      <a href="#p7">7 Readiness Marker</a>
+      <a href="#p8">8 External Trigger</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <div class="thread">
+    <span class="lbl">The Connecting Thread</span>
+    <p>Ingestion is where you stop controlling the data. Every pattern here exists because a
+    producer you don't own — a legacy DB, a third-party API, an irregular event stream — hands
+    you data on its own terms. The chapter moves from <strong>how much</strong> to load (Full →
+    Incremental → CDC), to <strong>how</strong> to copy it safely (Replication), to the
+    operational plumbing that makes ingestion trustworthy: readiness, compaction, and reacting to
+    unscheduled arrivals.</p>
+  </div>
+
+  <div class="recall-wrap">
+    <div class="cap">One-page recall table</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Pattern</th><th>Problem</th><th>Fix</th><th>#1 Gotcha</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Full Loader</strong></td><td>No delta signal to detect changed rows</td><td>Reload the whole dataset each run (EL/ETL)</td><td>Consistency during overwrite (partial reads, lost rollback)</td></tr>
+          <tr><td>2</td><td><strong>Incremental Loader</strong></td><td>Growing dataset, only need what's new</td><td>Delta column or time-partition based read</td><td>Hard deletes invisible; backfill can balloon</td></tr>
+          <tr><td>3</td><td><strong>Change Data Capture</strong></td><td>Need sub-minute latency + hard deletes</td><td>Stream changes off the DB commit log</td><td>Setup complexity; data-in-motion semantics</td></tr>
+          <tr><td>4</td><td><strong>Passthrough Replicator</strong></td><td>Non-idempotent source, need identical cross-env copies</td><td>EL job / infra replication, zero transform</td><td>Unusable once PII is present</td></tr>
+          <tr><td>5</td><td><strong>Transformation Replicator</strong></td><td>Same, but source has PII/PHI/IP</td><td>EL job + mapping/SQL to strip sensitive fields</td><td>Schema transforms can silently corrupt data</td></tr>
+          <tr><td>6</td><td><strong>Compactor</strong></td><td>Small files slow batch jobs to a crawl</td><td>Merge small files into bigger ones</td><td>Needs separate cleanup (VACUUM) or files linger</td></tr>
+          <tr><td>7</td><td><strong>Readiness Marker</strong></td><td>Consumers read incomplete datasets</td><td>Flag file or partition convention</td><td>Convention unenforced; late data breaks it</td></tr>
+          <tr><td>8</td><td><strong>External Trigger</strong></td><td>Unpredictable arrival; polling wastes resources</td><td>Push-based event subscription</td><td>Missing context or dropped events, no dead-letter path</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ CARD 1 ============ -->
+  <article class="card" id="p1">
+    <div class="head"><span class="chip">P·01</span><h2>Full Loader</h2></div>
+    <div class="body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Device reference dataset has no last-updated column, so you can't detect changed rows.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Reload the entire dataset every run via a two-step EL job (or ETL for heterogeneous stores).</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Naive drop-and-insert exposes consumers to partial reads and destroys rollback unless you use a view-swap or time-travel format.</span></div>
+
+      <div class="callout note"><span class="lbl">📌 Note</span><p>EL jobs are also called "passthrough jobs" — data just passes through unmodified.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"We chose Full Loader because the provider gives us no delta signal — but we protect consumers from partial reads with a view-swap so ingestion never half-exposes the dataset."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Expect "what happens to readers while you're overwriting?" — correct shape: transactions or a view/table-swap abstraction, not "just overwrite it."</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks angle</span><p>Delta Lake's time-travel (table version history) gives the rollback safety net this pattern needs, without hand-building a view-swap.</p></div>
+    </div>
+  </article>
+
+  <!-- ============ CARD 2 ============ -->
+  <article class="card" id="p2">
+    <div class="head"><span class="chip">P·02</span><h2>Incremental Loader</h2></div>
+    <div class="body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Legacy visit events land in a transactional DB; ingest only what's added since the last run.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Delta column (e.g. ingestion_time) filter, or target a whole new time-partition each run.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Hard deletes are invisible to delta-column reads; unbounded backfills silently become full loads.</span></div>
+
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Partition-based implementations need no memory of state — the partition is implicit from execution time.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"We bound the ingestion window explicitly during backfills — <code>delta_column BETWEEN ingestion_time AND ingestion_time + INTERVAL '1 HOUR'</code> — so a replay never silently becomes a full load."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>They'll probe on deletes — soft deletes (UPDATE marking removed) or insert-only tables are the two standard answers.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks angle</span><p>Delta Lake's <code>MERGE INTO</code> combined with an insertion_time-filtered source is the standard incremental-upsert shape — same idea applied to ingestion.</p></div>
+    </div>
+  </article>
+
+  <!-- ============ CARD 3 ============ -->
+  <article class="card" id="p3">
+    <div class="head"><span class="chip">P·03</span><h2>Change Data Capture</h2></div>
+    <div class="body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Incremental Loader too slow — need every DB change captured within 30 seconds.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Stream changes off the DB's append-only commit log (Debezium + Kafka Connect, or Delta CDF).</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Output is data-in-motion — a JOIN against two CDC streams returning nothing may just mean data hasn't arrived yet.</span></div>
+
+      <div class="callout note"><span class="lbl">📌 Note</span><p>CDC captures every operation type, including hard deletes — producers no longer need soft deletes.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"CDC gets us the low latency and native delete support Incremental Loader can't, but it costs more in setup complexity — usually needs ops-team involvement to enable the commit log."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Classic trap: "why not just poll more often?" — polling still has query/scheduling overhead that can't reliably hit sub-minute latency; CDC reads the commit log directly.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks angle</span><p>Delta Lake's Change Data Feed (<code>enableChangeDataFeed</code>, <code>readChangeFeed</code>) is a confirmed, far lighter-weight CDC path than standing up Debezium.</p></div>
+    </div>
+  </article>
+
+  <!-- ============ CARD 4 ============ -->
+  <article class="card" id="p4">
+    <div class="head"><span class="chip">P·04</span><h2>Passthrough Replicator</h2></div>
+    <div class="body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Non-idempotent third-party API feeds a reference dataset; dev/staging need the exact same data as prod.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Simple EL job (or infra replication policy) copying data as-is, zero transformation.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">The moment the dataset has PII, this pattern is disqualified entirely.</span></div>
+
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Prefer push (source pushes to targets) over pull, to avoid destabilizing production.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Passthrough Replicator only works because there's nothing sensitive to strip — the instant PII enters the picture, this pattern is disqualified by design, not by policy."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"Why not just re-run the pipeline in staging?" — non-idempotency: a non-idempotent source returns different data per call, so replaying the pipeline ≠ reproducing the dataset.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks angle</span><p><span class="dbx-unsure">No dedicated product feature here</span> beyond standard cloud-storage replication (e.g. S3 replication via Terraform) or a plain Spark EL job — it's an infra/job-design pattern, not Databricks-specific.</p></div>
+    </div>
+  </article>
+
+  <!-- ============ CARD 5 ============ -->
+  <article class="card" id="p5">
+    <div class="head"><span class="chip">P·05</span><h2>Transformation Replicator</h2></div>
+    <div class="body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Need production data in staging for realistic testing, but it contains PII that can't leave prod.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Same EL shape, plus a transformation layer (mapping fn or SQL SELECT) stripping/replacing sensitive fields.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Schema-based transforms can silently corrupt data — e.g. a datetime mismatch dropping timestamp columns.</span></div>
+
+      <div class="callout note"><span class="lbl">📌 Note</span><p>PII definitions drift over time — tie the transformation to a governed data catalog/contract, not a hardcoded list.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"We route PII removal through governance-tagged fields rather than a hardcoded column list, so a newly-classified PII attribute doesn't silently leak into staging."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"How do you keep anonymization correct as schema evolves?" — strong answer references a data catalog/contract driving the transform, not a manual list.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks angle</span><p>Unity Catalog's column-level tagging/access controls are the natural governed-field mechanism here, though the book's own examples (<code>SELECT * EXCEPT</code>, <code>.drop()</code>) are framework-level, not Unity-Catalog-specific.</p></div>
+    </div>
+  </article>
+
+  <!-- ============ CARD 6 ============ -->
+  <article class="card" id="p6">
+    <div class="head"><span class="chip">P·06</span><h2>Compactor</h2></div>
+    <div class="body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Streaming-to-object-store job accumulates so many small files that batch jobs spend 70% of runtime listing files.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Merge small files into fewer big ones — OPTIMIZE (Delta), rewrite action (Iceberg), Hudi merge, or Kafka log compaction.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Compaction alone can leave original small files in place — needs a separate VACUUM cleanup job.</span></div>
+
+      <div class="callout note"><span class="lbl">📌 Note</span><p>No universally correct compaction frequency — it's a deliberate cost-vs-performance trade-off, not a solved problem.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"We treat compaction and cleanup as two separate jobs — compaction alone doesn't remove pre-compaction files, so we always pair OPTIMIZE with a scheduled VACUUM."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"How often do you compact?" — the strong answer names the trade-off explicitly (rare compaction saves compute but denies uncompacted jobs the benefit), not a single "correct" cadence.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks angle</span><p><code>OPTIMIZE</code> and <code>VACUUM</code> on Delta tables are directly confirmed by the book as the compaction and cleanup mechanism — one of the most concretely Databricks-native patterns in the chapter.</p></div>
+    </div>
+  </article>
+
+  <!-- ============ CARD 7 ============ -->
+  <article class="card" id="p7">
+    <div class="head"><span class="chip">P·07</span><h2>Readiness Marker</h2></div>
+    <div class="body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Hourly Silver-layer job feeds other teams' ML/BI work, who keep consuming incomplete datasets.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Flag file (e.g. Spark's _SUCCESS) as the last pipeline step, or a time-partition convention (N+1 implies N is done).</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Neither implementation is enforced — a consumer can read mid-write, and late data breaks the partition convention.</span></div>
+
+      <div class="callout note"><span class="lbl">📌 Note</span><p>The readiness marker must always be generated as the last step in a pipeline, after the final transformation.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"Readiness Marker is pull-based and convention-only — so we either treat partitions as immutable once closed, or explicitly share and communicate the mutability rules with consumers."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"What if late data lands in an already-closed partition?" — distinguish immutable-partition design from explicit mutability contracts, not silently overwriting a "closed" partition.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks angle</span><p>Delta Lake's commit log acts as a built-in readiness signal — readers only see committed, complete writes, a stronger guarantee than a bare <code>_SUCCESS</code> file on raw formats.</p></div>
+    </div>
+  </article>
+
+  <!-- ============ CARD 8 ============ -->
+  <article class="card" id="p8">
+    <div class="head"><span class="chip">P·08</span><h2>External Trigger</h2></div>
+    <div class="body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Feature releases happen irregularly (at most weekly); daily refresh wastes compute reloading unchanged data.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Subscribe to a notification channel, react to events, push-trigger ingestion only when something changed.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">A bare "ping" trigger with no execution context (version, event time) becomes very hard to debug on failure.</span></div>
+
+      <div class="callout note"><span class="lbl">📌 Note</span><p>Push-based triggers beat pull-based polling — polling wastes resources finding nothing new most of the time.</p></div>
+      <div class="callout say"><span class="lbl">✅ Say this out loud</span><p>"We always enrich the trigger payload with metadata — trigger version, notification envelope, processing and event time — because a bare ping-to-orchestrator becomes undebuggable the first time it misfires."</p></div>
+      <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"What happens if the trigger event itself gets lost?" — strong answer routes back to Dead-Letter handling (Chapter 3), since the pipeline's only entry point is the event stream.</p></div>
+      <div class="callout dbx"><span class="lbl">🧱 Databricks angle</span><p><span class="dbx-unsure">No dedicated trigger primitive is confirmed in the book's own examples</span> (it uses AWS Lambda + Airflow's REST API) — Databricks Workflows' file-arrival triggers are a plausible real-world fit, but treat that as <code>[verify against source page]</code> rather than asserted fact.</p></div>
+    </div>
+  </article>
+
+  <div class="closer">
+    <span class="lbl">Before You Close The Laptop</span>
+    <p>Every pattern here answers one of two questions: <strong>"how much data do I pull?"</strong>
+    (Full → Incremental → CDC, in order of decreasing latency and increasing setup cost) or
+    <strong>"how do I know it's safe to act?"</strong> (Readiness Marker for scheduled data,
+    External Trigger for unscheduled data). If a follow-up question stumps you, ground your answer
+    in <strong>who controls the timing</strong> — the consumer (pull / Readiness Marker) or the
+    producer (push / External Trigger / CDC) — that's the axis the book keeps returning to.</p>
+  </div>
+
+</main>
+
+<footer>
+  Data Engineering Design Patterns — Bartosz Konieczny (O'Reilly, 2025) · Chapter 2 Cram Sheet
+</footer>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

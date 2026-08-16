@@ -1,0 +1,843 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.9 — Lakehouse & Table Formats | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --purple:#c98be2;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:600;
+    margin:60px 0 18px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:18px;
+    font-weight:700;
+    margin:32px 0 12px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  .opening-lines{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:28px 28px 20px;
+    margin:28px 0 40px;
+  }
+  .opening-lines .label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    margin-bottom:16px;
+  }
+  .opening-lines blockquote{
+    font-family:var(--serif);
+    font-size:17px;
+    font-style:italic;
+    color:#eef1f5;
+    margin:0 0 18px;
+    padding-left:16px;
+    border-left:2px solid var(--amber);
+  }
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+
+  .pattern-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;}
+  @media(max-width:680px){.pattern-pair{grid-template-columns:1fr;}}
+  .pattern-pair .callout{margin:0;}
+
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{
+    background:var(--bg-panel-raised);
+    text-align:left;
+    padding:12px 16px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    border-bottom:1px solid var(--rule);
+  }
+  td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink-dim);
+    vertical-align:top;
+  }
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+
+  pre{
+    background:#0a0d12;
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+    margin:20px 0;
+    position:relative;
+  }
+  pre .lang{
+    position:absolute;top:10px;right:14px;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--ink-faint);
+  }
+  pre code{background:none;padding:0;color:#c3d6e8;}
+  .sql-kw{color:var(--amber);}
+  .sql-str{color:var(--green);}
+  .sql-com{color:var(--ink-faint);font-style:italic;}
+
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul, .cheat-card ol{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .transcript-part-label{
+    font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--amber);margin:20px 0 4px;padding-top:12px;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .further-reading strong{color:var(--ink);}
+
+  .supplementary{
+    border:1px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 24px;
+    margin-top:24px;
+    background:var(--bg-panel);
+  }
+  .supplementary-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: metadata tree explorer --- */
+  .tree-widget{display:flex;flex-direction:column;gap:10px;}
+  .tree-node-row{
+    display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:8px;
+    cursor:pointer;border:1px solid var(--rule);background:var(--bg-panel-raised);
+    transition:border-color 0.15s;
+  }
+  .tree-node-row:hover, .tree-node-row.active{border-color:var(--amber);}
+  .tree-node-icon{
+    width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;flex-shrink:0;
+  }
+  .tree-node-label{font-family:var(--mono);font-size:13.5px;color:var(--ink);}
+  .tree-node-indent-1{margin-left:20px;}
+  .tree-node-indent-2{margin-left:40px;}
+  .tree-node-indent-3{margin-left:60px;}
+  .tree-node-indent-4{margin-left:80px;}
+  .tree-detail{
+    font-size:13.5px;color:var(--ink-dim);padding:14px 16px;margin-top:4px;
+    background:#0a0d12;border-left:2px solid var(--amber);border-radius:0 6px 6px 0;
+    display:none;
+  }
+  .tree-detail.show{display:block;}
+
+  /* --- Interactive: format picker --- */
+  .format-picker{display:flex;flex-direction:column;gap:12px;}
+  .format-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .format-tab{
+    font-family:var(--mono);font-size:12.5px;padding:10px 16px;border-radius:7px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .format-tab:hover{border-color:var(--amber);color:var(--ink);}
+  .format-tab.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .format-panel{background:#0a0d12;border-radius:8px;padding:20px;display:none;}
+  .format-panel.show{display:block;}
+  .format-panel h4{margin:0 0 10px;color:var(--amber);font-size:15px;}
+  .format-panel p{font-size:14px;margin-bottom:10px;}
+  .format-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;}
+  .format-item{flex:1;min-width:140px;}
+  .format-item .fi-label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px;}
+  .format-item .fi-value{font-size:13.5px;color:var(--ink);}
+
+  /* --- Interactive: maintenance schedule --- */
+  .maint-widget{display:flex;flex-direction:column;gap:12px;}
+  .maint-row{
+    display:grid;grid-template-columns:180px 90px 1fr;gap:14px;align-items:center;
+    padding:10px 14px;border-radius:6px;background:var(--bg-panel-raised);cursor:pointer;
+  }
+  .maint-name{font-family:var(--mono);font-size:12.5px;color:var(--ink);}
+  .maint-freq{
+    font-family:var(--mono);font-size:11px;text-transform:uppercase;padding:4px 8px;
+    border-radius:4px;text-align:center;font-weight:700;
+  }
+  .maint-freq.daily{background:var(--amber-dim);color:var(--amber);}
+  .maint-freq.weekly{background:var(--green-dim);color:var(--green);}
+  .maint-desc{font-size:12.5px;color:var(--ink-dim);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 9</div>
+    <h1 class="title">Lakehouse &amp; Table Formats</h1>
+    <p class="subtitle">A lakehouse table format is a clever bookkeeping system sitting on top of
+    a pile of plain files, whose whole job is to make that pile behave like a real, trustworthy
+    table.</p>
+    <div class="chap-note">Printed as "Chapter Eight" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 9.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>A huge shared spreadsheet hundreds of people need to read and update at once — except
+    instead of one file, it's millions of separate files in cloud storage, which has a rule: you
+    can't edit a file in place, and there's no built-in guarantee everyone reading it sees a
+    consistent version.</p>
+    <p><strong>A lakehouse format is just clever bookkeeping on top of that pile of files</strong>
+    — making it behave like a real table, where changes appear all at once, past versions are
+    instantly queryable, and adding a column doesn't mean rewriting everything.</p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>Iceberg's metadata layer is the feature that matters. It's why I can do atomic
+    swaps on a petabyte table without a maintenance window.</blockquote>
+    <blockquote>Delta versus Iceberg diverges most on streaming writes. Delta for a
+    Spark-Structured-Streaming shop, Iceberg for writer diversity.</blockquote>
+    <blockquote>Hudi wins at update-heavy workloads. Most teams are append-heavy and pick Iceberg
+    without realizing it.</blockquote>
+    <blockquote>Time travel isn't a debugging feature. It's a compliance feature, and retention in
+    days is a legal decision as much as a technical one.</blockquote>
+    <blockquote>Maintenance on a lakehouse is mandatory, not optional. Compaction, snapshot
+    expiration, and manifest rewrites run on a schedule from day one.</blockquote>
+  </div>
+
+  <h2 id="two-teams">Why Picking "By Popularity" Cost One Team Six Months</h2>
+  <p>Two teams migrate from an older system to a modern lakehouse format. Both need: all-or-nothing
+  changes, columns added without rewriting everything, past versions for compliance, and multiple
+  tools querying the same tables.</p>
+  <p><strong>Team A</strong> picks a Spark-first format in a week because they're heavy Databricks
+  users. Shipping is fast. <strong>Team B</strong> picks a writer-neutral format in three weeks
+  because they run several query engines against the same tables.</p>
+  <p><strong>Six months later, Team A's dashboards on a different engine are slow</strong> — edge
+  cases around streaming updates cause inconsistent reads across engines. They only now realize
+  the format they picked was fundamentally built around one engine.</p>
+  <p><strong>Both teams "picked a format."</strong> One picked by popularity. The other picked by
+  actually checking which tools would be writing. That's the entire difference.</p>
+
+  <h2 id="core-problem">Idea 1: Making a Pile of Files Behave Like a Real Table</h2>
+  <p>You can't directly edit a file in cloud storage the way you'd edit a database row. Without
+  coordination, there's no guarantee everyone reading a table made of thousands of files sees a
+  consistent version.</p>
+  <div class="callout signal" style="border-left-color:var(--green);">
+    <div class="cal-label" style="color:var(--green);">💡 The one idea to remember</div>
+    <p>A lakehouse format solves this with a tiny pointer file swapped atomically. Every update
+    creates new files, then does one instant, all-or-nothing swap of a pointer saying "the current
+    version is over here now." Nobody ever sees a half-finished update.</p>
+  </div>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Picking a format by popularity or familiarity instead of by what's actually writing to the
+    table. "We're picking Delta because everyone uses it" is the most common wrong answer to this
+    chapter's core question.</p>
+  </div>
+
+  <h2 id="metadata-tree">Idea 2: The Bookkeeping Structure — Using Iceberg as the Example</h2>
+  <p>Think of it as nested reference documents, each pointing to more detail below it. Click each
+  layer below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a layer</div>
+    <div class="tree-widget" id="treeWidget"></div>
+  </div>
+
+  <p><strong>Real-world size intuition:</strong> a manifest list is a few KB to a few hundred KB; a
+  manifest file is 1–10 MB; a well-maintained 50 TB table plans a query in 50–500 ms. A neglected
+  one can stretch past 30 seconds.</p>
+
+  <h2 id="three-formats">Idea 3: Iceberg vs. Delta vs. Hudi — Pick by What's Actually Writing</h2>
+  <p>Each format grew out of a different company's real workload. Click each one below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — select a format</div>
+    <div class="format-picker">
+      <div class="format-tabs" id="formatTabs"></div>
+      <div id="formatPanels"></div>
+    </div>
+  </div>
+
+  <div class="callout war">
+    <div class="cal-label">⚠️ War Story</div>
+    <p>A data platform team at an ad company picked Hudi because they'd read it was
+    "best-in-class for updates" and their pipelines included some CDC data. Six months in, they
+    measured their actual workload: 92% append-only event tables, with only nightly updates on a
+    handful of small dimension tables. Hudi's "fast write" mode was rewriting entire data files to
+    handle even small updates, inflating storage costs by roughly 8x. They migrated to Iceberg
+    over one quarter. Storage costs dropped by a third; query planning time dropped by half. The
+    lesson wasn't that Hudi is bad — it was that the team hadn't measured their real workload
+    before picking based on a marketing claim.</p>
+  </div>
+
+  <h2 id="maintenance">Idea 4: Maintenance Isn't Optional</h2>
+  <p>All three formats accumulate bookkeeping clutter over time. None of this cleanup happens
+  automatically — skipping it is how teams get "mystery slowdowns six months in." Click each job
+  below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a job</div>
+    <div class="maint-widget" id="maintWidget"></div>
+    <div class="tree-detail show" id="maintDetail" style="margin-top:12px;">Click a maintenance
+    job above to see what it does and why it matters.</div>
+  </div>
+
+  <div class="callout pattern">
+    <div class="cal-label">✅ Pattern</div>
+    <p>Schedule lakehouse maintenance like any other production concern — a nightly compaction job
+    and a weekly snapshot-expiration job from day one. Catching bloat proactively costs minutes a
+    quarter. Diagnosing it reactively costs days.</p>
+  </div>
+
+  <h2 id="time-travel">Idea 5: Time Travel Is a Compliance Feature, Not Just a Debugging Trick</h2>
+  <p>Every past version stays queryable until explicitly expired — instantly, at almost no cost,
+  because it resolves against existing bookkeeping rather than reconstructing anything.</p>
+
+  <pre><span class="lang">sql</span><code><span class="sql-com">-- src/code-examples/ch08/iceberg_time_travel.sql
+-- Hidden partitioning: derived from a source column, not a
+-- separately maintained column.</span>
+<span class="sql-kw">CREATE TABLE</span> warehouse.events (...)
+<span class="sql-kw">USING</span> iceberg
+<span class="sql-kw">PARTITIONED BY</span> (days(event_ts));
+
+<span class="sql-com">-- Time travel resolves against the metadata tree, not raw files.</span>
+<span class="sql-kw">SELECT COUNT</span>(*) <span class="sql-kw">FROM</span> warehouse.events <span class="sql-kw">VERSION AS OF</span> 3847219478234;
+<span class="sql-kw">SELECT COUNT</span>(*) <span class="sql-kw">FROM</span> warehouse.events <span class="sql-kw">TIMESTAMP AS OF</span> <span class="sql-str">'2024-06-15 14:30:00'</span>;</code></pre>
+
+  <p>If a regulator asks "show me exactly what this looked like on December 31st at 11:59 PM," a
+  lakehouse answers in seconds. Without it, you're restoring a backup — hours, plus auditor
+  coordination.</p>
+
+  <p><strong>The retention window is a legal decision, not just a technical one.</strong> Privacy
+  rules (GDPR's "right to be forgotten") require deleting a person's data within a set window —
+  meaning any snapshot still containing it must expire within that window. Financial audit rules
+  can separately require keeping records for years. These two pressures genuinely pull in
+  different directions.</p>
+
+  <h2 id="transcript">A Real Interview, Walked Through Simply</h2>
+  <p>A rich, two-part example — migrating a huge legacy warehouse, then picking a format from
+  scratch at a fresh build.</p>
+
+  <div class="transcript">
+    <div class="transcript-part-label">Part 1 — Migrating a 50 PB legacy warehouse, zero downtime</div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Migrate a 50 petabyte legacy Hive warehouse to a lakehouse format. Zero downtime.
+      Thousands of active consumers across batch, interactive analytics, streaming, and BI.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>What's actually writing to these tables today — one dominant engine, or multiple? And
+      what's the mix of table shapes — mostly append-only, or lots of updates?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Multiple engines. Mostly append-only fact tables, some slowly-changing dimensions, some
+      CDC-derived tables with a higher update rate.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Multiple writers rules out the Spark-first option — one engine's support would lag. I'd
+      lean writer-neutral. <em>(pauses)</em> Let me actually check that instead of asserting it —
+      how frequently are those CDC tables updated, what percentage of rows per day?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Call it 5 to 10% per day on the heaviest one.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Comfortably within range for the writer-neutral format with nightly compaction. At 20%+
+      per day, the update-optimized format would genuinely win instead — better to confirm before
+      committing. I'd standardize on one format across the warehouse rather than run two for the
+      sake of a handful of tables.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What breaks first at this scale?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Three things. Metadata bookkeeping bloat with 730 daily partitions and thousands of files
+      each. The small-file problem from streaming writers killing read parallelism. And cloud
+      storage rate limits by file-path prefix — a nightly writer landing everything under one
+      date-based path hits that ceiling and gets throttled a couple hours in. The fix is spreading
+      the partition value early in the path across many prefixes. Teams that skip this discover it
+      during their first big backfill.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What's the point of no return?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>The moment the first consumer switches to reading only from the new format. Before that,
+      rollback just means turning off dual-writes. After, it means re-migrating everyone who
+      already switched. I'd mark that milestone explicitly and require written sign-off before
+      crossing it.</p>
+    </div>
+
+    <div class="transcript-part-label">Part 2 — A fresh build: picking a format from scratch</div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Why this format specifically, and not one of the other two?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Writer neutrality. Several engines write to these tables, and adding a new tool next year
+      should work without a migration. The Spark-first option makes other engines second-class
+      here. The update-optimized option is tuned for update-heavy workloads, and we're mostly
+      append-only, so it costs more than it buys. The writer-neutral option is the default for
+      exactly this situation — its maintenance overhead is real, but every format has some version
+      of that cost under a different name.</p>
+    </div>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Picking a format for a multi-engine warehouse based on one team's favorite
+    tool.</strong> Excellent for Spark-only shops, a liability the moment a second engine writes.</li>
+    <li><strong>Skipping maintenance with "we'll get to it later."</strong> Later is when the
+    incident hits — bloat causes slowdowns hard to trace back to their cause.</li>
+    <li><strong>Treating time travel as purely a debugging convenience.</strong> It's a compliance
+    feature, and retention is a legal decision.</li>
+    <li><strong>Underestimating the small-file problem when migrating.</strong> The old system's
+    file-size patterns are usually wrong for a lakehouse. Compaction starts day one.</li>
+    <li><strong>Trying to cut over in a single step.</strong> Petabyte migrations succeed as a
+    6-to-9-month rollout, never a single flip-the-switch event.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>The Three Formats</h4>
+        <ul>
+          <li><strong>Iceberg</strong> — writer-neutral, default for multi-engine</li>
+          <li><strong>Delta Lake</strong> — Spark-first, default for Databricks</li>
+          <li><strong>Hudi</strong> — update-optimized, default for CDC-heavy</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>The Metadata Tree</h4>
+        <p><code>catalog → snapshot → manifest list → manifest → data files</code></p>
+        <p>Every commit: new manifests, one atomic swap of the catalog pointer.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Four Maintenance Jobs</h4>
+        <ol>
+          <li>Expire old snapshots — daily, keep 7–30 days</li>
+          <li>Compact small files — daily/nightly, 128–512 MB target</li>
+          <li>Rewrite manifests — weekly</li>
+          <li>Remove orphaned files — weekly</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>Time Travel</h4>
+        <p>A compliance feature. Retention in days is a legal decision.</p>
+        <p><code>VERSION AS OF</code> / <code>TIMESTAMP AS OF</code></p>
+      </div>
+      <div class="cheat-card">
+        <h4>Schema Evolution</h4>
+        <p>Columns tracked by ID, not name — add/rename/drop are all metadata-only, no rewrite.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Migration Pattern (Petabyte Scale)</h4>
+        <p>Scaffolding → dual-write + validate (4–6 wks) → progressive reader switch → decommission.
+        Total: 6–9 months.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Pick by workload composition, not by popularity."</li>
+          <li>"Maintenance on the lakehouse is mandatory, not optional."</li>
+          <li>"Time travel retention is a legal decision."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Serialization format depends on how data will be read:</strong> columnar
+      (Parquet) wins for analytics, since queries want a few columns out of a huge dataset;
+      row-based (Avro) makes more sense for individual events through a message system, since each
+      is read as a whole record and Avro's schema enforcement catches problems early.</li>
+      <li><strong>A lakehouse format is one piece of a bigger pattern vocabulary:</strong>
+      medallion/layered lake patterns, event-driven vs. scheduled pipelines, and how state/CDC
+      patterns interact with correctness — this is what separates operating a tool from actually
+      architecting a platform. These patterns repeat across analytics, fraud detection, identity
+      resolution, and traditional reporting alike.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>Apache Iceberg Specification.</strong> iceberg.apache.org/spec. The authoritative
+    reference for the metadata tree, manifest format, and atomic commit protocol.</li>
+    <li><strong>"Lakehouse: A New Generation of Open Platforms that Unify Data Warehousing and
+    Advanced Analytics."</strong> Michael Armbrust et al. CIDR 2021. The paper that framed the
+    "lakehouse" term.</li>
+    <li><strong>"Delta Lake: High-Performance ACID Table Storage over Cloud Object Stores."</strong>
+    Michael Armbrust et al. VLDB 2020. The original Delta paper.</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- Metadata tree explorer ----------
+const treeNodes = [
+  {label:'Catalog', indent:0, color:'#e8a33d', icon:'C', detail:'Holds exactly one pointer: "here\u2019s the current version of this table." Every commit ends with one atomic swap of this pointer — that swap is the whole "atomic commit."'},
+  {label:'Snapshot', indent:1, color:'#6fa8dc', icon:'S', detail:'A complete description of the table at one moment: its schema, partition layout, and a link to every prior snapshot. That link chain is what makes time travel possible.'},
+  {label:'Manifest list', indent:2, color:'#c98be2', icon:'ML', detail:'A table of contents with rough summary stats (like min/max values) per chunk of the table. Queries prune here first, before opening anything more detailed.'},
+  {label:'Manifest', indent:3, color:'#5ec9a0', icon:'M', detail:'A detailed listing of exactly which data files belong to a chunk, with per-file summary stats. Queries prune again here — this is the second pruning pass.'},
+  {label:'Data files', indent:4, color:'#e2604f', icon:'D', detail:'Plain, immutable Parquet files. A "delete" never rewrites a file — it just adds a note elsewhere saying that row no longer counts.'},
+];
+const treeWidget = document.getElementById('treeWidget');
+treeNodes.forEach((n,i)=>{
+  const row = document.createElement('div');
+  row.className = `tree-node-row tree-node-indent-${n.indent}`;
+  row.innerHTML = `
+    <div class="tree-node-icon" style="background:${n.color}">${n.icon}</div>
+    <div class="tree-node-label">${n.label}</div>
+  `;
+  const detail = document.createElement('div');
+  detail.className = 'tree-detail';
+  detail.style.marginLeft = (n.indent * 20) + 'px';
+  detail.textContent = n.detail;
+  const container = document.createElement('div');
+  container.appendChild(row);
+  container.appendChild(detail);
+  treeWidget.appendChild(container);
+
+  row.addEventListener('click', ()=>{
+    const isShown = detail.classList.contains('show');
+    document.querySelectorAll('.tree-detail').forEach(el=>el.classList.remove('show'));
+    document.querySelectorAll('.tree-node-row').forEach(el=>el.classList.remove('active'));
+    if(!isShown){ detail.classList.add('show'); row.classList.add('active'); }
+  });
+});
+
+// ---------- Format picker ----------
+const formatData = [
+  {
+    id:'iceberg', label:'Iceberg',
+    body:'Works equally well no matter which tool is writing — Spark, Trino, Flink, Snowflake all write it natively. Flexible bookkeeping, and partitioning can evolve over time without rewriting old data.',
+    good:'Writer-neutral, broadest tool support, evolvable partitioning',
+    watch:'More hands-on maintenance to schedule and operate',
+    when:'Multiple different tools write to the same big analytics tables'
+  },
+  {
+    id:'delta', label:'Delta Lake',
+    body:'Excellent Spark integration, especially for continuously-running Spark jobs. New features land on Spark first, with a smooth Databricks experience.',
+    good:'Best Spark integration, excellent streaming support',
+    watch:'Built Spark-first — other engines\u2019 support tends to lag behind',
+    when:'A Spark-centric team, especially leaning on continuous Spark streaming'
+  },
+  {
+    id:'hudi', label:'Hudi',
+    body:'Optimized specifically for frequent updates to existing rows, with a fast-write table mode built for CDC-style pipelines.',
+    good:'Optimized for update-heavy workloads, fast-write mode',
+    watch:'Smaller ecosystem, weaker performance for pure large-scan analytics',
+    when:'Update-heavy workloads, especially CDC-style pipelines with high change rates'
+  },
+];
+const formatTabs = document.getElementById('formatTabs');
+const formatPanels = document.getElementById('formatPanels');
+formatData.forEach((f,i)=>{
+  const tab = document.createElement('div');
+  tab.className = 'format-tab' + (i===0?' active':'');
+  tab.textContent = f.label;
+  formatTabs.appendChild(tab);
+
+  const panel = document.createElement('div');
+  panel.className = 'format-panel' + (i===0?' show':'');
+  panel.id = 'format-'+f.id;
+  panel.innerHTML = `
+    <h4>${f.label}</h4>
+    <p>${f.body}</p>
+    <div class="format-row">
+      <div class="format-item"><div class="fi-label">Good At</div><div class="fi-value">${f.good}</div></div>
+      <div class="format-item"><div class="fi-label">Watch Out For</div><div class="fi-value">${f.watch}</div></div>
+      <div class="format-item"><div class="fi-label">Pick It When</div><div class="fi-value">${f.when}</div></div>
+    </div>
+  `;
+  formatPanels.appendChild(panel);
+
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.format-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.format-panel').forEach(p=>p.classList.remove('show'));
+    tab.classList.add('active');
+    document.getElementById('format-'+f.id).classList.add('show');
+  });
+});
+
+// ---------- Maintenance schedule ----------
+const maintJobs = [
+  {name:'Expire old snapshots', freq:'daily', short:'Removes old snapshots so history doesn\u2019t grow unbounded.', detail:'Removes old snapshots so history doesn\u2019t grow unbounded. Keep 7 to 30 days for time-travel purposes (shorter if you can; compliance may force longer).'},
+  {name:'Compact small files', freq:'daily', short:'Merges thousands of tiny files into properly-sized ones.', detail:'Streaming writers produce thousands of tiny files per hour, and the query planner has to account for every one. Merges them into properly-sized files, targeting roughly 128\u2013512 MB each.'},
+  {name:'Rewrite manifests', freq:'weekly', short:'Tidies up fragmented bookkeeping after many small commits.', detail:'After lots of small commits, manifest bookkeeping gets fragmented. This tidies it back up and directly cuts query planning time — skipping it is the single most common cause of "mystery slowdowns."'},
+  {name:'Remove orphaned files', freq:'weekly', short:'Cleans up leftover files no snapshot references anymore.', detail:'Cleans up data files no longer referenced by any current snapshot — debris from aborted commits, failed compactions, or incomplete writes.'},
+];
+const maintWidget = document.getElementById('maintWidget');
+const maintDetail = document.getElementById('maintDetail');
+maintJobs.forEach(j=>{
+  const row = document.createElement('div');
+  row.className = 'maint-row';
+  row.innerHTML = `
+    <div class="maint-name">${j.name}</div>
+    <div class="maint-freq ${j.freq}">${j.freq}</div>
+    <div class="maint-desc">${j.short}</div>
+  `;
+  row.addEventListener('click', ()=>{ maintDetail.textContent = j.detail; });
+  row.addEventListener('mouseenter', ()=>{ maintDetail.textContent = j.detail; });
+  maintWidget.appendChild(row);
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Engineering Study Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --green:#5ec9a0;
+    --blue:#6fa8dc;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "DM Sans","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.65;
+    font-size:16px;
+  }
+  a{color:var(--amber);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  a:focus-visible{
+    outline:2px solid var(--amber);
+    outline-offset:3px;
+  }
+
+  .hero{
+    position:relative;
+    min-height:100vh;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:32px 28px 56px;
+    overflow:hidden;
+    background:
+      radial-gradient(ellipse 90% 70% at 10% 15%, rgba(232,163,61,0.16), transparent 55%),
+      radial-gradient(ellipse 55% 45% at 90% 70%, rgba(94,201,160,0.07), transparent 50%),
+      linear-gradient(165deg, #12171f 0%, #0e1116 45%, #0a0d12 100%);
+  }
+  .hero::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:
+      linear-gradient(rgba(38,46,58,0.35) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(38,46,58,0.35) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image:linear-gradient(180deg, rgba(0,0,0,0.45), transparent 70%);
+    pointer-events:none;
+  }
+  .hero-meta{
+    position:absolute;
+    top:28px;
+    left:28px;
+    right:28px;
+    z-index:1;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    animation:fade 1s ease both;
+  }
+  .hero-meta a{color:var(--ink-dim);}
+  .hero-inner{
+    position:relative;
+    z-index:1;
+    max-width:920px;
+    margin:0 auto;
+    width:100%;
+  }
+  .brand{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(36px, 7vw, 64px);
+    line-height:1.08;
+    letter-spacing:-0.02em;
+    color:#fff;
+    margin:0 0 20px;
+    max-width:16ch;
+    animation:rise 0.8s ease both;
+  }
+  .brand span{
+    display:block;
+    color:var(--amber);
+  }
+  .hero-lead{
+    font-size:clamp(16px, 2.2vw, 19px);
+    color:var(--ink-dim);
+    max-width:44ch;
+    margin:0 0 32px;
+    animation:rise 0.8s ease 0.12s both;
+  }
+  .hero-cta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    animation:rise 0.8s ease 0.22s both;
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:0.04em;
+    padding:14px 22px;
+    border-radius:6px;
+    border:1px solid transparent;
+    transition:background 0.2s, border-color 0.2s, transform 0.2s;
+  }
+  .btn-primary{
+    background:var(--amber);
+    color:#0e1116;
+    font-weight:700;
+  }
+  .btn-primary:hover{
+    background:#f0b45a;
+    text-decoration:none;
+    transform:translateY(-1px);
+  }
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink);
+    border-color:var(--rule);
+  }
+  .btn-ghost:hover{
+    border-color:var(--ink-faint);
+    text-decoration:none;
+    background:rgba(255,255,255,0.03);
+  }
+
+  @keyframes rise{
+    from{opacity:0;transform:translateY(18px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  @keyframes fade{
+    from{opacity:0;}
+    to{opacity:1;}
+  }
+
+  .section{
+    max-width:920px;
+    margin:0 auto;
+    padding:72px 28px 40px;
+  }
+  .section-kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:12px;
+  }
+  .section h2{
+    font-family:var(--serif);
+    font-size:clamp(26px, 4vw, 34px);
+    font-weight:600;
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+    color:#fff;
+  }
+  .section-lead{
+    color:var(--ink-dim);
+    margin:0 0 40px;
+    max-width:52ch;
+  }
+
+  .tracks{
+    display:grid;
+    gap:16px;
+  }
+  .track{
+    display:block;
+    padding:28px 26px;
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    color:inherit;
+    transition:border-color 0.2s, background 0.2s, transform 0.2s;
+  }
+  .track:hover{
+    border-color:var(--amber);
+    background:var(--bg-panel-raised);
+    text-decoration:none;
+    transform:translateY(-2px);
+  }
+  .track-num{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:10px;
+  }
+  .track-title{
+    font-family:var(--serif);
+    font-size:24px;
+    font-weight:600;
+    color:#fff;
+    margin:0 0 8px;
+  }
+  .track-blurb{
+    font-size:15px;
+    color:var(--ink-dim);
+    margin:0 0 14px;
+    max-width:56ch;
+  }
+  .track-meta{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink-faint);
+  }
+  .track-meta span{color:var(--green);}
+
+  .toc{
+    border-top:1px solid var(--rule);
+  }
+  .toc-row{
+    display:grid;
+    grid-template-columns:72px 1fr auto;
+    gap:16px 20px;
+    align-items:baseline;
+    padding:18px 8px;
+    border-bottom:1px solid var(--rule);
+    color:inherit;
+    transition:background 0.15s, padding-left 0.2s;
+  }
+  .toc-row:hover{
+    background:rgba(232,163,61,0.04);
+    padding-left:14px;
+    text-decoration:none;
+  }
+  .toc-num{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--amber);
+    font-weight:700;
+  }
+  .toc-title{
+    font-family:var(--serif);
+    font-size:18px;
+    font-weight:600;
+    color:#fff;
+    margin:0;
+  }
+  .toc-arrow{
+    font-family:var(--mono);
+    font-size:18px;
+    color:var(--ink-faint);
+    align-self:center;
+    transition:color 0.15s, transform 0.15s;
+  }
+  .toc-row:hover .toc-arrow{
+    color:var(--amber);
+    transform:translateX(4px);
+  }
+  .section-link{
+    display:inline-block;
+    margin-top:28px;
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:0.04em;
+  }
+
+  .site-footer{
+    max-width:920px;
+    margin:0 auto;
+    padding:48px 28px 64px;
+    border-top:1px solid var(--rule);
+    font-size:13px;
+    color:var(--ink-faint);
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .site-footer a{color:var(--ink-dim);}
+
+  @media(max-width:640px){
+    .toc-row{grid-template-columns:48px 1fr;}
+    .toc-arrow{display:none;}
+    .hero{padding:28px 20px 48px;}
+    .hero-meta{left:20px;right:20px;top:20px;}
+    .section{padding:56px 20px 32px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation:none !important;
+      transition:none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero" id="top">
+  <div class="hero-meta">
+    <span>Interview Prep · Static Study Site</span>
+    <a href="#tracks">All tracks ↓</a>
+  </div>
+  <div class="hero-inner">
+    <h1 class="brand">Data Engineering <span>Study Hub</span></h1>
+    <p class="hero-lead">
+      One place for system design deep-dives, design-pattern catalogs, and interview cram sheets.
+    </p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="System Design/index.html">Open System Design →</a>
+      <a class="btn btn-ghost" href="#tracks">Browse tracks</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section" id="tracks">
+    <div class="section-kicker">Three tracks</div>
+    <h2>Pick how you want to study</h2>
+    <p class="section-lead">
+      Each track has its own table of contents and chapter prev/next navigation.
+    </p>
+
+    <div class="tracks">
+      <a class="track" href="System Design/index.html">
+        <div class="track-num">Track 01</div>
+        <div class="track-title">System Design</div>
+        <p class="track-blurb">Staff-level DE interview playbook — scale, storage, streaming, lakehouse, and four full case studies.</p>
+        <div class="track-meta"><span>18 pages</span> · Ch.03–16 + case studies</div>
+      </a>
+      <a class="track" href="Design Pattern/index.html">
+        <div class="track-num">Track 02</div>
+        <div class="track-title">Design Patterns</div>
+        <p class="track-blurb">Pattern catalog for ingestion, errors, idempotency, flow, security, storage, quality, and observability.</p>
+        <div class="track-meta"><span>9 chapters</span> · Ch.02–10</div>
+      </a>
+      <a class="track" href="Design Patter-Cram/index.html">
+        <div class="track-num">Track 03</div>
+        <div class="track-title">Cram Sheets</div>
+        <p class="track-blurb">Fast recall sheets for the same pattern chapters — photograph before the loop.</p>
+        <div class="track-meta"><span>9 sheets</span> · interview-speed review</div>
+      </a>
+    </div>
+  </section>
+
+  <section class="section" id="system-design">
+    <div class="section-kicker">Track 01</div>
+    <h2>System Design</h2>
+    <p class="section-lead">Deep chapters plus case studies from the System Design V2 playbook.</p>
+    <nav class="toc" aria-label="System Design chapters">
+      <a class="toc-row" href="System Design/ch03_fundamentals_of_scale.html"><span class="toc-num">Ch.03</span><span class="toc-title">Fundamentals of Scale</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch04_storage_engines.html"><span class="toc-num">Ch.04</span><span class="toc-title">Storage Engines</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch05_data_modeling_at_scale.html"><span class="toc-num">Ch.05</span><span class="toc-title">Data Modeling at Scale</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch06_batch_systems.html"><span class="toc-num">Ch.06</span><span class="toc-title">Batch Systems</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch07_streaming_systems.html"><span class="toc-num">Ch.07</span><span class="toc-title">Streaming Systems</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch08_cdc_and_replication.html"><span class="toc-num">Ch.08</span><span class="toc-title">CDC &amp; Replication</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch09_lakehouse_and_table_formats.html"><span class="toc-num">Ch.09</span><span class="toc-title">Lakehouse &amp; Table Formats</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch10_query_engines.html"><span class="toc-num">Ch.10</span><span class="toc-title">Query Engines</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch11_orchestration.html"><span class="toc-num">Ch.11</span><span class="toc-title">Orchestration</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch12_data_contracts_and_governance.html"><span class="toc-num">Ch.12</span><span class="toc-title">Data Contracts &amp; Governance</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch13_reliability_and_operations.html"><span class="toc-num">Ch.13</span><span class="toc-title">Reliability &amp; Operations</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch14_cost_at_scale.html"><span class="toc-num">Ch.14</span><span class="toc-title">Cost at Scale</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch15_de_interview_playbook.html"><span class="toc-num">Ch.15</span><span class="toc-title">The DE Interview Playbook</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="System Design/ch16_case_studies.html"><span class="toc-num">Ch.16</span><span class="toc-title">Case Studies</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+    </nav>
+    <a class="section-link" href="System Design/index.html">Full System Design hub →</a>
+  </section>
+
+  <section class="section" id="design-patterns">
+    <div class="section-kicker">Track 02</div>
+    <h2>Design Patterns</h2>
+    <p class="section-lead">Full pattern chapters for design reviews and interviews.</p>
+    <nav class="toc" aria-label="Design Pattern chapters">
+      <a class="toc-row" href="Design Pattern/ch02_data_ingestion_design_patterns.html"><span class="toc-num">Ch.02</span><span class="toc-title">Data Ingestion</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Pattern/ch03_error_management_design_patterns.html"><span class="toc-num">Ch.03</span><span class="toc-title">Error Management</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Pattern/ch04_idempotency_design_patterns.html"><span class="toc-num">Ch.04</span><span class="toc-title">Idempotency</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Pattern/ch05_data_value_design_patterns.html"><span class="toc-num">Ch.05</span><span class="toc-title">Data Value</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Pattern/ch06_data_flow_design_patterns.html"><span class="toc-num">Ch.06</span><span class="toc-title">Data Flow</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Pattern/ch07_data_security_design_patterns.html"><span class="toc-num">Ch.07</span><span class="toc-title">Data Security</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Pattern/ch08_data_storage_design_patterns.html"><span class="toc-num">Ch.08</span><span class="toc-title">Data Storage</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Pattern/ch09_data_quality_design_patterns.html"><span class="toc-num">Ch.09</span><span class="toc-title">Data Quality</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Pattern/ch10_data_observability_design_patterns.html"><span class="toc-num">Ch.10</span><span class="toc-title">Data Observability</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+    </nav>
+    <a class="section-link" href="Design Pattern/index.html">Full Design Patterns hub →</a>
+  </section>
+
+  <section class="section" id="cram-sheets">
+    <div class="section-kicker">Track 03</div>
+    <h2>Cram Sheets</h2>
+    <p class="section-lead">Compressed recall sheets paired with the pattern chapters.</p>
+    <nav class="toc" aria-label="Cram sheet list">
+      <a class="toc-row" href="Design Patter-Cram/ch02_data_ingestion_design_patterns_CRAM_SHEET.html"><span class="toc-num">Ch.02</span><span class="toc-title">Data Ingestion</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Patter-Cram/ch03_error_management_CRAM_SHEET.html"><span class="toc-num">Ch.03</span><span class="toc-title">Error Management</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Patter-Cram/ch04_idempotency_cram_sheet.html"><span class="toc-num">Ch.04</span><span class="toc-title">Idempotency</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Patter-Cram/ch05_data_value_CRAM_SHEET.html"><span class="toc-num">Ch.05</span><span class="toc-title">Data Value</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Patter-Cram/ch06_data_flow_design_patterns_CRAM_SHEET.html"><span class="toc-num">Ch.06</span><span class="toc-title">Data Flow</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Patter-Cram/ch07_data_security_design_patterns_CRAM_SHEET.html"><span class="toc-num">Ch.07</span><span class="toc-title">Data Security</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Patter-Cram/ch08_data_storage_design_patterns_CRAM_SHEET.html"><span class="toc-num">Ch.08</span><span class="toc-title">Data Storage</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Patter-Cram/ch09_data_quality_CRAM_SHEET.html"><span class="toc-num">Ch.09</span><span class="toc-title">Data Quality</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+      <a class="toc-row" href="Design Patter-Cram/ch10_data_observability_design_patterns.html"><span class="toc-num">Ch.10</span><span class="toc-title">Data Observability</span><span class="toc-arrow" aria-hidden="true">→</span></a>
+    </nav>
+    <a class="section-link" href="Design Patter-Cram/index.html">Full Cram Sheets hub →</a>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span>Data Engineering Study Hub · 36 HTML pages across 3 tracks</span>
+  <a href="#top">Back to top ↑</a>
+</footer>
+
+</body>
+</html>

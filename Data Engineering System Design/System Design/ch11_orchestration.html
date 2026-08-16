@@ -1,0 +1,818 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.11 — Orchestration | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --purple:#c98be2;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:600;
+    margin:60px 0 18px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:18px;
+    font-weight:700;
+    margin:32px 0 12px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  .opening-lines{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:28px 28px 20px;
+    margin:28px 0 40px;
+  }
+  .opening-lines .label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    margin-bottom:16px;
+  }
+  .opening-lines blockquote{
+    font-family:var(--serif);
+    font-size:17px;
+    font-style:italic;
+    color:#eef1f5;
+    margin:0 0 18px;
+    padding-left:16px;
+    border-left:2px solid var(--amber);
+  }
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+
+  .pattern-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;}
+  @media(max-width:680px){.pattern-pair{grid-template-columns:1fr;}}
+  .pattern-pair .callout{margin:0;}
+
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{
+    background:var(--bg-panel-raised);
+    text-align:left;
+    padding:12px 16px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    border-bottom:1px solid var(--rule);
+  }
+  td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink-dim);
+    vertical-align:top;
+  }
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+
+  pre{
+    background:#0a0d12;
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+    margin:20px 0;
+    position:relative;
+  }
+  pre .lang{
+    position:absolute;top:10px;right:14px;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--ink-faint);
+  }
+  pre code{background:none;padding:0;color:#c3d6e8;}
+  .sql-kw{color:var(--amber);}
+  .sql-str{color:var(--green);}
+  .sql-com{color:var(--ink-faint);font-style:italic;}
+
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul, .cheat-card ol{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .further-reading strong{color:var(--ink);}
+
+  .supplementary{
+    border:1px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 24px;
+    margin-top:24px;
+    background:var(--bg-panel);
+  }
+  .supplementary-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: concurrency race simulator --- */
+  .race-sim{background:#0a0d12;border-radius:10px;padding:24px;}
+  .race-controls{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+  .race-controls label{font-family:var(--mono);font-size:13px;color:var(--ink-dim);}
+  .race-btn{
+    font-family:var(--mono);font-size:12.5px;padding:10px 16px;border-radius:7px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .race-btn:hover{border-color:var(--amber);color:var(--ink);}
+  .race-btn.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .race-lanes{display:flex;flex-direction:column;gap:8px;margin:16px 0;}
+  .race-lane{
+    display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:center;
+  }
+  .race-lane-label{font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);}
+  .race-track{height:20px;background:#1b212b;border-radius:4px;overflow:hidden;position:relative;}
+  .race-fill{height:100%;border-radius:4px;transition:width 1.2s ease;}
+  .race-result{
+    padding:14px 16px;border-radius:6px;font-size:13.5px;margin-top:12px;
+    background:#0e1116;border-left:2px solid var(--amber);color:var(--ink-dim);min-height:24px;
+  }
+
+  /* --- Interactive: idempotency mechanism picker --- */
+  .idem-picker{display:flex;flex-direction:column;gap:12px;}
+  .idem-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .idem-tab{
+    font-family:var(--mono);font-size:12.5px;padding:10px 16px;border-radius:7px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .idem-tab:hover{border-color:var(--amber);color:var(--ink);}
+  .idem-tab.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .idem-panel{background:#0a0d12;border-radius:8px;padding:20px;display:none;}
+  .idem-panel.show{display:block;}
+  .idem-panel h4{margin:0 0 10px;color:var(--amber);font-size:15px;}
+  .idem-panel p{font-size:14px;margin-bottom:6px;}
+
+  /* --- Interactive: SLA tier budget breakdown --- */
+  .tier-widget{display:flex;flex-direction:column;gap:10px;}
+  .tier-row{
+    display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:center;cursor:pointer;
+    padding:10px 12px;border-radius:8px;border:1px solid transparent;transition:background 0.15s, border-color 0.15s;
+  }
+  .tier-row:hover, .tier-row.active{background:var(--bg-panel-raised);border-color:var(--rule);}
+  .tier-name{font-family:var(--mono);font-size:13px;font-weight:700;}
+  .tier-bar-track{height:10px;background:#0a0d12;border-radius:5px;overflow:hidden;}
+  .tier-bar-fill{height:100%;border-radius:5px;transition:width 0.4s ease;}
+  .tier-detail{
+    font-size:13.5px;color:var(--ink-dim);padding:14px 16px;margin-top:4px;
+    background:#0a0d12;border-left:2px solid var(--amber);border-radius:0 6px 6px 0;display:none;
+  }
+  .tier-detail.show{display:block;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 11</div>
+    <h1 class="title">Orchestration</h1>
+    <p class="subtitle">Orchestration is a contract, not a calendar. Drawing boxes and arrows and
+    picking run times is the easy 20%. The real 80% is what happens when something goes wrong.</p>
+    <div class="chap-note">Printed as "Chapter Ten" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 11.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>A busy restaurant kitchen doesn't just hand out a printed schedule and walk away. The real
+    job is what happens when the delivery truck is late or two orders hit the grill at once. A
+    schedule that only works when nothing goes wrong isn't a kitchen — it's a poster on the
+    wall.</p>
+    <p><strong>Orchestration is a contract, not a calendar.</strong> The real work is designing for
+    what happens when something upstream is late, a job succeeds but produces wrong data, or two
+    copies of the same job accidentally try to write the same thing at once.</p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>The dependency graph is the easy part. The hard part is sensor timeouts, SLA
+    misses, and the job that looks healthy but isn't.</blockquote>
+    <blockquote>A DAG that can't be rerun is a liability. Idempotent operators aren't optional;
+    they're the thing that makes the 2 AM rerun succeed.</blockquote>
+    <blockquote>Backfill windows are a design decision, not an operational afterthought.
+    Partition-aware backfills are why a DAG recovers in 30 minutes instead of 8 hours.</blockquote>
+    <blockquote>Task concurrency limits are where most orchestrators get misconfigured, and where
+    most data incidents have their root cause.</blockquote>
+    <blockquote>SLA tiers let me design different blast-radius budgets per DAG, instead of
+    pretending every pipeline is equally critical.</blockquote>
+  </div>
+
+  <h2 id="two-teams">Why One Team Sleeps Through the Night and Another Doesn't</h2>
+  <p>Two teams each run about 200 scheduled pipelines. Both use the same tool. Both promise the
+  business "99.9% on-time."</p>
+  <p><strong>Team A</strong> gets paged three times a week, incidents dragging two to eight hours.
+  Almost always: something upstream was late, a downstream job timed out, and by the time someone
+  notices, hours have passed.</p>
+  <p><strong>Team B</strong> gets paged twice a month, resolved in under 30 minutes — because the
+  on-call reruns just the broken piece instead of untangling the whole thing.</p>
+  <p>Same tools, same complexity. <strong>Team B treats orchestration as a contract. Team A treats
+  it as scheduling.</strong></p>
+
+  <h2 id="idempotent">Idea 1: A Task That Can't Be Safely Repeated Isn't Ready for Production</h2>
+  <p>Failures are the normal state of any system running continuously — a network hiccup, a
+  worker restart. The question isn't "will this task ever get retried?" It's "what happens when it
+  is?"</p>
+  <p>A task that appends a row every time it runs will silently duplicate data the first time a
+  retry stacks on top of a partial write. <strong>An idempotent task</strong> produces the exact
+  same result whether it runs once or ten times — the single most important property in this
+  chapter.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Approach</th><th>How it works</th><th>Use it when</th></tr></thead>
+      <tbody>
+        <tr><td>Replace, don't append</td><td>Overwrites one specific data slice (e.g. "all of June 15th") instead of adding to it</td><td>Data organized by date</td></tr>
+        <tr><td>Insert-or-update with dedup</td><td>Removes duplicates first, then applies an operation keyed on a stable unique ID</td><td>Data with a natural unique key, not date-organized</td></tr>
+        <tr><td>Write temp, then atomic swap</td><td>Writes to staging first, swaps into place only when fully done</td><td>File-based output where partial writes must never be visible</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>"We'll just retry on failure" without making the task idempotent first. Retrying a
+    non-idempotent task is a recipe for silently corrupting data under load.</p>
+  </div>
+
+  <pre><span class="lang">python</span><code><span class="sql-com"># src/code-examples/ch10/airflow_idempotent_dag.py
+# Daily ETL DAG: idempotent writes, exponential retry backoff,
+# an SLA callback that pages someone, and bounded concurrency.</span>
+default_args = {
+    <span class="sql-str">"owner"</span>: <span class="sql-str">"data_platform"</span>,
+    <span class="sql-str">"retries"</span>: 3,
+    <span class="sql-str">"retry_delay"</span>: timedelta(minutes=5),
+    <span class="sql-str">"retry_exponential_backoff"</span>: <span class="sql-kw">True</span>,
+    <span class="sql-str">"max_retry_delay"</span>: timedelta(minutes=30),
+    <span class="sql-str">"sla"</span>: timedelta(hours=4),
+    <span class="sql-str">"execution_timeout"</span>: timedelta(hours=3),  <span class="sql-com"># kill long-running tasks</span>
+    <span class="sql-str">"on_failure_callback"</span>: paging_callback,
+}
+<span class="sql-kw">with</span> DAG(
+    dag_id=<span class="sql-str">"daily_user_rollup"</span>,
+    max_active_runs=1,  <span class="sql-com"># critical for partition-sensitive DAGs</span>
+    ...
+)</code></pre>
+
+  <h2 id="retries">Idea 2: Retries Are Supposed to Happen — Design for Them on Purpose</h2>
+  <p>Transient failures are the normal state of the world, not an emergency. The sensible default:
+  retry up to 3 times, waiting a bit longer each time (5, then 10, then 20 minutes). This handles
+  roughly 80% of transient pain with zero human involvement — but only works safely once the task
+  is idempotent.</p>
+
+  <h2 id="concurrency">Idea 3: Two Copies of the Same Job at Once Is How Data Gets Silently Wrong</h2>
+  <p>Most tools cap how many copies of the same pipeline can run simultaneously — often defaulting
+  to a fairly high number. That's fine for jobs where parallel copies don't matter. It's very much
+  not fine for a job where each run writes to a shared data slice.</p>
+  <p>Try the simulator below — it recreates the war story: a scheduler catching up after an outage,
+  launching multiple overlapping runs that race for the same day's data.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — toggle the concurrency setting</div>
+    <div class="race-sim">
+      <div class="race-controls">
+        <label>Concurrency cap:</label>
+        <div class="race-btn active" id="raceBtnDefault">Default (16)</div>
+        <div class="race-btn" id="raceBtnCapped">Capped at 1</div>
+      </div>
+      <div class="race-lanes" id="raceLanes"></div>
+      <div class="race-result" id="raceResult">Click "Default (16)" or "Capped at 1" to see what
+      happens when the scheduler catches up after a 6-hour outage.</div>
+    </div>
+  </div>
+
+  <div class="callout war">
+    <div class="cal-label">⚠️ War Story</div>
+    <p>A data platform team ran 200 pipelines. One core pipeline computed daily revenue, with its
+    concurrency cap left at the tool's default of 16. One morning, an upstream data format change
+    caused a dependency check to time out on first run. The system retried — but the scheduler also
+    launched the next day's run, and the one after that, stacking up missed schedules. Within three
+    hours, eight overlapping copies were fighting over the same day's data slice. Each used the
+    safe "replace, don't append" pattern — but each was working from a different snapshot of
+    upstream data, since it kept changing between runs. The final result was whichever copy
+    finished last. The next morning's dashboards showed revenue numbers that made no sense. The
+    investigation took eight hours. The fix was one line: capping concurrent runs at 1. The real
+    lesson: idempotency plus a concurrency cap is the actual safety contract. Either one without
+    the other doesn't protect you.</p>
+  </div>
+
+  <div class="callout pattern">
+    <div class="cal-label">✅ Pattern</div>
+    <p>For any pipeline where each run writes to a shared data slice, cap it to exactly one run at
+    a time. Say this out loud unprompted — the too-permissive default is the single most common
+    real-world misconfiguration at medium scale.</p>
+  </div>
+
+  <h2 id="sensors">Idea 4: Waiting on Something Upstream Needs Its Own Careful Design</h2>
+  <p>A "sensor" waits for something upstream to be ready. A naive sensor holds a worker slot for
+  its <em>entire</em> wait, doing nothing but checking. 100 pipelines all polling this way ties up
+  100 worker slots doing zero real work — invisible at small scale, a real bottleneck at medium
+  scale.</p>
+  <p><strong>The fix:</strong> release the worker slot between checks instead of holding it the
+  whole time. Newer tools let a finished pipeline directly announce its output is ready, so
+  downstream pipelines don't poll at all.</p>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>When you mention a sensor waiting on an upstream dependency, immediately flag the
+    polling-vs-release distinction. Naming it unprompted signals you've run this at a scale where
+    it actually mattered.</p>
+  </div>
+
+  <h2 id="backfill">Idea 5: When Something Breaks, How Much Do You Have to Redo?</h2>
+  <p>Two very different-sized responses: <strong>rebuild everything from scratch</strong> (simple,
+  slow, touches data that was already fine), or <strong>fix just the broken piece</strong>
+  (dramatically faster, but only safe if the task is idempotent). Teams without idempotent tasks
+  default to full rebuilds every time — the difference between a 30-minute fix and an 8-hour one.</p>
+
+  <div class="callout pattern">
+    <div class="cal-label">✅ Pattern</div>
+    <p>Every pipeline you ship should come with a rerun plan — the exact command, tested somewhere
+    safe, pasted directly into the on-call runbook.</p>
+  </div>
+
+  <h2 id="tiers">Idea 6: Not Every Pipeline Deserves the Same Level of Panic</h2>
+  <p>Sort pipelines into tiers by how bad "late" actually is. Click each tier below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a tier</div>
+    <div class="tier-widget" id="tierWidget"></div>
+  </div>
+
+  <p>The recovery time budget adds up explicitly:</p>
+  <pre style="margin:0 0 16px;"><code>time budget = time to detect + time to diagnose + time to rerun + safety buffer</code></pre>
+
+  <h2 id="transcript">A Real Interview, Walked Through Simply</h2>
+  <p>The classic orchestration prompt: a specific pipeline count, a specific reliability promise,
+  a specific "how bad can it get" limit. Watch the candidate tier by criticality, budget the
+  recovery math, and reason through what breaks first at scale.</p>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Design the orchestration for a 200-pipeline platform with a 99.9% reliability promise and
+      a 4-hour maximum "how bad can it get" limit.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Three questions first. Does 99.9% apply per-pipeline or to the platform as a whole? How
+      critical are these 200 pipelines relative to each other? And who owns each one — a central
+      team, or individual engineers?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Per pipeline, daily. Call it 10 revenue-critical, 50 business-critical, 140 purely
+      analytical. Ownership is spread across individual engineers.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>That split is the first real design decision. And since ownership is spread out, the
+      central team's real job is making it hard to ship a badly-behaved pipeline in the first
+      place.</p>
+      <p>Three tiers: highest — 10 pipelines, 1-hour limit, pages immediately, requires idempotent
+      tasks, concurrency capped at one, tested rerun runbook before it ships. Middle — 50
+      pipelines, 4-hour limit, pages during hours, email overnight. Lowest — 140 pipelines, 24-hour
+      limit, chat notification only. I'd enforce these automatically — a highest-tier pipeline that
+      fails an idempotency check should simply fail to ship.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What breaks first at 200 pipelines?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>The scheduler itself — slows down around several hundred simultaneous tasks, worst at
+      burst moments like midnight UTC. I'd run it in a high-availability setup with an autoscaling
+      worker pool. Second, the polling problem — if 100 pipelines all check upstream every minute,
+      that's real load. I'd make sure everything releases its worker slot between checks. Third,
+      tier inheritance — a business-critical pipeline depending on a purely analytical one
+      inherits its looser guarantee whether it wants to or not. I'd block a pipeline from claiming
+      a tighter guarantee than the loosest thing it depends on.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What's the plan if the scheduler itself goes down?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>High availability handles most of it — runs pause, nothing new queues, nothing
+      corrupts. <em>(pauses)</em> Let me push on that — "no corruption, just stalled work" is only
+      true if catch-up afterward is controlled. If the scheduler's down six hours and catch-up
+      kicks in with the default permissive concurrency, we're back in the war-story failure mode.
+      So: high availability, plus a concurrency cap of one on anything writing to shared data, plus
+      not blindly auto-replaying every missed schedule. Drop any one of those and an outage turns
+      into a real data incident.</p>
+    </div>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Treating the dependency diagram as the whole design.</strong> Concurrency limits,
+    retry policy, and idempotency are where the real design work is.</li>
+    <li><strong>Leaving the concurrency cap at its default</strong> for any pipeline writing to a
+    shared data slice — the classic real-world incident.</li>
+    <li><strong>Using a polling sensor without releasing the worker slot between checks.</strong>
+    Fine with a handful of pipelines, falls over at scale.</li>
+    <li><strong>Turning on retries before the task is idempotent.</strong> Data corrupts silently.</li>
+    <li><strong>One reliability promise across every pipeline.</strong> Direct path to on-call
+    burnout — tiered promises are the fix.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>The One-Sentence Version</h4>
+        <p>Orchestration is a contract about failure behavior, not just a schedule.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Four Operational Building Blocks</h4>
+        <ul>
+          <li><strong>Idempotency</strong> — replace, insert-or-update, or atomic swap</li>
+          <li><strong>Retries</strong> — a few attempts, longer waits each time</li>
+          <li><strong>Concurrency limits</strong> — cap same-pipeline runs to 1 for shared data</li>
+          <li><strong>Sensors</strong> — release the slot between checks, or use notify-instead</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Recovery Time Budget</h4>
+        <p><code>budget = detect + diagnose + rerun + buffer</code></p>
+      </div>
+      <div class="cheat-card">
+        <h4>Backfill Options, Fastest to Slowest</h4>
+        <ol>
+          <li>Rerun just the broken piece (needs idempotency)</li>
+          <li>Full rebuild from scratch</li>
+          <li>Manual fix (emergency only)</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>Reliability Tiers</h4>
+        <ul>
+          <li><strong>Highest</strong> — ~1h tolerance, pages immediately</li>
+          <li><strong>High</strong> — ~4h tolerance, pages during hours</li>
+          <li><strong>Lower</strong> — ~24h tolerance, chat only</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Orchestration is a contract, not scheduling."</li>
+          <li>"Idempotency plus bounded concurrency. One without the other doesn't save you."</li>
+          <li>"The rerun command lives in the runbook before the pipeline ships."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Fan-out, fan-in coordination:</strong> one dataset branches into many downstream
+      transformations, which later collect back together. A fan-in step's slowest upstream piece
+      controls overall latency, and one bad upstream file can block everything downstream.</li>
+      <li><strong>Event-driven vs. schedule-driven:</strong> schedules are simple but can waste
+      time waiting for a fixed clock time; event triggers reduce latency but add coordination
+      complexity. Most mature platforms use both.</li>
+      <li><strong>Retries can have real business consequences:</strong> in financial or healthcare
+      contexts, blindly retrying a task with an external side effect (like a payment) can trigger
+      it twice. Sometimes the right move is "mark incomplete, needs manual review" instead of an
+      automatic retry.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>Apache Airflow Documentation: Concepts.</strong> airflow.apache.org. The canonical
+    reference for sensors, resource pools, SLAs, and retry policies.</li>
+    <li><strong>Data Pipelines Pocket Reference.</strong> James Densmore. O'Reilly, 2021. Concise
+    coverage of retries, idempotency, and observability with concrete patterns.</li>
+    <li><strong>Enterprise Integration Patterns.</strong> Gregor Hohpe and Bobby Woolf.
+    Addison-Wesley, 2003. The source for "write-then-publish safely" and "pass a reference, not a
+    payload" patterns used across service boundaries.</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- Concurrency race simulator ----------
+const raceLanes = document.getElementById('raceLanes');
+const raceResult = document.getElementById('raceResult');
+const raceBtnDefault = document.getElementById('raceBtnDefault');
+const raceBtnCapped = document.getElementById('raceBtnCapped');
+
+function buildRaceLanes(capped){
+  raceLanes.innerHTML = '';
+  const numRuns = capped ? 1 : 8;
+  for(let i=0;i<numRuns;i++){
+    const lane = document.createElement('div');
+    lane.className = 'race-lane';
+    const isLast = i === numRuns - 1;
+    lane.innerHTML = `
+      <div class="race-lane-label">Run ${i+1}</div>
+      <div class="race-track"><div class="race-fill" style="width:0%;background:${!capped && isLast ? 'var(--red)' : 'var(--green)'}"></div></div>
+    `;
+    raceLanes.appendChild(lane);
+    setTimeout(()=>{
+      lane.querySelector('.race-fill').style.width = '100%';
+    }, 100 + i*80);
+  }
+}
+
+function showRaceResult(capped){
+  if(capped){
+    raceResult.innerHTML = '<strong style="color:var(--green)">Capped at 1:</strong> only one run of this pipeline can ever be active. The scheduler queues the rest and runs them one at a time after catch-up. No race, no corruption — just a slightly slower catch-up.';
+  } else {
+    raceResult.innerHTML = '<strong style="color:var(--red)">Default (16):</strong> up to 16 copies can run at once. After a 6-hour outage, 8 overlapping runs all raced to write the same day\u2019s data slice. Each used "replace, don\u2019t append" safely — but each saw a different snapshot of upstream data. The final result was whichever run finished last (shown in red). Nobody got an error. The dashboard was just wrong the next morning.';
+  }
+}
+
+raceBtnDefault.addEventListener('click', ()=>{
+  raceBtnDefault.classList.add('active');
+  raceBtnCapped.classList.remove('active');
+  buildRaceLanes(false);
+  showRaceResult(false);
+});
+raceBtnCapped.addEventListener('click', ()=>{
+  raceBtnCapped.classList.add('active');
+  raceBtnDefault.classList.remove('active');
+  buildRaceLanes(true);
+  showRaceResult(true);
+});
+buildRaceLanes(false);
+showRaceResult(false);
+
+// ---------- SLA tier interactive widget ----------
+const tiers = [
+  {name:'Highest', pct:95, color:'#e2604f', detail:'~1 hour tolerance. Pages someone immediately. Requires idempotent tasks, a concurrency cap of one, and a tested rerun runbook before it\u2019s even allowed to ship. Example: 10 out of 200 pipelines.'},
+  {name:'High', pct:65, color:'#e8a33d', detail:'~4 hour tolerance. Pages during business hours, emails overnight with a defined next-touch window. Example: 50 out of 200 pipelines.'},
+  {name:'Lower', pct:30, color:'#5ec9a0', detail:'~24 hour tolerance. No paging — a chat notification, handled the next business day. Example: 140 out of 200 pipelines, the majority.'},
+];
+const tierWidget = document.getElementById('tierWidget');
+tiers.forEach((t,i)=>{
+  const row = document.createElement('div');
+  row.className = 'tier-row';
+  row.innerHTML = `
+    <div class="tier-name" style="color:${t.color}">${t.name}</div>
+    <div class="tier-bar-track"><div class="tier-bar-fill" style="width:0%;background:${t.color}"></div></div>
+  `;
+  const detail = document.createElement('div');
+  detail.className = 'tier-detail';
+  detail.textContent = t.detail;
+  const container = document.createElement('div');
+  container.appendChild(row);
+  container.appendChild(detail);
+  tierWidget.appendChild(container);
+
+  row.addEventListener('click', ()=>{
+    const isShown = detail.classList.contains('show');
+    document.querySelectorAll('.tier-detail').forEach(el=>el.classList.remove('show'));
+    document.querySelectorAll('.tier-row').forEach(el=>el.classList.remove('active'));
+    if(!isShown){ detail.classList.add('show'); row.classList.add('active'); }
+  });
+
+  setTimeout(()=>{ row.querySelector('.tier-bar-fill').style.width = t.pct+'%'; }, 100 + i*100);
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

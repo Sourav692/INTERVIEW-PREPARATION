@@ -1,0 +1,486 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.5 — Data Modeling at Scale | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;--bg-panel:#151a22;--bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;--ink-dim:#8b96a5;--ink-faint:#5a6472;--rule:#262e3a;
+    --amber:#e8a33d;--amber-dim:#5c451f;--red:#e2604f;--red-dim:#3f2420;
+    --green:#5ec9a0;--green-dim:#1f3a30;--blue:#6fa8dc;--purple:#c98be2;
+    --mono:"IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif:"Source Serif 4","Georgia",serif;--sans:"Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7;font-size:16px;}
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+  .masthead{border-bottom:1px solid var(--rule);padding:56px 24px 40px;
+    background:radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),var(--bg);}
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:14px;}
+  h1.title{font-family:var(--serif);font-weight:600;font-size:clamp(32px,5vw,50px);margin:0 0 12px;letter-spacing:-0.01em;}
+  .subtitle{color:var(--ink-dim);font-size:17px;max-width:640px;margin:0 0 20px;}
+  .chap-note{font-size:13px;color:var(--ink-faint);font-style:italic;border-left:2px solid var(--rule);padding-left:12px;}
+  .simple-banner{background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;border-radius:10px;padding:22px 24px;margin:28px 0;}
+  .simple-banner .sb-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);margin-bottom:10px;}
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+  h2{font-family:var(--serif);font-size:27px;font-weight:600;margin:60px 0 18px;padding-top:22px;border-top:1px solid var(--rule);letter-spacing:-0.01em;}
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{font-family:var(--sans);font-size:18px;font-weight:700;margin:32px 0 12px;color:var(--ink);}
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{font-family:var(--mono);background:var(--bg-panel-raised);padding:2px 6px;border-radius:4px;font-size:0.88em;color:var(--amber);}
+  .opening-lines{background:var(--bg-panel);border:1px solid var(--rule);border-radius:10px;padding:28px 28px 20px;margin:28px 0 40px;}
+  .opening-lines .label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-faint);margin-bottom:16px;}
+  .opening-lines blockquote{font-family:var(--serif);font-size:17px;font-style:italic;color:#eef1f5;margin:0 0 18px;padding-left:16px;border-left:2px solid var(--amber);}
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+  .callout{border-radius:8px;padding:18px 20px;margin:22px 0;border:1px solid var(--rule);background:var(--bg-panel);}
+  .callout .cal-label{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{background:var(--bg-panel-raised);text-align:left;padding:12px 16px;font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--amber);border-bottom:1px solid var(--rule);}
+  td{padding:12px 16px;border-bottom:1px solid var(--rule);color:var(--ink-dim);vertical-align:top;}
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+  pre{background:#0a0d12;border:1px solid var(--rule);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.6;margin:20px 0;position:relative;}
+  pre .lang{position:absolute;top:10px;right:14px;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-faint);}
+  pre code{background:none;padding:0;color:#c3d6e8;}
+  .sql-kw{color:var(--amber);}
+  .sql-com{color:var(--ink-faint);font-style:italic;}
+  .diagram-card{background:var(--bg-panel);border:1px solid var(--rule);border-radius:10px;padding:24px;margin:28px 0;}
+  .diagram-caption{font-size:13px;color:var(--ink-faint);margin-top:14px;font-style:italic;}
+  .diagram-hint{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;}
+  .transcript{background:var(--bg-panel);border:1px solid var(--rule);border-radius:10px;padding:8px 24px;margin:24px 0;}
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+  .cheat-sheet{background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);border:1.5px solid var(--amber-dim);border-radius:14px;padding:32px;margin:40px 0;}
+  .cheat-sheet-title{font-family:var(--mono);color:var(--amber);text-transform:uppercase;letter-spacing:0.14em;font-size:13px;margin-bottom:6px;}
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{background:var(--bg-panel-raised);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;}
+  .cheat-card h4{margin:0 0 10px;font-size:12.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-dim);font-family:var(--mono);}
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul, .cheat-card ol{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .supplementary{border:1px dashed var(--rule);border-radius:10px;padding:22px 24px;margin-top:24px;background:var(--bg-panel);}
+  .supplementary-tag{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:12px;}
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  .shape-toggle{display:flex;gap:8px;margin-bottom:16px;}
+  .shape-btn{
+    flex:1;font-family:var(--mono);font-size:13px;padding:12px;border-radius:8px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;text-align:center;transition:all 0.15s;
+  }
+  .shape-btn:hover{border-color:var(--amber);color:var(--ink);}
+  .shape-btn.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .shape-view{display:none;}
+  .shape-view.show{display:block;}
+  .shape-diagram{background:#0a0d12;border-radius:8px;padding:20px;font-family:var(--mono);font-size:12.5px;}
+  .shape-node{padding:10px 14px;border-radius:6px;margin-bottom:8px;}
+  .shape-node.fact{background:var(--amber-dim);color:#fff;}
+  .shape-node.dim{background:var(--bg-panel-raised);color:var(--ink);margin-left:20px;border-left:2px solid var(--blue);}
+  .shape-node.wide{background:var(--green-dim);color:#fff;}
+
+  .scd-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .scd-tab{
+    font-family:var(--mono);font-size:12.5px;padding:10px 16px;border-radius:7px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .scd-tab:hover{border-color:var(--amber);color:var(--ink);}
+  .scd-tab.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .scd-panel{background:#0a0d12;border-radius:8px;padding:20px;display:none;}
+  .scd-panel.show{display:block;}
+  .scd-panel h4{margin:0 0 10px;color:var(--amber);font-size:15px;}
+  .scd-panel p{font-size:14px;margin-bottom:10px;}
+  .scd-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;}
+  .scd-item{flex:1;min-width:140px;}
+  .scd-item .si-label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px;}
+  .scd-item .si-value{font-size:13.5px;color:var(--ink);}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 5</div>
+    <h1 class="title">Data Modeling at Scale</h1>
+    <p class="subtitle">At scale, your schema is a contract with every downstream team and every
+    future query you can't see yet. The shape determines which queries are cheap, and the SCD
+    choice determines which historical questions you can still answer three years from now.</p>
+    <div class="chap-note">Printed as "Chapter Four" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 5.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Two people organize the same pile of receipts. One files things into labeled folders and
+    cross-references. The other just staples everything to each receipt directly — faster to
+    read, but six months later, answering "which vendors changed category last quarter" means
+    going through every single receipt by hand.</p>
+    <p><strong>How you model your data determines which future questions are cheap to answer and
+    which ones require a rebuild.</strong></p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>Star schemas aren't legacy. They're an answer to "how do you make analytics fast
+    without knowing which queries I'll ask," which is still the hardest question in DE.</blockquote>
+    <blockquote>Wide tables win when compression and columnar pruning are free. Narrow tables win
+    when I need partial updates without write amplification.</blockquote>
+    <blockquote>Slowly Changing Dimensions are a modeling problem disguised as a history problem.
+    Getting the SCD type wrong costs three years of rework.</blockquote>
+    <blockquote>Denormalize for the query path that dominates. Normalize for the one I might
+    break.</blockquote>
+    <blockquote>Schema migrations are interface changes. I treat them like API versioning:
+    additive by default, breaking changes with deprecation cycles and explicit consumer
+    buy-in.</blockquote>
+  </div>
+
+  <h2 id="two-teams">Why Two Teams Who Started Identically Ended Up Nowhere Near Each Other</h2>
+  <p>Two teams both need to model 10 billion transactions a year. Both talk to the same
+  stakeholders. Both land on a schema in week two.</p>
+  <p><strong>Team A</strong> builds a star schema — a central fact table with foreign keys to
+  separate dimension tables. <strong>Team B</strong> builds one wide, denormalized table with
+  everything inlined.</p>
+  <p><strong>At year one, both are shipping fine. At year two, Team B has rebuilt most of the
+  pipeline.</strong> The wide table served the first dashboard beautifully but couldn't serve the
+  thirty new kinds of analysis year two demanded. Team A, on the star schema, just adds a join.</p>
+
+  <h2 id="contracts">Idea 1: A Schema Is Three Separate Contracts</h2>
+  <ul>
+    <li><strong>A contract with downstream queries</strong> — the shape determines which queries
+    are cheap.</li>
+    <li><strong>A contract with producer teams</strong> — adding a column is free; renaming or
+    retyping one silently breaks consumers.</li>
+    <li><strong>A contract with history</strong> — the SCD type answers "what do we know when this
+    record changes?"</li>
+  </ul>
+
+  <h2 id="star">Idea 2: The Star Schema — Still the Best Default</h2>
+  <p>Toggle between the two shapes below to see the trade-off.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — toggle the shape</div>
+    <div class="shape-toggle" id="shapeToggle"></div>
+    <div id="shapeViews"></div>
+  </div>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Designing a schema for the dashboard you have, not the unknown queries you'll need. A
+    schema that only serves the first dashboard is a schema you'll rebuild within eighteen
+    months.</p>
+  </div>
+
+  <h2 id="wide">Idea 3: Wide Tables — a Specialization, Not a Default</h2>
+  <p>Wide tables win on three fronts: columnar compression closes the storage gap, projection
+  pushdown means extra columns aren't extra scan cost, and BI tooling handles them natively. They
+  fail on two: <strong>update cost</strong> (one changed attribute rewrites every row carrying that
+  key) and <strong>query rigidity</strong> (a genuinely new pattern either runs slowly or forces a
+  rebuild).</p>
+
+  <h2 id="scd">Idea 4: Slowly Changing Dimensions</h2>
+  <p>Click each SCD type below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — select an SCD type</div>
+    <div class="scd-tabs" id="scdTabs"></div>
+    <div id="scdPanels"></div>
+  </div>
+
+  <pre><span class="lang">sql</span><code><span class="sql-com">-- src/code-examples/ch04/scd_type_2_merge.sql
+-- SCD Type 2: close-then-insert, one transaction.
+-- 1. UPDATE dim_user_scd SET end_date = today, is_current = FALSE
+--    WHERE is_current = TRUE AND tracked attributes changed.
+-- 2. INSERT a new current row (is_current = TRUE, end_date = NULL)
+--    for every changed user and every genuinely new user.</span></code></pre>
+
+  <div class="callout war">
+    <div class="cal-label">⚠️ War Story</div>
+    <p>A fintech startup modeled <code>user_plan</code> (Free, Pro, Enterprise) as SCD Type 1,
+    overwriting the plan on every upgrade. Two years later, the CFO asked for plan-level revenue
+    history by quarter to support a pricing-change pitch. Answering it required reconstructing
+    plan history from the billing system's event log, cross-referencing user accounts, and
+    reconciling with support's notes. It took six months and one senior data engineer — roughly
+    $200k in salary and overhead. The day-one Type 2 choice would have added roughly 0.1 percent
+    to dimension storage.</p>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>When you mention SCD, the interviewer isn't testing whether you know Type 1 through 4.
+    They're testing whether you can pick the right type <em>per attribute</em>. "Type 2 for
+    user_plan because finance queries it historically, Type 1 for display_name because no one
+    cares what it used to be" signals you've done this before. "I'd use Type 2 for everything"
+    signals you haven't.</p>
+  </div>
+
+  <h2 id="patterns">Idea 5: Four Modern Modeling Patterns</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pattern</th><th>Strengths</th><th>Weaknesses</th><th>Pick When</th></tr></thead>
+      <tbody>
+        <tr><td>Star schema</td><td>Flexible, compact, SCD-clean</td><td>Joins at read time, learning curve</td><td>Default. Unknown or evolving queries</td></tr>
+        <tr><td>Wide denormalized</td><td>No joins, fast, BI-friendly</td><td>Update cost, inflexible, storage</td><td>One pattern dominates, attributes rarely change</td></tr>
+        <tr><td>Data Vault</td><td>Change-tolerant, regulated-domain fit</td><td>Verbose, needs a semantic layer</td><td>Regulated or audit-heavy, schema churn</td></tr>
+        <tr><td>One Big Table</td><td>Max denormalized, minimal joins, ML-friendly</td><td>Storage, rebuild cost, single-view coupling</td><td>Single named consumer (one pipeline or dashboard)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="transcript">An Interview Transcript — the Product Analytics Platform</h2>
+  <p>Watch the candidate walk through all three contracts and catch themselves on one derived
+  attribute.</p>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Model the dataset for a product analytics platform. About 100 million daily active
+      users, 100 events per user per day, 100 concurrent SQL authors, mostly schema-change
+      requests. Two-year retention.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>What are the dominant query patterns? How often do plan, country, or tier actually
+      change? What do the schema-change requests usually look like?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>90% is aggregation by user attribute. Plan changes a few times a year, country rarely,
+      tier is derived nightly. Mostly adding event types; breaking changes have caused incidents.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Star schema confirmed. Plan needs SCD Type 2 — finance queries it historically. Country
+      too — cohort analyses ask "where were these users at signup?" Tier is interesting — derived,
+      so I could track it as Type 2 or recompute it.</p>
+      <p><em>(pauses)</em> Wait. Type 4 feels right at first, but it introduces a second source of
+      truth for a value I can always derive from the fact table. The rule: SCD is for attributes
+      I can't reconstruct. Plan and country qualify; tier doesn't.</p>
+      <p>Actually, let me revise — I wouldn't store tier history at all. I'd recompute it on
+      demand, with yesterday's snapshot cached in a daily rollup for the common case.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What breaks first at this scale?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>The SCD Type 2 nightly update. A naive full outer join on 100 million rows every night
+      doesn't scale. I'd use CDC on the user table to surface only changed rows, then apply SCD
+      logic to that subset — turning a 100-million-row scan into something proportional to actual
+      change volume.</p>
+    </div>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Wide table by default.</strong> Fine for a small, stable workload. Wrong as a
+    starting point for a platform that will evolve.</li>
+    <li><strong>Implicit SCD Type 1.</strong> Happens by accident, and the lost history costs
+    years to recover from.</li>
+    <li><strong>Treating a rename as free.</strong> Renames need a deprecation cycle, not just a
+    PR approval.</li>
+    <li><strong>Confusing 3NF with modeling discipline.</strong> Analytics wants lightly
+    denormalized dimensions, not full normalization.</li>
+    <li><strong>Modeling the current state only.</strong> Always name the SCD choice explicitly,
+    even if the answer is Type 1.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>Three Contracts</h4>
+        <p>Query shape · Producer evolution · History (SCD)</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Four Modeling Patterns</h4>
+        <ul>
+          <li>Star — default, unknown queries</li>
+          <li>Wide — known, stable, dominant pattern</li>
+          <li>Data Vault — regulated, audit-heavy</li>
+          <li>OBT — single named consumer</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>SCD Types, Per Attribute</h4>
+        <ul>
+          <li>Type 1 — overwrite, cheap, history lost</li>
+          <li>Type 2 — new row per change, full history</li>
+          <li>Type 3 — current + previous only</li>
+          <li>Type 4 — history sidecar table</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Schema Change Tiers</h4>
+        <ul>
+          <li>Additive → ship without coordination</li>
+          <li>Rename → deprecation cycle, ~3 months</li>
+          <li>Breaking → sign-off + migration plan</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>The Default Decision</h4>
+        <p>Star schema unless a specific, stable, dominant pattern justifies a wide table. Don't
+        SCD what you can recompute from the fact table.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Denormalize for the query path that dominates. Normalize for the one I might break."</li>
+          <li>"SCD types are decided per attribute, not per table."</li>
+          <li>"Schema migrations are interface changes. Deprecation cycles, not surprises."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Schema changes are, at their core, a contract-review problem</strong> — the same
+      discipline as API versioning. A PR-level review asking "is this field always non-null?"
+      catches ambiguity before it leaks downstream.</li>
+      <li><strong>Breaking changes get managed through people, not just tooling</strong> — Slack
+      threads, tickets, change windows, deprecation timelines, dual-write periods, and often a
+      platform lead mediating between teams.</li>
+      <li><strong>Real examples of what happens without a contract:</strong> a currency field
+      silently switched from integer cents to floating-point dollars, doubling reported revenue
+      overnight; an app release sending empty route data for six hours, causing a pricing model to
+      overpay; a vendor sending null currency codes, silently defaulting to the wrong currency.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>The Data Warehouse Toolkit (3rd edition).</strong> Ralph Kimball and Margy Ross.
+    Wiley, 2013. The book that formalized star schemas and the SCD taxonomy.</li>
+    <li><strong>Building the Data Warehouse (4th edition).</strong> Bill Inmon. Wiley, 2005. The
+    counterpoint: a fully normalized enterprise warehouse.</li>
+    <li><strong>"Data Vault 2.0 System of Business Intelligence."</strong> Dan Linstedt and
+    Michael Olschimke. Morgan Kaufmann, 2015. The authoritative treatment for regulated domains.</li>
+  </ul>
+
+</div>
+
+<script>
+const shapeData = [
+  {
+    id:'star', label:'Star Schema',
+    body:'<div class="shape-node fact">fact_transactions: txn_id, user_id, merchant_id, ts, amount</div><div class="shape-node dim">dim_user: user_id, plan, country, tier</div><div class="shape-node dim">dim_merchant: merchant_id, category, region</div><div class="shape-node dim">dim_time: ts, day, week, month, quarter</div>',
+    caption:'Queries join fact to dimension at read time. Pays a join cost, saves storage since each dimension is stored once. Best default for unknown or evolving query patterns.'
+  },
+  {
+    id:'wide', label:'Wide Denormalized Table',
+    body:'<div class="shape-node wide">transactions_wide: txn_id, ts, day, user_id, user_plan, user_country, user_tier, merchant_id, merchant_category, merchant_region, amount</div>',
+    caption:'Every attribute inlined into one row. Skips the join, pays a larger per-row read, stores repeated attribute values on every row. Best for a known, stable, dominant query pattern.'
+  }
+];
+const shapeToggle = document.getElementById('shapeToggle');
+const shapeViews = document.getElementById('shapeViews');
+shapeData.forEach(function(s,i){
+  const btn = document.createElement('div');
+  btn.className = 'shape-btn' + (i===0?' active':'');
+  btn.textContent = s.label;
+  shapeToggle.appendChild(btn);
+
+  const view = document.createElement('div');
+  view.className = 'shape-view' + (i===0?' show':'');
+  view.id = 'shape-'+s.id;
+  view.innerHTML = '<div class="shape-diagram">'+s.body+'</div><p class="diagram-caption">'+s.caption+'</p>';
+  shapeViews.appendChild(view);
+
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.shape-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelectorAll('.shape-view').forEach(function(v){v.classList.remove('show');});
+    btn.classList.add('active');
+    document.getElementById('shape-'+s.id).classList.add('show');
+  });
+});
+
+const scdData = [
+  {
+    id:'type1', label:'Type 1 — Overwrite',
+    body:'The new value replaces the old, and history is lost. Cheap and simple, catastrophic if the dimension carries anything finance or audit cares about.',
+    storage:'None extra — same row count', useCase:'Attributes no one queries historically', example:'display_name'
+  },
+  {
+    id:'type2', label:'Type 2 — New Row Per Change',
+    body:'A new row per change, with effective dates, so full history is preserved. Storage grows roughly linearly with the change rate.',
+    storage:'~1-2 GB/year on a 10M-user dimension (noise)', useCase:'Finance or audit needs historical queries', example:'user_plan, country'
+  },
+  {
+    id:'type3', label:'Type 3 — Current + Previous',
+    body:'The current and previous value sit in the same row. Cheap, handles "what was it before the last change" - cannot answer anything older.',
+    storage:'One extra column, no row growth', useCase:'Only need one level of history', example:'previous_tier'
+  },
+  {
+    id:'type4', label:'Type 4 — History Sidecar',
+    body:'Current state in the main table, full history in a separate sidecar table. Current-state queries skip the join entirely.',
+    storage:'Sidecar grows with change rate, main table stays small', useCase:'History matters but 99% of queries need only current state', example:'account_owner'
+  }
+];
+const scdTabs = document.getElementById('scdTabs');
+const scdPanels = document.getElementById('scdPanels');
+scdData.forEach(function(s,i){
+  const tab = document.createElement('div');
+  tab.className = 'scd-tab' + (i===0?' active':'');
+  tab.textContent = s.label;
+  scdTabs.appendChild(tab);
+
+  const panel = document.createElement('div');
+  panel.className = 'scd-panel' + (i===0?' show':'');
+  panel.id = 'scd-'+s.id;
+  panel.innerHTML = '<h4>'+s.label+'</h4><p>'+s.body+'</p><div class="scd-row"><div class="scd-item"><div class="si-label">Storage Impact</div><div class="si-value">'+s.storage+'</div></div><div class="scd-item"><div class="si-label">Use Case</div><div class="si-value">'+s.useCase+'</div></div><div class="scd-item"><div class="si-label">Example Attribute</div><div class="si-value">'+s.example+'</div></div></div>';
+  scdPanels.appendChild(panel);
+
+  tab.addEventListener('click', function(){
+    document.querySelectorAll('.scd-tab').forEach(function(t){t.classList.remove('active');});
+    document.querySelectorAll('.scd-panel').forEach(function(p){p.classList.remove('show');});
+    tab.classList.add('active');
+    document.getElementById('scd-'+s.id).classList.add('show');
+  });
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

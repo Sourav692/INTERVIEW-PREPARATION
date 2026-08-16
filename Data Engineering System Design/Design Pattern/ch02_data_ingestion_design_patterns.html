@@ -1,0 +1,1363 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch. 2 — Data Ingestion Design Patterns</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<style>
+  :root{
+    --ink:#1B2430;
+    --ink-soft:#3A4556;
+    --page:#FAF7F0;
+    --page-raised:#FFFFFF;
+    --rule:#DAD2BE;
+    --brass:#B8823C;
+    --brass-dark:#8C6329;
+    --brass-tint:#F5EEDF;
+    --problem:#A8452E;
+    --solution:#2E6E5E;
+    --consequence:#8C6329;
+    --example:#2B4A6B;
+    --note-bg:#EFF3F1;
+    --note-bd:#2E6E5E;
+    --warn-bg:#FBEFEA;
+    --warn-bd:#A8452E;
+    --case-bg:#F1EEF9;
+    --case-bd:#5C4A8C;
+    --say-bg:#EAF1F6;
+    --say-bd:#2B4A6B;
+    --mono: 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
+    --serif: 'Source Serif 4', 'Georgia', serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top left, rgba(184,130,60,0.06), transparent 45%),
+      var(--page);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{ color:var(--brass-dark); }
+  a:focus-visible, button:focus-visible, summary:focus-visible{
+    outline:3px solid var(--brass); outline-offset:2px; border-radius:2px;
+  }
+
+  /* ---------- Masthead ---------- */
+  .masthead{
+    border-bottom:3px solid var(--ink);
+    padding:3.5rem 1.5rem 2rem;
+    max-width:920px;
+    margin:0 auto;
+  }
+  .masthead .kicker{
+    font-family:var(--mono);
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    font-size:0.75rem;
+    color:var(--brass-dark);
+    display:flex;
+    align-items:center;
+    gap:0.6rem;
+  }
+  .masthead .kicker::before{
+    content:"";
+    width:28px; height:2px; background:var(--brass);
+    display:inline-block;
+  }
+  .masthead h1{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(2.1rem, 5vw, 3.2rem);
+    margin:0.5rem 0 0.6rem;
+    letter-spacing:-0.01em;
+  }
+  .masthead .sub{
+    font-size:1.05rem;
+    color:var(--ink-soft);
+    max-width:62ch;
+  }
+  .masthead .meta-row{
+    margin-top:1.4rem;
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.5rem 1.2rem;
+    font-family:var(--mono);
+    font-size:0.78rem;
+    color:var(--ink-soft);
+  }
+  .masthead .meta-row span{ white-space:nowrap; }
+  .masthead .meta-row b{ color:var(--ink); }
+
+  main{ max-width:920px; margin:0 auto; padding:0 1.5rem 6rem; }
+
+  /* ---------- Section framing ---------- */
+  .framing{
+    padding:2.4rem 0 1.2rem;
+    border-bottom:1px solid var(--rule);
+  }
+  .framing h2.section-title{
+    font-family:var(--mono);
+    font-size:0.8rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass-dark);
+    margin:0 0 0.9rem;
+  }
+  .framing p{ max-width:70ch; }
+
+  /* ---------- Diagram wrapper ---------- */
+  .diagram-block{
+    margin:1.6rem 0;
+    background:var(--page-raised);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:1.2rem;
+    overflow-x:auto;
+  }
+  .diagram-block .diagram-label{
+    font-family:var(--mono);
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:0.6rem;
+  }
+  .mermaid{ display:flex; justify-content:center; }
+
+  /* ---------- Callouts ---------- */
+  .callout{
+    border-left:4px solid;
+    border-radius:4px;
+    padding:0.85rem 1.1rem;
+    margin:1.2rem 0;
+    font-size:0.95rem;
+  }
+  .callout .label{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    display:block;
+    margin-bottom:0.3rem;
+  }
+  .callout.note{ background:var(--note-bg); border-color:var(--note-bd); }
+  .callout.note .label{ color:var(--note-bd); }
+  .callout.warning{ background:var(--warn-bg); border-color:var(--warn-bd); }
+  .callout.warning .label{ color:var(--warn-bd); }
+  .callout.case{ background:var(--case-bg); border-color:var(--case-bd); }
+  .callout.case .label{ color:var(--case-bd); }
+  .callout.say{ background:var(--say-bg); border-color:var(--say-bd); }
+  .callout.say .label{ color:var(--say-bd); }
+  .callout p{ margin:0.2rem 0; }
+
+  /* ---------- Pattern cards ---------- */
+  .pattern-card{
+    background:var(--page-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    margin:2.2rem 0;
+    overflow:hidden;
+    box-shadow:0 1px 2px rgba(27,36,48,0.04);
+  }
+  .pattern-header{
+    background:var(--ink);
+    color:#fff;
+    padding:1.1rem 1.4rem;
+    display:flex;
+    align-items:baseline;
+    gap:0.8rem;
+    flex-wrap:wrap;
+  }
+  .pattern-header .idx{
+    font-family:var(--mono);
+    color:var(--brass);
+    font-size:0.85rem;
+    letter-spacing:0.05em;
+  }
+  .pattern-header h3{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:1.5rem;
+    margin:0;
+  }
+  .pattern-body{ padding:0.4rem 1.4rem 1.4rem; }
+
+  .subsection{ margin-top:1.4rem; }
+  .subsection-title{
+    font-family:var(--mono);
+    font-size:0.78rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    margin-bottom:0.5rem;
+  }
+  .subsection-title .dot{
+    width:9px; height:9px; border-radius:50%; display:inline-block;
+  }
+  .subsection.problem .subsection-title{ color:var(--problem); }
+  .subsection.problem .dot{ background:var(--problem); }
+  .subsection.solution .subsection-title{ color:var(--solution); }
+  .subsection.solution .dot{ background:var(--solution); }
+  .subsection.consequences .subsection-title{ color:var(--consequence); }
+  .subsection.consequences .dot{ background:var(--consequence); }
+  .subsection.examples .subsection-title{ color:var(--example); }
+  .subsection.examples .dot{ background:var(--example); }
+
+  .subsection p{ margin:0.4rem 0; }
+  .gotcha-item{ margin:0.9rem 0; }
+  .gotcha-item .gotcha-name{ font-weight:700; color:var(--ink); }
+
+  /* ---------- Code blocks ---------- */
+  pre{
+    background:#20242F;
+    color:#E8E6DE;
+    border-radius:6px;
+    padding:1rem 1.1rem;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:0.82rem;
+    line-height:1.55;
+    margin:0.6rem 0;
+    position:relative;
+  }
+  code{ font-family:var(--mono); }
+  .code-wrap{ position:relative; margin:0.8rem 0; }
+  .code-lang{
+    position:absolute;
+    top:-0.55rem; right:0.8rem;
+    background:var(--brass);
+    color:#1B2430;
+    font-family:var(--mono);
+    font-size:0.65rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    padding:0.18rem 0.55rem;
+    border-radius:3px;
+  }
+  :not(pre) > code{
+    background:var(--brass-tint);
+    padding:0.1rem 0.35rem;
+    border-radius:3px;
+    font-size:0.86em;
+    color:var(--brass-dark);
+  }
+
+  /* ---------- Tables ---------- */
+  .table-wrap{ overflow-x:auto; margin:1.2rem 0; }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--page-raised);
+    font-size:0.9rem;
+  }
+  caption{
+    text-align:left;
+    font-family:var(--mono);
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--brass-dark);
+    margin-bottom:0.5rem;
+  }
+  thead th{
+    background:var(--ink);
+    color:#fff;
+    text-align:left;
+    padding:0.65rem 0.9rem;
+    font-family:var(--mono);
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+  }
+  tbody td{
+    padding:0.7rem 0.9rem;
+    border-bottom:1px solid var(--rule);
+    vertical-align:top;
+  }
+  tbody tr:nth-child(even){ background:#F5F1E6; }
+  tbody tr:hover{ background:var(--brass-tint); }
+
+  /* ---------- Gotchas section ---------- */
+  .gotchas-section{
+    background:var(--page-raised);
+    border:1px solid var(--rule);
+    border-left:4px solid var(--consequence);
+    border-radius:6px;
+    padding:1.4rem 1.6rem;
+    margin:2rem 0;
+  }
+  .gotchas-section h2{
+    font-family:var(--serif); margin-top:0;
+  }
+  .gotchas-section ul{ margin:0.3rem 0 1.1rem; padding-left:1.2rem; }
+  .gotchas-section li{ margin:0.3rem 0; }
+
+  /* ---------- Cheat sheet ---------- */
+  .cheat-sheet{
+    background:var(--ink);
+    color:#F5F1E6;
+    border-radius:10px;
+    padding:2rem;
+    margin:3rem 0 2rem;
+  }
+  .cheat-sheet .cs-title{
+    font-family:var(--mono);
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    font-size:0.78rem;
+    color:var(--brass);
+    display:flex;
+    align-items:center;
+    gap:0.6rem;
+    margin-bottom:0.3rem;
+  }
+  .cheat-sheet h2{
+    font-family:var(--serif);
+    margin:0.2rem 0 1.4rem;
+    color:#fff;
+    font-size:1.8rem;
+  }
+  .cs-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+    gap:1rem;
+  }
+  .cs-card{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(184,130,60,0.35);
+    border-radius:8px;
+    padding:1rem 1.15rem;
+  }
+  .cs-card h4{
+    font-family:var(--serif);
+    color:var(--brass);
+    margin:0 0 0.6rem;
+    font-size:1.1rem;
+  }
+  .cs-card .cs-row{ margin:0.45rem 0; font-size:0.86rem; }
+  .cs-card .cs-row b{
+    display:block;
+    font-family:var(--mono);
+    font-size:0.65rem;
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    color:#B9B3A0;
+    margin-bottom:0.15rem;
+  }
+  .cs-card .cs-row.gotcha b{ color:#E8A876; }
+
+  /* ---------- Further reading ---------- */
+  .further-reading{
+    border-top:1px solid var(--rule);
+    padding-top:1.5rem;
+    margin-top:2.5rem;
+  }
+  .further-reading h2{ font-family:var(--serif); }
+  .further-reading ul{ padding-left:1.2rem; }
+  .further-reading li{ margin:0.4rem 0; }
+
+  footer{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    padding:2rem 1.5rem 3rem;
+  }
+
+  @media (max-width:640px){
+    .masthead{ padding:2.4rem 1.1rem 1.6rem; }
+    main{ padding:0 1.1rem 4rem; }
+    .pattern-header{ padding:0.9rem 1.1rem; }
+    .pattern-body{ padding:0.3rem 1.1rem 1.1rem; }
+    .cheat-sheet{ padding:1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="kicker">Data Engineering Design Patterns · Reference</div>
+  <h1>Chapter 2 — Data Ingestion Design Patterns</h1>
+  <p class="sub">How to bring data acquired from external producers, other pipelines, and other
+  teams into your system — full and incremental loading, replication, compaction, readiness, and
+  event-driven triggers — built around the book's blog analytics case study.</p>
+  <div class="meta-row">
+    <span><b>Patterns covered:</b> 7</span>
+    <span><b>Category:</b> Ingestion → Bronze Layer</span>
+    <span><b>Design note:</b> editorial reference-manual aesthetic — ink navy, parchment page, brass accent</span>
+  </div>
+</div>
+
+<main>
+
+  <!-- CHAPTER FRAMING -->
+  <section class="framing">
+    <h2 class="section-title">Chapter Framing</h2>
+    <p>Data engineering systems are rarely data <em>generators</em> — their first stage is almost
+    always data <em>acquisition</em> from producers you don't control: other pipelines, other
+    teams, or entirely different organizations. Each producer comes with its own constraints, and
+    you have to adapt or you simply won't get the data you need.</p>
+    <p>This chapter covers how much to load (<strong>Full</strong> vs. <strong>Incremental</strong>),
+    how to copy data as-is or transformed (<strong>Replication</strong>), and the operational
+    mechanics around ingestion that aren't about moving data at all: <strong>readiness</strong>,
+    <strong>compaction</strong>, and <strong>event-driven triggering</strong>.</p>
+
+    <div class="diagram-block">
+      <div class="diagram-label">Figure — Chapter 2 pattern map into the Bronze layer</div>
+      <div class="mermaid">
+flowchart LR
+    subgraph Producers["Data Producers"]
+        A1[Streaming Broker]
+        A2[Transactional DB]
+        A3[External API]
+    end
+    subgraph Ingestion["Ch.2 Ingestion Patterns"]
+        B1[Full Loader]
+        B2[Incremental Loader]
+        B3[Change Data Capture]
+        B4[Passthrough / Transformation Replicator]
+    end
+    C[(Bronze Layer)]
+    D[Readiness Marker]
+    E[Compactor]
+    F[External Trigger]
+
+    A1 --> B3
+    A2 --> B2
+    A3 --> B1
+    B1 --> C
+    B2 --> C
+    B3 --> C
+    B4 --> C
+    C --> D
+    C --> E
+    F -.triggers.-> B1
+    F -.triggers.-> B2
+      </div>
+    </div>
+
+    <div class="callout case">
+      <span class="label">🧩 Case Study</span>
+      <p>The book's running example is a blog analytics platform. Most visit events arrive in real
+      time via a streaming broker, but some legacy producers still write to a transactional
+      database — this exact split motivates the Incremental Loader and, later, Change Data
+      Capture.</p>
+    </div>
+  </section>
+
+  <!-- ================= FULL LOADER ================= -->
+  <div class="pattern-card">
+    <div class="pattern-header">
+      <span class="idx">01 / FULL LOAD</span>
+      <h3>Pattern: Full Loader</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsection problem">
+        <div class="subsection-title"><span class="dot"></span>Problem</div>
+        <p>You're setting up the Silver layer. A transformation job needs extra device information
+        from an external provider. The dataset changes only a few times a week, is slowly
+        evolving, and never exceeds <strong>one million rows</strong> — but the provider defines
+        <strong>no "last updated" attribute</strong> to detect which rows changed.</p>
+      </div>
+
+      <div class="subsection solution">
+        <div class="subsection-title"><span class="dot"></span>Solution</div>
+        <p>The absence of a delta signal makes <strong>Full Loader</strong> the ideal fit. The
+        simplest implementation is a two-step <strong>extract and load (EL)</strong> job — also
+        called a <em>passthrough job</em> — using native store commands for homogeneous stores.
+        For heterogeneous stores, add a thin transformation layer, turning it into an
+        <strong>ETL</strong> job on a processing framework with native connectors.</p>
+      </div>
+
+      <div class="subsection consequences">
+        <div class="subsection-title"><span class="dot"></span>Consequences</div>
+        <div class="gotcha-item">
+          <span class="gotcha-name">Data volume.</span> Usually a scheduled batch job with roughly
+          constant compute needs — but a dataset that doubles overnight can slow or fail a
+          statically provisioned job. Mitigate with <strong>auto-scaling</strong>.
+        </div>
+        <div class="gotcha-item">
+          <span class="gotcha-name">Data consistency.</span> A naive drop-and-insert overwrite
+          risks (1) consumers seeing partial/zero data mid-run, and (2) losing the ability to roll
+          back. Use transactions, a <strong>view-swap abstraction</strong>, or a time-travel format
+          (Delta Lake, Iceberg, BigQuery).
+        </div>
+      </div>
+
+      <div class="callout warning">
+        <span class="label">⚠️ Warning</span>
+        <p>Although framed around ingestion, every pattern here directly impacts downstream
+        analytics and data science workloads, since they're the ones loading data into the
+        system.</p>
+      </div>
+
+      <div class="callout say">
+        <span class="label">✅ Say this out loud</span>
+        <p>"We chose Full Loader because the provider gives us no delta signal — but we protect
+        consumers from partial reads with a view-swap so ingestion never blocks or half-exposes
+        the dataset."</p>
+      </div>
+
+      <div class="subsection examples">
+        <div class="subsection-title"><span class="dot"></span>Examples</div>
+        <div class="code-wrap"><span class="code-lang">bash</span>
+<pre>aws s3 sync s3://input-bucket s3://output-bucket --delete</pre></div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>input_data = spark.read.schema(input_data_schema).json("s3://devices/list")
+input_data.write.format("delta").save("s3://master/devices")</pre></div>
+        <div class="code-wrap"><span class="code-lang">sql</span>
+<pre>COPY devices_${version} FROM '/data_to_load/dataset.csv' CSV DELIMITER ';' HEADER;</pre></div>
+        <div class="code-wrap"><span class="code-lang">sql</span>
+<pre>CREATE OR REPLACE VIEW devices AS SELECT * FROM devices_${version}</pre></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= INCREMENTAL LOADER ================= -->
+  <div class="pattern-card">
+    <div class="pattern-header">
+      <span class="idx">02 / INCREMENTAL LOAD</span>
+      <h3>Pattern: Incremental Loader</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsection problem">
+        <div class="subsection-title"><span class="dot"></span>Problem</div>
+        <p>Most visit events stream in real time, but some legacy producers still write to a
+        transactional database. Ingestion should <strong>only integrate visits added since the
+        last execution</strong> as volume continuously grows. Each visit is immutable.</p>
+      </div>
+
+      <div class="subsection solution">
+        <div class="subsection-title"><span class="dot"></span>Solution</div>
+        <p>Two implementations, by input structure:</p>
+        <ul>
+          <li><strong>Delta column</strong> — a column (typically <code>ingestion_time</code>)
+          marks new rows since the last run. Requires remembering the last-processed value.</li>
+          <li><strong>Time-partitioned datasets</strong> — the job targets a whole new partition
+          each run (e.g., a job at 11:00 targets the previous hour). No state needed; pair with
+          <strong>Readiness Marker</strong> to confirm the partition is safe to ingest.</li>
+        </ul>
+      </div>
+
+      <div class="diagram-block">
+        <div class="diagram-label">Figure 2-2 — Two implementations of Incremental Loader</div>
+        <div class="mermaid">
+flowchart TD
+    subgraph DeltaCol["Delta Column"]
+        direction LR
+        A1[Remember last ingestion_time] --> A2[WHERE ingestion_time > last_value] --> A3[Ingest new rows]
+    end
+    subgraph PartitionBased["Partition-Based"]
+        direction LR
+        B1[Resolve partition from execution time] --> B2[Wait for Readiness Marker] --> B3[Ingest whole partition]
+    end
+        </div>
+      </div>
+
+      <div class="callout warning">
+        <span class="label">⚠️ Warning — Be aware of real-time issues</span>
+        <p>Using event time as a delta column is risky: your ingestion process might miss records
+        if the producer emits late data for an event-time value you already processed.</p>
+      </div>
+
+      <div class="subsection consequences">
+        <div class="subsection-title"><span class="dot"></span>Consequences</div>
+        <div class="gotcha-item">
+          <span class="gotcha-name">Hard deletes.</span> A physically deleted row leaves no trace
+          in a delta-column read. Mitigate with <strong>soft deletes</strong> (producer marks rows
+          via <code>UPDATE</code>) or <strong>insert-only tables</strong> that shift reconstruction
+          responsibility to consumers.
+        </div>
+        <div class="gotcha-item">
+          <span class="gotcha-name">Backfilling.</span> Backfilling a delta-column pipeline can
+          silently become a full load. Mitigate by bounding the window:
+          <code>delta_column BETWEEN ingestion_time AND ingestion_time + INTERVAL '1 HOUR'</code>
+          — predictable volume, and safe concurrent backfill jobs. Partition-based loaders avoid
+          this if they process one partition at a time.
+        </div>
+      </div>
+
+      <div class="callout say">
+        <span class="label">✅ Say this out loud</span>
+        <p>"We limit the ingestion window explicitly during backfills so a replay never silently
+        turns into a full load — that keeps compute needs predictable and lets us parallelize
+        backfill jobs safely."</p>
+      </div>
+
+      <div class="subsection examples">
+        <div class="subsection-title"><span class="dot"></span>Examples</div>
+        <div class="code-wrap"><span class="code-lang">bash</span>
+<pre>aws s3 sync s3://input/date=2024-01-01 s3://output/date=2024-01-01 --delete</pre></div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>next_partition_sensor = FileSensor(
+    task_id='input_partition_sensor',
+    filepath=get_data_location_base_dir() + '/{{ data_interval_end | ds }}',
+    mode='reschedule',
+)
+load_job_trigger = SparkKubernetesOperator(application_file='load_job_spec.yaml')
+load_job_sensor = SparkKubernetesSensor()
+next_partition_sensor >> load_job_trigger >> load_job_sensor</pre></div>
+        <div class="code-wrap"><span class="code-lang">yaml</span>
+<pre>mainClass: com.waitingforcode.EventsLoader
+mainApplicationFile: "local:///tmp/dedp-1.0-SNAPSHOT-jar-with-dependencies.jar"
+arguments:
+  - "/data_for_demo/input/date={{ ds }}"
+  - "/data_for_demo/output/date={{ ds }}"</pre></div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>in_data = (spark_session.read.text(input_path).select('value',
+    functions.from_json(functions.col('value'), 'ingestion_time TIMESTAMP')))
+input_to_write = in_data.filter(
+    f'ingestion_time BETWEEN "{date_from}" AND "{date_to}"'
+)
+input_to_write.mode('append').select('value').write.text(output_path)</pre></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= CDC ================= -->
+  <div class="pattern-card">
+    <div class="pattern-header">
+      <span class="idx">03 / INCREMENTAL LOAD</span>
+      <h3>Pattern: Change Data Capture (CDC)</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsection problem">
+        <div class="subsection-title"><span class="dot"></span>Problem</div>
+        <p>Legacy visit events integrated via Incremental Loader now need lower latency: the
+        ingestion job must capture each database change <strong>within 30 seconds</strong> and
+        publish it to a central streaming topic.</p>
+      </div>
+
+      <div class="subsection solution">
+        <div class="subsection-title"><span class="dot"></span>Solution</div>
+        <p>Incremental Loader's job-scheduling and query overhead make 30-second latency hard to
+        hit. <strong>CDC</strong> reads continuously from the database's <strong>commit log</strong>
+        — an append-only structure recording every row operation — for lower-level, faster access.
+        A CDC consumer streams changes to a broker; consumers can keep full history or just the
+        latest value per row. CDC intercepts <strong>all</strong> operations, including hard
+        deletes, so soft deletes are no longer required upstream.</p>
+      </div>
+
+      <div class="diagram-block">
+        <div class="diagram-label">Figure 2-3 — Debezium-style CDC flow (commit log → topic)</div>
+        <div class="mermaid">
+sequenceDiagram
+    participant DB as Database (commit log)
+    participant CDC as CDC Consumer (Debezium)
+    participant Topic as Kafka Topic
+    participant Cons as Downstream Consumer
+
+    DB->>DB: INSERT / UPDATE / DELETE row
+    DB->>CDC: Append change to commit log
+    CDC->>Topic: Stream change (op type, time, columns)
+    Topic->>Cons: Consume change event
+    Note over Cons: Data-at-rest has become data-in-motion
+        </div>
+      </div>
+
+      <div class="subsection consequences">
+        <div class="subsection-title"><span class="dot"></span>Consequences</div>
+        <div class="gotcha-item">
+          <span class="gotcha-name">Complexity.</span> Unlike the loaders, CDC often needs
+          operations-team involvement (enabling the commit log on database servers).
+        </div>
+        <div class="gotcha-item">
+          <span class="gotcha-name">Data scope.</span> Depending on the client, you may only
+          capture changes from client-start onward — combine with another pattern for history.
+        </div>
+        <div class="gotcha-item">
+          <span class="gotcha-name">Payload.</span> Records carry extra metadata (operation type,
+          modification time, column type) consumers must learn to filter.
+        </div>
+        <div class="gotcha-item">
+          <span class="gotcha-name">Data semantics.</span> CDC output is data-in-motion. A
+          <code>JOIN</code> against two streaming sources returning nothing may just mean the data
+          hasn't arrived yet — don't treat it as static data-at-rest.
+        </div>
+      </div>
+
+      <div class="callout note">
+        <span class="label">📌 Note</span>
+        <p>Lake-native formats support CDC more simply than a full Debezium setup — Delta Lake's
+        built-in <strong>change data feed (CDF)</strong> can be enabled per-session or per-table.</p>
+      </div>
+
+      <div class="subsection examples">
+        <div class="subsection-title"><span class="dot"></span>Examples</div>
+        <div class="code-wrap"><span class="code-lang">json</span>
+<pre>{
+  "name": "visits-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres", "database.port": "5432",
+    "database.user": "postgres", "database.password": "postgres",
+    "database.dbname": "postgres", "database.server.name": "dbserver1",
+    "schema.include.list": "dedp_schema",
+    "topic.prefix": "dedp"
+  }
+}</pre></div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>spark_session_builder.config(
+    'spark.databricks.delta.properties.defaults.enableChangeDataFeed', 'true'
+)
+spark_session.sql('''
+CREATE TABLE events (
+    visit_id STRING, event_time TIMESTAMP, user_id STRING, page STRING
+) TBLPROPERTIES (delta.enableChangeDataFeed = true)''')</pre></div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>events = (spark_session.readStream.format('delta')
+    .option('maxFilesPerTrigger', 4).option('readChangeFeed', 'true')
+    .option('startingVersion', 0).table('events'))
+query = events.writeStream.format('console').start()</pre></div>
+        <div class="code-wrap"><span class="code-lang">text</span>
+<pre>+-------------+-------------------+------------+---------------+
+| visit_id| event_time|_change_type|_commit_version|
++-------------+-------------------+------------+---------------+
+| 1400800256_0|2023-11-24 01:44:00| insert| 6|</pre></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- COMPARISON TABLE: LOADERS -->
+  <div class="table-wrap">
+    <table>
+      <caption>Comparison — Full Loader vs. Incremental Loader vs. CDC</caption>
+      <thead>
+        <tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Full Loader</strong></td>
+          <td>No delta/last-updated signal exists; small-to-moderate, slowly evolving dataset</td>
+          <td>Simple, but costly at scale — needs auto-scaling and a consistency strategy</td>
+        </tr>
+        <tr>
+          <td><strong>Incremental Loader</strong></td>
+          <td>Continuously growing, append-mostly dataset with a usable delta column or partitions</td>
+          <td>Cheaper, but struggles with hard deletes and can balloon during backfills</td>
+        </tr>
+        <tr>
+          <td><strong>Change Data Capture</strong></td>
+          <td>Low-latency requirement (seconds); need native hard-delete support</td>
+          <td>Lowest latency, full operation coverage — highest setup complexity</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ================= PASSTHROUGH REPLICATOR ================= -->
+  <div class="framing" style="border-bottom:none; padding-bottom:0;">
+    <h2 class="section-title">Replication</h2>
+    <div class="callout note">
+      <span class="label">📌 Note — Data Loading vs. Replication</span>
+      <p>Replication moves data between the <em>same</em> type of storage and ideally preserves
+      all metadata (primary keys, stream offsets). Loading is more flexible and doesn't require
+      homogeneous environments.</p>
+    </div>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-header">
+      <span class="idx">04 / REPLICATION</span>
+      <h3>Pattern: Passthrough Replicator</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsection problem">
+        <div class="subsection-title"><span class="dot"></span>Problem</div>
+        <p>Three environments — dev, staging, production — share a reference device-parameters
+        dataset loaded daily from a third-party API. The API is <strong>not idempotent</strong>, so
+        replaying the loading pipeline per environment won't reproduce the same data. You need the
+        exact same data everywhere.</p>
+      </div>
+
+      <div class="subsection solution">
+        <div class="subsection-title"><span class="dot"></span>Solution</div>
+        <p>A non-idempotent provider plus cross-environment consistency needs is the textbook case
+        for <strong>Passthrough Replicator</strong>:</p>
+        <ul>
+          <li><strong>Compute-level (EL job)</strong> — read then write, copying as-is, no
+          transformation, avoiding quality issues like type coercion or rounding.</li>
+          <li><strong>Infrastructure-level</strong> — a replication policy document configuring
+          input/output locations, letting the storage provider replicate for you.</li>
+        </ul>
+      </div>
+
+      <div class="subsection consequences">
+        <div class="subsection-title"><span class="dot"></span>Consequences</div>
+        <div class="gotcha-item"><span class="gotcha-name">Keep it simple.</span> Use the simplest
+        mechanism available; prefer raw text APIs over JSON I/O APIs to avoid silent
+        reinterpretation.</div>
+        <div class="gotcha-item"><span class="gotcha-name">Security and isolation.</span> Prefer
+        <strong>push</strong> over <strong>pull</strong> to avoid destabilizing the source
+        environment.</div>
+        <div class="gotcha-item"><span class="gotcha-name">PII data.</span> If the dataset carries
+        PII, switch to Transformation Replicator.</div>
+        <div class="gotcha-item"><span class="gotcha-name">Latency.</span> Infra-based
+        implementations add latency — check your provider's SLA.</div>
+        <div class="gotcha-item"><span class="gotcha-name">Metadata.</span> Don't ignore metadata —
+        replicating only the Parquet files of a Delta Lake table isn't enough.</div>
+      </div>
+
+      <div class="subsection examples">
+        <div class="subsection-title"><span class="dot"></span>Examples</div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>events_to_replicate = (input_data_stream
+    .selectExpr('key', 'value', 'partition', 'headers', 'offset'))
+
+def write_sorted_events(events, batch_number):
+    (events.sortWithinPartitions('offset', ascending=True).drop('offset').write
+        .format('kafka').option('kafka.bootstrap.servers', 'localhost:9094')
+        .option('topic', 'events-replicated').option('includeHeaders', 'true').save())
+
+write_data_stream = (events_to_replicate.writeStream
+    .option('checkpointLocation', f'{get_base_dir()}/checkpoint-kafka-replicator')
+    .foreachBatch(write_sorted_events))</pre></div>
+        <div class="code-wrap"><span class="code-lang">hcl</span>
+<pre>resource "aws_s3_bucket_replication_configuration" "replication" {
+  role   = aws_iam_role.replication.arn
+  bucket = aws_s3_bucket.devices_production.id
+  rule {
+    id     = "devices"
+    status = "Enabled"
+    destination {
+      bucket        = aws_s3_bucket.devices_staging.arn
+      storage_class = "STANDARD"
+    }
+  }
+}</pre></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= TRANSFORMATION REPLICATOR ================= -->
+  <div class="pattern-card">
+    <div class="pattern-header">
+      <span class="idx">05 / REPLICATION</span>
+      <h3>Pattern: Transformation Replicator</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsection problem">
+        <div class="subsection-title"><span class="dot"></span>Problem</div>
+        <p>Before a release, you want to test against real data — synthetic generators can't
+        replicate real data-quality issues. But the production dataset contains
+        <strong>PII not accessible outside production</strong>, ruling out a plain Passthrough
+        Replicator job.</p>
+      </div>
+
+      <div class="subsection solution">
+        <div class="subsection-title"><span class="dot"></span>Solution</div>
+        <p><strong>Transformation Replicator</strong> adds a transformation layer between the read
+        and write steps — a custom mapping function (Spark, Flink) or a SQL <code>SELECT</code>.
+        It either <strong>replaces</strong> disallowed attributes (e.g., with Anonymizer) or
+        <strong>removes</strong> them entirely.</p>
+      </div>
+
+      <div class="callout case">
+        <span class="label">🧩 Case Study — Not only PII</span>
+        <p>PII is only the most common case; protected health information (PHI) and intellectual
+        property (IP) data need the same treatment.</p>
+      </div>
+
+      <div class="subsection consequences">
+        <div class="subsection-title"><span class="dot"></span>Consequences</div>
+        <div class="gotcha-item"><span class="gotcha-name">Transformation risk for text
+        formats.</span> A datetime format mismatch can silently drop timestamp columns and fail
+        staging. Keep ambiguous columns as plain strings rather than typed dates.</div>
+        <div class="gotcha-item"><span class="gotcha-name">Desynchronization.</span> Privacy
+        fields change over time — new PII attributes appear, old ones get reclassified. Rely on a
+        governed data catalog / data contract so transformation logic stays automated.</div>
+      </div>
+
+      <div class="callout say">
+        <span class="label">✅ Say this out loud</span>
+        <p>"We route PII removal through governance-tagged fields rather than a hardcoded column
+        list, so a newly-classified PII attribute doesn't silently leak into staging."</p>
+      </div>
+
+      <div class="subsection examples">
+        <div class="subsection-title"><span class="dot"></span>Examples</div>
+        <div class="code-wrap"><span class="code-lang">sql</span>
+<pre>SELECT * EXCEPT (ip, latitude, longitude)</pre></div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>input_delta_dataset = spark_session.read.format('delta').load(users_table_path)
+users_no_pii = input_delta_dataset.drop('ip', 'latitude', 'longitude')</pre></div>
+        <div class="code-wrap"><span class="code-lang">sql</span>
+<pre>GRANT SELECT (visit_id, event_time, user_id) ON TABLE visits TO user_a</pre></div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>devices_trunc_full_name = (input_delta_dataset
+    .withColumn('full_name',
+        functions.expr('SUBSTRING(full_name, 2, LENGTH(full_name))'))
+)</pre></div>
+        <div class="code-wrap"><span class="code-lang">scala</span>
+<pre>case class Device(`type`: String, full_name: String, version: String) {
+  lazy val transformed = {
+    if (version.startsWith("1.")) {
+      this.copy(full_name = full_name.substring(1), version = "invalid")
+    } else { this }
+  }
+}
+inputDataset.as[Device].map(device => device.transformed)</pre></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <caption>Comparison — Passthrough vs. Transformation Replicator</caption>
+      <thead>
+        <tr><th>Pattern</th><th>When to Use</th><th>Trade-off</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Passthrough Replicator</strong></td>
+          <td>Homogeneous environments, non-idempotent source, no sensitive data</td>
+          <td>Simplest and safest, but unusable once PII/PHI/IP is present</td>
+        </tr>
+        <tr>
+          <td><strong>Transformation Replicator</strong></td>
+          <td>Same need, but PII/PHI/IP must be stripped or altered first</td>
+          <td>More flexible, but risks format bugs and requires the field list to stay governed</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ================= COMPACTOR ================= -->
+  <div class="framing" style="border-bottom:none; padding-bottom:0;">
+    <h2 class="section-title">Data Compaction</h2>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-header">
+      <span class="idx">06 / COMPACTION</span>
+      <h3>Pattern: Compactor</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsection problem">
+        <div class="subsection-title"><span class="dot"></span>Problem</div>
+        <p>A real-time pipeline syncs events to an object store within a 10-minute target. It's a
+        simple passthrough job — until, three months later, batch jobs spend
+        <strong>70% of execution time listing files</strong> and only 30% processing data, due to
+        accumulated small files.</p>
+      </div>
+
+      <div class="subsection solution">
+        <div class="subsection-title"><span class="dot"></span>Solution</div>
+        <p>The small-files problem has existed since the Hadoop era. Many small files mean longer
+        listing operations and heavier I/O. <strong>Compactor</strong> merges small files into
+        bigger ones. Implementation varies: Iceberg uses a <em>rewrite data file</em> action; Delta
+        Lake uses <code>OPTIMIZE</code>; Hudi merges row-format changes into columnar storage;
+        Kafka's log compaction (config-driven) keeps only the latest entry per key, actually
+        overwriting data rather than reorganizing files.</p>
+      </div>
+
+      <div class="subsection consequences">
+        <div class="subsection-title"><span class="dot"></span>Consequences</div>
+        <div class="gotcha-item"><span class="gotcha-name">Cost vs. performance trade-off.</span>
+        No one-size-fits-all frequency — running rarely saves compute but denies uncompacted jobs
+        the optimization in the meantime.</div>
+        <div class="gotcha-item"><span class="gotcha-name">Consistency.</span> Compaction rewrites
+        existing data; far safer in ACID formats (Delta Lake, Iceberg) than raw formats (JSON,
+        CSV).</div>
+        <div class="gotcha-item"><span class="gotcha-name">Cleaning.</span> Compaction may
+        preserve original small files — you need a follow-up <code>VACUUM</code> job, and a
+        careless retention window can break time travel.</div>
+      </div>
+
+      <div class="callout warning">
+        <span class="label">⚠️ Warning</span>
+        <p>Compaction and cleaning are two separate jobs. Skipping cleanup leaves the small-files
+        problem partially unsolved even after compaction runs.</p>
+      </div>
+
+      <div class="subsection examples">
+        <div class="subsection-title"><span class="dot"></span>Examples</div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>devices_table = DeltaTable.forPath(spark_session, table_dir)
+devices_table.optimize().executeCompaction()</pre></div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>devices_table = DeltaTable.forPath(spark_session, table_dir)
+devices_table.vacuum()</pre></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= READINESS MARKER ================= -->
+  <div class="framing" style="border-bottom:none; padding-bottom:0;">
+    <h2 class="section-title">Data Readiness</h2>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-header">
+      <span class="idx">07 / READINESS</span>
+      <h3>Pattern: Readiness Marker</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsection problem">
+        <div class="subsection-title"><span class="dot"></span>Problem</div>
+        <p>An hourly Silver-layer job feeds ML models and BI dashboards for other teams — who
+        frequently complain about <strong>incomplete datasets</strong> and want a way to know when
+        it's safe to consume.</p>
+      </div>
+
+      <div class="subsection solution">
+        <div class="subsection-title"><span class="dot"></span>Solution</div>
+        <p>Since logically dependent but physically isolated pipelines can't trigger each other
+        directly, mark the dataset ready:</p>
+        <ul>
+          <li><strong>Flag file</strong> — created after successful generation. Native to some
+          layers (Spark's <code>_SUCCESS</code>, Delta Lake's commit log) or added as a final
+          orchestration task.</li>
+          <li><strong>Partition convention</strong> — for time-partitioned data, the appearance of
+          partition N+1 implies partition N is complete.</li>
+        </ul>
+      </div>
+
+      <div class="subsection consequences">
+        <div class="subsection-title"><span class="dot"></span>Consequences</div>
+        <div class="gotcha-item"><span class="gotcha-name">Lack of enforcement.</span> Both
+        implementations rely on pull semantics and convention — nothing stops a consumer reading
+        mid-write. Communicate the readiness conditions clearly.</div>
+        <div class="gotcha-item"><span class="gotcha-name">Reliability for late data.</span> Late
+        data breaks the "next partition means previous is done" convention. Treat partitions as
+        immutable once closed, or explicitly share mutability rules and notify consumers of
+        corrections separately.</div>
+      </div>
+
+      <div class="callout note">
+        <span class="label">📌 Note</span>
+        <p>The readiness marker should always be generated as the <strong>last step</strong> in a
+        pipeline, after the final transformation.</p>
+      </div>
+
+      <div class="subsection examples">
+        <div class="subsection-title"><span class="dot"></span>Examples</div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>dataset = (spark_session.read.schema('...').json(f'{base_dir}/input'))
+dataset.write.mode('overwrite').format('parquet').save('devices-parquet')
+# _SUCCESS file written automatically after data files complete</pre></div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>FileSensor(
+    filepath=f'{input_data_file_path}/_SUCCESS',
+    mode='reschedule',
+)</pre></div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>@task
+def delete_dataset():
+    shutil.rmtree(dataset_dir, ignore_errors=True)
+
+@task
+def generate_dataset():
+    ...  # processing, omitted for brevity
+
+@task
+def create_readiness_file():
+    with open(f'{dataset_dir}/COMPLETED', 'w') as marker_file:
+        marker_file.write('')
+
+delete_dataset() >> generate_dataset() >> create_readiness_file()</pre></div>
+      </div>
+
+      <div class="callout note">
+        <span class="label">📌 Note</span>
+        <p><code>mode='reschedule'</code> on the <code>FileSensor</code> matters: it frees the
+        worker slot between checks instead of blocking it, so the orchestration layer isn't
+        occupied just waiting on data.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= EXTERNAL TRIGGER ================= -->
+  <div class="framing" style="border-bottom:none; padding-bottom:0;">
+    <h2 class="section-title">Event Driven</h2>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-header">
+      <span class="idx">08 / EVENT DRIVEN</span>
+      <h3>Pattern: External Trigger</h3>
+    </div>
+    <div class="pattern-body">
+
+      <div class="subsection problem">
+        <div class="subsection-title"><span class="dot"></span>Problem</div>
+        <p>The backend team releases features irregularly (Monday–Thursday, at most weekly). The
+        refresh job runs daily <strong>regardless of whether anything changed</strong>, wasting
+        compute. The team already sends a notification event on every release.</p>
+      </div>
+
+      <div class="subsection solution">
+        <div class="subsection-title"><span class="dot"></span>Solution</div>
+        <p>Readiness Marker relies on pull semantics; event-driven data favors <strong>push
+        semantics</strong>. External Trigger has three steps:</p>
+        <ul>
+          <li><strong>Subscribe</strong> to a notification channel.</li>
+          <li><strong>React</strong> — an event handler decides whether to trigger a pipeline or
+          job, optionally filtering event types.</li>
+          <li><strong>Trigger</strong> the ingestion pipeline or job — typically one event to one
+          pipeline, though fan-out to several is possible.</li>
+        </ul>
+      </div>
+
+      <div class="callout note">
+        <span class="label">📌 Note — Not only trigger</span>
+        <p>If there's no separate job to trigger, you can run the ingestion logic directly inside
+        the notification handler — simply called event-driven data ingestion.</p>
+      </div>
+
+      <div class="diagram-block">
+        <div class="diagram-label">Figure 2-4 — External trigger flow</div>
+        <div class="mermaid">
+flowchart LR
+    P[Backend Team<br/>publishes feature] -->|event| Bus[Message Bus]
+    Bus --> Handler[Event Handler<br/>Lambda]
+    Handler -->|POST /dagRuns| Orchestrator[Airflow DAG<br/>schedule_interval=None]
+    Orchestrator --> Bronze[(Bronze Layer)]
+    Handler -.on failure.-> DL[Dead-Letter]
+        </div>
+      </div>
+
+      <div class="subsection consequences">
+        <div class="subsection-title"><span class="dot"></span>Consequences</div>
+        <div class="gotcha-item"><span class="gotcha-name">Push versus pull.</span> A pull-based
+        trigger polls at short intervals — wasteful, since most polls find nothing new. Push-based
+        is better: the source notifies the endpoint directly, spinning up a short-lived consumer.</div>
+        <div class="gotcha-item"><span class="gotcha-name">Execution context.</span> Don't let the
+        trigger degenerate into a bare ping. Enrich it with metadata (trigger version, notification
+        envelope, processing time, event time) for monitoring and debugging.</div>
+        <div class="gotcha-item"><span class="gotcha-name">Error management.</span> Events are the
+        sole driver of the pipeline — design for failure so events are never silently dropped,
+        typically via <strong>Dead-Letter</strong> (Chapter 3).</div>
+      </div>
+
+      <div class="subsection examples">
+        <div class="subsection-title"><span class="dot"></span>Examples</div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>with DAG('devices-loader', max_active_runs=5, schedule_interval=None,
+         default_args={'depends_on_past': False}) as dag:
+    pass  # pipeline just copies the file from the trigger</pre></div>
+        <div class="code-wrap"><span class="code-lang">python</span>
+<pre>def lambda_handler(event, ctx):
+    payload = {
+        'event': json.dumps(event),
+        'trigger': {
+            'function_name': ctx.function_name,
+            'function_version': ctx.function_version,
+            'lambda_request_id': ctx.aws_request_id
+        },
+        'file_to_load': (urllib.parse.unquote_plus(
+            event['Records'][0]['s3']['object']['key'], encoding='utf-8')),
+        'dag_run_id': f'External-{ctx.aws_request_id}'
+    }
+    trigger_response = requests.post(
+        'http://localhost:8080/api/v1/dags/devices-loader/dagRuns',
+        data=json.dumps({'conf': payload}), auth=('dedp', 'dedp'), headers=headers)
+    if trigger_response.status_code != 200:
+        raise Exception(f"Couldn't trigger the `devices-loader` DAG. "
+                         f"{trigger_response} for {payload}")
+    else:
+        return True</pre></div>
+      </div>
+
+      <div class="callout warning">
+        <span class="label">⚠️ Warning</span>
+        <p>The example above hardcodes credentials for readability only. In real pipelines, apply
+        the Chapter 7 data security patterns (e.g., Secretless Connector, Secrets Pointer) instead.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= GOTCHAS ================= -->
+  <section class="gotchas-section">
+    <h2>Gotchas — By Pattern</h2>
+
+    <div class="gotcha-item"><span class="gotcha-name">Full Loader</span></div>
+    <ul>
+      <li>Rapidly growing datasets can outpace static compute — use auto-scaling.</li>
+      <li>Drop-and-insert overwrites risk consumer-visible partial data and loss of rollback.</li>
+    </ul>
+
+    <div class="gotcha-item"><span class="gotcha-name">Incremental Loader</span></div>
+    <ul>
+      <li>Delta-column implementations can't see hard deletes — use soft deletes or insert-only tables.</li>
+      <li>Backfilling can silently become a full load — bound the ingestion window explicitly.</li>
+    </ul>
+
+    <div class="gotcha-item"><span class="gotcha-name">Change Data Capture</span></div>
+    <ul>
+      <li>Requires operations-team-level setup — heavier than the loaders.</li>
+      <li>CDC output is data-in-motion — joins behave differently than on data-at-rest.</li>
+      <li>Client may only capture changes from start-time forward — combine with another pattern for history.</li>
+    </ul>
+
+    <div class="gotcha-item"><span class="gotcha-name">Passthrough Replicator</span></div>
+    <ul>
+      <li>Any transformation risks quality issues — prefer raw copy commands.</li>
+      <li>Pull-based replication risks destabilizing the source environment — prefer push.</li>
+      <li>Cannot be used if the dataset carries PII.</li>
+    </ul>
+
+    <div class="gotcha-item"><span class="gotcha-name">Transformation Replicator</span></div>
+    <ul>
+      <li>Schema-based transformations can silently drop or corrupt columns.</li>
+      <li>PII definitions drift over time — tie transformation to a governed field list.</li>
+    </ul>
+
+    <div class="gotcha-item"><span class="gotcha-name">Compactor</span></div>
+    <ul>
+      <li>No universally correct compaction frequency — a deliberate cost-vs-performance choice.</li>
+      <li>Compaction without cleanup (<code>VACUUM</code>) leaves the original small files in place.</li>
+    </ul>
+
+    <div class="gotcha-item"><span class="gotcha-name">Readiness Marker</span></div>
+    <ul>
+      <li>Convention-based readiness is not enforced — a consumer can read mid-write.</li>
+      <li>Late data breaks the partition convention unless immutability or mutability rules are explicit.</li>
+    </ul>
+
+    <div class="gotcha-item"><span class="gotcha-name">External Trigger</span></div>
+    <ul>
+      <li>Pull-based (polling) triggers waste resources — prefer push.</li>
+      <li>A trigger with no execution context becomes hard to debug — always pass metadata.</li>
+      <li>The pipeline lives or dies by event delivery — plan for dead-lettering failed invocations.</li>
+    </ul>
+  </section>
+
+  <!-- ================= CHEAT SHEET ================= -->
+  <section class="cheat-sheet">
+    <div class="cs-title">◆ Scan before your interview</div>
+    <h2>Chapter 2 Cheat Sheet</h2>
+    <div class="cs-grid">
+
+      <div class="cs-card">
+        <h4>Full Loader</h4>
+        <div class="cs-row"><b>Problem</b>No delta signal to detect changed rows</div>
+        <div class="cs-row"><b>Solution</b>Two-step EL/ETL job reloading the whole dataset each run</div>
+        <div class="cs-row gotcha"><b>Biggest Gotcha</b>Data consistency during overwrite</div>
+      </div>
+
+      <div class="cs-card">
+        <h4>Incremental Loader</h4>
+        <div class="cs-row"><b>Problem</b>Growing dataset, only need what changed since last run</div>
+        <div class="cs-row"><b>Solution</b>Delta column or time-partition incremental read</div>
+        <div class="cs-row gotcha"><b>Biggest Gotcha</b>Hard deletes invisible; backfills can balloon</div>
+      </div>
+
+      <div class="cs-card">
+        <h4>Change Data Capture</h4>
+        <div class="cs-row"><b>Problem</b>Sub-minute latency + hard-delete capture needed</div>
+        <div class="cs-row"><b>Solution</b>Stream changes off the database commit log</div>
+        <div class="cs-row gotcha"><b>Biggest Gotcha</b>High setup complexity; data-in-motion semantics</div>
+      </div>
+
+      <div class="cs-card">
+        <h4>Passthrough Replicator</h4>
+        <div class="cs-row"><b>Problem</b>Non-idempotent source needs identical cross-env copies</div>
+        <div class="cs-row"><b>Solution</b>Simple EL job or infra replication policy, no transform</div>
+        <div class="cs-row gotcha"><b>Biggest Gotcha</b>Can't be used if data contains PII</div>
+      </div>
+
+      <div class="cs-card">
+        <h4>Transformation Replicator</h4>
+        <div class="cs-row"><b>Problem</b>Same as above, but source has PII/PHI/IP</div>
+        <div class="cs-row"><b>Solution</b>EL job + mapping/SQL transform to strip sensitive fields</div>
+        <div class="cs-row gotcha"><b>Biggest Gotcha</b>Schema-based transforms can silently corrupt data</div>
+      </div>
+
+      <div class="cs-card">
+        <h4>Compactor</h4>
+        <div class="cs-row"><b>Problem</b>Small files slow batch jobs (70% time spent listing)</div>
+        <div class="cs-row"><b>Solution</b>Merge small files into bigger ones (OPTIMIZE, rewrite)</div>
+        <div class="cs-row gotcha"><b>Biggest Gotcha</b>Needs its own cleanup (VACUUM) or files linger</div>
+      </div>
+
+      <div class="cs-card">
+        <h4>Readiness Marker</h4>
+        <div class="cs-row"><b>Problem</b>Consumers read incomplete datasets</div>
+        <div class="cs-row"><b>Solution</b>Flag file or partition convention signaling "done"</div>
+        <div class="cs-row gotcha"><b>Biggest Gotcha</b>Convention unenforced; late data breaks it</div>
+      </div>
+
+      <div class="cs-card">
+        <h4>External Trigger</h4>
+        <div class="cs-row"><b>Problem</b>Data arrives unpredictably; polling wastes resources</div>
+        <div class="cs-row"><b>Solution</b>Push-based event subscription triggers ingestion</div>
+        <div class="cs-row gotcha"><b>Biggest Gotcha</b>Missing context or dropped events, no dead-letter path</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FURTHER READING -->
+  <section class="further-reading">
+    <h2>Further Reading</h2>
+    <ul>
+      <li><em>Delta Lake: The Definitive Guide</em> by Denny Lee et al. (O'Reilly, 2024) — more on
+      the Medallion architecture (Chapter 4).</li>
+      <li>Chapter 3, <em>Error Management Design Patterns</em> — the natural complement to External
+      Trigger's error-handling needs (Dead-Letter pattern).</li>
+      <li>Chapter 7, <em>Data Security Design Patterns</em> — proper secrets management instead of
+      hardcoded credentials (Secretless Connector, Secrets Pointer).</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  Data Engineering Design Patterns — Bartosz Konieczny (O'Reilly, 2025) · Chapter 2 study reference
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#F5EEDF',
+      primaryTextColor: '#1B2430',
+      primaryBorderColor: '#B8823C',
+      lineColor: '#3A4556',
+      secondaryColor: '#EFF3F1',
+      tertiaryColor: '#FAF7F0',
+      fontFamily: 'Inter, sans-serif',
+      fontSize: '14px'
+    },
+    flowchart: { curve: 'basis', htmlLabels: true },
+    securityLevel: 'loose'
+  });
+</script>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

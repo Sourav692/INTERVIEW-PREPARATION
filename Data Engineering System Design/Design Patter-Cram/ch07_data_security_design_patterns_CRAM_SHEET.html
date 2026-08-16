@@ -1,0 +1,575 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 7 — Data Security — Cram Sheet</title>
+<style>
+  :root {
+    --ink: #0F1620;
+    --ink-2: #16212F;
+    --ink-3: #1D2C3D;
+    --vellum: #F7F3EA;
+    --vellum-dim: #EDE7D8;
+    --brass: #B8863B;
+    --brass-bright: #D9A85C;
+    --rust: #A34A3A;
+    --rust-bg: #F3E4DE;
+    --rust-border: #C98572;
+    --sage: #5C7A63;
+    --green: #4B7A5A;
+    --green-bg: #E1EEE3;
+    --green-border: #8FBE9E;
+    --steel: #4A6B8A;
+    --blue: #4A6B8A;
+    --blue-bg: #DCE7F5;
+    --amber: #8A6323;
+    --amber-bg: #F6ECD9;
+    --purple: #6B4C8A;
+    --purple-bg: #EFE7F5;
+    --purple-border: #B39CC9;
+    --ink-text: #201A12;
+    --ink-soft: #6B6455;
+    --muted-text: #6B6455;
+    --line: #D8CFB8;
+    --line-dark: #2A3B4E;
+    --font-display: 'Source Serif 4', 'Iowan Old Style', Georgia, serif;
+    --font-body: 'Source Serif 4', Georgia, serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--vellum);
+    font-family: var(--font-body);
+    line-height: 1.55;
+    font-size: 16px;
+  }
+
+  /* ===== Sticky header ===== */
+  .sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 100%);
+    border-bottom: 1px solid var(--line-dark);
+    padding: 20px 24px 16px;
+  }
+  .sticky-header-inner { max-width: 900px; margin: 0 auto; }
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--brass-bright);
+    margin-bottom: 6px;
+  }
+  .kicker::before { content: "▣ "; }
+  .sticky-header h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+    color: var(--vellum);
+  }
+  .sticky-header .subtitle {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: #9FB0C2;
+  }
+  .quick-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+  }
+  .quick-nav a {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    color: #C9D2DC;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--line-dark);
+    padding: 5px 10px;
+    border-radius: 999px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .quick-nav a:hover, .quick-nav a:focus { background: var(--brass); color: var(--ink); }
+  .quick-nav a:focus { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
+
+  /* ===== Layout shell ===== */
+  .sheet { max-width: 900px; margin: 0 auto; padding: 32px 24px 90px; }
+
+  /* ===== Thread callout ===== */
+  .thread {
+    background: var(--purple-bg);
+    border-left: 4px solid var(--purple);
+    border-radius: 4px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+    color: var(--ink-text);
+  }
+  .thread .lbl {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--purple);
+    display: block;
+    margin-bottom: 8px;
+  }
+  .thread p { margin: 0; font-size: 0.98rem; }
+
+  /* ===== Recall table ===== */
+  .recall-wrap {
+    margin-bottom: 36px;
+    border-radius: 4px;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    box-shadow: 0 20px 40px -20px rgba(0,0,0,0.5);
+  }
+  table.recall {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--vellum);
+    font-size: 0.86rem;
+  }
+  table.recall th {
+    background: var(--ink-3);
+    color: var(--vellum);
+    text-align: left;
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  table.recall td {
+    padding: 10px 14px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-text);
+    vertical-align: top;
+  }
+  table.recall tr:nth-child(even) td { background: var(--vellum-dim); }
+  table.recall td.idx {
+    font-family: var(--font-mono);
+    color: var(--brass);
+    font-weight: 700;
+  }
+  table.recall td.pattern-name { font-weight: 700; white-space: nowrap; }
+  table.recall td.gotcha { color: var(--rust); }
+
+  /* ===== Section label ===== */
+  h2.section-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--brass-bright);
+    margin: 40px 0 16px;
+  }
+
+  /* ===== Flashcard ===== */
+  .card {
+    background: var(--vellum);
+    color: var(--ink-text);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    box-shadow: 0 14px 30px -18px rgba(0,0,0,0.5);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    scroll-margin-top: 150px;
+  }
+  .card-header {
+    background: var(--ink-3);
+    color: var(--vellum);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 3px solid var(--brass);
+  }
+  .card-header .chip {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--brass);
+    color: var(--ink);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .card-header h3 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    margin: 0;
+    font-weight: 600;
+  }
+  .card-body { padding: 16px 20px 20px; }
+
+  /* ===== Row lines ===== */
+  .row { display: flex; gap: 10px; margin-bottom: 10px; align-items: baseline; flex-wrap: wrap; }
+  .row .tag {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em;
+    text-transform: uppercase; font-weight: 700; flex-shrink: 0; width: 74px; padding-top: 2px;
+  }
+  .row .txt { flex: 1; min-width: 220px; font-size: 0.92rem; }
+  .row.problem .tag { color: var(--rust); }
+  .row.solution .tag { color: var(--blue); }
+  .row.gotcha .tag { color: var(--amber); }
+
+  /* ===== Callouts ===== */
+  .callout {
+    border-radius: 3px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    font-size: 0.86rem;
+    border-left: 3px solid;
+  }
+  .callout .lbl {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .callout p { margin: 0; }
+  .callout.note { background: var(--blue-bg); border-color: var(--blue); }
+  .callout.note .lbl { color: var(--blue); }
+  .callout.say { background: var(--amber-bg); border-color: var(--brass); }
+  .callout.say .lbl { color: var(--amber); }
+  .callout.faang { background: var(--rust-bg); border-color: var(--rust-border); }
+  .callout.faang .lbl { color: var(--rust); }
+  .callout.dbx { background: var(--green-bg); border-color: var(--green-border); }
+  .callout.dbx .lbl { color: var(--green); }
+  .dbx-unsure { font-style: italic; color: var(--ink-soft); }
+
+  .callout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  @media (max-width: 640px) {
+    .callout-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ===== Closer ===== */
+  .closer {
+    background: linear-gradient(180deg, var(--ink-3) 0%, var(--ink-2) 100%);
+    border: 1px solid var(--brass);
+    border-radius: 6px;
+    padding: 26px 28px;
+    margin-top: 40px;
+  }
+  .closer .lbl {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brass-bright);
+    margin-bottom: 10px;
+    display: block;
+  }
+  .closer p { margin: 0; color: #D9E2EA; font-size: 0.96rem; line-height: 1.6; }
+  .closer strong { color: var(--brass-bright); }
+
+  footer {
+    text-align: center;
+    padding: 30px 24px 50px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: #5A6B7D;
+    letter-spacing: 0.05em;
+  }
+
+  a { color: var(--brass-bright); }
+  code {
+    font-family: var(--font-mono);
+    background: rgba(0,0,0,0.06);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.88em;
+  }
+
+  ::selection { background: var(--brass); color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="sticky-header">
+  <div class="sticky-header-inner">
+    <div class="kicker">Data Engineering Design Patterns · Chapter 7 · Cram Sheet</div>
+    <h1>Data Security Design Patterns</h1>
+    <div class="subtitle">Last-minute interview review — 9 patterns, scan not read</div>
+    <div class="quick-nav">
+      <a href="#p1">1 · Vertical Partitioner</a>
+      <a href="#p2">2 · In-Place Overwriter</a>
+      <a href="#p3">3 · FGA Tables</a>
+      <a href="#p4">4 · FGA Resources</a>
+      <a href="#p5">5 · Encryptor</a>
+      <a href="#p6">6 · Anonymizer</a>
+      <a href="#p7">7 · Pseudo-Anonymizer</a>
+      <a href="#p8">8 · Secrets Pointer</a>
+      <a href="#p9">9 · Secretless Connector</a>
+    </div>
+  </div>
+</div>
+
+<div class="sheet">
+
+  <div class="thread">
+    <span class="lbl">The connecting thread</span>
+    <p>Data security in this chapter moves through four layers — <strong>comply</strong> (delete on request), <strong>restrict</strong> (fine-grained access), <strong>protect</strong> (make stolen data useless), <strong>connect</strong> (authenticate without leaking credentials). Each layer assumes the previous one can fail, so it doesn't rely on it alone — access control exists even though removal patterns exist; encryption exists even though access control exists.</p>
+  </div>
+
+  <div class="recall-wrap">
+    <table class="recall">
+      <thead>
+        <tr><th>#</th><th>Pattern</th><th>Problem</th><th>Fix</th><th>#1 Gotcha</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="idx">1</td>
+          <td class="pattern-name">Vertical Partitioner</td>
+          <td>Immutable PII repeated in every record bloats removal cost</td>
+          <td>Split rows into mutable/immutable stores, joined by a merge key</td>
+          <td class="gotcha">Extra join hurts read performance</td>
+        </tr>
+        <tr>
+          <td class="idx">2</td>
+          <td class="pattern-name">In-Place Overwriter</td>
+          <td>Legacy system, no removal design, must still comply</td>
+          <td>Delete/filter in place; stage-then-promote for raw formats</td>
+          <td class="gotcha">Reads + rewrites the entire dataset — costly</td>
+        </tr>
+        <tr>
+          <td class="idx">3</td>
+          <td class="pattern-name">FGA for Tables</td>
+          <td>Table-level grants aren't granular enough</td>
+          <td>GRANT, catalog tags, masking, or row policies</td>
+          <td class="gotcha">Row policies limited to session attributes</td>
+        </tr>
+        <tr>
+          <td class="idx">4</td>
+          <td class="pattern-name">FGA for Resources</td>
+          <td>Cloud jobs have overly broad resource permissions</td>
+          <td>IAM resource- or identity-based least-privilege policies</td>
+          <td class="gotcha">Many narrow policies = maintenance burden; hard quotas</td>
+        </tr>
+        <tr>
+          <td class="idx">5</td>
+          <td class="pattern-name">Encryptor</td>
+          <td>Data at rest/in transit could be intercepted or stolen</td>
+          <td>Server/client-side encryption + TLS via a key management service</td>
+          <td class="gotcha">Lost key = lost data (soft delete mitigates)</td>
+        </tr>
+        <tr>
+          <td class="idx">6</td>
+          <td class="pattern-name">Anonymizer</td>
+          <td>Dataset has PII users haven't consented to share externally</td>
+          <td>Remove, perturb, or synthetically replace sensitive columns</td>
+          <td class="gotcha">Destroys analytical value (information loss)</td>
+        </tr>
+        <tr>
+          <td class="idx">7</td>
+          <td class="pattern-name">Pseudo-Anonymizer</td>
+          <td>Fully anonymized data is too degraded for analytics</td>
+          <td>Mask, tokenize, hash, or encrypt while preserving structure</td>
+          <td class="gotcha">Re-identifiable when joined with other datasets</td>
+        </tr>
+        <tr>
+          <td class="idx">8</td>
+          <td class="pattern-name">Secrets Pointer</td>
+          <td>Credentials risk leaking from Git/code</td>
+          <td>Store in a secrets manager; fetch by reference at runtime</td>
+          <td class="gotcha">Cached credentials go stale (streaming jobs)</td>
+        </tr>
+        <tr>
+          <td class="idx">9</td>
+          <td class="pattern-name">Secretless Connector</td>
+          <td>Team wants zero credentials to manage at all</td>
+          <td>IAM-role-based or certificate-based authentication</td>
+          <td class="gotcha">Setup and cert rotation still require real work</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-title">Pattern Flashcards</h2>
+
+  <!-- CARD 1 -->
+  <div class="card" id="p1">
+    <div class="card-header"><span class="chip">1</span><h3>Vertical Partitioner</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Immutable PII (birthday, ID number) repeats in every record, making removal expensive.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Split each row into a mutable store and an immutable/PII store, linked by a merge key (e.g. <code>user_id</code>).</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Reads now need a join across the split — query performance and complexity go up for consumers.</span></div>
+      <div class="callout-grid">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>This is a <em>security</em> specialization — Chapter 8 reuses the same mechanic purely for storage/performance, not compliance.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this in interview</span><p>"We isolate PII into a single-occurrence store so a deletion touches one row instead of thousands — we trade that for a read-side join, hidden behind a view."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>Expect "how would you make GDPR deletes cheap at scale?" — the answer is <em>reduce what a deletion touches</em>, not "make deletion faster."</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Confirmed — build the immutable-attribute store as a Delta table and use <code>MERGE INTO</code> to upsert user context, exactly as the book's example does.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 2 -->
+  <div class="card" id="p2">
+    <div class="card-header"><span class="chip">2</span><h3>In-Place Overwriter</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Legacy system, terabytes of data, no removal strategy, but new regulation forces compliance now.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt"><code>DELETE ... WHERE</code> if natively supported (+ vacuum for table formats); otherwise filter the whole dataset and stage-then-promote.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Touches <em>all</em> rows, not just the target — 2,000 records to remove one user, vs. 1 with Vertical Partitioner.</span></div>
+      <div class="callout-grid">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Two delete strategies in table formats — deletion vectors (side-file marker, reader-filtered) vs. full rewrite (writer-heavy, reader-clean).</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this in interview</span><p>"When we can't redesign storage, we fall back to filter-and-rewrite — expensive, but universal — and batch multiple removal requests into one run."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>If compared against Vertical Partitioner, lead with cost-at-scale, and mention "impossible rollback" if you skip staging.</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Confirmed — Delta Lake <code>DeltaTable.delete()</code> + <code>VACUUM</code> is the exact mechanism; skip vacuum and time travel still exposes "deleted" data.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 3 -->
+  <div class="card" id="p3">
+    <div class="card-header"><span class="chip">3</span><h3>Fine-Grained Accessor for Tables</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Whole-table grants aren't enough — need column- and row-level restriction within an authorized table.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt"><code>GRANT</code> on columns, catalog policy tags, or masking functions for columns; dynamic <code>WHERE</code>-injecting policies for rows.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Row policies typically only condition on session attributes (user, group, IP) — not arbitrary business logic.</span></div>
+      <div class="callout-grid">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Nested/complex column types can't take simple column policies directly — unnest first, or expose via a materialized view.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this in interview</span><p>"We layer row-level security on session-derived predicates, and fall back to a permission-scoped materialized view if policy evaluation overhead hurts latency."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"Hide a column from some users but not others in the same table?" → masking (modern answer) or <code>GRANT(cols)</code> (classic SQL answer).</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Confirmed — Unity Catalog supports column masking functions and <code>ROW FILTER</code> for row-level security, exactly as the book shows.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 4 -->
+  <div class="card" id="p4">
+    <div class="card-header"><span class="chip">4</span><h3>Fine-Grained Accessor for Resources</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Audit finds a job can overwrite <em>all</em> datasets in an object store — permissions are too broad.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">At-least-privilege via IAM — resource-based (policy on the bucket) or identity-based (role on the job/user).</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Strict least-privilege creates many small policies; IAM services cap them (AWS 1,500 policies; GCP 300 custom roles/project).</span></div>
+      <div class="callout-grid">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Wildcard prefixes (<code>visits*</code>) reduce sprawl but weaken the guarantee for future resources — flag this trade-off with security explicitly.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this in interview</span><p>"We prefer identity-based IAM roles for application jobs — permissions travel with the role rather than needing per-bucket edits."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"Resource-based vs identity-based IAM — when do you pick each?" Resource-based = few consumers, one resource; identity-based = one identity, many resources.</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><span class="dbx-unsure">Not a dedicated Databricks feature</span> — standard cloud IAM that Databricks compute assumes via service principals/instance profiles; Unity Catalog adds its own grants on top.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 5 -->
+  <div class="card" id="p5">
+    <div class="card-header"><span class="chip">5</span><h3>Encryptor</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Stakeholders worry about interception in transit and physical data theft at rest.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Server/client-side encryption at rest (via KMS/Key Vault) + TLS in transit.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Losing the key locks out authorized users too — mitigated by soft-delete/restore-window on key deletion.</span></div>
+      <div class="callout-grid">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Server-side encryption fully abstracts the encrypt/decrypt exchange — you just manage access to the store and the key service.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this in interview</span><p>"Encryption doesn't replace access control — it's the layer that protects you if access control is bypassed, since stolen ciphertext is useless without the key."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"What happens if you lose the encryption key?" → name the real risk (data loss) and the real mitigation (KMS soft-delete window), not "you shouldn't lose it."</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Confirmed at platform level — Databricks integrates with cloud KMS/Key Vault for customer-managed keys; same server-side encryption the book describes.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 6 -->
+  <div class="card" id="p6">
+    <div class="card-header"><span class="chip">6</span><h3>Anonymizer</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Sharing a dataset externally, but some users never consented to sharing their PII.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Remove, perturb (add noise), or synthetically replace (e.g. via Faker) sensitive columns.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Real information loss — technical consumers can't rely on those columns; risks bad downstream models.</span></div>
+      <div class="callout-grid">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Anonymized data stays unidentifiable <em>even combined</em> with other datasets — the key distinction from pseudo-anonymization.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this in interview</span><p>"Anonymization is the strong guarantee — irreversible and join-safe — but it costs real analytical value, so we only apply it where consent or regulation actually requires it."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"Anonymize vs pseudo-anonymize for a data-sharing deal?" → depends whether the recipient needs residual business signal or true opacity.</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p><span class="dbx-unsure">No dedicated feature</span> — ordinary column transforms (<code>.drop()</code>, <code>.withColumn()</code>) in a Spark/Databricks job, same as the book's PySpark + Faker example.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 7 -->
+  <div class="card" id="p7">
+    <div class="card-header"><span class="chip">7</span><h3>Pseudo-Anonymizer</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Fully anonymized data removed too much — analysts can't answer basic business questions anymore.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Mask, tokenize (vault-backed), hash, or encrypt values to preserve structure/business meaning.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">False sense of security — combining two pseudo-anonymized tables can re-identify a person ("John Doe in San Marino").</span></div>
+      <div class="callout-grid">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Tokenization's security is only as strong as the token vault — compromise the vault, tokens become reversible.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this in interview</span><p>"Pseudo-anonymization preserves usability but not safety under joins — we treat it as a usability trade-off, not compliance-grade anonymization, and we're explicit about that with partners."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"Is masking an SSN's last 4 digits enough for compliance?" → no — combined with other quasi-identifiers it can still re-identify someone.</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Confirmed — Unity Catalog column masking can implement masking directly (same mechanism as pattern #3); tokenization/hashing are just UDFs.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 8 -->
+  <div class="card" id="p8">
+    <div class="card-header"><span class="chip">8</span><h3>Secrets Pointer</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">Credentials in Git/code risk leaking (book's example: a leak spiked API billing).</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">Store credentials in a secrets manager (AWS/GCP); consumers fetch by name at runtime.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Cached credentials can go stale — especially painful for long-running streaming jobs.</span></div>
+      <div class="callout-grid">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Two protection layers stack — access to the secrets manager itself, <em>and</em> the credential's own validity.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this in interview</span><p>"We never hardcode credentials — jobs resolve a secret name against a managed store at runtime, so rotation never touches consumer code."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"Handle credential rotation for a long-running streaming job?" → let it fail and restart to reload fresh creds, paired with idempotency (async refresh risks mid-flight writes).</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Confirmed — Databricks Secrets (<code>dbutils.secrets.get(...)</code>) is the platform-native version of this pattern, backed by managed or Azure Key Vault-backed scopes.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 9 -->
+  <div class="card" id="p9">
+    <div class="card-header"><span class="chip">9</span><h3>Secretless Connector</h3></div>
+    <div class="card-body">
+      <div class="row problem"><span class="tag">Problem</span><span class="txt">A team wants zero credentials to manage at all — no API keys anywhere in code.</span></div>
+      <div class="row solution"><span class="tag">Solution</span><span class="txt">IAM-role-based access (assume-role/service account) or certificate-based authentication.</span></div>
+      <div class="row gotcha"><span class="tag">Gotcha</span><span class="txt">Not actually "workless" — assume-role/STS setup and certificate rotation both require real ongoing effort.</span></div>
+      <div class="callout-grid">
+        <div class="callout note"><span class="lbl">📌 Note</span><p>Certificate-based auth swaps IAM for a certificate authority (CA) in the same four-step validation workflow.</p></div>
+        <div class="callout say"><span class="lbl">✅ Say this in interview</span><p>"Secretless is strictly better than Secrets Pointer where supported — nothing to leak — but not zero-effort; someone still owns the IAM role or cert lifecycle."</p></div>
+        <div class="callout faang"><span class="lbl">🎯 FAANG pointer</span><p>"Most secure way to connect a Spark job to a database?" → certificate/IAM-role-based (Secretless) beats "use a secrets manager" (Secrets Pointer is second-best).</p></div>
+        <div class="callout dbx"><span class="lbl">🧱 Databricks</span><p>Confirmed — Databricks jobs commonly run under a cloud service principal / instance profile to reach storage with zero stored credentials.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="closer">
+    <span class="lbl">Before you close the laptop</span>
+    <p>Four layers, each assuming the last one can fail: <strong>removal</strong> (Vertical Partitioner cheap-but-narrow vs. In-Place Overwriter universal-but-costly) → <strong>access control</strong> (table-level vs. resource-level fine-grained IAM) → <strong>protection</strong> (Encryptor keeps data usable-but-locked; Anonymizer/Pseudo-Anonymizer trade safety for usability) → <strong>connectivity</strong> (Secrets Pointer good, Secretless Connector better). If you remember one line per pattern, remember the <strong>Gotcha</strong> column — that's what interviewers probe.</p>
+  </div>
+
+</div>
+
+<footer>Data Engineering Design Patterns — Chapter 7 Cram Sheet · For the full version see ch07_data_security_design_patterns.html</footer>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

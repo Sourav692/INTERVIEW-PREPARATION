@@ -1,0 +1,1293 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 5 — Data Value Design Patterns</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+  /* ============ DESIGN TOKENS ============
+     Design note: an editorial "field manual" for a pattern-catalog reference book.
+     Paper background, ink-navy text, teal-cyan as the primary signal accent (data-flow/stream
+     association), warm amber as a secondary caution accent. Monospace for structural/technical
+     labels and code; serif for reading prose. Numbered pattern cards read like catalog entries.
+  ================================== */
+  :root{
+    --paper: #faf7f0;
+    --paper-raised: #ffffff;
+    --ink: #1b2430;
+    --ink-soft: #4a5568;
+    --ink-faint: #8891a0;
+    --rule: #ddd6c8;
+    --rule-soft: #e8e2d4;
+    --signal: #0e7c86;
+    --signal-dim: #0e7c8614;
+    --signal-deep: #0a5a62;
+    --amber: #b8752f;
+    --amber-dim: #b8752f14;
+    --rose: #a1433a;
+    --rose-dim: #a1433a12;
+    --code-bg: #1b2430;
+    --code-fg: #e8e6df;
+    --code-accent: #7fd4c9;
+    --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+    --font-body: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, Consolas, monospace;
+    --radius: 3px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
+  }
+
+  a{ color:var(--signal-deep); }
+  ::selection{ background:var(--signal-dim); }
+
+  /* ============ MASTHEAD ============ */
+  .masthead{
+    border-bottom:3px solid var(--ink);
+    padding:2.5rem 1.5rem 1.5rem;
+    background:
+      repeating-linear-gradient(135deg, transparent, transparent 38px, var(--rule-soft) 38px, var(--rule-soft) 39px),
+      var(--paper);
+  }
+  .masthead-inner{ max-width:920px; margin:0 auto; }
+  .kicker{
+    font-family:var(--font-mono);
+    font-size:0.72rem;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--signal-deep);
+    display:flex;
+    align-items:center;
+    gap:0.6rem;
+  }
+  .kicker::before{ content:"§"; font-size:0.9em; }
+  h1.title{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(2rem, 5vw, 3.1rem);
+    margin:0.35rem 0 0.6rem;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    font-size:1.05rem;
+    color:var(--ink-soft);
+    max-width:62ch;
+    margin:0 0 1rem;
+  }
+  .meta-row{
+    display:flex; flex-wrap:wrap; gap:0.5rem 1.2rem;
+    font-family:var(--font-mono); font-size:0.75rem; color:var(--ink-faint);
+    border-top:1px solid var(--rule); padding-top:0.85rem;
+  }
+  .meta-row strong{ color:var(--ink-soft); font-weight:600; }
+
+  /* ============ LAYOUT ============ */
+  .wrap{ max-width:920px; margin:0 auto; padding:0 1.5rem 5rem; }
+  section.chapter-frame{ padding-top:2.2rem; }
+  .lede{ font-size:1.1rem; }
+  .lede p{ margin:0 0 1rem; }
+
+  .family-list{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:0.7rem; margin:1.6rem 0 0.5rem; list-style:none; padding:0;
+  }
+  .family-list li{
+    border:1px solid var(--rule); border-left:3px solid var(--signal);
+    background:var(--paper-raised); padding:0.7rem 0.85rem; border-radius:var(--radius);
+    font-size:0.88rem;
+  }
+  .family-list b{ display:block; font-family:var(--font-mono); font-size:0.72rem;
+    letter-spacing:0.06em; text-transform:uppercase; color:var(--signal-deep); margin-bottom:0.25rem;}
+
+  /* ============ SECTION HEADERS ============ */
+  h2.section-head{
+    font-family:var(--font-mono);
+    font-size:0.95rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink);
+    margin:3.2rem 0 1.2rem;
+    padding-bottom:0.6rem;
+    border-bottom:2px solid var(--ink);
+    display:flex; align-items:baseline; gap:0.6rem;
+  }
+  h2.section-head span.n{ color:var(--signal); font-weight:700; }
+  .section-intro{ color:var(--ink-soft); font-size:0.98rem; margin-bottom:1.6rem; }
+
+  /* ============ PATTERN CARD ============ */
+  .pattern-card{
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    margin-bottom:2.2rem;
+    overflow:hidden;
+    box-shadow:0 1px 2px rgba(27,36,48,0.04);
+  }
+  .pattern-head{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:1rem; padding:1.1rem 1.4rem;
+    background:linear-gradient(135deg, var(--ink) 0%, #26313f 100%);
+    color:#fff;
+  }
+  .pattern-head h3{
+    margin:0; font-family:var(--font-display); font-weight:700;
+    font-size:1.3rem; letter-spacing:-0.01em;
+  }
+  .pattern-tag{
+    font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.09em;
+    text-transform:uppercase; color:var(--code-accent);
+    border:1px solid rgba(127,212,201,0.4); border-radius:20px;
+    padding:0.28rem 0.7rem; white-space:nowrap;
+  }
+  .pattern-body{ padding:0 1.4rem 1.4rem; }
+
+  .subsec{ margin-top:1.4rem; }
+  .subsec-label{
+    font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.12em;
+    text-transform:uppercase; font-weight:700; color:var(--signal-deep);
+    display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;
+  }
+  .subsec-label::before{ content:""; width:18px; height:2px; background:var(--signal); display:inline-block; }
+  .subsec p{ margin:0 0 0.7rem; }
+  .subsec ul, .subsec ol{ margin:0.4rem 0 0.8rem; padding-left:1.3rem; }
+  .subsec li{ margin-bottom:0.35rem; }
+
+  .gotcha-item{ margin-bottom:0.9rem; }
+  .gotcha-item .gname{ font-weight:700; color:var(--ink); }
+
+  /* ============ CALLOUTS ============ */
+  .callout{
+    border-left:4px solid var(--ink-faint);
+    background:var(--rule-soft);
+    border-radius:0 4px 4px 0;
+    padding:0.75rem 1rem;
+    margin:0.9rem 0;
+    font-size:0.94rem;
+  }
+  .callout .clabel{
+    font-family:var(--font-mono); font-weight:700; font-size:0.75rem;
+    letter-spacing:0.04em; display:block; margin-bottom:0.35rem;
+  }
+  .callout.note{ border-left-color:var(--signal); background:var(--signal-dim); }
+  .callout.note .clabel{ color:var(--signal-deep); }
+  .callout.warning{ border-left-color:var(--rose); background:var(--rose-dim); }
+  .callout.warning .clabel{ color:var(--rose); }
+  .callout.case{ border-left-color:var(--amber); background:var(--amber-dim); }
+  .callout.case .clabel{ color:var(--amber); }
+  .callout.say{ border-left-color:#4a6741; background:#4a674112; font-style:italic; }
+  .callout.say .clabel{ color:#4a6741; font-style:normal; }
+
+  /* ============ CODE ============ */
+  .code-block{
+    background:var(--code-bg); color:var(--code-fg);
+    border-radius:6px; margin:0.9rem 0; overflow:hidden;
+    border:1px solid #2c3846;
+  }
+  .code-block .code-label{
+    font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--code-accent);
+    padding:0.5rem 1rem; border-bottom:1px solid #2c3846;
+    display:flex; justify-content:space-between;
+  }
+  .code-block pre{
+    margin:0; padding:1rem; overflow-x:auto;
+    font-family:var(--font-mono); font-size:0.82rem; line-height:1.55;
+  }
+  .code-block code{ font-family:inherit; }
+
+  /* ============ TABLES ============ */
+  table.data-table{
+    width:100%; border-collapse:collapse; margin:1rem 0 1.6rem;
+    font-size:0.9rem; background:var(--paper-raised);
+    border:1px solid var(--rule); border-radius:6px; overflow:hidden;
+  }
+  table.data-table caption{
+    text-align:left; font-family:var(--font-mono); font-size:0.72rem;
+    letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-faint);
+    margin-bottom:0.5rem;
+  }
+  table.data-table th{
+    background:var(--ink); color:#fff; text-align:left;
+    padding:0.6rem 0.85rem; font-weight:600; font-size:0.78rem;
+    letter-spacing:0.03em; text-transform:uppercase;
+    font-family:var(--font-mono);
+  }
+  table.data-table td{
+    padding:0.65rem 0.85rem; border-bottom:1px solid var(--rule-soft);
+    vertical-align:top;
+  }
+  table.data-table tr:last-child td{ border-bottom:none; }
+  table.data-table tr:nth-child(even) td{ background:#fbf9f4; }
+  table.data-table td.pname{ font-weight:700; color:var(--signal-deep); white-space:nowrap; }
+
+  /* ============ INTERACTIVE DIAGRAM ============ */
+  .diagram-shell{
+    background:var(--paper-raised); border:1px solid var(--rule); border-radius:8px;
+    padding:1.3rem; margin:1.6rem 0 2.2rem;
+  }
+  .diagram-shell .dtitle{
+    font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--ink-faint); margin-bottom:0.9rem;
+  }
+  .flow-svg{ width:100%; height:auto; display:block; }
+  .flow-node{ cursor:pointer; transition:transform .15s ease; }
+  .flow-node:hover{ transform:translateY(-2px); }
+  .flow-node rect{ transition:filter .15s ease, stroke-width .15s ease; }
+  .flow-node:hover rect{ filter:brightness(1.06); stroke-width:2.5; }
+  .flow-node text{ pointer-events:none; }
+  .flow-detail{
+    margin-top:1rem; padding:0.9rem 1rem; background:var(--signal-dim);
+    border-left:3px solid var(--signal); border-radius:0 4px 4px 0;
+    font-size:0.9rem; min-height:3.2em; display:flex; align-items:center;
+  }
+  .flow-detail.placeholder{ color:var(--ink-faint); font-style:italic; }
+  .flow-hint{ font-size:0.78rem; color:var(--ink-faint); margin-top:0.6rem; font-family:var(--font-mono); }
+
+  .mermaid-wrap{ background:var(--paper-raised); border:1px solid var(--rule); border-radius:8px; padding:1.2rem; margin:1.6rem 0 2.2rem; }
+  .mermaid-wrap .dtitle{ font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:0.7rem;}
+
+  /* ============ TABS (Trade-off groupings) ============ */
+  .tab-row{ display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+  .tab-btn{
+    font-family:var(--font-mono); font-size:0.78rem; letter-spacing:0.03em;
+    padding:0.45rem 0.9rem; border:1px solid var(--rule); background:var(--paper-raised);
+    color:var(--ink-soft); border-radius:20px; cursor:pointer; transition:all .15s ease;
+  }
+  .tab-btn:hover{ border-color:var(--signal); color:var(--signal-deep); }
+  .tab-btn.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .tab-btn:focus-visible, button:focus-visible, .flow-node:focus-visible{
+    outline:2px solid var(--signal); outline-offset:2px;
+  }
+
+  /* ============ CHEAT SHEET ============ */
+  .cheat-panel{
+    margin-top:3.4rem; background:var(--ink); color:#fff; border-radius:10px;
+    padding:2rem 1.6rem; position:relative; overflow:hidden;
+  }
+  .cheat-panel::before{
+    content:""; position:absolute; inset:0;
+    background:repeating-linear-gradient(45deg, transparent, transparent 24px, rgba(255,255,255,0.025) 24px, rgba(255,255,255,0.025) 25px);
+    pointer-events:none;
+  }
+  .cheat-panel h2{
+    font-family:var(--font-mono); font-size:0.85rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--code-accent); margin:0 0 0.3rem; display:flex; align-items:center; gap:0.5rem;
+  }
+  .cheat-panel .cheat-sub{ color:#b8c0cc; font-size:0.85rem; margin-bottom:1.5rem; }
+  .cheat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:0.9rem; position:relative; }
+  .cheat-card{
+    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12);
+    border-radius:6px; padding:0.9rem 1rem;
+  }
+  .cheat-card h4{
+    margin:0 0 0.5rem; font-family:var(--font-display); font-size:1.02rem; color:var(--code-accent);
+  }
+  .cheat-card dl{ margin:0; font-size:0.82rem; }
+  .cheat-card dt{ font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.08em; text-transform:uppercase;
+    color:#8fa0b3; margin-top:0.5rem; }
+  .cheat-card dt:first-child{ margin-top:0; }
+  .cheat-card dd{ margin:0.15rem 0 0; color:#e8e6df; line-height:1.45; }
+  .cheat-card dd.gotcha{ color:#f2c39a; }
+
+  /* ============ FURTHER READING ============ */
+  .reading-list{ margin-top:2.6rem; }
+  .reading-list ul{ padding-left:1.2rem; }
+  .reading-list li{ margin-bottom:0.5rem; font-size:0.94rem; }
+  .special-notes{
+    margin-top:1.2rem; background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:6px; padding:1rem 1.2rem;
+  }
+  .special-notes h4{ margin:0 0 0.5rem; font-family:var(--font-mono); font-size:0.75rem;
+    letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-faint);}
+
+  footer.colophon{
+    max-width:920px; margin:3rem auto 0; padding:1.5rem; border-top:1px solid var(--rule);
+    font-family:var(--font-mono); font-size:0.72rem; color:var(--ink-faint); text-align:center;
+  }
+
+  @media (max-width:640px){
+    .pattern-head{ flex-direction:column; align-items:flex-start; gap:0.5rem; }
+    table.data-table{ font-size:0.8rem; }
+    table.data-table th, table.data-table td{ padding:0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">Data Engineering Design Patterns — Chapter 5</div>
+    <h1 class="title">Data Value Design Patterns</h1>
+    <p class="subtitle">Nine ways to turn raw, disconnected records into something a business
+      stakeholder can actually use — enrichment, decoration, aggregation, sessionization, and
+      ordering, all grounded in the book's blog-analytics case study.</p>
+    <div class="meta-row">
+      <span><strong>Book</strong> Data Engineering Design Patterns, Bartosz Konieczny (O'Reilly, 2025)</span>
+      <span><strong>Case study</strong> Blog analytics platform · Bronze/Silver/Gold Medallion</span>
+      <span><strong>Patterns in this chapter</strong> 9</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="chapter-frame">
+    <div class="lede">
+      <p>Raw ingested data is not a real asset on its own. Take the book's running example: the
+      visit-events stream. A browser producer can report browser version, language, or OS — but
+      each visit lands as a distinct, disconnected item. Correlating "what do visitors using a
+      specific browser have in common?" is impossible without extra effort.</p>
+      <p>That's the job of <strong>data value design patterns</strong>: augment a dataset to make
+      it more useful for end users. This chapter sits right after Idempotency (Chapter 4) and
+      right before Data Flow (Chapter 6) — once you can safely ingest and retry, you generate
+      business value, and the next chapter covers how that value flows to the rest of the
+      organization.</p>
+    </div>
+    <ul class="family-list">
+      <li><b>Data Enrichment</b>Static Joiner, Dynamic Joiner — combine two datasets</li>
+      <li><b>Data Decoration</b>Wrapper, Metadata Decorator — compute extra attributes</li>
+      <li><b>Data Aggregation</b>Distributed &amp; Local Aggregator — summarize volume</li>
+      <li><b>Sessionization</b>Incremental &amp; Stateful Sessionizer — group into sessions</li>
+      <li><b>Data Ordering</b>Bin Pack Orderer, FIFO Orderer — guarantee delivery order</li>
+    </ul>
+  </section>
+
+  <!-- ============ DATA ENRICHMENT ============ -->
+  <h2 class="section-head"><span class="n">01</span> Data Enrichment</h2>
+  <p class="section-intro">Raw events are technically precise but contextually poor. Data
+    enrichment patterns bring a second dataset alongside the primary one to fill that gap.</p>
+
+  <div class="diagram-shell">
+    <div class="dtitle">Interactive — Static vs. Dynamic Joiner topology (click a node)</div>
+    <div id="joiner-diagram"></div>
+    <div class="flow-detail placeholder" id="joiner-detail">Click a node above to see what happens at that stage.</div>
+    <div class="flow-hint">Static Joiner: reference data at rest, joined by key (+ optional SCD time bounds). Dynamic Joiner: both sides streaming, joined with watermark buffers.</div>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-head">
+      <h3>Pattern: Static Joiner</h3>
+      <span class="pattern-tag">Data Enrichment</span>
+    </div>
+    <div class="pattern-body">
+      <div class="subsec"><div class="subsec-label">Problem</div>
+        <p>A team's datasets are used heavily by business stakeholders. A new project needs a
+        dataset linking a user's registration date to day-to-day activity — but the raw activity
+        data lacks user context, which lives only in a static user reference dataset.</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Solution</div>
+        <p>The at-rest reference dataset is the perfect condition for the <strong>Static
+        Joiner</strong> — and it also works for streaming pipelines, not just batch.</p>
+        <ul>
+          <li>Requires a list of shared key attributes across both datasets (e.g. <code>user_id</code>).</li>
+          <li>May need time constraints when the enrichment dataset implements slowly changing dimensions (SCD).</li>
+          <li>Usually a plain SQL <code>JOIN</code>; universal across processing frameworks and warehouses.</li>
+          <li>Can also enrich from a programmatic API — materialize as a table first if idempotency matters.</li>
+        </ul>
+        <div class="callout note"><span class="clabel">📌 Note — SCD Types</span>
+          SCD type 2 tracks validity with <code>start_date</code>/<code>end_date</code> columns
+          on one table. SCD type 4 splits current value and full history into two tables. Only
+          the implementation differs.</div>
+      </div>
+      <div class="subsec"><div class="subsec-label">Consequences</div>
+        <div class="gotcha-item"><span class="gname">Late data and consistency —</span>
+          The reference stream rarely evolves in perfect lockstep with the main stream. Fix:
+          Dynamic Joiner for streaming, or orchestrator-level readiness waiting for batch.</div>
+        <div class="gotcha-item"><span class="gname">Idempotency —</span>
+          Backfills need to ask whether the enrichment side must be idempotent too. If the
+          provider can't do time-based queries, bring the data into your own layer and use SCD.</div>
+      </div>
+      <div class="callout case"><span class="clabel">🧩 Case Study</span>
+        Joining streaming visit events with a static (or slowly changing) <code>users</code>
+        reference dataset to answer "how does registration date relate to daily activity?"</div>
+      <div class="callout say"><span class="clabel">✅ Say this out loud</span>
+        "I chose Static Joiner because the enrichment dataset is at-rest — but for idempotent
+        backfills I implemented it as SCD type 2, so replaying a run always sees the same
+        historical state of the reference data."</div>
+      <div class="subsec"><div class="subsec-label">Examples</div>
+        <div class="code-block"><div class="code-label"><span>SCD type 2 tables + join</span><span>sql</span></div>
+<pre><code>CREATE TABLE dedp.users (
+  id TEXT NOT NULL,
+  login VARCHAR(45) NOT NULL,
+  start_date TIMESTAMP NOT NULL DEFAULT NOW(),
+  end_date TIMESTAMP NOT NULL DEFAULT '9999-12-31'::timestamp,
+  PRIMARY KEY(id, start_date)
+);
+
+SELECT v.visit_id, v.event_time, v.page, u.id, u.login, u.email
+FROM dedp.visits v JOIN dedp.users u ON u.id = v.user_id
+AND NOW() BETWEEN start_date AND end_date;</code></pre></div>
+        <div class="code-block"><div class="code-label"><span>Stream-to-batch join</span><span>python</span></div>
+<pre><code>devices: DataFrame = spark.read.format('delta').load(...)
+visits: DataFrame = (spark.readStream.format('kafka').load()...)
+
+(visits.join(devices_table, [visits.device_type == devices.type,
+    visits.device_version == devices.version], 'left_outer'))</code></pre></div>
+        <div class="callout warning"><span class="clabel">⚠️ Warning</span>
+          The streaming job doesn't wait for the static dataset to update. With a raw file format
+          (JSON/CSV) instead of a transactional table format, a full rewrite could momentarily
+          join against an empty reference table.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-head">
+      <h3>Pattern: Dynamic Joiner</h3>
+      <span class="pattern-tag">Data Enrichment</span>
+    </div>
+    <div class="pattern-body">
+      <div class="subsec"><div class="subsec-label">Problem</div>
+        <p>Static Joiner is implemented for users-to-visits, but with thousands of new users
+        weekly, profile changes make the enriched dataset stale. Each user change now arrives via
+        Change Data Capture on a streaming broker — both sides are moving.</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Solution</div>
+        <p>The <strong>Dynamic Joiner</strong> shares Static Joiner's key logic but adds
+        <strong>time boundaries</strong>, since the two streams may have different latencies.</p>
+        <ul>
+          <li>Time-bounded buffers on both streams — the faster source waits for the slower one to catch up.</li>
+          <li>A <strong>GC watermark</strong> expires old buffered records so the buffer doesn't grow unbounded.</li>
+          <li>Frameworks like Spark Structured Streaming and Flink implement this buffering natively.</li>
+        </ul>
+      </div>
+      <div class="subsec"><div class="subsec-label">Consequences</div>
+        <div class="gotcha-item"><span class="gname">Space vs. exactness trade-off —</span>
+          Bigger buffers catch more joins but cost more hardware; smaller buffers save resources
+          but miss matches when latency skew is large. No one-size-fits-all formula.</div>
+        <div class="gotcha-item"><span class="gname">Late data —</span>
+          Once the GC watermark advances past a buffered key, a very late match is silently
+          dropped. Needs the late-data tracking techniques from Chapter 3.</div>
+      </div>
+      <div class="callout say"><span class="clabel">✅ Say this out loud</span>
+        "For streaming-to-streaming enrichment I use Dynamic Joiner with watermarked buffers —
+        the watermark size is a direct trade-off between join completeness and hardware cost,
+        tuned to the observed latency skew between the two streams."</div>
+      <div class="subsec"><div class="subsec-label">Examples</div>
+        <div class="code-block"><div class="code-label"><span>Watermarked time-bound join</span><span>python</span></div>
+<pre><code>visits_from_kafka = (visits_data_stream
+    .withWatermark('event_time', '10 minutes'))
+ads_from_kafka = (ads_data_stream
+    .withWatermark('display_time', '10 minutes'))
+
+visits_with_ads = visits_from_kafka.join(ads_from_kafka, F.expr('''
+    page = visit_page AND
+    display_time BETWEEN event_time AND event_time + INTERVAL 2 minutes
+'''), 'left_outer')</code></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <caption>Trade-off — Data Enrichment</caption>
+    <thead><tr><th>Pattern</th><th>When to use</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td class="pname">Static Joiner</td><td>Enrichment dataset is at-rest / slowly changing</td><td>Late-data consistency risk; idempotent backfills need SCD</td></tr>
+      <tr><td class="pname">Dynamic Joiner</td><td>Both datasets are streams (e.g. CDC-fed reference data)</td><td>Space-vs-exactness buffer trade-off; late data still missed</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============ DATA DECORATION ============ -->
+  <h2 class="section-head"><span class="n">02</span> Data Decoration</h2>
+  <p class="section-intro">Adds value by computing attributes from within the record itself — no
+    second dataset required. Either wrap the record (Wrapper) or hide extras in the metadata
+    layer (Metadata Decorator).</p>
+
+  <div class="pattern-card">
+    <div class="pattern-head">
+      <h3>Pattern: Wrapper</h3>
+      <span class="pattern-tag">Data Decoration</span>
+    </div>
+    <div class="pattern-body">
+      <div class="subsec"><div class="subsec-label">Problem</div>
+        <p>A streaming layer processes visits from different providers with different output
+        schemas. A job must extract fields into a uniform structure for downstream consumers,
+        while clearly separating computed values from originals — keeping the original structure
+        available for debugging.</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Solution</div>
+        <p>The <strong>Wrapper</strong> adds an envelope at the record level, wrapping original
+        values and referencing computed attributes (from the data itself or execution context).</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Four wrapping implementations</div>
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Layout</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Raw flat, computed nested</td><td>Original row flat; computed columns as one nested struct</td></tr>
+            <tr><td>2</td><td>Computed flat, raw nested</td><td>Opposite of #1</td></tr>
+            <tr><td>3</td><td>Fully flat</td><td>All columns at the same level (normalized)</td></tr>
+            <tr><td>4</td><td>Two tables</td><td>Joined later by a unique key</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="subsec"><div class="subsec-label">Consequences</div>
+        <div class="gotcha-item"><span class="gname">Domain split —</span>
+          An entity's fields end up split across <code>raw</code> and <code>computed</code>
+          structures, complicating retrieval. Mitigation: treat wrapped data as an early layer
+          (e.g. Silver), not the final user-facing exposure.</div>
+        <div class="gotcha-item"><span class="gname">Size —</span>
+          Decorated values are part of the record, so they inflate size and network traffic.
+          Mitigation: use a storage format with column/data-source projection.</div>
+      </div>
+      <div class="subsec"><div class="subsec-label">Examples</div>
+        <div class="code-block"><div class="code-label"><span>Wrapping with PySpark</span><span>python</span></div>
+<pre><code>visits_w_processing_context = (visits.withColumn('processing_context', F.struct(
+    F.lit(job_version).alias('job_version'), F.lit(batch_number).alias('batch_version')
+)))
+visits_to_save = (visits_w_processing_context.withColumn('value', F.to_json(
+    F.struct(F.col('value').cast('string').alias('raw_data'),
+    F.col('processing_context')))))</code></pre></div>
+        <div class="code-block"><div class="code-label"><span>Wrapping in SQL</span><span>sql</span></div>
+<pre><code>SELECT *, NAMED_STRUCT(
+  'is_connected',
+  CASE WHEN context.user.connected_since IS NULL
+  THEN false ELSE true END,
+  'page_referral_key', CONCAT_WS('-', page, context.referral)
+) AS decorated FROM input_visits</code></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-head">
+      <h3>Pattern: Metadata Decorator</h3>
+      <span class="pattern-tag">Data Decoration</span>
+    </div>
+    <div class="pattern-body">
+      <div class="subsec"><div class="subsec-label">Problem</div>
+        <p>Streaming jobs release almost weekly with little visibility into how each version
+        affects the generated data. Technical context (like job version) needs attaching to each
+        record — but must stay invisible to end users.</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Solution</div>
+        <p>Use the storage layer's <strong>metadata layer</strong> directly rather than the Wrapper:</p>
+        <ul>
+          <li>Native metadata support (e.g. <strong>Kafka record headers</strong>) — straightforward.</li>
+          <li>Object stores — apply metadata as <strong>file-level tags</strong>.</li>
+          <li>No native support (relational/NoSQL) — simulate with a hidden column/table behind a view or permissions.</li>
+        </ul>
+        <div class="callout note"><span class="clabel">📌 Note — Wrapper vs. Metadata semantics</span>
+          Structurally similar to Wrapper, but metadata is never meant for business users — it's
+          data <em>about</em> data, while Wrapper explicitly decorates business attributes too.</div>
+        <div class="callout warning"><span class="clabel">⚠️ Warning</span>
+          Never put business-related attributes (shipment address, invoice amount) in the
+          metadata layer — most consumers never think to query it.</div>
+      </div>
+      <div class="subsec"><div class="subsec-label">Consequences</div>
+        <div class="gotcha-item"><span class="gname">Implementation —</span>
+          Storage support for metadata is the biggest limit. <strong>Amazon Kinesis Data Streams
+          doesn't support headers</strong> at all. Table datasets need an extra column/table.</div>
+      </div>
+      <div class="subsec"><div class="subsec-label">Examples</div>
+        <div class="code-block"><div class="code-label"><span>Kafka header metadata</span><span>python</span></div>
+<pre><code>visits_with_metadata = (visits_to_save.withColumn('headers', F.array(
+    F.struct(F.lit('job_version').alias('key'), F.lit(job_version).alias('value')),
+    F.struct(F.lit('batch_version').alias('key'),
+        F.lit(str(batch_number).encode('UTF-8')).alias('value'))
+)))
+(visits_with_metadata.write.format('kafka')
+    .option('kafka.bootstrap.servers', 'localhost:9094')
+    .option('includeHeaders', True).option('topic', 'visits-decorated')
+    .save())</code></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <caption>Trade-off — Data Decoration</caption>
+    <thead><tr><th>Pattern</th><th>When to use</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td class="pname">Wrapper</td><td>Extra attributes should stay visible/queryable alongside raw data</td><td>Domain split; larger payload</td></tr>
+      <tr><td class="pname">Metadata Decorator</td><td>Purely technical/debugging context, not for end users</td><td>Limited by storage's native metadata support</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============ DATA AGGREGATION ============ -->
+  <h2 class="section-head"><span class="n">03</span> Data Aggregation</h2>
+
+  <div class="diagram-shell">
+    <div class="dtitle">Interactive — Distributed vs. Local Aggregator (click a node)</div>
+    <div id="agg-diagram"></div>
+    <div class="flow-detail placeholder" id="agg-detail">Click a node above to see what happens at that stage.</div>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-head">
+      <h3>Pattern: Distributed Aggregator</h3>
+      <span class="pattern-tag">Data Aggregation</span>
+    </div>
+    <div class="pattern-body">
+      <div class="subsec"><div class="subsec-label">Problem</div>
+        <p>Combining datasets and grouping records that live across different physical nodes or
+        stores — records sharing a key aren't guaranteed to be colocated.</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Solution</div>
+        <p>The classic <strong>MapReduce</strong>-style approach: group, then reduce. Requires a
+        <strong>shuffle</strong> — exchanging records across the network so the reduce step can
+        operate on collocated rows.</p>
+        <ul>
+          <li>Aggregations supporting partial generation (e.g. <code>COUNT</code>) can pre-aggregate locally before the shuffle, shrinking what's exchanged.</li>
+          <li>Works across physically isolated stores — e.g. Spark joining PostgreSQL with local JSON, or BigQuery querying external GCS tables.</li>
+        </ul>
+      </div>
+      <div class="subsec"><div class="subsec-label">Consequences</div>
+        <div class="gotcha-item"><span class="gname">Additional network exchange —</span>
+          Two exchanges: bringing input data to nodes, and the shuffle itself.</div>
+        <div class="gotcha-item"><span class="gname">Data skew —</span>
+          One overloaded key makes moving/processing it the most expensive part. Mitigation:
+          <strong>salting</strong> — add a random value to the key, aggregate twice.</div>
+        <div class="gotcha-item"><span class="gname">Scaling —</span>
+          A finished node may stay held for fault tolerance. A <strong>shuffle service</strong>
+          (Spark's External Shuffle Service, GCP Dataflow's Shuffle) frees nodes mid-job.</div>
+      </div>
+      <div class="callout say"><span class="clabel">✅ Say this out loud</span>
+        "When I see data skew in a distributed aggregation, my first lever is salting the
+        grouping key and re-aggregating in two passes — it trades a bit of extra shuffle for
+        avoiding a single overloaded reducer."</div>
+      <div class="subsec"><div class="subsec-label">Examples</div>
+        <div class="code-block"><div class="code-label"><span>Cross-store aggregation</span><span>python</span></div>
+<pre><code>visits = spark_session.read.json(f'{base_dir}/input-visits')
+devices = spark_session.read.jdbc(url='jdbc:postgresql:dedp',
+    table='dedp.devices', properties={'user': 'dedp_test',
+    'password': 'dedp_test', 'driver': 'org.postgresql.Driver'})
+
+visits_with_devices = visits.join(devices,
+    [devices.type == visits.context.technical.dev_type,
+     devices.version == visits.context.technical.dev_version], 'inner')</code></pre></div>
+        <div class="code-block"><div class="code-label"><span>Salting a skewed key</span><span>python</span></div>
+<pre><code>dataset.withColumn('salt', (rand()*3).cast("int"))
+    .groupBy('group_key', 'salt').agg(...)
+    .groupBy('group_key').agg(...)</code></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-head">
+      <h3>Pattern: Local Aggregator</h3>
+      <span class="pattern-tag">Data Aggregation</span>
+    </div>
+    <div class="pattern-body">
+      <div class="subsec"><div class="subsec-label">Problem</div>
+        <p>A streaming job generates windows over visits in a <strong>partitioned streaming
+        broker</strong>. Volume is static and the partition count never changes — the job needs
+        to drop the automatic grouping shuffle.</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Solution</div>
+        <p>With static partitioning and related attributes already colocated, the <strong>Local
+        Aggregator</strong> aggregates with only the input-read exchange — no shuffle.</p>
+        <ul>
+          <li>Producer side must guarantee a key always lands in the same partition.</li>
+          <li>Kafka Streams' <code>groupByKey</code> recognizes pre-partitioned data natively.</li>
+          <li>Spark uses <code>mapPartitions</code>/<code>foreachPartition</code> manually, or avoids shuffle for matching bucketed datasets.</li>
+        </ul>
+      </div>
+      <div class="subsec"><div class="subsec-label">Consequences</div>
+        <div class="gotcha-item"><span class="gname">Scaling —</span>
+          Breaks if partition assignment ever changes; reorganizing storage is costly and needs
+          a stop-the-world event in streaming.</div>
+        <div class="gotcha-item"><span class="gname">Grouping keys —</span>
+          Expects one shared grouping-key logic across all consumers of the partitioned data.</div>
+      </div>
+      <div class="subsec"><div class="subsec-label">Examples</div>
+        <div class="code-block"><div class="code-label"><span>Kafka Streams groupByKey</span><span>java</span></div>
+<pre><code>KStream&lt;String, String&gt; visitsSource = streamsBuilder.stream("visits");
+KGroupedStream&lt;String, String&gt; groupedVisits = visitsSource.groupByKey();
+KStream&lt;String, AggregatedVisits&gt; aggregatedVisits = groupedVisits
+    .aggregate(AggregatedVisits::new, new AggregatedVisitsAggregator(),
+        Materialized.with(Serdes.String(), new JsonSerializer&lt;&gt;())).toStream();</code></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <caption>Trade-off — Data Aggregation</caption>
+    <thead><tr><th>Pattern</th><th>When to use</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td class="pname">Distributed Aggregator</td><td>Data not guaranteed colocated by key</td><td>Shuffle cost; data skew; scaling/reclaiming compute</td></tr>
+      <tr><td class="pname">Local Aggregator</td><td>Input statically partitioned by the grouping key</td><td>Frozen/costly rescale; one shared grouping key required</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============ SESSIONIZATION ============ -->
+  <h2 class="section-head"><span class="n">04</span> Sessionization</h2>
+  <p class="section-intro">A specialized aggregation: group events into user sessions, adapted to
+    incremental batch workloads or real-time streaming.</p>
+
+  <div class="pattern-card">
+    <div class="pattern-head">
+      <h3>Pattern: Incremental Sessionizer</h3>
+      <span class="pattern-tag">Sessionization</span>
+    </div>
+    <div class="pattern-body">
+      <div class="subsec"><div class="subsec-label">Problem</div>
+        <p>Visit events are stored <strong>hourly partitioned</strong>. Sessions start at first
+        visit, end after <strong>two hours of inactivity</strong>. Typical duration: minutes to
+        three hours, so one session can span up to <strong>three partitions</strong> — analysts
+        struggle reprocessing many consecutive partitions per user.</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Solution</div>
+        <p>Builds on the Incremental Loader pattern (Chapter 2) using three storage spaces:</p>
+        <table class="data-table">
+          <thead><tr><th>Storage</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td class="pname">Input dataset</td><td>Raw hourly-partitioned events</td></tr>
+            <tr><td class="pname">Completed sessions</td><td>Finished sessions, publicly exposed</td></tr>
+            <tr><td class="pname">Pending sessions</td><td>Sessions still spanning partitions; private, may carry internal fields</td></tr>
+          </tbody>
+        </table>
+        <p>Sessionization logic applies three states: <strong>Initialization</strong> (session
+        starts), <strong>Accumulation</strong> (session is live, data folds in),
+        <strong>Finalization</strong> (session ends on event type or inactivity).</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Consequences</div>
+        <div class="gotcha-item"><span class="gname">Inactivity period —</span>
+          Longer periods capture more late data but cost more compute/storage. Emitting partial
+          sessions early risks consumers treating an interim state as final.</div>
+        <div class="gotcha-item"><span class="gname">Data freshness —</span>
+          Batch-bound insight lag; partial-session emission is the main mitigation.</div>
+        <div class="gotcha-item"><span class="gname">Late data / backfilling —</span>
+          Sessions are <strong>forward dependent</strong>: 09:00's session affects 10:00's, which
+          affects 11:00's. Backfilling one partition means backfilling all subsequent ones.</div>
+      </div>
+      <div class="callout case"><span class="clabel">🧩 Case Study</span>
+        The blog platform's two-hour inactivity window, spanning up to three hourly partitions
+        per session, is the concrete numeric example used throughout this pattern.</div>
+      <div class="subsec"><div class="subsec-label">Examples</div>
+        <div class="code-block"><div class="code-label"><span>Session merge logic</span><span>sql</span></div>
+<pre><code>CREATE TEMPORARY TABLE sessions_to_classify AS
+SELECT
+  COALESCE(p.session_id, n.session_id) AS session_id,
+  LEAST(p.start_time, n.start_time) AS start_time,
+  GREATEST(p.last_visit_time, n.start_time) AS last_visit_time,
+  ARRAY_CAT(p.pages, n.pages) AS pages,
+  CASE WHEN n.user_id IS NULL THEN p.expiration_batch_id
+       ELSE '{{ macros.ds_add(ds, 2) }}' END AS expiration_batch_id
+FROM (SELECT ... FROM visits_{{ ds_nodash }}) AS n
+FULL OUTER JOIN (SELECT ... FROM dedp.pending_sessions
+  WHERE execution_time_id = '{{ prev_ds }}') AS p ON n.session_id = p.session_id;</code></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-head">
+      <h3>Pattern: Stateful Sessionizer</h3>
+      <span class="pattern-tag">Sessionization</span>
+    </div>
+    <div class="pattern-body">
+      <div class="subsec"><div class="subsec-label">Problem</div>
+        <p>Stakeholders want <strong>lower latency</strong> than the hourly-bound Incremental
+        Sessionizer can offer. Visits are available on the stream within seconds — the pipeline
+        needs to run near real time.</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Solution</div>
+        <p>Uses a <strong>state store</strong> — in-memory for speed, checkpointed regularly to
+        fault-tolerant storage. Two abstractions: <strong>session windows</strong> (fixed gap
+        duration per key) or <strong>arbitrary stateful processing</strong> (dynamic gap logic,
+        more implementation effort, more flexibility — supported by Spark, Flink, GCP Dataflow).</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Consequences</div>
+        <div class="gotcha-item"><span class="gname">At-least-once processing —</span>
+          Checkpointing is irregular, so restarts resume from the last checkpoint. Avoid
+          session-key logic tied to values that change between runs (e.g. wall-clock time).</div>
+        <div class="gotcha-item"><span class="gname">Scaling —</span>
+          Capacity changes trigger state rebalancing — costlier than stateless jobs.</div>
+        <div class="gotcha-item"><span class="gname">Inactivity period time —</span>
+          Event-time expiration is reliable; processing-time expiration risks expiring sessions
+          too early under unexpected latency (e.g. write retries).</div>
+      </div>
+      <div class="callout say"><span class="clabel">✅ Say this out loud</span>
+        "I picked event-time-based expiration over processing-time for the session state —
+        processing time ties correctness to wall-clock latency, and any retry-induced delay would
+        expire sessions prematurely."</div>
+      <div class="subsec"><div class="subsec-label">Examples</div>
+        <div class="code-block"><div class="code-label"><span>Stateful mapping</span><span>python</span></div>
+<pre><code>grouped_visits = (visits_from_kafka.withWatermark('event_time', '1 minute')
+    .groupBy(F.col('visit_id')))
+
+sessions = grouped_visits.applyInPandasWithState(
+    func=map_visits_to_session,
+    outputStructType=StructType([...]),
+    stateStructType=StructType([...]),
+    outputMode="update", timeoutConf="EventTimeTimeout"
+)</code></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <caption>Trade-off — Sessionization</caption>
+    <thead><tr><th>Pattern</th><th>When to use</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td class="pname">Incremental Sessionizer</td><td>Batch pipelines, hourly-partitioned input</td><td>Latency bounded by partition size; expensive forward-dependent backfills</td></tr>
+      <tr><td class="pname">Stateful Sessionizer</td><td>Near-real-time session availability required</td><td>At-least-once semantics; state rebalancing complicates scaling</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============ DATA ORDERING ============ -->
+  <h2 class="section-head"><span class="n">05</span> Data Ordering</h2>
+  <p class="section-intro">Guaranteeing chronological delivery order downstream — easy to say,
+    hard to guarantee at scale against data stores with <strong>partial commit semantics</strong>.</p>
+
+  <div class="callout warning"><span class="clabel">📌 Note — Partial commits</span>
+    Some bulk writes can partially succeed — ingesting only a subset of records. Of three records
+    timestamped 10:00, 10:10, 10:20, a store might write only 10:20; retrying the rest leaves the
+    dataset out of order. Seen in AWS Kinesis's <code>PutRecords</code>, DynamoDB's
+    <code>BatchWriteItem</code>, and Elasticsearch's bulk operation.</div>
+
+  <div class="diagram-shell">
+    <div class="dtitle">Interactive — Bin Pack Orderer packing (click a stage)</div>
+    <div id="orderer-diagram"></div>
+    <div class="flow-detail placeholder" id="orderer-detail">Click a stage above to see what it does.</div>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-head">
+      <h3>Pattern: Bin Pack Orderer</h3>
+      <span class="pattern-tag">Data Ordering</span>
+    </div>
+    <div class="pattern-body">
+      <div class="subsec"><div class="subsec-label">Problem</div>
+        <p>External sites embed the platform's pages; embed visit events must reach an external
+        API for partner analytics. The sync job must build a 10-minute window with per-minute
+        aggregates and flush individually per minute/provider, in event-time order — but the
+        destination broker has <strong>partial commit semantics</strong>.</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Solution</div>
+        <p>The <strong>Bin Pack Orderer</strong> uses bulk operations while guaranteeing order
+        under partial commits:</p>
+        <ol>
+          <li><strong>Sort</strong> all related events by grouping key and event time.</li>
+          <li><strong>Pack</strong> sorted rows into bins — one grouping key per bin.</li>
+          <li><strong>Emit bins sequentially</strong> — retries stay local to a bin; the next bin waits for the current one to finish.</li>
+        </ol>
+      </div>
+      <div class="subsec"><div class="subsec-label">Consequences</div>
+        <div class="gotcha-item"><span class="gname">Retries —</span>
+          Order is guaranteed only <em>within a single execution</em>; a full pipeline retry can
+          break overall ordering across runs.</div>
+        <div class="gotcha-item"><span class="gname">Complexity —</span>
+          Needs custom sort-and-bin logic, more than a classical sort call.</div>
+      </div>
+      <div class="subsec"><div class="subsec-label">Examples</div>
+        <div class="code-block"><div class="code-label"><span>Local sort + bin packing</span><span>python</span></div>
+<pre><code>(events.sortWithinPartitions([F.col('visit_id'), F.col('event_time')])
+    .foreachPartition(lambda rows: write_records_to_kinesis(...)))
+
+def write_records_to_kinesis(output_stream, visits_rows):
+    delivery_groups = []
+    groups_index = 0
+    last_visit_id = None
+    for visit in visits_rows:
+        if visit.visit_id != last_visit_id:
+            last_visit_id = visit.visit_id
+            groups_index = 0
+        if len(delivery_groups) &lt;= groups_index:
+            delivery_groups.append([])
+        delivery_groups[groups_index].append(visit)
+        groups_index += 1</code></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pattern-card">
+    <div class="pattern-head">
+      <h3>Pattern: FIFO Orderer</h3>
+      <span class="pattern-tag">Data Ordering</span>
+    </div>
+    <div class="pattern-body">
+      <div class="subsec"><div class="subsec-label">Problem</div>
+        <p>A streaming job must forward detected events, in processing order, to a different
+        stream — <strong>as soon as possible</strong>, so buffering isn't an option.</p>
+      </div>
+      <div class="subsec"><div class="subsec-label">Solution</div>
+        <p>The simpler <strong>FIFO Orderer</strong>: issue delivery requests and wait for each
+        acknowledgment before sending the next.</p>
+        <ul>
+          <li>Single-record API (Kinesis <code>PutRecord</code>, or Kafka <code>send()</code> + sync <code>flush()</code>).</li>
+          <li>Bulk API only with full commit semantics, bounded concurrency (Kafka <code>max.in.flight.requests.per.connection=1</code>, or the idempotent producer, up to 5 concurrent).</li>
+        </ul>
+      </div>
+      <div class="subsec"><div class="subsec-label">Consequences</div>
+        <div class="gotcha-item"><span class="gname">I/O overhead and latency —</span>
+          One network request per record. Mitigation: multithreading with per-entity process
+          scoping to keep ordering intact per entity.</div>
+        <div class="gotcha-item"><span class="gname">FIFO is not exactly-once —</span>
+          A send-then-ack loop can silently redeliver records if the ack fails after a successful
+          send. Needs one of the idempotency patterns from Chapter 4.</div>
+      </div>
+      <div class="callout warning"><span class="clabel">⚠️ Warning</span>
+        <code>producer.send(message)</code> immediately followed by
+        <code>consumer.ack(message)</code> is not safe for exactly-once — if <code>ack()</code>
+        fails after a successful send, a restart resends already-delivered records.</div>
+      <div class="callout say"><span class="clabel">✅ Say this out loud</span>
+        "FIFO Orderer gives me delivery order, not delivery guarantees — for exactly-once I still
+        need to layer one of the idempotency patterns from Chapter 4 on top."</div>
+      <div class="subsec"><div class="subsec-label">Examples</div>
+        <div class="code-block"><div class="code-label"><span>Idempotent producer</span><span>python</span></div>
+<pre><code>producer = Producer({
+    'max.in.flight.requests.per.connection': 5,
+    'enable.idempotence': True,
+    'queue.buffering.max.ms': 2000
+})
+producer.produce(...)</code></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <caption>Trade-off — Data Ordering</caption>
+    <thead><tr><th>Pattern</th><th>When to use</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td class="pname">Bin Pack Orderer</td><td>Destination has partial-commit semantics; bulk throughput matters</td><td>Order guaranteed per-execution only; nontrivial bin logic</td></tr>
+      <tr><td class="pname">FIFO Orderer</td><td>Low volume, latency-sensitive, order over throughput</td><td>Per-record I/O overhead; not exactly-once alone</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============ GOTCHAS ============ -->
+  <h2 class="section-head"><span class="n">06</span> Gotchas — By Pattern</h2>
+  <div class="tab-row" id="gotcha-tabs">
+    <button class="tab-btn active" data-filter="all">All</button>
+    <button class="tab-btn" data-filter="Enrichment">Enrichment</button>
+    <button class="tab-btn" data-filter="Decoration">Decoration</button>
+    <button class="tab-btn" data-filter="Aggregation">Aggregation</button>
+    <button class="tab-btn" data-filter="Sessionization">Sessionization</button>
+    <button class="tab-btn" data-filter="Ordering">Ordering</button>
+  </div>
+  <div id="gotcha-list">
+    <div class="pattern-card" data-group="Enrichment"><div class="pattern-body" style="padding-top:1.2rem;">
+      <div class="gotcha-item"><span class="gname">Static Joiner —</span> Late data breaks
+      consistency between enrichment and enriched datasets; idempotent backfills may require SCD.</div>
+      <div class="gotcha-item"><span class="gname">Dynamic Joiner —</span> Space-vs-exactness
+      trade-off from the GC watermark buffer; late data can be silently dropped past the watermark.</div>
+    </div></div>
+    <div class="pattern-card" data-group="Decoration"><div class="pattern-body" style="padding-top:1.2rem;">
+      <div class="gotcha-item"><span class="gname">Wrapper —</span> Domain split across raw/computed
+      structures; payload size grows since decorated values are part of the record.</div>
+      <div class="gotcha-item"><span class="gname">Metadata Decorator —</span> Fully dependent on
+      storage's native metadata support (e.g. Kinesis has no headers); scope must stay metadata-only.</div>
+    </div></div>
+    <div class="pattern-card" data-group="Aggregation"><div class="pattern-body" style="padding-top:1.2rem;">
+      <div class="gotcha-item"><span class="gname">Distributed Aggregator —</span> Network exchange
+      (shuffle) cost; data skew on hot keys; reclaiming compute after the reduce phase.</div>
+      <div class="gotcha-item"><span class="gname">Local Aggregator —</span> Frozen/costly scaling
+      tied to static partitioning; requires one shared grouping key across all consumers.</div>
+    </div></div>
+    <div class="pattern-card" data-group="Sessionization"><div class="pattern-body" style="padding-top:1.2rem;">
+      <div class="gotcha-item"><span class="gname">Incremental Sessionizer —</span> Inactivity
+      period trades cost against completeness; forward-dependent sessions make backfills expensive.</div>
+      <div class="gotcha-item"><span class="gname">Stateful Sessionizer —</span> At-least-once
+      processing from irregular checkpointing; state rebalancing complicates scaling.</div>
+    </div></div>
+    <div class="pattern-card" data-group="Ordering"><div class="pattern-body" style="padding-top:1.2rem;">
+      <div class="gotcha-item"><span class="gname">Bin Pack Orderer —</span> Ordering guarantee
+      only holds within a single execution, not across pipeline-level retries.</div>
+      <div class="gotcha-item"><span class="gname">FIFO Orderer —</span> Per-record I/O overhead
+      and latency; FIFO order is not the same thing as exactly-once delivery.</div>
+    </div></div>
+  </div>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <div class="cheat-panel">
+    <h2>⚡ Cheat Sheet</h2>
+    <div class="cheat-sub">Scan this five minutes before your interview or design review.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card"><h4>Static Joiner</h4><dl>
+        <dt>Problem</dt><dd>Enrich data with a static/slowly-changing reference dataset</dd>
+        <dt>Solution</dt><dd>Key-based JOIN, optionally SCD type 2/4 for time-sensitivity</dd>
+        <dt>Gotcha</dt><dd class="gotcha">Late data breaks consistency; backfills need SCD</dd>
+      </dl></div>
+      <div class="cheat-card"><h4>Dynamic Joiner</h4><dl>
+        <dt>Problem</dt><dd>Enrich a stream with another fast-moving stream</dd>
+        <dt>Solution</dt><dd>Watermarked, time-bounded buffers + GC watermark</dd>
+        <dt>Gotcha</dt><dd class="gotcha">Space-vs-exactness trade-off; late data still dropped</dd>
+      </dl></div>
+      <div class="cheat-card"><h4>Wrapper</h4><dl>
+        <dt>Problem</dt><dd>Separate computed attributes from raw record, keep both visible</dd>
+        <dt>Solution</dt><dd>Envelope struct wrapping raw + computed fields</dd>
+        <dt>Gotcha</dt><dd class="gotcha">Domain split; larger payload</dd>
+      </dl></div>
+      <div class="cheat-card"><h4>Metadata Decorator</h4><dl>
+        <dt>Problem</dt><dd>Attach technical context invisibly to end users</dd>
+        <dt>Solution</dt><dd>Native metadata layer or hidden column/table</dd>
+        <dt>Gotcha</dt><dd class="gotcha">Storage-dependent; Kinesis lacks native metadata</dd>
+      </dl></div>
+      <div class="cheat-card"><h4>Distributed Aggregator</h4><dl>
+        <dt>Problem</dt><dd>Aggregate records not guaranteed colocated by key</dd>
+        <dt>Solution</dt><dd>Shuffle: exchange + group + reduce (MapReduce)</dd>
+        <dt>Gotcha</dt><dd class="gotcha">Shuffle network cost; data skew on hot keys</dd>
+      </dl></div>
+      <div class="cheat-card"><h4>Local Aggregator</h4><dl>
+        <dt>Problem</dt><dd>Aggregate without a shuffle</dd>
+        <dt>Solution</dt><dd>Static, correct producer-side partitioning by key</dd>
+        <dt>Gotcha</dt><dd class="gotcha">Frozen scaling; one grouping key for all consumers</dd>
+      </dl></div>
+      <div class="cheat-card"><h4>Incremental Sessionizer</h4><dl>
+        <dt>Problem</dt><dd>Sessions spread across hourly batch partitions</dd>
+        <dt>Solution</dt><dd>Input + completed + pending session storage, combined each run</dd>
+        <dt>Gotcha</dt><dd class="gotcha">Forward-dependent backfills; batch-bound freshness</dd>
+      </dl></div>
+      <div class="cheat-card"><h4>Stateful Sessionizer</h4><dl>
+        <dt>Problem</dt><dd>Near-real-time sessions on a stream</dd>
+        <dt>Solution</dt><dd>State store — session windows or arbitrary stateful processing</dd>
+        <dt>Gotcha</dt><dd class="gotcha">At-least-once semantics; state rebalancing on scale</dd>
+      </dl></div>
+      <div class="cheat-card"><h4>Bin Pack Orderer</h4><dl>
+        <dt>Problem</dt><dd>Order under partial-commit destination semantics</dd>
+        <dt>Solution</dt><dd>Sort by key+time, pack into single-key bins, emit sequentially</dd>
+        <dt>Gotcha</dt><dd class="gotcha">Order guaranteed per-execution only; complex bin logic</dd>
+      </dl></div>
+      <div class="cheat-card"><h4>FIFO Orderer</h4><dl>
+        <dt>Problem</dt><dd>Strict arrival-order delivery, low latency</dd>
+        <dt>Solution</dt><dd>Single-record or bounded-concurrency bulk delivery + ack</dd>
+        <dt>Gotcha</dt><dd class="gotcha">I/O overhead; not exactly-once by itself</dd>
+      </dl></div>
+    </div>
+  </div>
+
+  <!-- ============ FURTHER READING ============ -->
+  <div class="reading-list">
+    <h2 class="section-head" style="margin-top:2.6rem;"><span class="n">07</span> Further Reading</h2>
+    <ul>
+      <li><strong>Chapter 2</strong> — Readiness Marker &amp; Incremental Loader, referenced for
+      mitigating Static Joiner and Incremental Sessionizer consequences.</li>
+      <li><strong>Chapter 3</strong> — Late Data Detector and late-data tracking, referenced from
+      both Data Enrichment patterns.</li>
+      <li><strong>Chapter 4</strong> — Idempotency patterns, referenced as the fix for FIFO
+      Orderer's "not exactly-once" gotcha.</li>
+      <li><strong>Chapter 7</strong> — "Fine-Grained Accessor for Tables," referenced for hiding
+      Metadata Decorator columns from end users.</li>
+      <li><strong>Chapter 9</strong> — Schema Consistency patterns, referenced for managing
+      Wrapper's multiple structural implementations.</li>
+    </ul>
+    <div class="special-notes">
+      <h4>Special / tool notes</h4>
+      <ul>
+        <li><strong>Amazon Kinesis Data Streams</strong> does not support record headers — rules
+        out the native metadata-layer approach for Metadata Decorator on that platform.</li>
+        <li><strong>Apache Spark</strong> has no explicit "avoid shuffle" hint, but
+        <code>mapPartitions</code>/<code>foreachPartition</code> plus matching bucket
+        configuration approximate the Local Aggregator manually.</li>
+        <li><strong>Apache Kafka's idempotent producer</strong>
+        (<code>enable.idempotence=True</code>) allows up to 5 concurrent in-flight requests while
+        preserving order.</li>
+        <li><strong><code>spark.sql.autoBroadcastJoinThreshold</code></strong> controls
+        broadcasting behavior for large reference tables in join-heavy enrichment pipelines.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<footer class="colophon">
+  Chapter 5 of 10 — Data Engineering Design Patterns · Bartosz Konieczny · O'Reilly, 2025 ·
+  Study guide generated for interview &amp; design-review prep
+</footer>
+
+<script>
+// ============ INTERACTIVE SVG DIAGRAMS ============
+const NS = "http://www.w3.org/2000/svg";
+
+function makeNode(x, y, w, h, label, sub, fill, stroke){
+  const g = document.createElementNS(NS, "g");
+  g.setAttribute("class", "flow-node");
+  g.setAttribute("tabindex", "0");
+  g.setAttribute("role", "button");
+  const r = document.createElementNS(NS, "rect");
+  r.setAttribute("x", x); r.setAttribute("y", y);
+  r.setAttribute("width", w); r.setAttribute("height", h);
+  r.setAttribute("rx", 6);
+  r.setAttribute("fill", fill);
+  r.setAttribute("stroke", stroke);
+  r.setAttribute("stroke-width", "1.5");
+  g.appendChild(r);
+  const t1 = document.createElementNS(NS, "text");
+  t1.setAttribute("x", x + w/2); t1.setAttribute("y", y + h/2 - (sub ? 6 : -4));
+  t1.setAttribute("text-anchor", "middle");
+  t1.setAttribute("font-family", "var(--font-mono)");
+  t1.setAttribute("font-size", "12.5");
+  t1.setAttribute("font-weight", "700");
+  t1.setAttribute("fill", "#1b2430");
+  t1.textContent = label;
+  g.appendChild(t1);
+  if(sub){
+    const t2 = document.createElementNS(NS, "text");
+    t2.setAttribute("x", x + w/2); t2.setAttribute("y", y + h/2 + 12);
+    t2.setAttribute("text-anchor", "middle");
+    t2.setAttribute("font-family", "var(--font-body)");
+    t2.setAttribute("font-size", "10.5");
+    t2.setAttribute("fill", "#4a5568");
+    t2.textContent = sub;
+    g.appendChild(t2);
+  }
+  return g;
+}
+
+function makeArrow(x1,y1,x2,y2,dashed){
+  const l = document.createElementNS(NS, "line");
+  l.setAttribute("x1",x1); l.setAttribute("y1",y1);
+  l.setAttribute("x2",x2); l.setAttribute("y2",y2);
+  l.setAttribute("stroke", "#8891a0");
+  l.setAttribute("stroke-width", "1.6");
+  l.setAttribute("marker-end", "url(#arrowhead)");
+  if(dashed) l.setAttribute("stroke-dasharray", "4,3");
+  return l;
+}
+
+function svgDefs(svg){
+  const defs = document.createElementNS(NS, "defs");
+  const marker = document.createElementNS(NS, "marker");
+  marker.setAttribute("id","arrowhead"); marker.setAttribute("markerWidth","8");
+  marker.setAttribute("markerHeight","8"); marker.setAttribute("refX","7"); marker.setAttribute("refY","3");
+  marker.setAttribute("orient","auto");
+  const path = document.createElementNS(NS,"path");
+  path.setAttribute("d","M0,0 L8,3 L0,6 Z"); path.setAttribute("fill","#8891a0");
+  marker.appendChild(path); defs.appendChild(marker); svg.appendChild(defs);
+}
+
+function attachDetail(g, detailEl, text){
+  const show = () => { detailEl.textContent = text; detailEl.classList.remove("placeholder"); };
+  g.addEventListener("click", show);
+  g.addEventListener("keypress", (e) => { if(e.key === "Enter" || e.key === " ") show(); });
+}
+
+// ---- Diagram 1: Joiner topology ----
+(function(){
+  const container = document.getElementById("joiner-diagram");
+  const detail = document.getElementById("joiner-detail");
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 720 260");
+  svg.setAttribute("class", "flow-svg");
+  svgDefs(svg);
+
+  // Static side
+  const n1 = makeNode(20, 30, 150, 55, "visits (stream)", "always moving", "#fdf6ec", "#b8752f");
+  const n2 = makeNode(20, 130, 150, 55, "users (SCD table)", "at-rest, key-joined", "#eef7f6", "#0e7c86");
+  const n3 = makeNode(240, 80, 160, 55, "Static Joiner", "JOIN on user_id", "#0e7c86", "#0a5a62");
+  n3.querySelector("text").setAttribute("fill", "#fff");
+  const n4 = makeNode(470, 80, 160, 55, "enriched visits", "registration ↔ activity", "#ffffff", "#1b2430");
+
+  svg.appendChild(makeArrow(170,57,240,100));
+  svg.appendChild(makeArrow(170,157,240,115));
+  svg.appendChild(makeArrow(400,107,470,107));
+  [n1,n2,n3,n4].forEach(n=>svg.appendChild(n));
+
+  // Dynamic side
+  const n5 = makeNode(20, 200, 150, 50, "users (CDC stream)", "also moving now", "#fdf6ec", "#b8752f");
+  const n6 = makeNode(240, 190, 160, 55, "Dynamic Joiner", "watermark buffers + GC", "#0e7c86", "#0a5a62");
+  n6.querySelector("text").setAttribute("fill", "#fff");
+  svg.appendChild(makeArrow(170,225,240,220));
+  svg.appendChild(makeArrow(400,217,470,217, true));
+  const dashLabel = document.createElementNS(NS,"text");
+  dashLabel.setAttribute("x", 430); dashLabel.setAttribute("y", 240);
+  dashLabel.setAttribute("font-family","var(--font-mono)"); dashLabel.setAttribute("font-size","9");
+  dashLabel.setAttribute("fill","#8891a0"); dashLabel.textContent = "risk: watermark drop";
+  svg.appendChild(dashLabel);
+  svg.appendChild(n5); svg.appendChild(n6);
+
+  container.appendChild(svg);
+  attachDetail(n1, detail, "visits: the primary streaming dataset — the thing being enriched.");
+  attachDetail(n2, detail, "users as SCD type 2/4: at-rest reference data joined by user_id, with validity windows for time-sensitive joins.");
+  attachDetail(n3, detail, "Static Joiner: a plain key JOIN. Works even with a streaming main dataset, as long as the reference side is at-rest.");
+  attachDetail(n4, detail, "Output: enriched visits carrying user context — but idempotency on replay depends on the SCD implementation.");
+  attachDetail(n5, detail, "Once users also becomes a live CDC stream, Static Joiner's assumptions break — the reference side is no longer at-rest.");
+  attachDetail(n6, detail, "Dynamic Joiner: both sides buffered with watermarks; a GC watermark expires old buffered keys — trading completeness for bounded memory.");
+})();
+
+// ---- Diagram 2: Aggregator ----
+(function(){
+  const container = document.getElementById("agg-diagram");
+  const detail = document.getElementById("agg-detail");
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 720 230");
+  svg.setAttribute("class", "flow-svg");
+  svgDefs(svg);
+
+  const n1 = makeNode(20, 20, 130, 50, "Node A", "keys: 1,4,7", "#eef7f6", "#0e7c86");
+  const n2 = makeNode(20, 90, 130, 50, "Node B", "keys: 2,5,8", "#eef7f6", "#0e7c86");
+  const n3 = makeNode(20, 160, 130, 50, "Node C", "keys: 3,6,9", "#eef7f6", "#0e7c86");
+  const shuffle = makeNode(230, 90, 140, 50, "Shuffle", "network exchange", "#a1433a", "#7a2f28");
+  shuffle.querySelector("text").setAttribute("fill", "#fff");
+  const reduce = makeNode(450, 90, 150, 50, "Distributed reduce", "collocated, then combined", "#0e7c86", "#0a5a62");
+  reduce.querySelector("text").setAttribute("fill", "#fff");
+
+  svg.appendChild(makeArrow(150,45,230,105));
+  svg.appendChild(makeArrow(150,115,230,115));
+  svg.appendChild(makeArrow(150,185,230,125));
+  svg.appendChild(makeArrow(370,115,450,115));
+  [n1,n2,n3,shuffle,reduce].forEach(n=>svg.appendChild(n));
+
+  const local = makeNode(230, 175, 350, 45, "Local Aggregator — same-partition data, no shuffle", "", "#fdf6ec", "#b8752f");
+  svg.appendChild(makeArrow(150,150,230,197, true));
+  svg.appendChild(local);
+
+  container.appendChild(svg);
+  attachDetail(n1, detail, "Each node holds a shard of the data; keys are scattered across nodes with no colocation guarantee.");
+  attachDetail(n2, detail, "Same as Node A — records sharing a grouping key can live on any node.");
+  attachDetail(n3, detail, "Distributed Aggregator's core assumption: you cannot know in advance which node holds which key.");
+  attachDetail(shuffle, detail, "The shuffle: records move across the network so all rows for a given key land on the same reducer. This is the costly, skew-prone step.");
+  attachDetail(reduce, detail, "Reduce runs once matching keys are collocated. Partial pre-aggregation (e.g. partial COUNT) before the shuffle shrinks what's exchanged.");
+  attachDetail(local, detail, "Local Aggregator skips the shuffle entirely — only viable when the producer guarantees a key always lands in the same partition.");
+})();
+
+// ---- Diagram 3: Bin Pack Orderer stages ----
+(function(){
+  const container = document.getElementById("orderer-diagram");
+  const detail = document.getElementById("orderer-detail");
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 720 170");
+  svg.setAttribute("class", "flow-svg");
+  svgDefs(svg);
+
+  const n1 = makeNode(10, 55, 150, 60, "1 · Sort", "by key + event_time", "#eef7f6", "#0e7c86");
+  const n2 = makeNode(200, 55, 170, 60, "2 · Pack into bins", "one key per bin", "#eef7f6", "#0e7c86");
+  const n3 = makeNode(410, 55, 170, 60, "3 · Emit sequentially", "next bin waits", "#0e7c86", "#0a5a62");
+  n3.querySelector("text").setAttribute("fill","#fff");
+  const n4 = makeNode(610, 55, 100, 60, "Ordered\ndelivery", "", "#ffffff", "#1b2430");
+
+  svg.appendChild(makeArrow(160,85,200,85));
+  svg.appendChild(makeArrow(370,85,410,85));
+  svg.appendChild(makeArrow(580,85,610,85));
+  [n1,n2,n3,n4].forEach(n=>svg.appendChild(n));
+
+  container.appendChild(svg);
+  attachDetail(n1, detail, "Sort step: records are ordered by grouping key, then by event_time within each key — a local, partition-level sort.");
+  attachDetail(n2, detail, "Bin packing: sorted rows are placed into bins such that each bin holds only one grouping key — this isolates retries per key.");
+  attachDetail(n3, detail, "Sequential emission: bins are delivered one at a time via bulk API; the next bin doesn't go out until the current one fully writes.");
+  attachDetail(n4, detail, "Result: ordering holds within this execution. A full pipeline retry, however, can still replay already-emitted bins out of sequence.");
+})();
+
+// ============ GOTCHA TABS ============
+(function(){
+  const tabs = document.querySelectorAll("#gotcha-tabs .tab-btn");
+  const cards = document.querySelectorAll("#gotcha-list [data-group]");
+  tabs.forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      tabs.forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      const f = btn.dataset.filter;
+      cards.forEach(c=>{
+        c.style.display = (f === "all" || c.dataset.group === f) ? "" : "none";
+      });
+    });
+  });
+})();
+</script>
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

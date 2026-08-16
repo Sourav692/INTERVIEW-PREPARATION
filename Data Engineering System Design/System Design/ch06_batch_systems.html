@@ -1,0 +1,980 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.6 — Batch Systems | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:600;
+    margin:60px 0 18px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:18px;
+    font-weight:700;
+    margin:32px 0 12px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  .opening-lines{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:28px 28px 20px;
+    margin:28px 0 40px;
+  }
+  .opening-lines .label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    margin-bottom:16px;
+  }
+  .opening-lines blockquote{
+    font-family:var(--serif);
+    font-size:17px;
+    font-style:italic;
+    color:#eef1f5;
+    margin:0 0 18px;
+    padding-left:16px;
+    border-left:2px solid var(--amber);
+  }
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+
+  .pattern-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;}
+  @media(max-width:680px){.pattern-pair{grid-template-columns:1fr;}}
+  .pattern-pair .callout{margin:0;}
+
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{
+    background:var(--bg-panel-raised);
+    text-align:left;
+    padding:12px 16px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    border-bottom:1px solid var(--rule);
+  }
+  td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink-dim);
+    vertical-align:top;
+  }
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+
+  pre{
+    background:#0a0d12;
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+    margin:20px 0;
+    position:relative;
+  }
+  pre .lang{
+    position:absolute;top:10px;right:14px;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--ink-faint);
+  }
+  pre code{background:none;padding:0;color:#c3d6e8;}
+  .sql-kw{color:var(--amber);}
+  .sql-str{color:var(--green);}
+  .sql-com{color:var(--ink-faint);font-style:italic;}
+
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .further-reading strong{color:var(--ink);}
+
+  .supplementary{
+    border:1px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 24px;
+    margin-top:24px;
+    background:var(--bg-panel);
+  }
+  .supplementary-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: shuffle skew bar chart --- */
+  .skew-widget{display:flex;flex-direction:column;gap:16px;}
+  .skew-bars{
+    display:flex;
+    align-items:flex-end;
+    gap:20px;
+    height:220px;
+    padding:0 12px;
+    border-bottom:2px solid var(--rule);
+  }
+  .skew-bar-col{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-end;
+    height:100%;
+    cursor:pointer;
+  }
+  .skew-bar{
+    width:100%;
+    max-width:80px;
+    border-radius:6px 6px 0 0;
+    transition:height 0.6s cubic-bezier(0.2,0.8,0.2,1), filter 0.2s;
+    position:relative;
+  }
+  .skew-bar-col:hover .skew-bar{filter:brightness(1.2);}
+  .skew-bar-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--ink-dim);
+    margin-top:10px;
+    text-align:center;
+  }
+  .skew-bar-val{
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .skew-detail{
+    font-size:13.5px;
+    color:var(--ink-dim);
+    padding:14px 16px;
+    background:#0a0d12;
+    border-left:2px solid var(--amber);
+    border-radius:0 6px 6px 0;
+    min-height:24px;
+  }
+
+  /* --- Interactive: join strategy picker --- */
+  .join-picker{display:flex;flex-direction:column;gap:12px;}
+  .join-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .join-tab{
+    font-family:var(--mono);
+    font-size:12.5px;
+    padding:10px 16px;
+    border-radius:7px;
+    border:1px solid var(--rule);
+    background:var(--bg-panel-raised);
+    color:var(--ink-dim);
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .join-tab:hover{border-color:var(--amber);color:var(--ink);}
+  .join-tab.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .join-panel{
+    background:#0a0d12;
+    border-radius:8px;
+    padding:20px;
+    display:none;
+  }
+  .join-panel.show{display:block;}
+  .join-panel h4{margin:0 0 10px;color:var(--amber);font-size:15px;}
+  .join-panel p{font-size:14px;margin-bottom:10px;}
+  .join-panel .jp-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;}
+  .join-panel .jp-item{flex:1;min-width:140px;}
+  .join-panel .jp-item .jp-label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px;}
+  .join-panel .jp-item .jp-value{font-size:13.5px;color:var(--ink);}
+
+  /* --- Interactive: SLA / time-budget calculator --- */
+  .sla-calc{
+    background:#0a0d12;
+    border-radius:10px;
+    padding:24px;
+  }
+  .sla-inputs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
+  @media(max-width:600px){.sla-inputs{grid-template-columns:1fr;}}
+  .sla-input-group label{
+    display:block;
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-faint);
+    margin-bottom:8px;
+  }
+  .sla-input-group input[type=range]{width:100%;accent-color:var(--amber);}
+  .sla-input-group .sla-val{
+    font-family:var(--mono);
+    font-size:15px;
+    color:var(--amber);
+    font-weight:700;
+    margin-top:4px;
+  }
+  .sla-result{
+    background:var(--bg-panel-raised);
+    border-radius:8px;
+    padding:20px;
+    text-align:center;
+  }
+  .sla-result-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--ink-faint);letter-spacing:0.08em;}
+  .sla-result-value{font-family:var(--mono);font-size:32px;font-weight:700;color:var(--green);margin:8px 0;}
+  .sla-result-sub{font-size:13px;color:var(--ink-dim);}
+  .sla-result.danger .sla-result-value{color:var(--red);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 6</div>
+    <h1 class="title">Batch Systems</h1>
+    <p class="subtitle">A batch job is just a big task that runs overnight and has to finish
+    before someone needs it. This chapter is really about one idea: things break sometimes, and a
+    good batch system is built assuming that — not hoping around it.</p>
+    <div class="chap-note">Printed as "Chapter Five" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 6.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Think of a batch job like a bakery prepping bread overnight so it's ready by 6 AM. It has
+    to finish on a schedule, before someone needs the result.</p>
+    <p>The whole chapter comes down to this: <strong>a batch pipeline that only works when
+    nothing breaks isn't a real system — it's a demo.</strong> Everything below builds on that
+    one idea.</p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>In Spark, shuffle is the cost model. Every optimization is "shuffle less" or
+    "shuffle smarter."</blockquote>
+    <blockquote>The SLA isn't the deadline. It's the deadline minus the recovery window minus the
+    operator paging budget.</blockquote>
+    <blockquote>Broadcast joins beat shuffle joins most of the time. Knowing when they don't, and
+    which shuffle strategy fits, is the other half of the answer.</blockquote>
+    <blockquote>A nightly DAG needs 99% reliability with a 30-minute backfill window, not 100%
+    reliability.</blockquote>
+    <blockquote>Every operator has to be partition-idempotent. A job that can't be safely rerun on
+    a single failed partition isn't a batch system; it's a one-shot script with a cron.</blockquote>
+  </div>
+
+  <h2 id="two-teams">Why Two Teams With the Same Job Have Very Different Nights</h2>
+  <p>Imagine two teams. Both run a huge nightly job — about 500 terabytes of data in, 50
+  terabytes of useful summary data out. Both jobs usually finish on time. Both teams are equally
+  skilled.</p>
+  <p>But one team gets woken up at 2 AM twice a month. The other gets woken up once every three
+  months.</p>
+  <p>Same code, same size job, same cluster. So what's different?</p>
+  <p><strong>The team that sleeps better planned for the bad nights.</strong> They assumed the job
+  would occasionally break partway through, and built the system so fixing it is quick. The other
+  team assumed things would keep working — and when they didn't, there was no fast way to
+  recover.</p>
+  <p>Three things make the difference:</p>
+  <ol>
+    <li><strong>Understand what actually costs time and money</strong> — almost always, it's
+    moving data between machines.</li>
+    <li><strong>Pick the right way to combine two datasets</strong> — the wrong choice can turn a
+    2-hour job into a 20-hour one.</li>
+    <li><strong>Design so a failure only costs a little time to fix</strong>, not a full redo.</li>
+  </ol>
+
+  <h2 id="shuffle">Idea 1: Most of the Cost Is Moving Data Around, Not Computing</h2>
+  <p>Picture organizing a company potluck: 10,000 people, 10,000 dishes, and you need to match
+  each person to their dish. If names and dishes are already sitting next to each other, it's
+  fast. But if names are scattered across 50 rooms in the building, someone has to physically
+  carry information between rooms first. <strong>That carrying between rooms is the expensive
+  part</strong> — not the matching itself.</p>
+  <p>In Spark, this "carrying information between rooms" is called a <strong>shuffle</strong>. It
+  happens whenever the system needs to group matching things together — like combining two
+  tables on a shared ID, or adding up totals per customer.</p>
+  <div class="callout signal" style="border-left-color:var(--green);">
+    <div class="cal-label" style="color:var(--green);">💡 The one idea to remember</div>
+    <p>Shuffling data between machines is slow and expensive. When someone asks "how do I make
+    this job faster," think "how much data is moving, and can I reduce that?" — not "should I add
+    more computers?"</p>
+  </div>
+
+  <h3>What actually happens during a shuffle</h3>
+  <ul>
+    <li><strong>Writing side</strong> — each machine writes its data to disk, sorted into
+    buckets, one per machine that needs it next. Picture 200 machines each writing 200 separate
+    piles of paper.</li>
+    <li><strong>Moving side</strong> — every receiving machine collects its bucket from every
+    writer. With 200 writers and 200 receivers, that's up to 40,000 tiny file transfers — real
+    network traffic, gigabytes to terabytes per job.</li>
+    <li><strong>Combining side</strong> — each machine merges what it collected and does the real
+    work. If it gets handed more than fits in memory, it spills to disk — much slower, and usually
+    the moment a job starts to crawl.</li>
+  </ul>
+  <p><strong>One setting that trips people up:</strong> <code>spark.sql.shuffle.partitions</code>
+  controls how many buckets data splits into. It defaults to 200 — chosen years ago for much
+  smaller data. Shuffling 300 TB into only 200 buckets means each machine holds 1.5 TB — way too
+  much. Aim for 128 MB–1 GB per bucket and let Spark's automatic tuning (AQE) adjust at runtime.</p>
+
+  <h3>When one bucket gets way more than its fair share</h3>
+  <p>Picture a call center: most agents get a normal number of calls, but one agent handling a
+  huge VIP account gets ten times as many. Everyone else clocks out on time; that one agent is
+  still on the phone hours later, and nobody can go home until they're done.</p>
+  <p>That's what happens when one group (one huge customer) has way more data than everyone
+  else. That bucket becomes a bottleneck the whole job has to wait for. This is called
+  <strong>skew</strong>.</p>
+
+  <h3>Interactive — one overloaded bucket slows the whole job down</h3>
+  <p>Click each bar to see how long that bucket's machine takes.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a bucket</div>
+    <div class="skew-widget">
+      <div class="skew-bars" id="skewBars"></div>
+      <div class="skew-detail" id="skewDetail">The overall data was reasonably balanced, but one
+      bucket ended up with 80% of the bytes. Click a bar above to see what that means for its
+      machine.</div>
+    </div>
+    <p class="diagram-caption">1 TB of data split into 4 buckets. One bucket holds a single giant
+    customer's data and ends up 8x bigger than the others — its machine runs 8x longer, and the
+    whole job waits on it.</p>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>When an interviewer asks "how would you optimize this Spark job?" they want to hear you
+    talk about shuffling first — how much data is moving, and whether it's spread evenly. If your
+    first instinct is "give it more memory" or "add more machines," that tells them you're fixing
+    the wrong problem.</p>
+  </div>
+
+  <h2 id="joins">Idea 2: Combining Two Datasets — Pick the Right Strategy</h2>
+  <p>"Joining" two datasets just means matching up rows that share something in common, like a
+  customer ID. There are three ways to do this at scale — click each one below to see how it
+  works, like planning a wedding seating chart.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — select a strategy</div>
+    <div class="join-picker">
+      <div class="join-tabs" id="joinTabs"></div>
+      <div id="joinPanels"></div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Strategy</th><th>Good for</th><th>Watch out for</th><th>Use it when</th></tr></thead>
+      <tbody>
+        <tr><td>Broadcast (copy the small one)</td><td>Fastest option by far</td><td>Crashes if the "small" table isn't actually small in production</td><td>One side is under ~2 GB in real production data</td></tr>
+        <tr><td>Shuffle-and-sort (both sides move)</td><td>Works no matter the size, very predictable</td><td>Costs the most — both sides move</td><td>Neither side is small, data fairly evenly spread</td></tr>
+        <tr><td>Salted (split up the giant customer)</td><td>Stops one machine from getting stuck</td><td>A little more setup, moves slightly more total data</td><td>One customer/key is more than ~10% of all the data</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <pre><span class="lang">python</span><code><span class="sql-com"># src/code-examples/ch05/spark_salted_skew_join.py
+# Give every row on the big side a random number from 0-15 ("salt").
+# Copy the small side 16 times, once per possible salt value.
+# Now the one giant customer's rows are split across 16 machines
+# instead of piling onto just one.</span>
+N = 16
+fact_salted = fact.withColumn(<span class="sql-str">"salt"</span>, F.floor(F.rand() * N).cast(<span class="sql-str">"int"</span>))
+dim_fanned = dim.withColumn(
+    <span class="sql-str">"salt"</span>, F.explode(F.array([F.lit(i) <span class="sql-kw">for</span> i <span class="sql-kw">in</span> range(N)]))
+)
+joined = fact_salted.join(dim_fanned, on=[<span class="sql-str">"merchant_id"</span>, <span class="sql-str">"salt"</span>])</code></pre>
+
+  <div class="pattern-pair">
+    <div class="callout antipattern">
+      <div class="cal-label">❌ Anti-Pattern</div>
+      <p>Copying a table you assumed was small, without checking its real size in production. It
+      works fine in testing and crashes the very first time it runs on real data.</p>
+    </div>
+    <div class="callout say">
+      <div class="cal-label">✅ Say this out loud</div>
+      <p>"I'd broadcast the lookup table, and I've checked that it's under 2 GB with real
+      production data — not just in testing."</p>
+    </div>
+  </div>
+
+  <h2 id="recovery">Idea 3: A Good Batch Job Assumes Things Will Break</h2>
+  <p>If a job runs perfectly 99 times out of 100, that still means it fails about
+  <strong>3 to 4 nights a year.</strong> That's just math. A job only built to work on the 99 good
+  nights isn't finished. Play with the calculator below — it's the exact math from the chapter's
+  worked example.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — adjust the sliders</div>
+    <div class="sla-calc">
+      <div class="sla-inputs">
+        <div class="sla-input-group">
+          <label for="slaDeadline">Deadline (hours from job start)</label>
+          <input type="range" id="slaDeadline" min="2" max="12" step="0.5" value="4">
+          <div class="sla-val" id="slaDeadlineVal">4.0 h</div>
+        </div>
+        <div class="sla-input-group">
+          <label for="slaRecovery">Time to rerun if it fails (min)</label>
+          <input type="range" id="slaRecovery" min="15" max="180" step="5" value="90">
+          <div class="sla-val" id="slaRecoveryVal">90 min</div>
+        </div>
+        <div class="sla-input-group">
+          <label for="slaOperator">Time to notice & restart (min)</label>
+          <input type="range" id="slaOperator" min="0" max="60" step="5" value="30">
+          <div class="sla-val" id="slaOperatorVal">30 min</div>
+        </div>
+      </div>
+      <div class="sla-result" id="slaResultBox">
+        <div class="sla-result-label">Your real time budget — the job must finish its normal run by</div>
+        <div class="sla-result-value" id="slaResultVal">2.0 h after start</div>
+        <div class="sla-result-sub" id="slaResultSub">That's the number to design against — not the deadline.</div>
+      </div>
+    </div>
+    <p class="diagram-caption">real time budget = deadline − time to notice/restart − time to
+    rerun. That gap is your buffer for the nights something breaks.</p>
+  </div>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Scheduling a job to finish right at the deadline, with zero buffer. "It runs from midnight
+    to 4 AM and the report is ready at 4:05." The first time anything goes wrong, there's no room
+    left to fix it before people notice.</p>
+  </div>
+
+  <h3>Making a failure cheap to fix</h3>
+  <ul>
+    <li><strong>Make reruns safe to repeat.</strong> Write each day's results into its own
+    clearly separate folder that can be safely replaced — so rerunning doesn't create duplicates.</li>
+    <li><strong>Save your work partway through.</strong> Break long jobs into stages that save
+    progress, so a failure at stage 3 only means redoing stage 3.</li>
+    <li><strong>Only redo the broken piece.</strong> If only Tuesday failed, only rerun Tuesday —
+    not the whole month.</li>
+  </ul>
+
+  <div class="callout war">
+    <div class="cal-label">⚠️ War Story</div>
+    <p>A company ran a huge nightly job (500 terabytes) with a 4-hour deadline. It had worked fine
+    for a year and a half. Then one night, a small upstream change (someone added a field that
+    turned out to be much larger than expected) caused the job to run out of memory four hours in.
+    Because the job wasn't broken into separate, saveable stages, the only way to recover was to
+    rerun the <em>entire</em> thing from scratch — five more hours, blowing right past the
+    deadline. The actual bug was small and boring. The real problem was that the job had no cheap
+    way to recover. The fix was to break the job into stages that save progress, so a failure
+    three-quarters of the way through only costs 45 minutes instead of starting over.</p>
+  </div>
+
+  <div class="callout pattern">
+    <div class="cal-label">✅ Pattern</div>
+    <p>A good rule of thumb: if a single day's data fails, fixing it should take less than 25% of
+    the job's normal total runtime. If fixing one bad day takes almost as long as the whole job,
+    you won't be able to recover before the next deadline hits.</p>
+  </div>
+
+  <h2 id="transcript">A Real Interview, Walked Through Simply</h2>
+  <p>Notice how the candidate asks questions before designing anything, does simple math out
+  loud, and isn't afraid to correct themselves mid-answer.</p>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Design the nightly batch pipeline for a 500 TB event dataset. Daily ingestion. 4-hour
+      deadline. Needs to recover within 1 hour if something breaks.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Before I sketch anything — a few questions. What's the final output, summary tables or
+      raw daily data? What kind of matching am I doing — big data against small reference tables,
+      or two big datasets against each other? Is the data split up by day? And is there a known
+      case where one customer makes up way more data than everyone else?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Summary tables plus an ML rollup. Big data against two small reference tables. Daily
+      folders. And yes — a handful of merchants make up 40% of all the data.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Good — since both reference tables are small, I can copy them to every machine and skip
+      the expensive shuffle for that part entirely.</p>
+      <p>Quick math: 500 TB in, maybe 50 TB out after summarizing. The expensive part is probably
+      around 300 TB once we drop unneeded columns.</p>
+      <p>Time budget: 4 hours total, minus 1 hour recovery, minus 30 minutes to notice and
+      restart — so really 2.5 hours for a clean run. Moving 300 TB in 2.5 hours needs about 33 GB
+      every second. At roughly 750 MB/sec per machine, that's about 45 machines — I'd plan for
+      60 to 80 with margin.</p>
+      <p><em>(pauses)</em> Actually, let me double check that. Splitting 300 TB into the default
+      200 buckets means each machine holds 1.5 TB — way too much. I'd target 256 MB per bucket
+      instead, about 1.2 million smaller buckets, and let automatic tuning combine them. That
+      favors machines with more cores — so 40 machines at 16 cores and 64 GB each, instead of 60
+      at 8 cores. Same total power, better shape for this shuffle.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What about that skewed merchant data?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Matching against users is fine, pretty even. But summarizing by merchant, that one
+      merchant at 40% would pile onto one machine. I'd split it using the salting trick — summarize
+      by (merchant, random-split-number) first, spreading the work out, then a second smaller step
+      combines those pieces back into one number per merchant. At 40% I'd do this by hand rather
+      than trust the automatic fix.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>How do you recover if something fails? What would you watch?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Each day writes to its own folder, so a rerun just replaces that day — no duplicates. I'd
+      split the job into two save-points, after matching and after summarizing, so a late failure
+      doesn't redo the matching step. That brings recovery from 2.5 hours down to about 45
+      minutes. For monitoring, I'd watch three slow-changing things — stage runtime, shuffle
+      volume, and output row count — so a sudden jump is easy to catch before it becomes an
+      outage.</p>
+    </div>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Talking about "how many machines" before "how much data is shuffling."</strong>
+    The machine count should come from the shuffle math, not before it.</li>
+    <li><strong>Assuming a "small" table is actually small, without checking.</strong> Small in
+    testing, 4 GB in production, and the job crashes.</li>
+    <li><strong>Trusting the automatic skew fix for extreme cases.</strong> Fine for mild
+    imbalance. A customer at 40% usually needs the manual fix.</li>
+    <li><strong>Scheduling the job to finish exactly at the deadline.</strong> No buffer means the
+    first real failure becomes a missed deadline in front of everyone.</li>
+    <li><strong>Building one giant job with no save-points.</strong> Any failure means starting
+    completely over.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>The One-Sentence Version</h4>
+        <p>Moving data between machines is the expensive part. Everything else is smaller by
+        comparison.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Your Real Time Budget</h4>
+        <p><code>real budget = deadline − notice/restart − rerun time</code></p>
+        <p>Noticing and restarting takes ~30 min on average. A good rerun takes ~25% of the
+        normal full runtime.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Ways to Combine Data</h4>
+        <ul>
+          <li><strong>Broadcast</strong> — copy the small table, check its real size first</li>
+          <li><strong>Shuffle-and-sort</strong> — the reliable default, both sides move</li>
+          <li><strong>Salted</strong> — split up one giant key, use above ~10% share</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Two Settings Worth Knowing</h4>
+        <p><code>spark.sql.shuffle.partitions = 200</code> (too small at scale — aim for
+        128 MB–1 GB per bucket instead)</p>
+        <p><code>spark.sql.autoBroadcastJoinThreshold = 10 MB</code> (production often raises to
+        100–200 MB+)</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Habits That Make Failures Cheap</h4>
+        <ul>
+          <li>Each day's data lives in its own replaceable folder</li>
+          <li>Long jobs save progress at each stage</li>
+          <li>A single bad day only needs that day rerun</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Moving data between machines is the cost. Everything else is noise."</li>
+          <li>"The deadline isn't the time budget. It's the deadline minus recovery."</li>
+          <li>"If a job can't safely rerun one bad day, it isn't a batch system yet."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Spark vs. Flink for a fast (5-minute) deadline:</strong> a trade-off between
+      speed, operational simplicity, and reusing the same logic later for reprocessing old data —
+      valuable when a business team asks for a redo with different rules.</li>
+      <li><strong>Cutting costs on an always-running job by ~30%:</strong> mixing cheaper,
+      less-guaranteed compute with regular compute; picking memory-heavy machines for memory-heavy
+      work; a more disk-friendly way to store in-progress state; keeping only the most recent
+      day's data "hot."</li>
+      <li><strong>A simpler way to avoid double-counting in batch jobs:</strong> a basic
+      "remove duplicate IDs" step early on, as long as every event has one guaranteed unique ID.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>"Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory
+    Cluster Computing."</strong> Matei Zaharia et al. NSDI 2012. The original Spark paper —
+    explains why minimizing data movement between machines was the whole point.</li>
+    <li><strong>"Spark SQL Performance Tuning"</strong> (Spark's official documentation). The
+    best reference for bucket sizes, broadcast thresholds, and automatic tuning.</li>
+    <li><strong>Site Reliability Engineering (the "SRE Book"), chapters 3–4.</strong> Google,
+    2016. Where the idea of budgeting for a small number of allowed failures per year comes
+    from.</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- Shuffle skew bar chart ----------
+const skewData = [
+  {label:'Bucket 0', pct:10, size:'100 GB', time:'~100s', color:'#5ec9a0', detail:'Bucket 0 — 100 GB (10% of the data). Its machine finishes in ~100 seconds, totally normal.'},
+  {label:'Bucket 1 (HOT)', pct:80, size:'800 GB', time:'~800s', color:'#e2604f', detail:'Bucket 1 — 800 GB (80% of the data, one giant customer lives here). Its machine is pinned at 100% for ~800 seconds — roughly 8x its peers. The whole job waits on this one machine.'},
+  {label:'Bucket 2', pct:5, size:'50 GB', time:'~50s', color:'#5ec9a0', detail:'Bucket 2 — 50 GB (5% of the data). Its machine finishes in ~50 seconds, then just sits idle waiting for Bucket 1.'},
+  {label:'Bucket 3', pct:5, size:'50 GB', time:'~50s', color:'#5ec9a0', detail:'Bucket 3 — 50 GB (5% of the data). Its machine finishes in ~50 seconds, then just sits idle waiting for Bucket 1.'},
+];
+const skewBars = document.getElementById('skewBars');
+const skewDetail = document.getElementById('skewDetail');
+skewData.forEach((d,i)=>{
+  const col = document.createElement('div');
+  col.className = 'skew-bar-col';
+  col.innerHTML = `
+    <div class="skew-bar-val">${d.size}</div>
+    <div class="skew-bar" style="height:0%;background:${d.color}"></div>
+    <div class="skew-bar-label">${d.label}<br>${d.time}</div>
+  `;
+  col.addEventListener('click', ()=>{ skewDetail.textContent = d.detail; });
+  col.addEventListener('mouseenter', ()=>{ skewDetail.textContent = d.detail; });
+  skewBars.appendChild(col);
+  setTimeout(()=>{
+    col.querySelector('.skew-bar').style.height = d.pct+'%';
+  }, 100 + i*100);
+});
+
+// ---------- Join strategy picker ----------
+const joinData = [
+  {
+    id:'broadcast', label:'Broadcast',
+    body:`Copy the small table to every machine. Now each machine has its own full copy and can
+    look things up locally — no shuffling of the big table needed at all. This is the fastest
+    option, but only works if the "small" table is genuinely small enough to fit comfortably in
+    memory on every machine.`,
+    cost:'Almost no shuffle for the big table', risk:'Crashes if the small side is bigger than assumed', threshold:'spark.sql.autoBroadcastJoinThreshold (default 10MB, prod often 100–200MB+)'
+  },
+  {
+    id:'shuffle-sort', label:'Shuffle-and-Sort',
+    body:`Neither table is small, so both get reshuffled so matching rows land on the same
+    machine. This is the standard, reliable approach — it costs more because both sides move, but
+    it's predictable and works at any size.`,
+    cost:'Both sides move — cost is the sum of both', risk:'Slower but predictable', threshold:'The default path when broadcasting is not possible'
+  },
+  {
+    id:'salted', label:'Salted (Fix the Skew)',
+    body:`Used when one customer or key is way bigger than everyone else. Attach a random number
+    ("salt") to that customer's rows, splitting them across several machines instead of one, then
+    match against copies of the smaller side. Spark can sometimes catch this automatically for
+    smaller imbalances.`,
+    cost:'A bit more total data moved (fan-out)', risk:'Extra setup work', threshold:'Worth doing by hand when one key is >10% of all the data'
+  },
+];
+const joinTabs = document.getElementById('joinTabs');
+const joinPanels = document.getElementById('joinPanels');
+joinData.forEach((j,i)=>{
+  const tab = document.createElement('div');
+  tab.className = 'join-tab' + (i===0?' active':'');
+  tab.textContent = j.label;
+  tab.dataset.id = j.id;
+  joinTabs.appendChild(tab);
+
+  const panel = document.createElement('div');
+  panel.className = 'join-panel' + (i===0?' show':'');
+  panel.id = 'panel-'+j.id;
+  panel.innerHTML = `
+    <h4>${j.label}</h4>
+    <p>${j.body}</p>
+    <div class="jp-row">
+      <div class="jp-item"><div class="jp-label">Data Moved</div><div class="jp-value">${j.cost}</div></div>
+      <div class="jp-item"><div class="jp-label">Main Risk</div><div class="jp-value">${j.risk}</div></div>
+      <div class="jp-item"><div class="jp-label">Rule of Thumb</div><div class="jp-value">${j.threshold}</div></div>
+    </div>
+  `;
+  joinPanels.appendChild(panel);
+
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.join-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.join-panel').forEach(p=>p.classList.remove('show'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+j.id).classList.add('show');
+  });
+});
+
+// ---------- Real time budget calculator ----------
+const slaDeadline = document.getElementById('slaDeadline');
+const slaRecovery = document.getElementById('slaRecovery');
+const slaOperator = document.getElementById('slaOperator');
+
+function updateSla(){
+  const deadlineH = parseFloat(slaDeadline.value);
+  const recoveryMin = parseFloat(slaRecovery.value);
+  const operatorMin = parseFloat(slaOperator.value);
+
+  document.getElementById('slaDeadlineVal').textContent = deadlineH.toFixed(1)+' h';
+  document.getElementById('slaRecoveryVal').textContent = recoveryMin+' min';
+  document.getElementById('slaOperatorVal').textContent = operatorMin+' min';
+
+  const realSlaH = deadlineH - (recoveryMin/60) - (operatorMin/60);
+  const box = document.getElementById('slaResultBox');
+  const val = document.getElementById('slaResultVal');
+  const sub = document.getElementById('slaResultSub');
+
+  if(realSlaH <= 0){
+    val.textContent = 'Not enough time';
+    sub.textContent = 'Recovery + restart time is bigger than the deadline itself — this design cannot survive a single failure.';
+    box.classList.add('danger');
+  } else {
+    val.textContent = realSlaH.toFixed(2)+' h after start';
+    sub.textContent = "That's the number to design against — not the deadline.";
+    box.classList.remove('danger');
+  }
+}
+[slaDeadline, slaRecovery, slaOperator].forEach(el=>el.addEventListener('input', updateSla));
+updateSla();
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

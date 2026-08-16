@@ -1,0 +1,460 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.4 — Storage Engines | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;--bg-panel:#151a22;--bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;--ink-dim:#8b96a5;--ink-faint:#5a6472;--rule:#262e3a;
+    --amber:#e8a33d;--amber-dim:#5c451f;--red:#e2604f;--red-dim:#3f2420;
+    --green:#5ec9a0;--green-dim:#1f3a30;--blue:#6fa8dc;--purple:#c98be2;
+    --mono:"IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif:"Source Serif 4","Georgia",serif;--sans:"Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7;font-size:16px;}
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+  .masthead{border-bottom:1px solid var(--rule);padding:56px 24px 40px;
+    background:radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),var(--bg);}
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:14px;}
+  h1.title{font-family:var(--serif);font-weight:600;font-size:clamp(32px,5vw,50px);margin:0 0 12px;letter-spacing:-0.01em;}
+  .subtitle{color:var(--ink-dim);font-size:17px;max-width:640px;margin:0 0 20px;}
+  .chap-note{font-size:13px;color:var(--ink-faint);font-style:italic;border-left:2px solid var(--rule);padding-left:12px;}
+  .simple-banner{background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;border-radius:10px;padding:22px 24px;margin:28px 0;}
+  .simple-banner .sb-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);margin-bottom:10px;}
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+  h2{font-family:var(--serif);font-size:27px;font-weight:600;margin:60px 0 18px;padding-top:22px;border-top:1px solid var(--rule);letter-spacing:-0.01em;}
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{font-family:var(--sans);font-size:18px;font-weight:700;margin:32px 0 12px;color:var(--ink);}
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{font-family:var(--mono);background:var(--bg-panel-raised);padding:2px 6px;border-radius:4px;font-size:0.88em;color:var(--amber);}
+  .opening-lines{background:var(--bg-panel);border:1px solid var(--rule);border-radius:10px;padding:28px 28px 20px;margin:28px 0 40px;}
+  .opening-lines .label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-faint);margin-bottom:16px;}
+  .opening-lines blockquote{font-family:var(--serif);font-size:17px;font-style:italic;color:#eef1f5;margin:0 0 18px;padding-left:16px;border-left:2px solid var(--amber);}
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+  .callout{border-radius:8px;padding:18px 20px;margin:22px 0;border:1px solid var(--rule);background:var(--bg-panel);}
+  .callout .cal-label{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{background:var(--bg-panel-raised);text-align:left;padding:12px 16px;font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--amber);border-bottom:1px solid var(--rule);}
+  td{padding:12px 16px;border-bottom:1px solid var(--rule);color:var(--ink-dim);vertical-align:top;}
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+  .diagram-card{background:var(--bg-panel);border:1px solid var(--rule);border-radius:10px;padding:24px;margin:28px 0;}
+  .diagram-caption{font-size:13px;color:var(--ink-faint);margin-top:14px;font-style:italic;}
+  .diagram-hint{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;}
+  .transcript{background:var(--bg-panel);border:1px solid var(--rule);border-radius:10px;padding:8px 24px;margin:24px 0;}
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+  .cheat-sheet{background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);border:1.5px solid var(--amber-dim);border-radius:14px;padding:32px;margin:40px 0;}
+  .cheat-sheet-title{font-family:var(--mono);color:var(--amber);text-transform:uppercase;letter-spacing:0.14em;font-size:13px;margin-bottom:6px;}
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{background:var(--bg-panel-raised);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;}
+  .cheat-card h4{margin:0 0 10px;font-size:12.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-dim);font-family:var(--mono);}
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul, .cheat-card ol{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .supplementary{border:1px dashed var(--rule);border-radius:10px;padding:22px 24px;margin-top:24px;background:var(--bg-panel);}
+  .supplementary-tag{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:12px;}
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: three axes picker --- */
+  .axes-widget{display:flex;flex-direction:column;gap:14px;}
+  .axis-row{display:flex;flex-direction:column;gap:8px;}
+  .axis-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);}
+  .axis-options{display:flex;gap:8px;}
+  .axis-opt{
+    flex:1;font-family:var(--mono);font-size:13px;padding:12px;border-radius:8px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;text-align:center;transition:all 0.15s;
+  }
+  .axis-opt:hover{border-color:var(--amber);color:var(--ink);}
+  .axis-opt.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .axis-result{
+    margin-top:10px;padding:18px;border-radius:8px;background:#0a0d12;
+    border-left:2px solid var(--amber);text-align:center;
+  }
+  .axis-result-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px;}
+  .axis-result-value{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--amber);}
+
+  /* --- Interactive: byte read comparison --- */
+  .byte-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;}
+  @media(max-width:640px){.byte-compare{grid-template-columns:1fr;}}
+  .byte-card{border-radius:10px;padding:18px;border:1px solid var(--rule);background:var(--bg-panel-raised);}
+  .byte-card h4{font-family:var(--mono);font-size:12px;text-transform:uppercase;margin:0 0 12px;color:var(--ink-dim);}
+  .byte-bars{display:flex;align-items:flex-end;gap:4px;height:90px;margin-bottom:10px;}
+  .byte-bar{flex:1;border-radius:2px 2px 0 0;}
+  .byte-bar.read{background:var(--red);}
+  .byte-bar.skip{background:#262e3a;}
+  .byte-card p{font-size:12.5px;margin:0;color:var(--ink-dim);}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 4</div>
+    <h1 class="title">Storage Engines</h1>
+    <p class="subtitle">Every downstream decision in a data pipeline inherits constraints from the
+    storage engine underneath, which is why experienced candidates pick the engine first and the
+    query plan second.</p>
+    <div class="chap-note">Printed as "Chapter Three" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 4.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Two ways to organize a filing cabinet of employee records: staple each employee's whole
+    file together, or keep separate drawers for "all addresses," "all salaries," "all start
+    dates." One is fast for "look up one employee." The other is fast for "average salary across
+    everyone."</p>
+    <p><strong>That one choice — how you physically organize data on disk — is one of the most
+    consequential decisions in the platform, because you can't easily change your mind once
+    you've picked.</strong></p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>The storage engine is the one pipeline decision I can't renegotiate. Before I name
+    the engine, I name the three axes: row or column, LSM or B-tree, local disk or object
+    store.</blockquote>
+    <blockquote>Row stores optimize for access patterns I know. Columnar stores optimize for the
+    ones I don't know yet.</blockquote>
+    <blockquote>LSM accepts write amplification in exchange for sequential writes; B-trees accept
+    random I/O for read locality. I pick whichever one is cheaper at my scale.</blockquote>
+    <blockquote>Compression isn't an afterthought. Three-times compression on a petabyte is two
+    petabytes of disk I don't have to buy.</blockquote>
+    <blockquote>S3 isn't a filesystem. Rename, list, and append all have different cost and
+    consistency semantics, and the design that ignores this breaks at scale.</blockquote>
+  </div>
+
+  <h2 id="two-teams">Why Two Similar Teams Ended Up With Completely Different Years</h2>
+  <p>Two data teams both need to pick a storage layer for their event pipeline. Both say the exact
+  same sentence: "a few hundred million events, analytical workload, two-year retention." One
+  picks a traditional row-based database. The other picks a columnar file format on cheap cloud
+  storage with a lightweight bookkeeping layer.</p>
+  <p><strong>A year later, the first team is rebuilding the whole thing. The second is adding new
+  use cases every quarter.</strong> The difference wasn't the engineers — it was the storage
+  engine, and once you've picked the foundation, you can't easily renegotiate it.</p>
+
+  <h2 id="three-axes">Idea 1: Three Independent Choices, Not One</h2>
+  <p>Pick your position on each axis below to see which engines fit.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — pick a position on each axis</div>
+    <div class="axes-widget">
+      <div class="axis-row">
+        <div class="axis-label">Axis 1 — How bytes are arranged</div>
+        <div class="axis-options" id="axis1"></div>
+      </div>
+      <div class="axis-row">
+        <div class="axis-label">Axis 2 — How writes accumulate</div>
+        <div class="axis-options" id="axis2"></div>
+      </div>
+      <div class="axis-row">
+        <div class="axis-label">Axis 3 — Where bytes live</div>
+        <div class="axis-options" id="axis3"></div>
+      </div>
+      <div class="axis-result" id="axisResult">
+        <div class="axis-result-label">Suggested engine</div>
+        <div class="axis-result-value">Pick all three to see a match</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Byte-read cost: row vs. column, for the same query</h3>
+  <div class="byte-compare">
+    <div class="byte-card">
+      <h4>Row-major — aggregate one column</h4>
+      <div class="byte-bars">
+        <div class="byte-bar read" style="height:95%"></div>
+        <div class="byte-bar read" style="height:95%"></div>
+        <div class="byte-bar read" style="height:95%"></div>
+        <div class="byte-bar read" style="height:95%"></div>
+        <div class="byte-bar read" style="height:95%"></div>
+      </div>
+      <p>Reads every row's full bytes to get one 40-byte field out of a 300-byte row. Slow —
+      throws away 4/5 of what it read.</p>
+    </div>
+    <div class="byte-card">
+      <h4>Column-major — aggregate one column</h4>
+      <div class="byte-bars">
+        <div class="byte-bar read" style="height:18%"></div>
+        <div class="byte-bar skip" style="height:95%"></div>
+        <div class="byte-bar skip" style="height:95%"></div>
+        <div class="byte-bar skip" style="height:95%"></div>
+        <div class="byte-bar skip" style="height:95%"></div>
+      </div>
+      <p>Reads just that one column's bytes, compressed. Roughly 50x fewer bytes read for the
+      same aggregation.</p>
+    </div>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>When you mention LSM trees in an interview, the interviewer's next question is almost
+    always about compaction tuning. The answer they want isn't "the system handles it." It's
+    "tiered compaction for append-heavy workloads, leveled when the same keys get rewritten, and
+    I'd tune the level multiplier and target file size based on the write pattern."</p>
+  </div>
+
+  <h2 id="object-storage">Idea 2: Object Storage Has Its Own, Very Different Rules</h2>
+  <ul>
+    <li><strong>Rename</strong> = copy + delete (~150ms for 100MB) vs. sub-millisecond on a
+    normal filesystem.</li>
+    <li><strong>List</strong> = paginated API, ~1,000 keys per call.</li>
+    <li><strong>Append</strong> doesn't exist — every "append" creates a brand new object.</li>
+    <li><strong>Tail latency</strong> is 10-100x local disk, and the worst case is worse still.</li>
+    <li><strong>Prefix rate limits</strong> — roughly 3,500 writes/sec and 5,500 reads/sec per
+    prefix on S3.</li>
+  </ul>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Treating S3 (or any object store) like a regular filesystem. A design that assumes instant
+    renames, cheap directory listings, and in-place appends breaks the very first time someone
+    tries to replace a single file in place at real scale.</p>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"S3 isn't a filesystem. Rename, list, and append all cost differently, and the design that
+    ignores this breaks at scale."</p>
+  </div>
+
+  <h2 id="compression">Idea 3: Compression Isn't a Bonus Feature — It's Load-Bearing</h2>
+  <p>Columnar layouts compress 5 to 10 times better than row layouts, because adjacent values in a
+  column tend to be similar (timestamps only increase, country codes repeat) — exactly what
+  run-length, dictionary, and delta encoding exploit well.</p>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"Compression isn't an afterthought. Three-times compression on a petabyte is two petabytes
+    of disk I don't have to buy."</p>
+  </div>
+
+  <h2 id="antipatterns">Idea 4: Three Anti-Patterns Under Interview Pressure</h2>
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Picking the engine to match the vendor, not the workload. "We use Snowflake, so the storage
+    layer is Snowflake" treats the engine as a given. Vendor lock-in is an operating reality;
+    vendor-first thinking is an interview tell.</p>
+  </div>
+
+  <h2 id="transcript">An Interview Transcript — the 10 Petabyte Warehouse</h2>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Design the storage layer for a 10 petabyte analytical warehouse. Daily load of about 50
+      terabytes of new data. A mix of ad-hoc interactive queries and scheduled reports. Two-year
+      retention.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Before picking any tool, three axes. Row-major or column-major? Analytical workload, so
+      column-major. LSM or B-tree? Bulk nightly loads, not small random writes, so LSM-style fits.
+      Local disk or object store? At 10 petabytes, disk-attached storage runs into the hundreds of
+      thousands of dollars before even counting I/O charges — object storage is the answer unless
+      interactive latency has to be sub-second at the tail.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Latency target is a few seconds for ad-hoc, minutes for scheduled reports.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Good, that confirms object storage. Columnar data on object storage with a bookkeeping
+      layer on top is the lakehouse pattern.</p>
+    </div>
+  </div>
+
+  <div class="callout pattern">
+    <div class="cal-label">✅ Pattern</div>
+    <p>When you pick a storage engine in an interview, state the three axis positions out loud
+    first, then name the engine that satisfies them. The interviewer grades the decomposition, not
+    the final name.</p>
+  </div>
+
+  <h2 id="mapping">Idea 5: A Quick Map From Axis Positions to Real Engines</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Engine (axis positions)</th><th>Strengths</th><th>Weaknesses</th><th>Pick When</th></tr></thead>
+      <tbody>
+        <tr><td>Postgres (row, B-tree, local)</td><td>Mature OLTP, ACID, familiar SQL</td><td>Doesn't scale analytics past ~10 TB</td><td>OLTP, small analytics, single-machine</td></tr>
+        <tr><td>Cassandra (row, LSM, local)</td><td>Write throughput, linear horizontal scale</td><td>Denormalized access patterns, operator burden</td><td>OLTP at scale, single writer won't fit</td></tr>
+        <tr><td>ClickHouse (col, LSM, local)</td><td>Fast analytics on local-disk cluster</td><td>No ACID, complex ops, mutation cost</td><td>Real-time analytics on structured data</td></tr>
+        <tr><td>Snowflake (col, LSM, object)</td><td>Managed, separate compute/storage, elastic</td><td>Vendor lock-in, per-query cost at scale</td><td>Managed OLAP, bursty workload</td></tr>
+        <tr><td>Iceberg on S3 (col, LSM, object)</td><td>Open format, multi-engine, cheap at petabyte scale</td><td>Metadata maintenance burden, latency tail</td><td>Multi-team lakehouse, open format</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Defaulting to a row database for analytics.</strong> Fine at 100 GB, wrong at 10 TB.</li>
+    <li><strong>Picking a write-once columnar format for transactional workloads.</strong> Can't
+    serve update-heavy patterns without an expensive metadata layer.</li>
+    <li><strong>Treating object storage as a filesystem.</strong> Breaks on first contact with real
+    scale.</li>
+    <li><strong>Ignoring compaction on an LSM-based system.</strong> A future incident waiting to
+    happen.</li>
+    <li><strong>Letting lakehouse metadata grow unbounded.</strong> Causes mystery slowdowns a year
+    later.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>The Three Axes</h4>
+        <p>Row-major vs. column-major · LSM tree vs. B-tree · Local disk vs. object store</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Bytes Read, Rule of Thumb</h4>
+        <ul>
+          <li>Row: rows × row_bytes</li>
+          <li>Columnar: cols × rows × compressed bytes (5-10x compression)</li>
+          <li>Aggregating one column: ~1/50th the row-scan cost</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Object Storage Gotchas</h4>
+        <ul>
+          <li>Rename = copy + delete (~150ms)</li>
+          <li>List = paginated, ~1,000 keys/call</li>
+          <li>Append = new object every time</li>
+          <li>Prefix limits: ~3,500 PUT/s, ~5,500 GET/s</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Write Amplification</h4>
+        <p>B-tree: 1.5x-3x. LSM (leveled, default): ~10x at depth 7.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Lakehouse Maintenance</h4>
+        <p>Expire snapshots · rewrite small files · compact manifests · remove orphan files —
+        mandatory, not optional.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Pick the axis positions first, then the engine falls out."</li>
+          <li>"Compaction isn't an implementation detail; it's a design decision."</li>
+          <li>"S3 isn't a filesystem."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>File format inside the lakehouse depends on data movement, not just
+      querying:</strong> Parquet wins for analytics; Avro makes more sense for individual events
+      through a message system, since each is read as a whole record.</li>
+      <li><strong>Illustrative storage pricing:</strong> standard object storage ~$23/TB/month;
+      cold-tier roughly a fifth of that; block storage considerably more plus IOPS; API charges a
+      common surprise for high-frequency small-object writers.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>Designing Data-Intensive Applications, Chapter 3.</strong> Martin Kleppmann.
+    O'Reilly, 2017. The canonical reference for B-trees, LSM trees, and columnar storage.</li>
+    <li><strong>"The Log-Structured Merge-Tree."</strong> O'Neil, Cheng, Gawlick, O'Neil. Acta
+    Informatica 33, 1996. The original LSM paper.</li>
+    <li><strong>"C-Store: A Column-Oriented DBMS."</strong> Stonebraker et al. VLDB 2005. Paired
+    with Google's Dremel paper (VLDB 2010), the two-paper foundation under modern columnar
+    engines.</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- Three axes picker ----------
+const axisData = {
+  axis1: [{id:'row', label:'Row-major'}, {id:'col', label:'Column-major'}],
+  axis2: [{id:'lsm', label:'LSM tree'}, {id:'btree', label:'B-tree'}],
+  axis3: [{id:'local', label:'Local disk'}, {id:'object', label:'Object store'}],
+};
+const engineMap = {
+  'row-btree-local': 'Postgres, MySQL \u2014 mature OLTP',
+  'row-lsm-local': 'Cassandra, ScyllaDB \u2014 write-heavy OLTP at scale',
+  'row-btree-object': 'Uncommon combination \u2014 usually not the right fit',
+  'row-lsm-object': 'DynamoDB-style \u2014 key-value at scale',
+  'col-lsm-local': 'ClickHouse \u2014 fast local analytics',
+  'col-btree-local': 'Uncommon \u2014 column stores rarely use B-trees',
+  'col-lsm-object': 'Iceberg/Delta/Hudi on S3, or Snowflake \u2014 the lakehouse default',
+  'col-btree-object': 'Uncommon combination',
+};
+let selections = {axis1:null, axis2:null, axis3:null};
+
+Object.keys(axisData).forEach(axisKey=>{
+  const container = document.getElementById(axisKey);
+  axisData[axisKey].forEach(opt=>{
+    const btn = document.createElement('div');
+    btn.className = 'axis-opt';
+    btn.textContent = opt.label;
+    btn.addEventListener('click', ()=>{
+      container.querySelectorAll('.axis-opt').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      selections[axisKey] = opt.id;
+      updateAxisResult();
+    });
+    container.appendChild(btn);
+  });
+});
+
+function updateAxisResult(){
+  const resultBox = document.getElementById('axisResult');
+  if(selections.axis1 && selections.axis2 && selections.axis3){
+    const key = `${selections.axis1}-${selections.axis2}-${selections.axis3}`;
+    const match = engineMap[key] || 'No common engine for this combination \u2014 worth double-checking the requirements';
+    resultBox.querySelector('.axis-result-value').textContent = match;
+  }
+}
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

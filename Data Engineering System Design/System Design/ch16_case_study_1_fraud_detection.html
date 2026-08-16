@@ -1,0 +1,702 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study 1 — Real-Time Fraud Detection | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --purple:#c98be2;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(30px,5vw,46px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  .prompt-box{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-left:3px solid var(--blue);
+    border-radius:8px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .prompt-box .pb-label{
+    font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--blue);margin-bottom:10px;
+  }
+  .prompt-box p{font-style:italic;color:#eef1f5;margin:0;font-family:var(--serif);font-size:16.5px;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:600;
+    margin:60px 0 18px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:18px;
+    font-weight:700;
+    margin:32px 0 12px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul, .cheat-card ol{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+
+  .supplementary{
+    border:1px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 24px;
+    margin-top:24px;
+    background:var(--bg-panel);
+  }
+  .supplementary-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: five opening questions --- */
+  .qwidget{display:flex;flex-direction:column;gap:10px;}
+  .q-row{
+    display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:8px;
+    cursor:pointer;border:1px solid var(--rule);background:var(--bg-panel-raised);
+    transition:border-color 0.15s;
+  }
+  .q-row:hover, .q-row.active{border-color:var(--amber);}
+  .q-num{
+    width:26px;height:26px;border-radius:50%;background:var(--amber-dim);color:var(--amber);
+    display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+    font-size:12px;font-weight:700;flex-shrink:0;
+  }
+  .q-text{font-size:14px;color:var(--ink);}
+  .q-detail{
+    font-size:13.5px;color:var(--ink-dim);padding:14px 16px;margin-top:2px;
+    background:#0a0d12;border-left:2px solid var(--amber);border-radius:0 6px 6px 0;display:none;
+  }
+  .q-detail.show{display:block;}
+  .q-detail strong{color:var(--amber);}
+
+  /* --- Interactive: skew comparison --- */
+  .skew-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;}
+  @media(max-width:640px){.skew-compare{grid-template-columns:1fr;}}
+  .skew-card{border-radius:10px;padding:18px;border:1px solid var(--rule);}
+  .skew-card.bad{background:var(--red-dim);border-color:#5a2e28;}
+  .skew-card.good{background:var(--green-dim);border-color:#2a4a3d;}
+  .skew-card h4{font-family:var(--mono);font-size:12px;text-transform:uppercase;margin:0 0 12px;}
+  .skew-card.bad h4{color:var(--red);}
+  .skew-card.good h4{color:var(--green);}
+  .skew-bars-mini{display:flex;align-items:flex-end;gap:6px;height:80px;margin-bottom:10px;}
+  .skew-bar-mini{flex:1;border-radius:3px 3px 0 0;}
+  .skew-card p{font-size:13px;margin:0;color:var(--ink-dim);}
+
+  /* --- Interactive: pipeline diagram --- */
+  .pipeline-widget{display:flex;flex-wrap:wrap;gap:10px;}
+  .pipeline-chip{
+    font-family:var(--mono);font-size:12px;padding:10px 14px;border-radius:7px;
+    background:var(--bg-panel-raised);border:1px solid var(--rule);cursor:pointer;
+    color:var(--ink);transition:border-color 0.15s;flex:1;min-width:130px;text-align:center;
+  }
+  .pipeline-detail{
+    font-size:13.5px;color:var(--ink-dim);padding:14px 16px;margin-top:14px;
+    background:#0a0d12;border-left:2px solid var(--amber);border-radius:0 6px 6px 0;min-height:24px;
+  }
+
+  /* --- Interactive: failure scenario picker --- */
+  .fail-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .fail-tab{
+    font-family:var(--mono);font-size:12px;padding:9px 14px;border-radius:7px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .fail-tab:hover{border-color:var(--red);color:var(--ink);}
+  .fail-tab.active{background:var(--red-dim);border-color:var(--red);color:#fff;}
+  .fail-panel{background:#0a0d12;border-radius:8px;padding:18px;display:none;}
+  .fail-panel.show{display:block;}
+  .fail-panel h4{margin:0 0 8px;color:var(--red);font-size:14.5px;}
+  .fail-panel p{font-size:13.5px;margin:0;color:var(--ink-dim);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 16 · Case Study 1</div>
+    <h1 class="title">Real-Time Fraud Detection</h1>
+    <p class="subtitle">A payment is trying to happen right now. The system has a tiny fraction of
+    a second to decide "let this through" or "block this" — and the customer is waiting, because
+    the payment doesn't complete until the answer comes back.</p>
+    <div class="chap-note">Chapter 16 is printed as "Chapter Fifteen" in the book's own running
+    heads — see the numbering note in Chapter 3. This is the first of four full case studies.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>A bouncer at an exclusive club has exactly one second to decide whether to let someone in —
+    no do-overs, and the doorway is genuinely blocked until the decision is made. Now imagine that
+    call has to be made correctly, thousands of times per second, for people arriving from all
+    over the world.</p>
+    <p>This case study is where everything from earlier chapters comes together at once — skew,
+    streaming design, orchestration discipline, reliability thinking — and just as importantly,
+    the interview performance skills from Chapter 15. <strong>The architecture matters, but it's
+    necessary, not sufficient.</strong></p>
+  </div>
+
+  <div class="prompt-box">
+    <div class="pb-label">The Prompt</div>
+    <p>"Design a real-time fraud detection system for a payment company. Peak traffic is in the
+    thousands of transactions per second. The decision — fraud or not — has to come back within
+    one hundred milliseconds. The decision is blocking: the transaction doesn't complete until
+    we've scored it. We also keep a seven-day reversal window in case we get something wrong and
+    need to undo it later."</p>
+  </div>
+
+  <h2 id="opening">Idea 1: The First Five Minutes Decide More Than You'd Think</h2>
+  <p>Before drawing a single box, a strong candidate pauses — genuinely, for about ten seconds —
+  then asks a handful of sharp questions. Not to stall, but because each answer changes a
+  different part of the design. Click each question below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a question to see what it locks in</div>
+    <div class="qwidget" id="qWidget"></div>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>Notice the <em>order</em> of these questions, not just their content. Blocking-vs-advisory
+    comes first because it shapes the entire latency budget before anything else is discussed.
+    Cost comes last on purpose — it doesn't change the shape of the architecture the way the
+    earlier answers do. Asking in a thoughtful order, not just running a checklist, is the signal.</p>
+  </div>
+
+  <h2 id="weak-dimension">Idea 2: Naming the Weak Point — With a Specific Number</h2>
+  <p>Once the constraints are clear, a strong candidate states, explicitly, which part of the
+  system they expect to break first — and why, using the actual numbers from the conversation.</p>
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"Given the budget is a hundred milliseconds end-to-end — network hop, feature retrieval,
+    scoring, write-back — I'd expect feature-store tail latency to break first. Specifically, the
+    p99.9 on the feature store."</p>
+  </div>
+  <p>Not "I'm worried about latency" — that's vague, and vague statements don't stick. Saying
+  <em>specifically</em> "Redis p99.9 sustained above five milliseconds" is the gap between reading
+  about a system and having actually operated one.</p>
+
+  <h2 id="skew">Idea 3: Solving Skew With a Smarter Key, Not a Bigger Hammer</h2>
+  <p>If the system organizes work by merchant ID, the top 1% of merchants — carrying 40% of
+  volume — pile onto the same small number of partitions. Compare the two approaches below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Two ways to partition the same transaction stream</div>
+    <div class="skew-compare">
+      <div class="skew-card bad">
+        <h4>❌ Partition by merchant_id</h4>
+        <div class="skew-bars-mini">
+          <div class="skew-bar-mini" style="height:15%;background:#5ec9a0;"></div>
+          <div class="skew-bar-mini" style="height:90%;background:#e2604f;"></div>
+          <div class="skew-bar-mini" style="height:10%;background:#5ec9a0;"></div>
+          <div class="skew-bar-mini" style="height:8%;background:#5ec9a0;"></div>
+        </div>
+        <p>Top 1% of merchants = 40% of volume. One worker gets pinned at 100% CPU while the rest
+        sit idle. Needs salting to fix.</p>
+      </div>
+      <div class="skew-card good">
+        <h4>✅ Partition by card_id</h4>
+        <div class="skew-bars-mini">
+          <div class="skew-bar-mini" style="height:45%;background:#5ec9a0;"></div>
+          <div class="skew-bar-mini" style="height:50%;background:#5ec9a0;"></div>
+          <div class="skew-bar-mini" style="height:40%;background:#5ec9a0;"></div>
+          <div class="skew-bar-mini" style="height:48%;background:#5ec9a0;"></div>
+        </div>
+        <p>Each card belongs to one person who spends across many merchants — activity naturally
+        spreads across the long tail. No salting needed, and per-card velocity (the main fraud
+        signal) stays correctly grouped.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>Three things signal seniority here: the math came before the tool choice, the skew
+    observation led to a non-obvious fix (card ID, not the "obvious" merchant-ID salting), and the
+    weak dimension was a specific metric — not a vague word.</p>
+  </div>
+
+  <h2 id="architecture">Idea 4: The Architecture, in Plain Terms</h2>
+  <p>Click each stage below to see what it does.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a stage</div>
+    <div class="pipeline-widget" id="pipelineWidget"></div>
+    <div class="pipeline-detail" id="pipelineDetail">Click a stage above to see what it does and
+    why it's shaped that way.</div>
+  </div>
+
+  <h2 id="failures">Idea 5: What Happens When Things Slow Down or Break</h2>
+  <p>A design that only works when everything's healthy isn't finished. Click each failure
+  scenario below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — select a failure scenario</div>
+    <div class="fail-tabs" id="failTabs"></div>
+    <div id="failPanels"></div>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"Never stall the pipeline waiting on a slow dependency. Flag it, fall back to something
+    conservative, and reconcile the full answer once the slow part recovers."</p>
+  </div>
+
+  <h2 id="privacy">Idea 6: Handling Private Data Without Slowing Anything Down</h2>
+  <ul>
+    <li><strong>Keep raw personal information out of the fast path entirely.</strong> Only hashed
+    identifiers flow through the real-time pipeline. Anything derived from personal information is
+    pre-computed upstream by a system that's allowed to see it.</li>
+    <li><strong>Handle deletion requests as a specific, traceable event.</strong> A "tombstone"
+    event, keyed by the hashed identifier, tells the stream processor to remove all state for that
+    identifier — not a manual cleanup task someone remembers to run.</li>
+  </ul>
+
+  <h2 id="summary">The 30-Second Closing Summary</h2>
+  <p>Volunteered, unprompted, right around minute 38 of a 45-minute interview — the move from
+  Chapter 15 in action.</p>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate — What I'd build</div>
+      <p>A stream-processing pipeline partitioned by card ID for natural skew avoidance, a fast
+      in-memory store for recent-activity features with a 1-millisecond target, a slower columnar
+      store for baseline features refreshed hourly, a model server co-located for latency, and a
+      client-supplied idempotency key so retries are always safe.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">What I'd sacrifice</div>
+      <p>Operational complexity. The fast in-memory store is a single point of failure for the
+      whole latency target — I'd invest in monitoring it closely from day one. Model deployments
+      are currently coupled to the stream processor's own deploys because they're co-located;
+      that's a refactor trigger once the ML team's release pace picks up.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">What I'd watch, in priority order</div>
+      <p>Feature-store worst-case latency under 5ms (primary alert), checkpoint duration relative
+      to the checkpoint interval (secondary), dead-letter queue rate (catches upstream schema
+      drift), and agreement rate between the live model and a shadow "challenger" model over a
+      rolling week (catches model drift).</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Two questions for the interviewer</div>
+      <p>"How does this team currently detect model drift — an existing shared pattern, or usually
+      custom-built per ML team?" And: "What's the real ratio between transactions blocked in real
+      time versus fraud caught later through reversal? That tells me where investment should
+      actually go."</p>
+    </div>
+  </div>
+
+  <h2 id="lesson">What This Case Study Is Really Teaching</h2>
+  <p>The architecture above is solid but not unique — other strong candidates would sketch
+  something similar. <strong>What actually separates a strong answer isn't the diagram. It's the
+  sequence of moves:</strong></p>
+  <ol>
+    <li>Four sharp clarifying questions before drawing anything, each genuinely changing the design</li>
+    <li>The weak dimension named early, with a specific number attached</li>
+    <li>A non-obvious fix for skew, showing real pattern recognition</li>
+    <li>A specific idempotency mechanism, triggered by a specific clarifying answer</li>
+    <li>Graceful degradation named explicitly for two separate failure modes</li>
+    <li>Privacy handled as a first-class concern, not bolted on at the end</li>
+    <li>A volunteered, unprompted 30-second summary landing exactly on time</li>
+    <li>Two thoughtful closing questions probing how the team actually operates</li>
+  </ol>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Jumping straight to naming tools.</strong> Skips the entire signal the interviewer
+    is listening for first.</li>
+    <li><strong>Assuming traffic is evenly spread.</strong> Real payment traffic is almost always
+    long-tailed — designing as if uniform means rebuilding the partitioning strategy later, under
+    pressure.</li>
+    <li><strong>Treating "I'll make it idempotent" as enough.</strong> Name the specific
+    mechanism, tied to the retry answer.</li>
+    <li><strong>Saying "I'll handle failures" instead of naming a specific fallback.</strong>
+    Vague promises don't land.</li>
+    <li><strong>Running out of time before the summary.</strong> Often what an interviewer
+    remembers most clearly.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>Five Questions, What Each Locks In</h4>
+        <ol>
+          <li>Blocking vs. advisory? → the real latency budget</li>
+          <li>Even or long-tailed? → the partitioning strategy</li>
+          <li>Same decision on retry? → the idempotency mechanism</li>
+          <li>How heavy is the model? → where the bottleneck lives</li>
+          <li>Cost ceiling? → what to optimize purely for</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>Weak Dimension, Stated Right</h4>
+        <p>Not "latency." Instead: "Feature-store tail latency — Redis p99.9 — is what I'd expect
+        to break first."</p>
+      </div>
+      <div class="cheat-card">
+        <h4>The Non-Obvious Skew Fix</h4>
+        <p>Partition by card_id, not merchant_id. One card spreads across many merchants
+        naturally — no salting needed.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Two Graceful-Degradation Rules</h4>
+        <ul>
+          <li>Slow lookup → flag, fall back, reconcile later</li>
+          <li>Model down → circuit breaker at ~5%, rules-only, reprocess</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Privacy, Two Moves</h4>
+        <ul>
+          <li>Only hashed IDs touch the real-time path</li>
+          <li>Deletion = a tombstone event, not manual cleanup</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"That answer locks in the latency budget — let me confirm it first."</li>
+          <li>"The weak dimension is feature-store tail latency, specifically."</li>
+          <li>"Never stall on a slow dependency — flag, fall back, reconcile."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>A second framing of this same prompt</strong> uses 50,000 transactions/second
+      with a 2–3 second budget instead of 100ms, and treats false negatives as strictly worse than
+      false positives — meaning the system should lean toward flagging more when genuinely
+      uncertain.</li>
+      <li><strong>Historical-join scaling tactics:</strong> sharding the lookup store by a hash of
+      the ID, caching the highest-frequency identifiers directly in stream workers' memory, and
+      using approximate structures (Bloom filters, HyperLogLog) when an exact count isn't
+      necessary.</li>
+      <li><strong>A concrete disaster-recovery stress test:</strong> queue corruption loses 30
+      minutes of data, the SLA breaches during that window, a regulator asks for an explanation.
+      Strong answers name a specific recovery time objective and recovery point objective, and
+      treat the regulatory conversation as part of the design — immutable incident logs, a clear
+      explanation of the fallback behavior used, and evidence no high-value fraud was missed.</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+// ---------- Five opening questions ----------
+const qData = [
+  {q:'Is this really blocking, or advisory?', locks:'The real latency budget', detail:'"Confirm it is strictly blocking, meaning the gateway holds the transaction until the decision comes back." The answer means the 100ms budget is a real, hard wall \u2014 not a nice-to-have.'},
+  {q:'Is transaction volume even, or long-tailed across merchants?', locks:'The partitioning strategy', detail:'The answer: long-tailed, top 1% of merchants = 40% of daily volume. This is the same skew idea from Chapter 3 \u2014 a hot-spot problem to solve before picking any tool.'},
+  {q:'Does a retry need the same decision, or is fresh scoring OK?', locks:'The idempotency mechanism', detail:'The answer: same transaction must always get the same decision. This locks in a client-supplied idempotency key, with the decision keyed by that value.'},
+  {q:'How heavy is the actual scoring model?', locks:'Where the real bottleneck lives', detail:'The answer: gradient-boosted trees, ~20 features, cheap inference. This tells you the bottleneck will not be the model \u2014 it will be how fast you can fetch the features it needs.'},
+  {q:'What is the cost ceiling?', locks:'What to optimize purely for', detail:'The answer: unconstrained for this conversation. Asked last on purpose \u2014 it does not change the shape of the architecture the way the earlier answers do.'},
+];
+const qWidget = document.getElementById('qWidget');
+qData.forEach((item,i)=>{
+  const row = document.createElement('div');
+  row.className = 'q-row';
+  row.innerHTML = `
+    <div class="q-num">${i+1}</div>
+    <div class="q-text">${item.q}</div>
+  `;
+  const detail = document.createElement('div');
+  detail.className = 'q-detail';
+  detail.innerHTML = `<strong>Locks in:</strong> ${item.locks}<br><br>${item.detail}`;
+  const container = document.createElement('div');
+  container.appendChild(row);
+  container.appendChild(detail);
+  qWidget.appendChild(container);
+
+  row.addEventListener('click', ()=>{
+    const isShown = detail.classList.contains('show');
+    document.querySelectorAll('.q-detail').forEach(el=>el.classList.remove('show'));
+    document.querySelectorAll('.q-row').forEach(el=>el.classList.remove('active'));
+    if(!isShown){ detail.classList.add('show'); row.classList.add('active'); }
+  });
+});
+
+// ---------- Pipeline diagram ----------
+const pipelineStages = [
+  {label:'Payment Gateway', detail:'Writes every transaction to a queue, partitioned by card_id (the skew-avoidance move), with the idempotency key attached.'},
+  {label:'Kafka: transactions', detail:'One ordered feed per card partition. Each stream worker owns a clean, non-overlapping slice of cards \u2014 no two workers fight over the same card data.'},
+  {label:'Flink stream processor', detail:'Reads the transaction, pulls features, calls the model, writes back the decision. The orchestrating piece of the whole pipeline.'},
+  {label:'Redis: hot features', detail:'Recent-activity features like "transactions in the last minute." The fast path, carrying the tightest latency target (~1ms) \u2014 and the primary thing to alert on.'},
+  {label:'Iceberg: baselines', detail:'Slower-moving features like typical spending pattern. Refreshed hourly rather than looked up live every time.'},
+  {label:'Model server', detail:'Co-located with the stream processor to minimize network hops. Combines hot + baseline features into a fraud score.'},
+  {label:'Decision + DLQ', detail:'The decision writes back for the gateway to read within the 100ms budget. Malformed events go to a dead-letter queue instead of stopping the pipeline for everyone.'},
+];
+const pipelineWidget = document.getElementById('pipelineWidget');
+const pipelineDetail = document.getElementById('pipelineDetail');
+pipelineStages.forEach(s=>{
+  const chip = document.createElement('div');
+  chip.className = 'pipeline-chip';
+  chip.textContent = s.label;
+  chip.addEventListener('click', ()=>{ pipelineDetail.textContent = s.detail; });
+  chip.addEventListener('mouseenter', ()=>{ pipelineDetail.textContent = s.detail; chip.style.borderColor = 'var(--amber)'; });
+  chip.addEventListener('mouseleave', ()=>{ chip.style.borderColor = 'var(--rule)'; });
+  pipelineWidget.appendChild(chip);
+});
+
+// ---------- Failure scenario picker ----------
+const failData = [
+  {id:'slow', label:'Feature Lookup Is Slow', body:'If a feature lookup runs past ~50ms, don\u2019t sit there waiting. Flag the transaction "needs enrichment," fall back to a conservative rules-only decision immediately, and reconcile the full picture afterward, asynchronously, once the lookup catches up.'},
+  {id:'model', label:'Model Server Is Down', body:'A circuit breaker watches the failure rate: if more than ~5% of scoring calls fail within a short window, stop calling the model and fall back to rules-only scoring \u2014 more false alarms, zero downtime. Once healthy again, reprocess anything scored conservatively in the meantime.'},
+  {id:'queue', label:'30 Minutes of Data Lost', body:'Multiple copies of the queue data (replication across machines and data centers) usually let you replay from a backup. If even that fails, the payment processor\u2019s own batch settlement records can reconstruct what happened. During the outage: fall back to simple, conservative rules \u2014 block obviously high-risk, allow routine \u2014 then replay the missed window through full scoring once recovered.'},
+];
+const failTabs = document.getElementById('failTabs');
+const failPanels = document.getElementById('failPanels');
+failData.forEach((f,i)=>{
+  const tab = document.createElement('div');
+  tab.className = 'fail-tab' + (i===0?' active':'');
+  tab.textContent = f.label;
+  failTabs.appendChild(tab);
+
+  const panel = document.createElement('div');
+  panel.className = 'fail-panel' + (i===0?' show':'');
+  panel.id = 'fail-'+f.id;
+  panel.innerHTML = `<h4>${f.label}</h4><p>${f.body}</p>`;
+  failPanels.appendChild(panel);
+
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.fail-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.fail-panel').forEach(p=>p.classList.remove('show'));
+    tab.classList.add('active');
+    document.getElementById('fail-'+f.id).classList.add('show');
+  });
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

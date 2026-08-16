@@ -1,0 +1,407 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Study 2 — Recommendation Serving | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;--bg-panel:#151a22;--bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;--ink-dim:#8b96a5;--ink-faint:#5a6472;--rule:#262e3a;
+    --amber:#e8a33d;--amber-dim:#5c451f;--red:#e2604f;--red-dim:#3f2420;
+    --green:#5ec9a0;--green-dim:#1f3a30;--blue:#6fa8dc;--purple:#c98be2;
+    --mono:"IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif:"Source Serif 4","Georgia",serif;--sans:"Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7;font-size:16px;}
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+  .masthead{border-bottom:1px solid var(--rule);padding:56px 24px 40px;
+    background:radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),var(--bg);}
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:14px;}
+  h1.title{font-family:var(--serif);font-weight:600;font-size:clamp(30px,5vw,46px);margin:0 0 12px;letter-spacing:-0.01em;}
+  .subtitle{color:var(--ink-dim);font-size:17px;max-width:640px;margin:0 0 20px;}
+  .chap-note{font-size:13px;color:var(--ink-faint);font-style:italic;border-left:2px solid var(--rule);padding-left:12px;}
+  .simple-banner{background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;border-radius:10px;padding:22px 24px;margin:28px 0;}
+  .simple-banner .sb-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);margin-bottom:10px;}
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+  .prompt-box{background:var(--bg-panel-raised);border:1px solid var(--rule);border-left:3px solid var(--blue);
+    border-radius:8px;padding:22px 24px;margin:28px 0;}
+  .prompt-box .pb-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:10px;}
+  .prompt-box p{font-style:italic;color:#eef1f5;margin:0;font-family:var(--serif);font-size:16.5px;}
+  h2{font-family:var(--serif);font-size:27px;font-weight:600;margin:60px 0 18px;padding-top:22px;border-top:1px solid var(--rule);letter-spacing:-0.01em;}
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{font-family:var(--sans);font-size:18px;font-weight:700;margin:32px 0 12px;color:var(--ink);}
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{font-family:var(--mono);background:var(--bg-panel-raised);padding:2px 6px;border-radius:4px;font-size:0.88em;color:var(--amber);}
+  .callout{border-radius:8px;padding:18px 20px;margin:22px 0;border:1px solid var(--rule);background:var(--bg-panel);}
+  .callout .cal-label{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .diagram-card{background:var(--bg-panel);border:1px solid var(--rule);border-radius:10px;padding:24px;margin:28px 0;}
+  .diagram-caption{font-size:13px;color:var(--ink-faint);margin-top:14px;font-style:italic;}
+  .diagram-hint{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;}
+  .cheat-sheet{background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);border:1.5px solid var(--amber-dim);border-radius:14px;padding:32px;margin:40px 0;}
+  .cheat-sheet-title{font-family:var(--mono);color:var(--amber);text-transform:uppercase;letter-spacing:0.14em;font-size:13px;margin-bottom:6px;}
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{background:var(--bg-panel-raised);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;}
+  .cheat-card h4{margin:0 0 10px;font-size:12.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-dim);font-family:var(--mono);}
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul, .cheat-card ol{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+  .further-reading{margin-top:48px;}
+  .supplementary{border:1px dashed var(--rule);border-radius:10px;padding:22px 24px;margin-top:24px;background:var(--bg-panel);}
+  .supplementary-tag{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:12px;}
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: score-everything math --- */
+  .math-widget{background:#0a0d12;border-radius:10px;padding:24px;}
+  .math-row{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:15px;margin-bottom:20px;}
+  .math-chip{background:var(--bg-panel-raised);border:1px solid var(--rule);border-radius:8px;padding:10px 16px;color:var(--ink);}
+  .math-op{color:var(--ink-faint);font-size:20px;}
+  .math-result{
+    text-align:center;padding:18px;border-radius:8px;background:var(--red-dim);border:1px solid #5a2e28;
+  }
+  .math-result .mr-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--red);margin-bottom:6px;}
+  .math-result .mr-value{font-family:var(--mono);font-size:22px;font-weight:700;color:#fff;}
+  .math-then{text-align:center;padding:14px;color:var(--ink-dim);font-size:13.5px;}
+
+  /* --- Interactive: two-stage funnel --- */
+  .funnel-widget{display:flex;flex-direction:column;align-items:center;gap:0;}
+  .funnel-stage{
+    width:100%;max-width:500px;text-align:center;padding:16px;border-radius:8px;
+    font-family:var(--mono);font-size:13px;cursor:pointer;transition:all 0.2s;
+    border:1px solid var(--rule);margin-bottom:4px;
+  }
+  .funnel-stage:hover{border-color:var(--amber);}
+  .funnel-stage.s1{background:var(--bg-panel-raised);width:100%;}
+  .funnel-stage.s2{background:var(--amber-dim);width:60%;color:#fff;}
+  .funnel-stage.s3{background:var(--green-dim);width:30%;color:#fff;}
+  .funnel-arrow{color:var(--ink-faint);font-size:18px;margin:4px 0;}
+  .funnel-detail{
+    font-size:13.5px;color:var(--ink-dim);padding:14px 16px;margin-top:14px;width:100%;
+    background:#0a0d12;border-left:2px solid var(--amber);border-radius:0 6px 6px 0;min-height:24px;
+  }
+
+  /* --- Interactive: cost levers --- */
+  .lever-widget{display:flex;flex-direction:column;gap:10px;}
+  .lever-row{display:grid;grid-template-columns:36px 1fr;gap:14px;align-items:center;cursor:pointer;padding:10px 12px;border-radius:8px;border:1px solid transparent;transition:background 0.15s, border-color 0.15s;}
+  .lever-row:hover, .lever-row.active{background:var(--bg-panel-raised);border-color:var(--rule);}
+  .lever-rank{width:36px;height:36px;border-radius:50%;background:var(--amber-dim);color:var(--amber);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;}
+  .lever-name{font-size:14px;color:var(--ink);}
+  .lever-detail{font-size:13.5px;color:var(--ink-dim);padding:14px 16px;margin-top:2px;background:#0a0d12;border-left:2px solid var(--amber);border-radius:0 6px 6px 0;display:none;}
+  .lever-detail.show{display:block;}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 16 · Case Study 2</div>
+    <h1 class="title">Recommendation Serving</h1>
+    <p class="subtitle">Out of millions of possible items, the system has to find the best handful
+    for this specific person, right now, cheaply enough to do it billions of times a day.</p>
+    <div class="chap-note">Chapter 16 is printed as "Chapter Fifteen" in the book's own running
+    heads — see the numbering note in Chapter 3. This is the second of four full case studies.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>A librarian has ten million books but only three seconds to hand you the ten you'd actually
+    enjoy. She can't read every description in that time — so she grabs a rough armful of about a
+    thousand books that seem in your interest area first, then takes a closer look at just those
+    to pick the best ten.</p>
+    <p>Where fraud detection was a <strong>write-heavy problem with a hard latency wall</strong>,
+    this is a <strong>read-heavy problem with both a latency budget and a real cost
+    ceiling</strong>.</p>
+  </div>
+
+  <div class="prompt-box">
+    <div class="pb-label">The Prompt</div>
+    <p>"Design the feature-serving pipeline for a recommendation system at a large consumer
+    platform. Peak traffic is around 35,000 ranking requests per second. Ten million items in the
+    catalog. The end-to-end response budget is 200 milliseconds. This isn't strictly blocking the
+    way fraud scoring is, but it still needs to be fast and affordable at this scale."</p>
+  </div>
+
+  <h2 id="opening">Idea 1: Five Questions, Asked in a Very Deliberate Order</h2>
+  <ol>
+    <li><strong>"What kind of ranking are we doing?"</strong> — decides if a similarity-search
+    index is needed at all.</li>
+    <li><strong>"What happens for a brand-new user?"</strong> — shapes how the serving path
+    branches for cold start.</li>
+    <li><strong>"Is 200ms end-to-end, or service-only?"</strong> — a 50-80ms swing in the real
+    internal budget.</li>
+    <li><strong>"How often do features need refreshing?"</strong> — the online-vs-offline split.</li>
+    <li><strong>"What's the cost ceiling?"</strong> — asked upfront here specifically, unlike in
+    fraud, because recommendation infra is often the single largest DE cost at a consumer company.</li>
+  </ol>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>Asking about cost upfront for a recommendation prompt specifically signals real operational
+    experience. Fraud-focused prep rarely emphasizes cost the same way, so candidates who only
+    prepared with the fraud playbook tend to skip this question here — and it's noticeable.</p>
+  </div>
+
+  <h2 id="math">Idea 2: Why "Score Everything" Is Mathematically Impossible</h2>
+  <p>Here's the math worth doing out loud in an interview:</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">The calculation that makes two-stage ranking inevitable</div>
+    <div class="math-widget">
+      <div class="math-row">
+        <div class="math-chip">10,000,000 items</div>
+        <span class="math-op">×</span>
+        <div class="math-chip">35,000 req/sec</div>
+        <span class="math-op">=</span>
+      </div>
+      <div class="math-result">
+        <div class="mr-label">If scoring every item, every request</div>
+        <div class="mr-value">350,000,000,000 scoring ops/sec</div>
+      </div>
+      <div class="math-then">Even at 100 nanoseconds per score, that's 35,000 CPU cores just for
+      scoring. Infeasible at any cost — this is what makes two-stage ranking a mathematical
+      necessity, not a design preference.</div>
+    </div>
+  </div>
+
+  <p>Click through the two-stage fix below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a stage</div>
+    <div class="funnel-widget">
+      <div class="funnel-stage s1" data-detail="Full catalog: 10,000,000 items. Too many to score in detail for every request.">10,000,000 items — full catalog</div>
+      <div class="funnel-arrow">↓ candidate generation (few ms)</div>
+      <div class="funnel-stage s2" data-detail="A fast similarity-search index narrows this down in just a few milliseconds, using a structure built for exactly this kind of find-roughly-similar-things-fast search.">~1,000 candidates — narrowed by similarity search</div>
+      <div class="funnel-arrow">↓ re-ranking (50-80ms)</div>
+      <div class="funnel-stage s3" data-detail="A richer model scores just these 1,000 candidates with ~100 features each — 100,000 feature lookups per request, 3.5 billion per second at peak. Only affordable because it's 1,000 items, not 10 million.">Top 10 — ranked and returned</div>
+      <div class="funnel-detail" id="funnelDetail">Click a stage above to see what happens there.</div>
+    </div>
+    <p class="diagram-caption">Compute cost drops by four orders of magnitude from this one
+    architectural decision.</p>
+  </div>
+
+  <h2 id="weak-dims">Idea 3: Naming Two Weak Points Together — On Purpose</h2>
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"Feature-store tail latency, because 3.5 billion lookups per second leaves a razor-thin
+    margin. And cost, because the cost-per-impression number determines which business decisions
+    are even feasible."</p>
+  </div>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>Fraud was latency-first because the blocking path was a hard stop. Recommendation is
+    latency-<em>and</em>-cost because the budget is softer but the cost-per-impression number
+    directly shapes business viability. Naming only latency here is just re-applying the fraud
+    playbook without adjusting it — naming both shows the toolkit is matched to the actual
+    problem.</p>
+  </div>
+
+  <h2 id="architecture">Idea 4: The Architecture, in Plain Terms</h2>
+  <ul>
+    <li><strong>Candidate generation</strong> narrows the catalog to ~1,000 candidates per user
+    via a similarity index.</li>
+    <li><strong>The re-ranker</strong> scores those candidates, combining fast session features
+    with slower baseline features.</li>
+    <li><strong>A fast in-memory store</strong> holds only what genuinely changes fast — ~20
+    features/user, ~50GB total at 100M active users.</li>
+    <li><strong>A columnar store</strong> holds everything else, refreshed on different schedules
+    (daily/hourly/weekly) and pre-joined ahead of time.</li>
+    <li><strong>Every impression gets logged</strong> — the audit trail and next model's training
+    data.</li>
+  </ul>
+
+  <h2 id="cold-start">Idea 5: Handling a Brand-New User</h2>
+  <p>Under a threshold of prior sessions, a new user routes to popularity-ranked items blended
+  with contextual signals, using a model trained specifically on minimal-history users. As real
+  history accumulates, cold-start scores blend gradually into fully personalized ones.</p>
+  <p><strong>The subtle design choice:</strong> cold start isn't a separate pipeline — it's the
+  same serving architecture, fed different feature values and a different model variant. That
+  keeps the operational footprint small.</p>
+
+  <h2 id="cost">Idea 6: The Real Cost Breakdown — Three Levers</h2>
+  <p>Click each lever to see its impact, in order.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a lever</div>
+    <div class="lever-widget" id="leverWidget"></div>
+  </div>
+
+  <h2 id="breaks">Idea 7: What Breaks First Under Load</h2>
+  <ol>
+    <li><strong>Fast-store tail latency</strong> drifting under bursty load — primary alert: p99.9
+    sustained above 3ms for 30 seconds.</li>
+    <li><strong>Candidate-generation quality degrading silently</strong> — no alarm fires, just
+    slowly worsening engagement over days. The most dangerous one because it's ambiguous.</li>
+    <li><strong>Query anti-patterns creeping into analytics</strong> — the function-on-partition-
+    column trap from the query engines chapter, showing up again here.</li>
+  </ol>
+
+  <h2 id="summary">The 30-Second Closing Summary</h2>
+  <div class="callout say">
+    <div class="cal-label">✅ What I'd build</div>
+    <p>A two-stage ranking pipeline — fast similarity search to narrow to ~1,000 candidates, then
+    a richer model to re-rank. Session features in a fast store with a 1ms target, everything
+    slower pre-joined into columnar storage. Cold start as a variant, not a separate system.</p>
+  </div>
+  <div class="callout say">
+    <div class="cal-label">✅ What I'd sacrifice</div>
+    <p>The fast store is a single point of failure for the whole latency target — invest in its
+    observability first. Candidate-generation quality can drift silently, so it needs a dedicated
+    quality metric, not just an uptime check.</p>
+  </div>
+  <div class="callout say">
+    <div class="cal-label">✅ What I'd watch, in order</div>
+    <p>Fast-store p99.9 above 3ms (primary). Candidate-generation recall trending down week over
+    week (the slow, silent one). Cost-per-impression drift.</p>
+  </div>
+
+  <h2 id="lesson">What This Case Study Is Really Teaching</h2>
+  <p>The pattern from Case Study 1 is visible here, wearing different clothes: skew shows up as
+  item popularity instead of merchant concentration; the feature store shows up identically (fast
+  online tier + slower offline tier); "exactly-once" becomes "impression-log exactly-once." The
+  <em>moves</em> transfer across domains — the specifics don't.</p>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Skipping the "score everything" math.</strong> Without it, two-stage ranking sounds
+    arbitrary instead of mathematically necessary.</li>
+    <li><strong>Naming only latency as the weak dimension.</strong> Cost matters just as much
+    here.</li>
+    <li><strong>Treating cold start as a separate system.</strong> Should be a variant of the same
+    pipeline.</li>
+    <li><strong>Forgetting feature-store tiering is the biggest cost lever.</strong> In-memory is
+    10-50x pricier per GB than columnar.</li>
+    <li><strong>Not asking about cost upfront.</strong> A strength signal here specifically.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>The "Score Everything" Math</h4>
+        <p>10M × 35,000/sec = 350B ops/sec naively. Two-stage ranking cuts this by 4 orders of
+        magnitude.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Two Weak Dimensions</h4>
+        <p>Feature-store tail latency (3.5B lookups/sec) <em>and</em> cost (determines business
+        viability).</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Cost Levers, in Order</h4>
+        <ol>
+          <li>Feature-store tiering (biggest — 10-50x pricier in-memory)</li>
+          <li>Gateway result caching (20-40% fewer calls)</li>
+          <li>Candidate-gen index choice (ML-team call)</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>What Breaks First</h4>
+        <ul>
+          <li>Fast-store tail latency under burst</li>
+          <li>Candidate-gen quality, silently</li>
+          <li>Query anti-patterns in analytics</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Cold Start Rule</h4>
+        <p>Same pipeline, different inputs — never a separate system.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Ten million times thirty-five thousand is why two-stage ranking is mandatory."</li>
+          <li>"For recommendation, I'd name two weak dimensions: latency and cost."</li>
+          <li>"Cold start is a variant of the same pipeline, not a second system."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Upload-time enrichment fixes cold start more cleanly:</strong> a dedicated event
+      at content-creation time triggers an enrichment pipeline extracting content and author
+      features before any engagement data exists — so the model never sees a truly blank slate.</li>
+      <li><strong>Time-decayed features</strong> (a recent action counting more than an old one)
+      benefit from a true streaming engine's per-event control rather than a micro-batch
+      framework's coarser cadence.</li>
+      <li><strong>Online/offline feature consistency</strong> is its own design question — a
+      feature computed slightly differently in the real-time path versus batch training can cause
+      the model to train on one distribution and serve on another.</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+// ---------- Funnel stage details ----------
+document.querySelectorAll('.funnel-stage').forEach(stage=>{
+  stage.addEventListener('click', ()=>{
+    document.getElementById('funnelDetail').textContent = stage.dataset.detail;
+  });
+  stage.addEventListener('mouseenter', ()=>{
+    document.getElementById('funnelDetail').textContent = stage.dataset.detail;
+  });
+});
+
+// ---------- Cost levers ----------
+const leverData = [
+  {name:'Feature-store tiering', detail:'Hot features stay in the fast in-memory store, everything else in cheaper columnar storage. The single biggest lever \u2014 in-memory storage is often 10 to 50 times more expensive per gigabyte than columnar. Keeping the fast store modest instead of letting it grow tenfold can save hundreds of thousands of dollars a month.'},
+  {name:'Result caching at the gateway', detail:'If a user requests a feed and returns within 10 seconds, the top items likely have not meaningfully changed. A short cache keyed by user and surface can drop 20 to 40% of re-ranker calls. Trade-off: slightly stale results, usually fine here.'},
+  {name:'Candidate-generation index cost', detail:'The similarity index that narrows 10M items to 1,000 is itself expensive to maintain, with a real accuracy-vs-memory trade-off in which index technology to use. Usually an ML-team call, informed by a monthly cost-per-impression review.'},
+];
+const leverWidget = document.getElementById('leverWidget');
+leverData.forEach((l,i)=>{
+  const row = document.createElement('div');
+  row.className = 'lever-row';
+  row.innerHTML = `
+    <div class="lever-rank">${i+1}</div>
+    <div class="lever-name">${l.name}</div>
+  `;
+  const detail = document.createElement('div');
+  detail.className = 'lever-detail';
+  detail.textContent = l.detail;
+  const container = document.createElement('div');
+  container.appendChild(row);
+  container.appendChild(detail);
+  leverWidget.appendChild(container);
+
+  row.addEventListener('click', ()=>{
+    const isShown = detail.classList.contains('show');
+    document.querySelectorAll('.lever-detail').forEach(el=>el.classList.remove('show'));
+    document.querySelectorAll('.lever-row').forEach(el=>el.classList.remove('active'));
+    if(!isShown){ detail.classList.add('show'); row.classList.add('active'); }
+  });
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

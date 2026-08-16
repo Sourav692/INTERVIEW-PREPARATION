@@ -1,0 +1,894 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.10 — Query Engines | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --purple:#c98be2;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:600;
+    margin:60px 0 18px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:18px;
+    font-weight:700;
+    margin:32px 0 12px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  .opening-lines{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:28px 28px 20px;
+    margin:28px 0 40px;
+  }
+  .opening-lines .label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    margin-bottom:16px;
+  }
+  .opening-lines blockquote{
+    font-family:var(--serif);
+    font-size:17px;
+    font-style:italic;
+    color:#eef1f5;
+    margin:0 0 18px;
+    padding-left:16px;
+    border-left:2px solid var(--amber);
+  }
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+
+  .pattern-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;}
+  @media(max-width:680px){.pattern-pair{grid-template-columns:1fr;}}
+  .pattern-pair .callout{margin:0;}
+
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{
+    background:var(--bg-panel-raised);
+    text-align:left;
+    padding:12px 16px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    border-bottom:1px solid var(--rule);
+  }
+  td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink-dim);
+    vertical-align:top;
+  }
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+
+  pre{
+    background:#0a0d12;
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+    margin:20px 0;
+    position:relative;
+  }
+  pre .lang{
+    position:absolute;top:10px;right:14px;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.1em;
+    color:var(--ink-faint);
+  }
+  pre code{background:none;padding:0;color:#c3d6e8;}
+  .sql-kw{color:var(--amber);}
+  .sql-str{color:var(--green);}
+  .sql-com{color:var(--ink-faint);font-style:italic;}
+
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .further-reading strong{color:var(--ink);}
+
+  .supplementary{
+    border:1px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 24px;
+    margin-top:24px;
+    background:var(--bg-panel);
+  }
+  .supplementary-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: folder-skipping (partition pruning) simulator --- */
+  .prune-sim{background:#0a0d12;border-radius:10px;padding:24px;}
+  .prune-controls{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+  .prune-controls label{font-family:var(--mono);font-size:13px;color:var(--ink-dim);}
+  .prune-toggle-row{display:flex;gap:8px;}
+  .prune-btn{
+    font-family:var(--mono);font-size:12.5px;padding:10px 16px;border-radius:7px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .prune-btn:hover{border-color:var(--amber);color:var(--ink);}
+  .prune-btn.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .prune-folders{
+    display:grid;grid-template-columns:repeat(30, 1fr);gap:3px;margin:20px 0;
+  }
+  .prune-folder{
+    aspect-ratio:1;border-radius:2px;background:#262e3a;transition:background 0.3s;
+  }
+  .prune-folder.scanned{background:var(--red);}
+  .prune-folder.skipped{background:#1f3a30;}
+  .prune-folder.target{background:var(--green);}
+  .prune-stats{display:flex;gap:24px;flex-wrap:wrap;margin-top:16px;}
+  .prune-stat{font-family:var(--mono);font-size:13px;color:var(--ink-dim);}
+  .prune-stat strong{color:var(--amber);font-size:18px;display:block;}
+
+  /* --- Interactive: function-wrapping before/after --- */
+  .func-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;}
+  @media(max-width:640px){.func-compare{grid-template-columns:1fr;}}
+  .func-card{
+    border-radius:8px;padding:18px;border:1px solid var(--rule);background:var(--bg-panel-raised);
+  }
+  .func-card.bad{border-left:3px solid var(--red);}
+  .func-card.good{border-left:3px solid var(--green);}
+  .func-card h4{margin:0 0 10px;font-family:var(--mono);font-size:12.5px;text-transform:uppercase;}
+  .func-card.bad h4{color:var(--red);}
+  .func-card.good h4{color:var(--green);}
+  .func-card .func-result{
+    margin-top:12px;padding:10px 12px;border-radius:6px;background:#0a0d12;
+    font-family:var(--mono);font-size:13px;text-align:center;font-weight:700;
+  }
+  .func-card.bad .func-result{color:var(--red);}
+  .func-card.good .func-result{color:var(--green);}
+
+  /* --- Interactive: engine picker by workload shape --- */
+  .engine-picker{display:flex;flex-direction:column;gap:12px;}
+  .engine-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .engine-tab{
+    font-family:var(--mono);font-size:12.5px;padding:10px 16px;border-radius:7px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .engine-tab:hover{border-color:var(--amber);color:var(--ink);}
+  .engine-tab.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .engine-panel{background:#0a0d12;border-radius:8px;padding:20px;display:none;}
+  .engine-panel.show{display:block;}
+  .engine-panel h4{margin:0 0 10px;color:var(--amber);font-size:15px;}
+  .engine-panel p{font-size:14px;margin-bottom:10px;}
+  .engine-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;}
+  .engine-item{flex:1;min-width:140px;}
+  .engine-item .ei-label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px;}
+  .engine-item .ei-value{font-size:13.5px;color:var(--ink);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 10</div>
+    <h1 class="title">Query Engines</h1>
+    <p class="subtitle">A query engine doesn't charge you for how many rows come back. It charges
+    you for how much raw data it had to look through to answer you. Almost everything else in this
+    chapter is just "how to help it look through less."</p>
+    <div class="chap-note">Printed as "Chapter Nine" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 10.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Two people cook the exact same recipe, in the exact same kitchen. One finishes in 12
+    minutes; the other takes two hours. Same ingredients, same stove — but one person knew exactly
+    which shortcuts the kitchen allowed.</p>
+    <p><strong>Two teams can write nearly identical SQL and one query finishes 600x faster</strong>
+    — not from a better computer, but from one tiny difference in how the question was phrased.
+    You're charged for bytes scanned, not rows returned. Everything else follows from that.</p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>Query cost at analytics scale is bytes read, not rows returned. Every optimization
+    reduces that number; nothing else matters.</blockquote>
+    <blockquote>Predicate and projection pushdown save more money than index tuning at analytics
+    scale. The partitioning scheme is my most important pushdown hint.</blockquote>
+    <blockquote>A function on the partition column kills pruning. Rewrite filters as range
+    comparisons against the stored column directly.</blockquote>
+    <blockquote>Materialized views are a bet that the query pattern is stable. If queries drift,
+    the views are the thing that breaks first.</blockquote>
+    <blockquote>Trino, Spark SQL, and Snowflake optimize differently for the same SQL. Writing
+    portable analytics SQL means knowing what each one prunes.</blockquote>
+  </div>
+
+  <h2 id="two-teams">Why the Same Question, Written Two Ways, Can Take 600x Longer</h2>
+  <p>Two teams each own a slow dashboard. Both queries run against the same 50 terabyte table,
+  split up by day. Both do the exact same thing: add up daily revenue by customer plan.</p>
+  <p><strong>Team A's</strong> query runs in 12 seconds. <strong>Team B's</strong> runs in two
+  hours. The SQL is nearly identical — the difference is a single function call in the filter.</p>
+  <p>Team B wrote <em>"reformat this date column, then compare the reformatted text to
+  '2024-06-15.'"</em> Team A wrote <em>"compare the raw date column directly to a date range."</em>
+  Those sound similar, but to the engine they're completely different instructions. Team A's
+  version skips 729 of 730 days without opening them. Team B's version has to open and read every
+  single day first, because the engine can no longer tell which day is being asked for.</p>
+  <div class="callout signal" style="border-left-color:var(--green);">
+    <div class="cal-label" style="color:var(--green);">💡 The one idea to remember</div>
+    <p>Query engines are where the shape of your data meets the intent of your question. The
+    engine's whole job is translating your intent into the smallest possible read, given the
+    shape. A strong candidate can predict, just from reading the SQL, whether that translation
+    will go smoothly.</p>
+  </div>
+
+  <h2 id="bytes-read">Idea 1: You're Charged for What Was Read, Not What Came Back</h2>
+  <p>In a regular app database, asking for "the one row where ID = 42" uses an index to jump
+  straight there — like flipping to the right page using a book's index. The cost is about the
+  lookup, not the size of the book.</p>
+  <p><strong>In a big analytics warehouse, that shortcut mostly doesn't exist.</strong> A
+  column-level index on a 10 TB table would itself be roughly a 10 TB index. Instead, the engine
+  relies on folder structure, summary statistics, and how columns are physically stored. The cost
+  of a query is how many bytes it scanned — not how many rows survived the filter.</p>
+  <ul>
+    <li><strong>"Just add an index" doesn't help here.</strong> The engine uses folder structure
+    and stored statistics instead — reaching for an index is applying the wrong mental model.</li>
+    <li><strong>Fewer columns matters more than fewer rows.</strong> A well-organized (columnar)
+    format skips reading unrequested columns entirely, for free. <code>SELECT *</code> throws that
+    away.</li>
+    <li><strong>Which folders you touch is the single biggest lever.</strong> Data split into
+    daily folders lets a query skip essentially the whole rest of the table — but only if the
+    engine can tell which folder your filter maps to.</li>
+  </ul>
+
+  <h2 id="pushdown">Idea 2: "Pushdown" Is Just "Skip Stuff Before Even Opening the File"</h2>
+  <p>Think of sorting mail. If the zip code is printed clearly on the outside of the envelope,
+  a mail carrier sorts without opening anything. If it's scribbled in code somewhere inside, they
+  have to open every envelope first. Same information, wildly different amount of work.</p>
+  <p>Try the simulator below — it shows how many "folders" (daily partitions) get scanned
+  depending on how the filter is written.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — toggle the filter style</div>
+    <div class="prune-sim">
+      <div class="prune-controls">
+        <label>Filter style:</label>
+        <div class="prune-toggle-row" id="pruneToggle"></div>
+      </div>
+      <div class="prune-folders" id="pruneFolders"></div>
+      <div class="prune-stats" id="pruneStats"></div>
+    </div>
+    <p class="diagram-caption">730 daily folders, 50 TB total. Each square is one day. Green is the
+    day you actually asked for; red means "had to be opened and scanned anyway."</p>
+  </div>
+
+  <p>Three levels of pushdown, in order of typical impact:</p>
+  <ol>
+    <li><strong>Skip whole folders (partition pruning)</strong> — the biggest lever, shown above.</li>
+    <li><strong>Read fewer columns (projection pushdown)</strong> — free in columnar storage.</li>
+    <li><strong>Skip files by contents (predicate pushdown)</strong> — stored min/max notes per
+    file let non-matching files get skipped entirely.</li>
+  </ol>
+  <p>One blind spot: min/max doesn't help much for a specific ID lookup on unsorted data, since
+  the range spans almost everything. Parquet bloom filters (optional, 1–5% extra storage) close
+  that gap.</p>
+
+  <h2 id="function-trap">Idea 3: The One Mistake That Breaks Everything</h2>
+  <p>Wrapping a column in a function before comparing it — reformatting a date, uppercasing text,
+  converting a type — hides your real intent from the engine. It can no longer tell you're asking
+  about one specific day; it sees a filter on a function's <em>output</em>, not the actual column.</p>
+
+  <div class="func-compare">
+    <div class="func-card bad">
+      <h4>❌ Before — function wraps the column</h4>
+      <pre style="margin:0;"><code>WHERE DATE_FORMAT(event_ts, 'yyyy-MM-dd')
+      = '2024-06-15'</code></pre>
+      <div class="func-result">Scans all 730 folders — 50 TB read</div>
+    </div>
+    <div class="func-card good">
+      <h4>✅ After — raw column, direct range</h4>
+      <pre style="margin:0;"><code>WHERE event_ts >= '2024-06-15'
+  AND event_ts <  '2024-06-16'</code></pre>
+      <div class="func-result">Scans 1 folder — ~70 GB read</div>
+    </div>
+  </div>
+
+  <p>The fix is always the same shape: move the transformation to the <em>other</em> side of the
+  comparison, so the stored column stays untouched.</p>
+
+  <pre><span class="lang">sql</span><code><span class="sql-com">-- src/code-examples/ch09/query_tuning_pushdown.sql
+-- BEFORE: reformatting hides the filter from the planner.</span>
+<span class="sql-kw">SELECT</span> u.plan_tier, <span class="sql-kw">SUM</span>(t.amount) <span class="sql-kw">AS</span> revenue
+<span class="sql-kw">FROM</span> fact_transactions t
+<span class="sql-kw">JOIN</span> dim_user u <span class="sql-kw">ON</span> t.user_id = u.user_id
+<span class="sql-kw">WHERE</span> DATE_FORMAT(t.event_ts, <span class="sql-str">'yyyy-MM-dd'</span>) = <span class="sql-str">'2024-06-15'</span>
+  <span class="sql-kw">AND</span> u.country = <span class="sql-str">'US'</span>
+<span class="sql-kw">GROUP BY</span> u.plan_tier;
+
+<span class="sql-com">-- AFTER: a plain range comparison on the raw column. Folder-skipping
+-- fires; the scan touches one folder instead of 730.</span>
+<span class="sql-kw">SELECT</span> u.plan_tier, <span class="sql-kw">SUM</span>(t.amount) <span class="sql-kw">AS</span> revenue
+<span class="sql-kw">FROM</span> fact_transactions t
+<span class="sql-kw">JOIN</span> dim_user u <span class="sql-kw">ON</span> t.user_id = u.user_id
+<span class="sql-kw">WHERE</span> t.event_ts >= TIMESTAMP <span class="sql-str">'2024-06-15 00:00:00'</span>
+  <span class="sql-kw">AND</span> t.event_ts <  TIMESTAMP <span class="sql-str">'2024-06-16 00:00:00'</span>
+  <span class="sql-kw">AND</span> u.country = <span class="sql-str">'US'</span>
+<span class="sql-kw">GROUP BY</span> u.plan_tier;</code></pre>
+
+  <div class="callout war">
+    <div class="cal-label">⚠️ War Story</div>
+    <p>A team at a financial services company ran a daily revenue-reconciliation query that took
+    two hours and blocked the morning refresh of eight dashboards. The SQL had been written by a
+    senior engineer who understood data modeling well. The two hours came from a single function
+    call: wrapping the date column in a type conversion before comparing it to "yesterday." That
+    one wrapper silently disabled folder-skipping on a table split into daily folders. A
+    five-minute rewrite — comparing the raw column to a plain date range — dropped runtime to four
+    minutes. The lesson: the engineer had a perfectly correct mental model of data modeling and
+    zero mental model of how the engine's shortcuts actually work. Those are two different
+    skills.</p>
+  </div>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Wrapping a partition or filter column in any function before comparing it. This is the
+    single most damaging habit in analytics SQL — it silently disables every shortcut the engine
+    could have used.</p>
+  </div>
+
+  <h2 id="materialized-views">Idea 4: Pre-Computing Results — and Their Three Ways of Breaking</h2>
+  <p>A <strong>materialized view</strong> is a stored, pre-computed answer to a specific query —
+  think of it as a cache. It can be a huge speedup, but it breaks in three common ways:</p>
+  <ul>
+    <li><strong>Drift</strong> — the query pattern it was built for slowly changes; it keeps
+    costing compute but serves fewer of the actual queries.</li>
+    <li><strong>Staleness</strong> — it only refreshes on a schedule, so consumers can see
+    outdated data without a clear per-view freshness expectation.</li>
+    <li><strong>Chains</strong> — views built on other views mean a broken link anywhere silently
+    poisons everything downstream.</li>
+  </ul>
+
+  <div class="callout pattern">
+    <div class="cal-label">✅ Pattern</div>
+    <p>Track materialized view usage and freshness from day one. A view with no consumers is
+    compute you're paying for with zero benefit.</p>
+  </div>
+
+  <h2 id="engines">Idea 5: Different Engines Optimize the Same SQL Differently</h2>
+  <p>The same SQL can behave very differently depending on the engine. Click each one below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — select an engine</div>
+    <div class="engine-picker">
+      <div class="engine-tabs" id="engineTabs"></div>
+      <div id="enginePanels"></div>
+    </div>
+  </div>
+
+  <p>The distinction that matters most: <strong>interactive (answer in seconds) vs. batch (a
+  scheduled job that can take minutes to hours).</strong> Picking the wrong side means queries
+  either time out or run far slower than the use case can tolerate.</p>
+
+  <h2 id="transcript">A Real Interview, Walked Through Simply</h2>
+  <p>The classic query-tuning prompt: a specific slow query, a specific speedup target, no
+  business-logic changes allowed. Watch the candidate read the plan, fix one thing at a time, and
+  check progress against the target rather than guessing everything at once.</p>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>This query runs in 20 minutes against <code>fact_transactions</code>. Your team wants it
+      in 30 seconds. Business logic can't change.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>First, I'd run the engine's "explain" command and read the plan bottom-up. I'd expect a
+      full scan, because reformatting the date column before comparing it is probably preventing
+      any folder-skipping.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Confirmed. The scan reads 50 TB across 730 daily folders.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>That's the primary cost. I'd rewrite the filter as a plain range directly on the raw date
+      column. That lets the engine skip to one folder — 50 TB becomes roughly 70 GB.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Done. Runtime drops to four minutes.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p><em>(thinking)</em> Real progress, but still about 8x off target. The folder-skip was the
+      big lever — whatever's left is probably in columns read or the join. What's the plan doing
+      after the scan — how many columns is it reading, and what join approach?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Reading all 30 columns. The join reshuffles the full data across the network on
+      <code>user_id</code>.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Two more fixes. Ask for only the columns we need — two out of 30 — which drops the read
+      to about 7 GB with columnar storage. And the other table is probably only a few GB — filter
+      it to US users, then switch the join to broadcast: copy the small, filtered table to every
+      worker instead of reshuffling the giant table to match it. That avoids the network shuffle
+      entirely.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Runtime drops to 45 seconds.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Close — and that's usually where I'd check whether 45 seconds actually meets the target,
+      or whether there's a specific number I'm still missing.</p>
+    </div>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Reaching for "add an index."</strong> Doesn't help at analytics scale — folder
+    structure and stored statistics do that job instead.</li>
+    <li><strong>Using <code>SELECT *</code> in analytics.</strong> Reads every column even when
+    the query only needs a few — a free optimization thrown away.</li>
+    <li><strong>Wrapping a partition or filter column in a function.</strong> The single most
+    damaging habit in analytics SQL.</li>
+    <li><strong>Materialized views with no usage tracking.</strong> Quietly become compute you're
+    paying for with no benefit.</li>
+    <li><strong>Picking an engine by reputation instead of workload shape.</strong> Choosing a
+    tool because it sounded fast at a conference, not because it fits interactive vs. batch
+    needs.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>The Cost Model</h4>
+        <p>Bytes read, not rows returned. Every tuning move reduces that number.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Four Pushdown Levers, in Order of Impact</h4>
+        <ol>
+          <li>Skip whole folders (partition pruning) — biggest lever</li>
+          <li>Read fewer columns (projection pushdown) — free</li>
+          <li>Skip files by contents (predicate pushdown)</li>
+          <li>Bloom filters — closes the point-lookup gap, ~1–5% storage</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>The One Anti-Pattern</h4>
+        <p>A function on the partition or filter column kills pruning. Always compare the raw
+        stored column directly.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Tuning Workflow</h4>
+        <ol>
+          <li>Run "explain," read bottom-up</li>
+          <li>Find the stage where bytes read is highest</li>
+          <li>Check what was pruned vs. not</li>
+          <li>Rewrite to unlock the missing pushdown</li>
+          <li>Re-run "explain" to confirm</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4>Materialized Views</h4>
+        <p>Track usage and freshness per view, per consumer. Avoid long chains built on other
+        views.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Engine by Workload Shape</h4>
+        <p>Interactive sub-second: Trino, DuckDB. Batch minutes-to-hours: Spark SQL. Managed
+        middle ground: Snowflake.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Bytes read is the cost model. Rows returned is the rounding error."</li>
+          <li>"Explain first. Rewrite second."</li>
+          <li>"Functions on partition columns kill pushdown. Always."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Warehouse vs. lake isn't either/or:</strong> most real systems use both — a
+      cheap raw copy in a lake for ad-hoc exploration, and a cleaned, structured subset in a
+      warehouse for BI and reporting.</li>
+      <li><strong>File format depends on how the data will be read:</strong> columnar formats
+      (Parquet, ORC) win for analytics; row-based formats (Avro) make more sense for passing
+      individual records through a message system like Kafka.</li>
+      <li><strong>Managed vs. self-hosted applies to query engines too:</strong> managed services
+      reduce operational burden for smaller teams or unpredictable workloads; self-hosting can pay
+      off at large, predictable scale where customization or cost control matters more.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>"Access Path Selection in a Relational Database Management System."</strong> Pat
+    Selinger et al. SIGMOD 1979. The System R paper — the basic cost-based optimizer framework
+    every modern engine still applies.</li>
+    <li><strong>"Volcano: An Extensible and Parallel Query Evaluation System."</strong> Goetz
+    Graefe. IEEE TKDE 1994. The execution model every modern engine inherits.</li>
+    <li><strong>"The Snowflake Elastic Data Warehouse."</strong> SIGMOD 2016. The paper that
+    popularized separating compute from storage for analytics.</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- Folder-skipping (partition pruning) simulator ----------
+const pruneModes = [
+  {id:'bad', label:'Function-wrapped filter'},
+  {id:'good', label:'Direct range filter'},
+];
+const pruneToggle = document.getElementById('pruneToggle');
+const pruneFolders = document.getElementById('pruneFolders');
+const pruneStats = document.getElementById('pruneStats');
+let currentPruneMode = 'bad';
+
+pruneModes.forEach((m,i)=>{
+  const btn = document.createElement('div');
+  btn.className = 'prune-btn' + (i===0?' active':'');
+  btn.textContent = m.label;
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.prune-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPruneMode = m.id;
+    renderPrune();
+  });
+  pruneToggle.appendChild(btn);
+});
+
+const TOTAL_FOLDERS = 60; // scaled down visually from 730 for display, same ratio story
+const TARGET_FOLDER = 45;
+
+function renderPrune(){
+  pruneFolders.innerHTML = '';
+  for(let i=0;i<TOTAL_FOLDERS;i++){
+    const f = document.createElement('div');
+    f.className = 'prune-folder';
+    if(currentPruneMode === 'bad'){
+      f.classList.add(i === TARGET_FOLDER ? 'target' : 'scanned');
+    } else {
+      f.classList.add(i === TARGET_FOLDER ? 'target' : 'skipped');
+    }
+    pruneFolders.appendChild(f);
+  }
+  pruneStats.innerHTML = '';
+  const stats = currentPruneMode === 'bad'
+    ? [
+        {label:'Folders opened', val:'730 of 730'},
+        {label:'Data scanned', val:'~50 TB'},
+        {label:'Approx. runtime', val:'~2 hours'},
+      ]
+    : [
+        {label:'Folders opened', val:'1 of 730'},
+        {label:'Data scanned', val:'~70 GB'},
+        {label:'Approx. runtime', val:'~12 seconds'},
+      ];
+  stats.forEach(s=>{
+    const el = document.createElement('div');
+    el.className = 'prune-stat';
+    el.innerHTML = `<strong>${s.val}</strong>${s.label}`;
+    pruneStats.appendChild(el);
+  });
+}
+renderPrune();
+
+// ---------- Engine picker by workload shape ----------
+const engineData = [
+  {
+    id:'trino', label:'Trino',
+    body:`Built for fast, interactive answers, and can query many different data sources through
+    one interface. Came out of Facebook's Presto project.`,
+    good:'Interactive latency; pluggable connectors across sources',
+    watch:'Per-query startup overhead; trickier internal state management',
+    when:'Multi-source federated analytics, ad-hoc exploration'
+  },
+  {
+    id:'spark', label:'Spark SQL',
+    body:`Tightly integrated with Spark's compute engine, with automatic runtime tuning (AQE).
+    Built for larger, longer-running jobs rather than instant answers.`,
+    good:'Unified with Spark compute; adaptive query execution',
+    watch:'Slower startup per query, less suited to interactive use',
+    when:'Batch pipelines, mixed SQL + code-based workflows'
+  },
+  {
+    id:'snowflake', label:'Snowflake',
+    body:`A fully managed warehouse that scales compute automatically and handles a lot of
+    maintenance (clustering, materialized view refresh) on your behalf.`,
+    good:'Managed, elastic compute, automatic maintenance',
+    watch:'Vendor lock-in; per-query cost can add up at scale',
+    when:'Managed warehouse with bursty, unpredictable workloads'
+  },
+  {
+    id:'duckdb', label:'DuckDB',
+    body:`Runs inside your own process — no cluster to manage — using fast, vectorized execution
+    for smaller-scale analytics.`,
+    good:'In-process, vectorized execution, no cluster to run',
+    watch:'Single-node — bounded by what fits on one machine',
+    when:'Small-data OLAP, notebooks, local development'
+  },
+];
+const engineTabs = document.getElementById('engineTabs');
+const enginePanels = document.getElementById('enginePanels');
+engineData.forEach((e,i)=>{
+  const tab = document.createElement('div');
+  tab.className = 'engine-tab' + (i===0?' active':'');
+  tab.textContent = e.label;
+  engineTabs.appendChild(tab);
+
+  const panel = document.createElement('div');
+  panel.className = 'engine-panel' + (i===0?' show':'');
+  panel.id = 'engine-'+e.id;
+  panel.innerHTML = `
+    <h4>${e.label}</h4>
+    <p>${e.body}</p>
+    <div class="engine-row">
+      <div class="engine-item"><div class="ei-label">Good At</div><div class="ei-value">${e.good}</div></div>
+      <div class="engine-item"><div class="ei-label">Watch Out For</div><div class="ei-value">${e.watch}</div></div>
+      <div class="engine-item"><div class="ei-label">Use It When</div><div class="ei-value">${e.when}</div></div>
+    </div>
+  `;
+  enginePanels.appendChild(panel);
+
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.engine-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.engine-panel').forEach(p=>p.classList.remove('show'));
+    tab.classList.add('active');
+    document.getElementById('engine-'+e.id).classList.add('show');
+  });
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,906 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch.7 — Streaming Systems | System Design for Data Engineers</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --bg-panel:#151a22;
+    --bg-panel-raised:#1b212b;
+    --ink:#dfe6ee;
+    --ink-dim:#8b96a5;
+    --ink-faint:#5a6472;
+    --rule:#262e3a;
+    --amber:#e8a33d;
+    --amber-dim:#5c451f;
+    --red:#e2604f;
+    --red-dim:#3f2420;
+    --green:#5ec9a0;
+    --green-dim:#1f3a30;
+    --blue:#6fa8dc;
+    --purple:#c98be2;
+    --mono: "IBM Plex Mono","SF Mono",Consolas,monospace;
+    --serif: "Source Serif 4","Georgia",serif;
+    --sans: "Inter","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    font-size:16px;
+  }
+  a{color:var(--amber);}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 120px;}
+
+  .masthead{
+    border-bottom:1px solid var(--rule);
+    padding:56px 24px 40px;
+    background:
+      radial-gradient(ellipse at top left, rgba(232,163,61,0.08), transparent 60%),
+      var(--bg);
+  }
+  .masthead-inner{max-width:880px;margin:0 auto;}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(32px,5vw,50px);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-dim);
+    font-size:17px;
+    max-width:640px;
+    margin:0 0 20px;
+  }
+  .chap-note{
+    font-size:13px;
+    color:var(--ink-faint);
+    font-style:italic;
+    border-left:2px solid var(--rule);
+    padding-left:12px;
+  }
+
+  .simple-banner{
+    background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg-panel) 100%);
+    border:1px solid #2a4a3d;
+    border-radius:10px;
+    padding:22px 24px;
+    margin:28px 0;
+  }
+  .simple-banner .sb-label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--green);
+    margin-bottom:10px;
+  }
+  .simple-banner p{margin-bottom:10px;}
+  .simple-banner p:last-child{margin-bottom:0;}
+  .simple-banner strong{color:#fff;}
+
+  h2{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:600;
+    margin:60px 0 18px;
+    padding-top:22px;
+    border-top:1px solid var(--rule);
+    letter-spacing:-0.01em;
+  }
+  h2:first-of-type{border-top:none;padding-top:0;}
+  h3{
+    font-family:var(--sans);
+    font-size:18px;
+    font-weight:700;
+    margin:32px 0 12px;
+    color:var(--ink);
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  ul,ol{padding-left:22px;margin:0 0 16px;}
+  li{margin-bottom:9px;}
+  strong{color:#fff;font-weight:650;}
+  code{
+    font-family:var(--mono);
+    background:var(--bg-panel-raised);
+    padding:2px 6px;
+    border-radius:4px;
+    font-size:0.88em;
+    color:var(--amber);
+  }
+
+  .opening-lines{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:28px 28px 20px;
+    margin:28px 0 40px;
+  }
+  .opening-lines .label{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--ink-faint);
+    margin-bottom:16px;
+  }
+  .opening-lines blockquote{
+    font-family:var(--serif);
+    font-size:17px;
+    font-style:italic;
+    color:#eef1f5;
+    margin:0 0 18px;
+    padding-left:16px;
+    border-left:2px solid var(--amber);
+  }
+  .opening-lines blockquote:last-child{margin-bottom:0;}
+
+  .callout{
+    border-radius:8px;
+    padding:18px 20px;
+    margin:22px 0;
+    border:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .callout .cal-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-weight:700;
+    margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout p:last-child{margin-bottom:0;}
+  .callout.signal{border-left:3px solid var(--amber);}
+  .callout.signal .cal-label{color:var(--amber);}
+  .callout.war{border-left:3px solid var(--red); background:linear-gradient(180deg, var(--red-dim) 0%, var(--bg-panel) 18%);}
+  .callout.war .cal-label{color:var(--red);}
+  .callout.say{border-left:3px solid var(--green);}
+  .callout.say .cal-label{color:var(--green);}
+  .callout.say p{font-family:var(--serif);font-style:italic;font-size:16px;}
+  .callout.pattern{border-left:3px solid var(--blue);}
+  .callout.pattern .cal-label{color:var(--blue);}
+  .callout.antipattern{border-left:3px solid var(--red);}
+  .callout.antipattern .cal-label{color:var(--red);}
+
+  .pattern-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0;}
+  @media(max-width:680px){.pattern-pair{grid-template-columns:1fr;}}
+  .pattern-pair .callout{margin:0;}
+
+  .table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--rule);border-radius:8px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th{
+    background:var(--bg-panel-raised);
+    text-align:left;
+    padding:12px 16px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--amber);
+    border-bottom:1px solid var(--rule);
+  }
+  td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--ink-dim);
+    vertical-align:top;
+  }
+  td:first-child{color:var(--ink);font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+
+  .diagram-card{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:24px;
+    margin:28px 0;
+  }
+  .diagram-caption{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-top:14px;
+    font-style:italic;
+  }
+  .diagram-hint{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:16px;
+  }
+
+  .cheat-sheet{
+    background:linear-gradient(180deg, #1a1408 0%, var(--bg-panel) 100%);
+    border:1.5px solid var(--amber-dim);
+    border-radius:14px;
+    padding:32px;
+    margin:40px 0;
+  }
+  .cheat-sheet-title{
+    font-family:var(--mono);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .cheat-sheet-sub{color:var(--ink-faint);font-size:13px;margin-bottom:24px;}
+  .cheat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media(max-width:680px){.cheat-grid{grid-template-columns:1fr;}}
+  .cheat-card{
+    background:var(--bg-panel-raised);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    margin:0 0 10px;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+  .cheat-card p, .cheat-card li{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+  .cheat-card ul{padding-left:16px;margin:0;}
+  .cheat-card code{font-size:0.82em;}
+
+  .transcript{
+    background:var(--bg-panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:8px 24px;
+    margin:24px 0;
+  }
+  .t-line{padding:16px 0;border-bottom:1px solid var(--rule);}
+  .t-line:last-child{border-bottom:none;}
+  .t-speaker{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+  }
+  .t-speaker.interviewer{color:var(--blue);}
+  .t-speaker.candidate{color:var(--green);}
+  .t-line p{margin:0;font-size:15px;}
+  .t-line p + p{margin-top:10px;}
+  .t-line em{color:var(--ink-faint);}
+
+  .further-reading{margin-top:48px;}
+  .further-reading li{color:var(--ink-dim);font-size:14.5px;}
+  .further-reading strong{color:var(--ink);}
+
+  .supplementary{
+    border:1px dashed var(--rule);
+    border-radius:10px;
+    padding:22px 24px;
+    margin-top:24px;
+    background:var(--bg-panel);
+  }
+  .supplementary-tag{
+    font-family:var(--mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+
+  ::selection{background:var(--amber-dim);color:#fff;}
+
+  /* --- Interactive: three clocks timeline --- */
+  .clocks-widget{display:flex;flex-direction:column;gap:20px;}
+  .clock-track{position:relative;height:70px;}
+  .clock-line{
+    position:absolute;top:34px;left:0;right:0;height:2px;background:var(--rule);
+  }
+  .clock-marker{
+    position:absolute;top:22px;width:24px;height:24px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:10px;font-weight:700;color:#fff;
+    cursor:pointer;transition:transform 0.2s;
+    border:2px solid var(--bg);
+  }
+  .clock-marker:hover{transform:scale(1.25);}
+  .clock-marker-label{
+    position:absolute;top:-6px;font-family:var(--mono);font-size:11px;color:var(--ink-dim);
+    white-space:nowrap;
+  }
+  .clock-detail{
+    font-size:13.5px;color:var(--ink-dim);padding:14px 16px;background:#0a0d12;
+    border-left:2px solid var(--amber);border-radius:0 6px 6px 0;min-height:44px;
+  }
+
+  /* --- Interactive: watermark late-data simulator --- */
+  .wm-sim{background:#0a0d12;border-radius:10px;padding:24px;}
+  .wm-controls{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+  .wm-controls label{font-family:var(--mono);font-size:13px;color:var(--ink-dim);}
+  .wm-controls input[type=range]{flex:1;min-width:160px;accent-color:var(--amber);}
+  .wm-controls .wm-val{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--amber);min-width:70px;}
+  .wm-events{display:flex;flex-direction:column;gap:8px;}
+  .wm-event-row{
+    display:grid;grid-template-columns:90px 1fr 110px;gap:12px;align-items:center;
+    padding:10px 14px;border-radius:6px;background:var(--bg-panel-raised);
+    font-family:var(--mono);font-size:12.5px;
+  }
+  .wm-event-time{color:var(--ink-dim);}
+  .wm-event-bar-track{height:16px;background:#0e1116;border-radius:4px;overflow:hidden;position:relative;}
+  .wm-event-bar{height:100%;border-radius:4px;}
+  .wm-event-status{text-align:right;font-weight:700;}
+  .wm-event-status.ontime{color:var(--green);}
+  .wm-event-status.late{color:var(--red);}
+  .wm-watermark-line{
+    position:absolute;top:0;bottom:0;width:2px;background:var(--amber);
+  }
+
+  /* --- Interactive: Lambda vs Kappa toggle --- */
+  .arch-toggle{display:flex;gap:8px;margin-bottom:16px;}
+  .arch-btn{
+    flex:1;font-family:var(--mono);font-size:13px;padding:12px;border-radius:8px;
+    border:1px solid var(--rule);background:var(--bg-panel-raised);color:var(--ink-dim);
+    cursor:pointer;transition:all 0.15s;text-align:center;
+  }
+  .arch-btn:hover{border-color:var(--amber);color:var(--ink);}
+  .arch-btn.active{background:var(--amber-dim);border-color:var(--amber);color:#fff;}
+  .arch-view{display:none;}
+  .arch-view.show{display:block;}
+  .arch-diagram{background:#0a0d12;border-radius:8px;padding:20px;margin-bottom:16px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">System Design for Data Engineers · Chapter 7</div>
+    <h1 class="title">Streaming Systems</h1>
+    <p class="subtitle">Streaming isn't "batch, but faster." It's a different set of promises —
+    about which clock you trust, how late data is allowed to be, and what happens when something
+    fails partway through.</p>
+    <div class="chap-note">Printed as "Chapter Six" in the book's own running heads — see the
+    numbering note in Chapter 3. This guide cites it as Chapter 7.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="simple-banner">
+    <div class="sb-label">The Simple Version, First</div>
+    <p>Think of the difference between a live sports scoreboard (updates the second a goal is
+    scored) versus a newspaper box score (printed once, the next morning). That's batch vs.
+    streaming.</p>
+    <p><strong>Streaming isn't just "batch, but faster."</strong> It's a completely different set
+    of promises about which clock you trust, how late data can be, and what happens on failure.
+    Picking it because it sounds impressive — without understanding those promises — is how teams
+    end up maintaining something complicated for a problem batch could've solved more cheaply.</p>
+  </div>
+
+  <div class="opening-lines">
+    <div class="label">What you'll be able to say by the end (the book's own scripted lines)</div>
+    <blockquote>Streaming isn't faster batch. It's a commitment to three-clock reasoning, explicit
+    watermarks, and sink-side exactly-once. I pick it when sub-10-second freshness justifies the
+    operational cost.</blockquote>
+    <blockquote>Event time, processing time, and ingestion time are three different clocks. My
+    watermark is a bet about how wrong one of them is.</blockquote>
+    <blockquote>Exactly-once is a semantics claim, not a delivery claim. The guarantee lives in the
+    sink, not the broker.</blockquote>
+    <blockquote>Flink's keyed state is an embedded distributed database that rarely survives a
+    misconfigured checkpoint. I design for checkpoint duration, state TTL, and recovery time from
+    day one.</blockquote>
+    <blockquote>Lambda architecture is mostly a tax for picking the wrong streaming framework
+    first. Kappa is mostly honesty about the trade-off.</blockquote>
+  </div>
+
+  <h2 id="two-teams">Why Two Teams Both Say They Built "Streaming" — But Only One Did</h2>
+  <p>Two teams both need real-time analytics. Both ship. Both have dashboards that refresh every
+  few seconds. Both call what they built "streaming."</p>
+  <p><strong>Team A</strong> runs a small job every 30 seconds and has the dashboard read the
+  latest result. Works great — until data gets bigger or someone needs faster updates.</p>
+  <p><strong>Team B</strong> built something where data flows through continuously, a processing
+  engine keeps a running tally per key, and results save the instant they're ready. Harder to
+  build and debug — but it can handle far more data and update in well under a second.</p>
+  <p><strong>Neither team is wrong.</strong> The real question is whether the team understood
+  what they signed up for. That's what this chapter is about.</p>
+
+  <h2 id="clocks">Idea 1: There Are Three Different Clocks, and They Disagree</h2>
+  <p>Imagine watching a hockey game on a 30-second broadcast delay. Something happens on the ice
+  at 8:00:00 PM. It reaches your TV at 8:00:30 PM. You notice it at 8:00:32 PM, because you were
+  getting a snack. Three different points in time, for the exact same event.</p>
+  <p>Streaming systems have this exact problem, with real names. Click each one below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — click a clock</div>
+    <div class="clocks-widget">
+      <div class="clock-track" id="clockTrack"></div>
+      <div class="clock-detail" id="clockDetail">Click a marker above to see what that clock
+      means and why it matters.</div>
+    </div>
+    <p class="diagram-caption">Most business questions mean event time — when it actually
+    happened. Most naive implementations accidentally use processing time instead, because it's
+    easier to code. That mismatch is where a lot of subtly wrong dashboards come from.</p>
+  </div>
+
+  <h2 id="watermark">Idea 2: A Watermark Is Just an Honest Promise About How Late You'll Wait</h2>
+  <p>Imagine hosting a potluck: "food starts at 7 PM." At 7:05, two people say they're running a
+  little late. Do you wait? You draw a line: "we'll wait until 7:15, then start without you." That
+  line is a <strong>watermark</strong> — your system saying "I'm willing to wait this long for
+  late data, and after that, I'm moving on."</p>
+  <p>Try the simulator below — drag the watermark tolerance and see which events count as on-time
+  versus late.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — adjust how long you wait</div>
+    <div class="wm-sim">
+      <div class="wm-controls">
+        <label for="wmTolerance">How long will you wait for late data:</label>
+        <input type="range" id="wmTolerance" min="0" max="30" step="1" value="10">
+        <span class="wm-val" id="wmToleranceVal">10 sec</span>
+      </div>
+      <div class="wm-events" id="wmEvents"></div>
+    </div>
+    <p class="diagram-caption">Each row is an event's real-world delay. Widen the tolerance and
+    more events count as "on time" — but your results take longer to finalize. Narrow it and you
+    finalize faster — but drop more genuinely-late-but-real data.</p>
+  </div>
+
+  <h3>Four ways to decide "how long do I wait"</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Strategy</th><th>Plain description</th><th>Downside</th><th>Use it when</th></tr></thead>
+      <tbody>
+        <tr><td>Bounded lateness</td><td>"I'll wait up to N seconds for stragglers" — the default</td><td>Must be set conservatively for your worst source</td><td>Disorder has a predictable upper limit</td></tr>
+        <tr><td>Punctuated</td><td>Sender tells you "I'm done sending for this period"</td><td>Only works if sender cooperates reliably</td><td>Producer can reliably mark "end of batch"</td></tr>
+        <tr><td>Monotonic event time</td><td>Assumes data already arrives sorted, no waiting needed</td><td>Only valid if that assumption holds</td><td>Replaying from an already-sorted log</td></tr>
+        <tr><td>Idle-source timeout</td><td>If a part of the stream goes quiet, don't wait forever</td><td>Needs a sensible per-source timeout</td><td>A key might just stop sending for a while</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>Three choices when something does arrive late:</strong></p>
+  <ul>
+    <li><strong>Drop it</strong> — fastest option, fine for rough estimates.</li>
+    <li><strong>Update the result later</strong> — keep the door open, recalculate if late data
+    shows up. More correct, more expensive.</li>
+    <li><strong>Set it aside separately</strong> — send it to a "review later" pile instead of
+    dropping or blocking. Right choice when you legally can't just lose data.</li>
+  </ul>
+
+  <div class="callout signal">
+    <div class="cal-label">🚩 FAANG Signal</div>
+    <p>When you say "I'd aggregate the last 5 minutes," the interviewer wants you to immediately
+    clarify: last 5 minutes of <em>what clock</em>? And they want a specific watermark policy —
+    "5 seconds of expected lateness, 10 seconds of grace period, drop after that" — not just "we'd
+    handle late data."</p>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"Event time, processing time, and ingestion time are three different clocks. My watermark
+    is a bet about how wrong one of them is."</p>
+  </div>
+
+  <h2 id="exactly-once">Idea 3: "Exactly-Once" Is Three Different Promises Wearing One Name</h2>
+  <p>Think of a package delivery service claiming "guaranteed delivery." That could mean the
+  courier attempts delivery once, or the warehouse scans it once, or — the one you actually care
+  about — <strong>you receive exactly one package, no duplicates, no matter what went wrong
+  upstream.</strong></p>
+  <p>Streaming has the same three layers:</p>
+  <ol>
+    <li><strong>Exactly-once delivery</strong> — sender to receiver, exactly once. Basically
+    impossible to fully guarantee; most systems give you "at least once" instead.</li>
+    <li><strong>Exactly-once processing</strong> — your program computes each event exactly once.
+    Achieved via checkpoints: crash, rewind to last checkpoint, reprocess.</li>
+    <li><strong>End-to-end exactly-once</strong> — the one people actually mean. No duplicates at
+    the final destination, no matter what broke along the way. <strong>Requires the destination
+    to cooperate</strong>, not just the processing engine.</li>
+  </ol>
+  <p>Two ways to actually achieve layer 3: <strong>two-phase commit</strong> (destination and
+  engine coordinate so a write only counts once both agree), or <strong>idempotent writes with a
+  stable key</strong> (writing the same result twice has no extra effect — an UPSERT keyed by a
+  stable ID just overwrites with the same value).</p>
+
+  <div class="callout antipattern">
+    <div class="cal-label">❌ Anti-Pattern</div>
+    <p>Saying "the broker gives us exactly-once delivery" and stopping there. It doesn't. You have
+    at-least-once delivery, and your destination needs to handle duplicates gracefully.</p>
+  </div>
+
+  <div class="callout say">
+    <div class="cal-label">✅ Say this out loud</div>
+    <p>"Exactly-once is a semantics claim, not a delivery claim. The guarantee lives in the sink,
+    not the broker."</p>
+  </div>
+
+  <h2 id="state">Idea 4: Streaming Programs Remember Things — and That Memory Needs Rules</h2>
+  <p>Streaming programs often keep a running memory of things: a customer's rolling average
+  spend, a session's click count so far. This is called <strong>state</strong> — the program's
+  own private notebook, updated as events arrive.</p>
+  <p><strong>The problem:</strong> if you never clean up that notebook, it grows forever. The
+  fix: give every piece of memory an expiration date, called a <strong>TTL</strong>. If a customer
+  hasn't shown up in 36 hours, forget their average — they'll get tracked fresh if they return.</p>
+  <p>Streaming also needs to periodically save its progress, called a <strong>checkpoint</strong>
+  — otherwise a crash loses everything. The more state you hold, the longer each checkpoint takes.
+  <strong>Rule of thumb: a checkpoint should take no more than 10–20% of the time between
+  checkpoints.</strong> More than that, and the job slowly falls behind and may never catch up.</p>
+
+  <div class="callout war">
+    <div class="cal-label">⚠️ War Story</div>
+    <p>A fraud detection team kept per-card rolling averages in memory with no expiration date. It
+    worked fine in testing. In production, months of accumulated state — including cards unused
+    for over a year — bloated checkpoint size until checkpoints took longer than the time between
+    them. The job fell permanently behind. The fix was one line: a TTL on the state. This exact
+    mistake — memory with no expiration date — is the most common real-world streaming
+    incident.</p>
+  </div>
+
+  <div class="callout pattern">
+    <div class="cal-label">✅ Pattern</div>
+    <p>Every piece of state gets a TTL. No exceptions. If you can't immediately answer "how long
+    does this need to be remembered," you haven't finished designing the system yet.</p>
+  </div>
+
+  <h2 id="lambda-kappa">Idea 5: Should You Even Use Streaming? (Lambda vs. Kappa)</h2>
+  <p>Before picking a streaming framework, ask a more basic question: do you need full streaming
+  at all, or would "batch, but frequent" be good enough? Toggle between the two older architecture
+  ideas below.</p>
+
+  <div class="diagram-card">
+    <div class="diagram-hint">Interactive — compare the two approaches</div>
+    <div class="arch-toggle" id="archToggle"></div>
+    <div id="archViews"></div>
+  </div>
+
+  <p><strong>Kappa is the modern default</strong> — modern streaming engines handle joins,
+  aggregations, and corrections well enough that a separate batch path usually isn't needed
+  anymore. Lambda tends to show up when a team picked the wrong streaming tool first, hit a wall,
+  and bolted on a batch path to compensate.</p>
+
+  <p><strong>And sometimes the right answer is neither</strong> — just a more frequent batch job.
+  If results can be "up to 1 minute old," a small job running every minute is usually far cheaper
+  to build than full streaming, for basically the same outcome. Streaming earns its cost
+  specifically when you need sub-10-second freshness or a genuinely continuous per-event
+  computation that a periodic job can't express.</p>
+
+  <h2 id="transcript">A Real Interview, Walked Through Simply</h2>
+  <p>The fraud-detection example — a favorite prompt at any payments company, because every idea
+  in this chapter shows up in the answer.</p>
+
+  <div class="transcript">
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Design a real-time fraud detection system for a payments company. Thousands of
+      transactions per second at peak. The decision has to come back within 100 milliseconds.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p><em>(pauses)</em> Before I draw anything — is this decision blocking, meaning the
+      transaction doesn't complete until the fraud check returns? Or advisory, with a reversal
+      later if needed?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Blocking.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>That changes everything — every step now has a slice of that 100ms budget, and that's
+      the dimension I'd expect to break first. Next: how are transactions spread across
+      merchants?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Very uneven — top 1% of merchants make up 40% of volume.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>So uneven load is a first-class problem here too. Last question: if the same transaction
+      retries, does it need the exact same decision both times?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>Yes — same transaction, same decision. The gateway retries on timeout.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Okay — so scoring needs to be deterministic, plus a way to recognize "this is a retry" at
+      the final decision point.</p>
+      <p>Here's the shape: the gateway writes each transaction into a stream, split by card ID. A
+      processing job reads it, pulls in relevant facts (recent spending, risk scores), scores it,
+      and writes the decision to a second stream. The gateway reads that and responds.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>What if the merchant risk lookup takes too long?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>I'd set a hard budget — say 50ms. If it's not back in time, don't block. Flag it "needs
+      enrichment," fall back to a conservative rules-only decision immediately, and reconcile the
+      full analysis afterward, asynchronously.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>And if the ML model goes down entirely?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>Never stall the pipeline. A circuit breaker: if more than ~5% of calls fail in a short
+      window, stop calling it and fall back to rules-only — more false alarms, zero downtime.
+      Once it's healthy again, reprocess anything scored conservatively in the meantime.</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker interviewer">Interviewer</div>
+      <p>How would you know this design hasn't silently drifted out of correctness?</p>
+    </div>
+    <div class="t-line">
+      <div class="t-speaker candidate">Candidate</div>
+      <p>A quarterly audit comparing current traffic against the original design assumptions —
+      is merchant concentration still the same shape? Is the 100ms budget still realistic given
+      current lookup times? Drift in either is a signal to revisit before it becomes an
+      incident.</p>
+    </div>
+  </div>
+
+  <h2 id="gotchas">Common Mistakes People Make</h2>
+  <ol>
+    <li><strong>Mixing up "delivered once" with "exactly one correct result."</strong> The broker
+    can't promise the first. Only a correctly-built destination can promise the second.</li>
+    <li><strong>Using "when my program saw it" instead of "when it happened" for time
+    windows.</strong> Most business questions mean event time, not processing time.</li>
+    <li><strong>Giving memory (state) no expiration date.</strong> It grows forever until
+    checkpoints slow down and the job falls behind — the most common real-world streaming
+    incident.</li>
+    <li><strong>Reaching for full streaming when frequent batch would do.</strong> "Every minute"
+    is not the same requirement as "every second."</li>
+    <li><strong>Proposing Lambda (dual pipelines) unprompted.</strong> Signals you haven't
+    actually run the simpler Kappa approach in production.</li>
+  </ol>
+
+  <div class="cheat-sheet">
+    <div class="cheat-sheet-title">Cheat Sheet</div>
+    <div class="cheat-sheet-sub">Built to be photographed before your interview.</div>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h4>The Three Clocks</h4>
+        <ul>
+          <li><strong>Event time</strong> — when it actually happened</li>
+          <li><strong>Ingestion time</strong> — when it arrived at your system</li>
+          <li><strong>Processing time</strong> — when your program got to it</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Watermark Formula</h4>
+        <p><code>watermark = latest event time seen − how long you'll wait for stragglers</code></p>
+        <p>Set the wait time from your own measured lateness, not a default.</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Late-Data Options</h4>
+        <ul>
+          <li>Drop it (rough estimates)</li>
+          <li>Update the result later (audits/finance)</li>
+          <li>Set aside for review (can't lose data)</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>"Exactly-Once," Three Layers</h4>
+        <ul>
+          <li>Delivery — not really achievable, assume at-least-once</li>
+          <li>Processing — via checkpoints</li>
+          <li>End-to-end — needs the destination to cooperate</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Healthy State Management</h4>
+        <ul>
+          <li>Every piece of state gets a TTL — no exceptions</li>
+          <li>Checkpoint time ≤ 10–20% of interval</li>
+          <li>Practice recovery from your largest real checkpoint</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4>Should You Even Stream?</h4>
+        <p>Sub-10-sec freshness needed → streaming. "Every minute or so" → frequent batch is
+        cheaper. Kappa (one pipeline) is the modern default over Lambda (two pipelines).</p>
+      </div>
+      <div class="cheat-card">
+        <h4>Three Lines Worth Memorizing</h4>
+        <ul>
+          <li>"Event time, processing time, and ingestion time are three different clocks."</li>
+          <li>"Exactly-once lives in the sink, not the broker."</li>
+          <li>"Every piece of streaming state gets a TTL. No exceptions."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="supplementary">
+    <div class="supplementary-tag">A Couple of Extra Ideas — from the older 2025 edition</div>
+    <ul>
+      <li><strong>Choosing Flink over Spark for fast, continuously-evolving calculations:</strong>
+      if a feature needs to evolve per event (like a time-decayed score), a true streaming engine
+      using a <code>KeyedProcessFunction</code> gives control a micro-batch tool isn't built for —
+      lower latency, but more hands-on state management.</li>
+      <li><strong>Graceful degradation instead of stalling:</strong> if a slow dependency can't
+      respond in time, don't block the pipeline — flag it "needs enrichment," apply a safe
+      default immediately, reconcile asynchronously once it catches up.</li>
+      <li><strong>Autoscaling isn't magic:</strong> only helps if scaling on real pressure signals
+      (consumer lag, processing time), and only if partitions can actually support more
+      parallel workers.</li>
+    </ul>
+  </div>
+
+  <h2 class="further-reading">Further Reading</h2>
+  <ul class="further-reading">
+    <li><strong>"The Dataflow Model."</strong> Tyler Akidau et al. VLDB 2015. The paper behind
+    Google Cloud Dataflow and Apache Beam — where event time, watermarks, and windowing were
+    formally defined.</li>
+    <li><strong>Streaming Systems.</strong> Tyler Akidau, Slava Chernyak, Reuven Lax. O'Reilly,
+    2018. Read chapters 1–4 for the full watermark taxonomy.</li>
+    <li><strong>"Questioning the Lambda Architecture."</strong> Jay Kreps. O'Reilly Radar, 2014.
+    The essay that introduced the Kappa alternative.</li>
+  </ul>
+
+</div>
+
+<script>
+// ---------- Three clocks interactive timeline ----------
+const clocksData = [
+  {label:'Event Time', pos:8, color:'#5ec9a0', detail:'Event Time — when it actually happened in the real world (a click, a payment, a sensor reading). This is almost always what the business actually means when they ask a question.'},
+  {label:'Ingestion Time', pos:42, color:'#6fa8dc', detail:'Ingestion Time — when the event arrived at your system (say, when it landed in Kafka). Depends on network delay, not on when anyone looks at it.'},
+  {label:'Processing Time', pos:78, color:'#c98be2', detail:'Processing Time — when your program actually got around to looking at it. Depends on how backed up your system is. This should almost never drive business time-windows.'},
+];
+const clockTrack = document.getElementById('clockTrack');
+const clockDetail = document.getElementById('clockDetail');
+const clockLine = document.createElement('div');
+clockLine.className = 'clock-line';
+clockTrack.appendChild(clockLine);
+clocksData.forEach((c,i)=>{
+  const marker = document.createElement('div');
+  marker.className = 'clock-marker';
+  marker.style.left = c.pos+'%';
+  marker.style.background = c.color;
+  marker.textContent = (i+1);
+  const label = document.createElement('div');
+  label.className = 'clock-marker-label';
+  label.style.left = (c.pos - 6)+'%';
+  label.textContent = c.label;
+  clockTrack.appendChild(marker);
+  clockTrack.appendChild(label);
+  marker.addEventListener('click', ()=>{ clockDetail.textContent = c.detail; });
+  marker.addEventListener('mouseenter', ()=>{ clockDetail.textContent = c.detail; });
+});
+
+// ---------- Watermark late-data simulator ----------
+const wmEventsData = [
+  {label:'Event A', delaySec:2},
+  {label:'Event B', delaySec:6},
+  {label:'Event C', delaySec:9},
+  {label:'Event D', delaySec:14},
+  {label:'Event E', delaySec:22},
+  {label:'Event F', delaySec:28},
+];
+const wmEventsContainer = document.getElementById('wmEvents');
+const wmTolerance = document.getElementById('wmTolerance');
+const wmToleranceVal = document.getElementById('wmToleranceVal');
+
+function renderWmEvents(){
+  const tolerance = parseInt(wmTolerance.value);
+  wmToleranceVal.textContent = tolerance + ' sec';
+  wmEventsContainer.innerHTML = '';
+  wmEventsData.forEach(ev=>{
+    const isLate = ev.delaySec > tolerance;
+    const pct = Math.min(100, (ev.delaySec / 30) * 100);
+    const row = document.createElement('div');
+    row.className = 'wm-event-row';
+    row.innerHTML = `
+      <div class="wm-event-time">${ev.label}</div>
+      <div class="wm-event-bar-track">
+        <div class="wm-event-bar" style="width:${pct}%;background:${isLate ? '#e2604f' : '#5ec9a0'}"></div>
+      </div>
+      <div class="wm-event-status ${isLate ? 'late' : 'ontime'}">${isLate ? '✗ LATE' : '✓ on time'} (+${ev.delaySec}s)</div>
+    `;
+    wmEventsContainer.appendChild(row);
+  });
+}
+wmTolerance.addEventListener('input', renderWmEvents);
+renderWmEvents();
+
+// ---------- Lambda vs Kappa toggle ----------
+const archData = [
+  {
+    id:'lambda', label:'Lambda (Two Pipelines)',
+    diagram:`
+      <div style="display:flex;flex-direction:column;gap:10px;font-family:var(--mono);font-size:12.5px;">
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div style="background:#3a2a10;border:1px solid #e8a33d;border-radius:6px;padding:10px 14px;flex:1;">Speed layer (streaming) → fast, approximate results</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div style="background:#1f3a30;border:1px solid #5ec9a0;border-radius:6px;padding:10px 14px;flex:1;">Batch layer → slow, fully accurate recompute</div>
+        </div>
+        <div style="text-align:center;color:var(--ink-faint);">both merge at →</div>
+        <div style="background:#1b212b;border:1px solid #262e3a;border-radius:6px;padding:10px 14px;text-align:center;">Serving layer (reconciles both)</div>
+      </div>
+    `,
+    body:`Two separate pipelines running side by side: a fast, slightly approximate streaming
+    path for immediate answers, and a slower, fully-accurate batch path that recomputes
+    everything correctly later. The dashboard shows fast numbers now, then quietly swaps in
+    corrected numbers once batch catches up.`,
+    cost:'You maintain the same business logic twice, in two systems, and reconcile disagreements between them.',
+    when:'Mostly a sign of picking the wrong streaming tool first, and bolting on a batch path to compensate.'
+  },
+  {
+    id:'kappa', label:'Kappa (One Pipeline)',
+    diagram:`
+      <div style="display:flex;flex-direction:column;gap:10px;font-family:var(--mono);font-size:12.5px;">
+        <div style="background:#1f3a30;border:1px solid #5ec9a0;border-radius:6px;padding:10px 14px;text-align:center;">Everything — live data AND historical replay — flows through ONE stream pipeline</div>
+        <div style="text-align:center;color:var(--ink-faint);">↓</div>
+        <div style="background:#1b212b;border:1px solid #262e3a;border-radius:6px;padding:10px 14px;text-align:center;">Serving layer (single source of truth)</div>
+      </div>
+    `,
+    body:`Everything — even "historical" data — is treated as a stream. One single pipeline. Need
+    to reprocess old data because you fixed a bug? Just replay it through the same pipeline
+    instead of running a separate batch system.`,
+    cost:'Your streaming engine becomes responsible for everything — joins, aggregations, corrections. Needs a genuinely capable streaming engine.',
+    when:'The modern default for most companies — streaming engines have gotten good enough that a separate batch path usually is not needed.'
+  },
+];
+const archToggle = document.getElementById('archToggle');
+const archViews = document.getElementById('archViews');
+archData.forEach((a,i)=>{
+  const btn = document.createElement('div');
+  btn.className = 'arch-btn' + (i===0?' active':'');
+  btn.textContent = a.label;
+  archToggle.appendChild(btn);
+
+  const view = document.createElement('div');
+  view.className = 'arch-view' + (i===0?' show':'');
+  view.id = 'arch-'+a.id;
+  view.innerHTML = `
+    <div class="arch-diagram">${a.diagram}</div>
+    <p>${a.body}</p>
+    <p><strong style="color:var(--ink);">The cost:</strong> ${a.cost}</p>
+    <p><strong style="color:var(--ink);">Use it when:</strong> ${a.when}</p>
+  `;
+  archViews.appendChild(view);
+
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.arch-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.arch-view').forEach(v=>v.classList.remove('show'));
+    btn.classList.add('active');
+    document.getElementById('arch-'+a.id).classList.add('show');
+  });
+});
+</script>
+
+
+<script src="site-nav.js" defer></script>
+</body>
+</html>
