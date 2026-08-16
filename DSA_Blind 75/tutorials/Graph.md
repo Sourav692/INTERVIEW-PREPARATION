@@ -162,12 +162,12 @@ mindmap
 
 ## 8. Complexity Cheat Sheet
 
-| Pattern | Time | Space |
-|---|---|---|
-| DFS / BFS | `O(V + E)` | `O(V)` |
-| Flood fill | `O(rows × cols)` | `O(rows × cols)` |
-| Topological sort | `O(V + E)` | `O(V + E)` |
-| Union-Find | ~`O(V + E)` | `O(V)` |
+| Pattern          | Time                | Space               |
+| ---------------- | ------------------- | ------------------- |
+| DFS / BFS        | `O(V + E)`        | `O(V)`            |
+| Flood fill       | `O(rows × cols)` | `O(rows × cols)` |
+| Topological sort | `O(V + E)`        | `O(V + E)`        |
+| Union-Find       | ~`O(V + E)`       | `O(V)`            |
 
 ---
 
