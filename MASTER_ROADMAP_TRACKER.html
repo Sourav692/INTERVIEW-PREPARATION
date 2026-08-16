@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Master Interview Preparation Tracker | Data Engineering & DSA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-card: rgba(17, 24, 39, 0.85);
+      --bg-card-hover: rgba(31, 41, 55, 0.95);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(99, 102, 241, 0.4);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      
+      --accent-purple: #8b5cf6;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-indigo: #6366f1;
+
+      --grad-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+      --grad-card: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+      --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.2);
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.5;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(217, 70, 239, 0.06) 0%, transparent 40%);
+      background-attachment: fixed;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #a5b4fc;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-pill span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #818cf8;
+      box-shadow: 0 0 8px #818cf8;
+    }
+
+    h1 {
+      font-size: 2.35rem;
+      font-weight: 800;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #ffffff 30%, #cbd5e1 70%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 650px;
+      margin-top: 0.4rem;
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--grad-primary);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-color);
+      color: var(--text-main);
+    }
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Overall Progress Banner */
+    .progress-banner {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem 1.75rem;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--grad-primary);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.25rem;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      transition: all 0.2s ease;
+    }
+    .stat-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: var(--border-accent);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .main-progress-bar-container {
+      margin-top: 1rem;
+    }
+
+    .progress-header-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 9999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--grad-primary);
+      border-radius: 9999px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+    }
+
+    /* Filters and Controls */
+    .controls-panel {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin: 2rem 0 1.5rem 0;
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      padding: 1rem 1.25rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 260px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0.6rem 1rem 0.6rem 2.25rem;
+      color: #fff;
+      font-size: 0.875rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus {
+      border-color: var(--accent-indigo);
+    }
+    .search-box svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-tab {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.825rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-tab:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .filter-tab.active {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+    }
+
+    /* Week Accordions */
+    .weeks-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .week-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+    .week-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .week-header {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      background: var(--grad-card);
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .week-header:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .week-header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .week-num-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .week-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .week-subtitle {
+      font-size: 0.825rem;
+      color: var(--text-muted);
+    }
+
+    .week-header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .week-progress-pill {
+      font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .toggle-chevron {
+      color: var(--text-dim);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .week-card.expanded .toggle-chevron {
+      transform: rotate(180deg);
+    }
+
+    .week-content {
+      display: none;
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+    .week-card.expanded .week-content {
+      display: block;
+    }
+
+    /* Daily Items Grid */
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .day-card {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      transition: all 0.2s ease;
+    }
+    .day-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.35);
+    }
+
+    .day-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.6rem;
+    }
+
+    .day-tag {
+      font-weight: 700;
+      font-size: 0.825rem;
+      color: #cbd5e1;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .day-status {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Task Item */
+    .task-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .group-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+    }
+
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      padding: 0.45rem 0.5rem;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .task-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .custom-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      margin-top: 2px;
+      flex-shrink: 0;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .custom-checkbox:checked {
+      background: var(--accent-indigo);
+      border-color: var(--accent-indigo);
+    }
+    .custom-checkbox:checked::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 2px;
+      width: 4px;
+      height: 8px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .task-text {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      flex: 1;
+    }
+    .task-item.completed .task-text {
+      text-decoration: line-through;
+      color: var(--text-dim);
+    }
+
+    .task-badges {
+      display: flex;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+      margin-top: 0.2rem;
+    }
+
+    .badge-diff {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .diff-easy { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .diff-medium { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .diff-hard { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+
+    .badge-cat {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    .link-ext {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      margin-left: 0.3rem;
+    }
+    .link-ext:hover {
+      text-decoration: underline;
+    }
+
+    /* Mock Drill Card */
+    .mock-drill-banner {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(217, 70, 239, 0.05) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      margin-top: 1.25rem;
+    }
+
+    .mock-drill-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .mock-drill-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .rubric-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.6rem;
+    }
+
+    .rubric-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 0.4rem;
+    }
+
+    .rubric-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+      .header-top {
+        flex-direction: column;
+      }
+      .days-grid {
+        grid-template-columns: 1fr;
+      }
+      .quick-actions {
+        width: 100%;
+      }
+      .controls-panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Header -->
+    <header>
+      <div class="header-top">
+        <div>
+          <div class="badge-pill">
+            <span></span> 6-Week Master Sprint Roadmap
+          </div>
+          <h1>Data Engineering & DSA Prep Tracker</h1>
+          <p class="subtitle">Systematic, pattern-driven preparation across Algorithms, Spark/Databricks Internals, Lakehouse System Design, and Modern AI Agent Architectures.</p>
+        </div>
+
+        <div class="quick-actions">
+          <button class="btn btn-outline" id="btn-expand-all">Expand All</button>
+          <button class="btn btn-outline" id="btn-collapse-all">Collapse All</button>
+          <button class="btn btn-outline" id="btn-reset">Reset Progress</button>
+          <a href="MASTER_PREPARATION_ROADMAP.md" target="_blank" class="btn btn-primary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            Full Markdown Roadmap
+          </a>
+        </div>
+      </div>
+
+      <!-- Main Progress Banner -->
+      <div class="progress-banner">
+        <div class="progress-header-info">
+          <span>Overall Preparation Velocity</span>
+          <span id="overall-percentage" style="color: #a5b4fc; font-family: 'JetBrains Mono', monospace;">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="overall-progress-bar" style="width: 0%"></div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Total Tasks</span>
+            <span class="stat-value" id="stat-total-tasks">0 / 0</span>
+            <span class="stat-sub">Curated objectives</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">DSA Problems</span>
+            <span class="stat-value" id="stat-dsa-tasks">0 / 0</span>
+            <span class="stat-sub">Blind 75 & Deep Dive</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Spark & Lakehouse</span>
+            <span class="stat-value" id="stat-de-tasks">0 / 0</span>
+            <span class="stat-sub">Core architecture & tuning</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">System Design</span>
+            <span class="stat-value" id="stat-sys-tasks">0 / 0</span>
+            <span class="stat-sub">Case studies & blueprints</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Mock Drills</span>
+            <span class="stat-value" id="stat-mock-tasks">0 / 6</span>
+            <span class="stat-sub">Weekly evaluations</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Filters and Search Toolbar -->
+    <div class="controls-panel">
+      <div class="search-box">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <input type="text" id="search-input" placeholder="Search tasks, algorithms, Spark terms, System design topics..." />
+      </div>
+
+      <div class="filter-tabs" id="category-filters">
+        <button class="filter-tab active" data-filter="all">All</button>
+        <button class="filter-tab" data-filter="dsa">DSA</button>
+        <button class="filter-tab" data-filter="de">Spark & Lakehouse</button>
+        <button class="filter-tab" data-filter="sys">System Design</button>
+        <button class="filter-tab" data-filter="ai">SE & AI</button>
+        <button class="filter-tab" data-filter="mock">Mock Drills</button>
+      </div>
+    </div>
+
+    <!-- Weeks Accordion Container -->
+    <div class="weeks-container" id="weeks-list">
+      <!-- Weeks injected via JavaScript -->
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div>
+        <span>Antigravity Interview Prep Companion</span> &bull; <span>6-Week Master Matrix</span>
+      </div>
+      <div>
+        <a href="DSA_Blind%2075/Blind75_Tracker.md" style="color: var(--text-muted); margin-right: 1rem; text-decoration: none;">Blind 75 Tracker</a>
+        <a href="Data%20Engineering%20System%20Design/index.html" style="color: var(--text-muted); margin-right: 1rem; text-decoration: none;">DE System Design</a>
+        <a href="DevRev_Preparation/INDEX.html" style="color: var(--text-muted); text-decoration: none;">DevRev Prep</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // Master Curriculum Data Structure
+    const CURRICULUM = [
+      {
+        week: 1,
+        title: "Foundations, Two Pointers, Advanced SQL & Ingestion Architectures",
+        subtitle: "Array/String patterns, Window functions, Query execution plans, Ingestion pipelines.",
+        days: [
+          {
+            day: 1,
+            title: "Arrays & Hashing Fundamentals",
+            tasks: [
+              { id: "w1d1_1", text: "Two Sum (Hash Map lookup O(N))", cat: "dsa", diff: "easy", url: "https://leetcode.com/problems/two-sum/" },
+              { id: "w1d1_2", text: "Contains Duplicate & Valid Anagram", cat: "dsa", diff: "easy", url: "https://leetcode.com/problems/contains-duplicate/" },
+              { id: "w1d1_3", text: "SQL Window Functions: ROW_NUMBER, RANK, DENSE_RANK, NTILE", cat: "de" },
+              { id: "w1d1_4", text: "OOP Principles (SOLID) with real-world Python connectors", cat: "ai" }
+            ]
+          },
+          {
+            day: 2,
+            title: "Two Pointers & Analytical SQL",
+            tasks: [
+              { id: "w1d2_1", text: "Valid Palindrome & 3Sum (O(N^2) sorting + two-pointer)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/3sum/" },
+              { id: "w1d2_2", text: "Container With Most Water (Greedy inward pointers)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/container-with-most-water/" },
+              { id: "w1d2_3", text: "SQL Analytic Functions: LEAD, LAG, FIRST_VALUE, Frame Specs", cat: "de" },
+              { id: "w1d2_4", text: "Ingestion Architectures: Push vs Pull, Rate Limiting, Message Buffers", cat: "sys" }
+            ]
+          },
+          {
+            day: 3,
+            title: "Sliding Window (Fixed & Dynamic)",
+            tasks: [
+              { id: "w1d3_1", text: "Best Time to Buy and Sell Stock", cat: "dsa", diff: "easy", url: "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" },
+              { id: "w1d3_2", text: "Longest Substring Without Repeating Characters", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/longest-substring-without-repeating-characters/" },
+              { id: "w1d3_3", text: "Gaps & Islands problem in SQL (active session ranges)", cat: "de" },
+              { id: "w1d3_4", text: "Creational Patterns: Factory Method & Abstract Factory", cat: "ai" }
+            ]
+          },
+          {
+            day: 4,
+            title: "Sliding Window Hard & Prefix Sum",
+            tasks: [
+              { id: "w1d4_1", text: "Minimum Window Substring (Target frequency tracker)", cat: "dsa", diff: "hard", url: "https://leetcode.com/problems/minimum-window-substring/" },
+              { id: "w1d4_2", text: "Subarray Sum Equals K (Prefix Sum + Hash Map)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/subarray-sum-equals-k/" },
+              { id: "w1d4_3", text: "SQL Query Optimization: B-Tree vs Hash vs Bitmap Indexes, EXPLAIN ANALYZE", cat: "de" },
+              { id: "w1d4_4", text: "Batch Ingestion at Scale: Chunking, S3 ingestion, DLQs", cat: "sys" }
+            ]
+          },
+          {
+            day: 5,
+            title: "Strings & Matrix Manipulation",
+            tasks: [
+              { id: "w1d5_1", text: "Group Anagrams & Top K Frequent Elements (Bucket sort / Min-Heap)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/group-anagrams/" },
+              { id: "w1d5_2", text: "Rotate Image (Matrix transpose + row reverse)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/rotate-image/" },
+              { id: "w1d5_3", text: "Data Validation: Schema drift, null safety, idempotent ELT", cat: "de" },
+              { id: "w1d5_4", text: "Design Patterns: Thread-safe Singleton & Query Builder", cat: "ai" }
+            ]
+          },
+          {
+            day: 6,
+            title: "Integration & Review",
+            tasks: [
+              { id: "w1d6_1", text: "Product of Array Except Self & Longest Consecutive Sequence", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/product-of-array-except-self/" },
+              { id: "w1d6_2", text: "Case Study Blueprint: Ingestion Gateway for 50k events/sec", cat: "sys" }
+            ]
+          }
+        ],
+        mockDrill: {
+          id: "w1_mock",
+          title: "Mock Drill #1: SQL Windowing & Sliding Window Mastery",
+          cat: "mock",
+          questions: [
+            "DSA: Minimum Window Substring (Hard) in under 35 minutes.",
+            "SQL: Multi-region user active streak calculation with ties handling.",
+            "Trap Question: Why is SELECT DISTINCT often an anti-pattern in large-scale pipelines?"
+          ]
+        }
+      },
+      {
+        week: 2,
+        title: "Linked Lists, Stacks, Spark Internals & CDC Pipelines",
+        subtitle: "Monotonic stacks, Binary search, Driver/Executor mechanics, Catalyst optimizer, Debezium CDC.",
+        days: [
+          {
+            day: 8,
+            title: "Linked List Manipulations & Spark Architecture",
+            tasks: [
+              { id: "w2d8_1", text: "Reverse Linked List & Merge Two Sorted Lists", cat: "dsa", diff: "easy", url: "https://leetcode.com/problems/reverse-linked-list/" },
+              { id: "w2d8_2", text: "Reorder List (Middle find + reverse 2nd half + interleave)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/reorder-list/" },
+              { id: "w2d8_3", text: "Spark Core: Driver vs Executor, Tasks, Slots, Stages, Narrow vs Wide dependencies", cat: "de" }
+            ]
+          },
+          {
+            day: 9,
+            title: "Fast/Slow Pointers & Catalyst Engine",
+            tasks: [
+              { id: "w2d9_1", text: "Linked List Cycle & Remove Nth Node From End", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/remove-nth-node-from-end-of-list/" },
+              { id: "w2d9_2", text: "Merge k Sorted Lists (Min-Heap O(N log K))", cat: "dsa", diff: "hard", url: "https://leetcode.com/problems/merge-k-sorted-lists/" },
+              { id: "w2d9_3", text: "Catalyst Optimizer 4 Phases & Tungsten Engine Off-heap Memory", cat: "de" }
+            ]
+          },
+          {
+            day: 10,
+            title: "Stacks & CDC Mechanics",
+            tasks: [
+              { id: "w2d10_1", text: "Valid Parentheses & Min Stack", cat: "dsa", diff: "easy", url: "https://leetcode.com/problems/min-stack/" },
+              { id: "w2d10_2", text: "Daily Temperatures (Monotonic Decreasing Stack)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/daily-temperatures/" },
+              { id: "w2d10_3", text: "Change Data Capture (CDC): WAL parsing (Postgres pgoutput, MySQL binlog) + Debezium", cat: "sys" }
+            ]
+          },
+          {
+            day: 11,
+            title: "Monotonic Stack Hard & PySpark API",
+            tasks: [
+              { id: "w2d11_1", text: "Largest Rectangle in Histogram (Monotonic Stack)", cat: "dsa", diff: "hard", url: "https://leetcode.com/problems/largest-rectangle-in-histogram/" },
+              { id: "w2d11_2", text: "Binary Search & Search a 2D Matrix", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/search-a-2d-matrix/" },
+              { id: "w2d11_3", text: "PySpark DataFrame API: withColumn, groupBy, agg, window functions", cat: "de" }
+            ]
+          },
+          {
+            day: 12,
+            title: "Rotated Array Binary Search & Structural Patterns",
+            tasks: [
+              { id: "w2d12_1", text: "Search in Rotated Sorted Array & Find Minimum", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/search-in-rotated-sorted-array/" },
+              { id: "w2d12_2", text: "Koko Eating Bananas (Binary Search on Answer Space)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/koko-eating-bananas/" },
+              { id: "w2d12_3", text: "Structural Patterns: Adapter (heterogeneous connectors) & Decorator (retries)", cat: "ai" }
+            ]
+          },
+          {
+            day: 13,
+            title: "End-to-End Spark & CDC Integration",
+            tasks: [
+              { id: "w2d13_1", text: "Evaluate Reverse Polish Notation & Car Fleet", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/car-fleet/" },
+              { id: "w2d13_2", text: "Case Study Blueprint: End-to-End MySQL to Lakehouse CDC Pipeline with Deduplication", cat: "sys" }
+            ]
+          }
+        ],
+        mockDrill: {
+          id: "w2_mock",
+          title: "Mock Drill #2: Spark Physical Plan & Stack Mastery",
+          cat: "mock",
+          questions: [
+            "DSA: Largest Rectangle in Histogram (Hard) or Search in Rotated Array (Medium).",
+            "Spark: Explain execution plan for df.groupBy().agg().filter().",
+            "Trap Question: What causes Driver OOM vs Executor OOM, and how do you fix each?"
+          ]
+        }
+      },
+      {
+        week: 3,
+        title: "Trees, Spark Optimization, Delta Lake & Lakehouse",
+        subtitle: "BST, Tries, Shuffling, Spill to disk, Data skew handling, Delta Lake transaction log, Medallion Architecture.",
+        days: [
+          {
+            day: 15,
+            title: "Binary Tree Traversals & Shuffle Mechanics",
+            tasks: [
+              { id: "w3d15_1", text: "Max Depth, Same Tree & Invert Binary Tree", cat: "dsa", diff: "easy", url: "https://leetcode.com/problems/invert-binary-tree/" },
+              { id: "w3d15_2", text: "Spark Shuffling: Hash vs Range Partitioning, Shuffle Read/Write bottlenecks, Disk Spill", cat: "de" }
+            ]
+          },
+          {
+            day: 16,
+            title: "Tree BFS & Skew Mitigation Techniques",
+            tasks: [
+              { id: "w3d16_1", text: "Binary Tree Level Order Traversal & Right Side View", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/binary-tree-level-order-traversal/" },
+              { id: "w3d16_2", text: "Data Skew Mitigation: Salting key, Custom partitioners, Broadcast Hash Joins", cat: "de" }
+            ]
+          },
+          {
+            day: 17,
+            title: "BST Validation & Delta Lake Architecture",
+            tasks: [
+              { id: "w3d17_1", text: "Validate BST, Kth Smallest in BST & LCA of BST", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/validate-binary-search-tree/" },
+              { id: "w3d17_2", text: "Delta Lake Internals: _delta_log JSON commits, Parquet checkpoints, OCC, MERGE INTO, OPTIMIZE, Z-ORDER", cat: "de" }
+            ]
+          },
+          {
+            day: 18,
+            title: "Tree Construction, Path Sums & Medallion Design",
+            tasks: [
+              { id: "w3d18_1", text: "Construct Tree from Preorder/Inorder & Tree Max Path Sum", cat: "dsa", diff: "hard", url: "https://leetcode.com/problems/binary-tree-maximum-path-sum/" },
+              { id: "w3d18_2", text: "Serialize and Deserialize Binary Tree", cat: "dsa", diff: "hard", url: "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/" },
+              { id: "w3d18_3", text: "Medallion Architecture: Bronze (Raw) -> Silver (Cleaned/SCD2) -> Gold (Aggregated Star Schema)", cat: "sys" }
+            ]
+          },
+          {
+            day: 19,
+            title: "Prefix Trees (Tries) & Behavioral Patterns",
+            tasks: [
+              { id: "w3d19_1", text: "Implement Trie & Design Add and Search Words", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/implement-trie-prefix-tree/" },
+              { id: "w3d19_2", text: "Word Search II (Backtracking + Trie pruning)", cat: "dsa", diff: "hard", url: "https://leetcode.com/problems/word-search-ii/" },
+              { id: "w3d19_3", text: "Behavioral Patterns: Strategy (swappable parsers) & Observer (event triggers)", cat: "ai" }
+            ]
+          },
+          {
+            day: 20,
+            title: "Spark AQE Deep Dive & LCA",
+            tasks: [
+              { id: "w3d20_1", text: "Lowest Common Ancestor of a Binary Tree", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/" },
+              { id: "w3d20_2", text: "Spark Adaptive Query Execution (AQE): Coalesce shuffle partitions, skew joins, runtime join switch", cat: "de" }
+            ]
+          }
+        ],
+        mockDrill: {
+          id: "w3_mock",
+          title: "Mock Drill #3: Lakehouse OCC & Tree Max Path Sum",
+          cat: "mock",
+          questions: [
+            "DSA: Binary Tree Maximum Path Sum (Hard) or Implement Trie (Medium).",
+            "Lakehouse: How does Delta Lake ensure ACID transactions over S3/GCS without a database engine?",
+            "Trap Question: If 199 tasks finish in 5s and 1 task takes 45 mins, how do you diagnose and resolve it?"
+          ]
+        }
+      },
+      {
+        week: 4,
+        title: "Heaps, Backtracking, Streaming & Real-Time Architectures",
+        subtitle: "Priority queues, Intervals, Backtracking, Spark Structured Streaming, Kafka partitioning, Watermarking.",
+        days: [
+          {
+            day: 22,
+            title: "Heaps & Structured Streaming Basics",
+            tasks: [
+              { id: "w4d22_1", text: "Kth Largest Element in an Array & Task Scheduler", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/task-scheduler/" },
+              { id: "w4d22_2", text: "Spark Structured Streaming: Micro-batch vs Continuous, Output Modes (Append, Update, Complete)", cat: "de" }
+            ]
+          },
+          {
+            day: 23,
+            title: "Two Heaps, Intervals & Watermarking",
+            tasks: [
+              { id: "w4d23_1", text: "Find Median from Data Stream (Two Heaps)", cat: "dsa", diff: "hard", url: "https://leetcode.com/problems/find-median-from-data-stream/" },
+              { id: "w4d23_2", text: "Merge Intervals & Non-overlapping Intervals", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/merge-intervals/" },
+              { id: "w4d23_3", text: "Watermarking in Streaming: Late data handling and state store eviction", cat: "de" }
+            ]
+          },
+          {
+            day: 24,
+            title: "Interval Insertions & Kafka Internals",
+            tasks: [
+              { id: "w4d24_1", text: "Insert Interval & Meeting Rooms II", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/insert-interval/" },
+              { id: "w4d24_2", text: "Kafka Architecture: Partitions, Consumer Groups, ISR, Producer acks, Idempotence", cat: "sys" }
+            ]
+          },
+          {
+            day: 25,
+            title: "Backtracking Core & Flink Concepts",
+            tasks: [
+              { id: "w4d25_1", text: "Subsets, Combination Sum & Permutations", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/combination-sum/" },
+              { id: "w4d25_2", text: "Flink & Stream Processing: Exactly-once checkpointing (Chandy-Lamport), Tumbling/Sliding/Session windows", cat: "sys" }
+            ]
+          },
+          {
+            day: 26,
+            title: "2D Backtracking & Delta Live Tables (DLT)",
+            tasks: [
+              { id: "w4d26_1", text: "Word Search & Palindrome Partitioning", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/word-search/" },
+              { id: "w4d26_2", text: "Databricks DLT: Expectations (@dlt.expect), Auto Loader (cloudFiles), Unity Catalog lineage", cat: "de" }
+            ]
+          },
+          {
+            day: 27,
+            title: "Resilient API Design & N-Queens",
+            tasks: [
+              { id: "w4d27_1", text: "N-Queens (Bitmask / Set Backtracking)", cat: "dsa", diff: "hard", url: "https://leetcode.com/problems/n-queens/" },
+              { id: "w4d27_2", text: "Resilience: Idempotency Keys (Redis lock), Circuit Breaker & Exponential Backoff with Jitter", cat: "ai" }
+            ]
+          }
+        ],
+        mockDrill: {
+          id: "w4_mock",
+          title: "Mock Drill #4: Real-time Anomaly Alerting & Median Stream",
+          cat: "mock",
+          questions: [
+            "DSA: Find Median from Data Stream (Hard) or Meeting Rooms II (Medium).",
+            "System Design: Real-time fraud login alert if user logs in from 2 countries within 10m.",
+            "Trap Question: How does Kafka guarantee message ordering, and what breaks ordering during retries?"
+          ]
+        }
+      },
+      {
+        week: 5,
+        title: "Graphs, Data Warehousing & Modern AI Tool Calling",
+        subtitle: "BFS/DFS, Topological sort, Union-Find, Star Schema vs OBT, SCD 1-6, LLM tool dispatch loops.",
+        days: [
+          {
+            day: 29,
+            title: "Graph BFS/DFS & Kimball Dimensional Modeling",
+            tasks: [
+              { id: "w5d29_1", text: "Number of Islands & Clone Graph", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/number-of-islands/" },
+              { id: "w5d29_2", text: "Pacific Atlantic Water Flow", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/pacific-atlantic-water-flow/" },
+              { id: "w5d29_3", text: "Kimball Dimensional Modeling: Fact tables (Transactional, Snapshot, Accumulating), Conformed Dimensions", cat: "de" }
+            ]
+          },
+          {
+            day: 30,
+            title: "Topological Sort & Slowly Changing Dimensions (SCD)",
+            tasks: [
+              { id: "w5d30_1", text: "Course Schedule I & II (Kahn's Topo Sort / In-degree queue)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/course-schedule-ii/" },
+              { id: "w5d30_2", text: "Alien Dictionary (Graph construction from diffs)", cat: "dsa", diff: "hard", url: "https://leetcode.com/problems/alien-dictionary/" },
+              { id: "w5d30_3", text: "Slowly Changing Dimensions: SCD Type 1, Type 2, Type 3, Type 6 Implementation in SQL/Delta", cat: "de" }
+            ]
+          },
+          {
+            day: 31,
+            title: "Union-Find (Disjoint Set) & Partitioning vs Sharding",
+            tasks: [
+              { id: "w5d31_1", text: "Number of Connected Components & Redundant Connection", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/redundant-connection/" },
+              { id: "w5d31_2", text: "Graph Valid Tree", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/graph-valid-tree/" },
+              { id: "w5d31_3", text: "Storage Architecture: Partitioning vs Sharding vs Bucketing/Clustering, Columnar Parquet/ORC internals", cat: "de" }
+            ]
+          },
+          {
+            day: 32,
+            title: "Advanced Graphs & Clickstream Analytics Blueprint",
+            tasks: [
+              { id: "w5d32_1", text: "Word Ladder (Bidirectional BFS) & Rotting Oranges", cat: "dsa", diff: "hard", url: "https://leetcode.com/problems/word-ladder/" },
+              { id: "w5d32_2", text: "Cheapest Flights Within K Stops (Bellman-Ford / Dijkstra)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/cheapest-flights-within-k-stops/" },
+              { id: "w5d32_3", text: "Case Study Blueprint: Real-Time Clickstream Analytics (100M events/day, 1s dashboard SLA)", cat: "sys" }
+            ]
+          },
+          {
+            day: 33,
+            title: "LLM Tool Calling & Agentic Pipeline Architecture",
+            tasks: [
+              { id: "w5d33_1", text: "Surrounded Regions & Accounts Merge (Union-Find)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/accounts-merge/" },
+              { id: "w5d33_2", text: "LLM Tool Calling Architecture: JSON Schema definition, Dispatch loops, Error recovery, Pydantic validations", cat: "ai" }
+            ]
+          },
+          {
+            day: 34,
+            title: "Distributed Metrics Store Blueprint",
+            tasks: [
+              { id: "w5d34_1", text: "Graph & Tree pattern synthesis under time constraints", cat: "dsa", diff: "medium" },
+              { id: "w5d34_2", text: "Case Study Blueprint: Distributed Timeseries Metrics & Alerting Store (Datadog scale)", cat: "sys" }
+            ]
+          }
+        ],
+        mockDrill: {
+          id: "w5_mock",
+          title: "Mock Drill #5: E-Commerce Data Platform & Topo Sort",
+          cat: "mock",
+          questions: [
+            "DSA: Course Schedule II (Medium) or Word Ladder (Hard).",
+            "System Design: Complete dimensional model & ingestion architecture for an E-commerce marketplace.",
+            "Trap Question: When should you choose Star Schema vs One Big Table (OBT) in modern analytical engines?"
+          ]
+        }
+      },
+      {
+        week: 6,
+        title: "Dynamic Programming, Cost Optimization & Full Mock Simulation",
+        subtitle: "1D/2D DP, FinOps cost tuning, Great Expectations data quality, Multi-tier system design & Capstone mocks.",
+        days: [
+          {
+            day: 36,
+            title: "1D Dynamic Programming Foundations & Pipeline SLAs",
+            tasks: [
+              { id: "w6d36_1", text: "Climbing Stairs, Min Cost Climbing Stairs & House Robber I/II", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/house-robber/" },
+              { id: "w6d36_2", text: "Pipeline Monitoring: Data SLAs, Alert fatigue mitigation, Dead Letter Queues (DLQ)", cat: "de" }
+            ]
+          },
+          {
+            day: 37,
+            title: "1D DP Optimization & Spark FinOps",
+            tasks: [
+              { id: "w6d37_1", text: "Coin Change & Longest Increasing Subsequence (O(N log N) patience sort)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/coin-change/" },
+              { id: "w6d37_2", text: "Word Break", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/word-break/" },
+              { id: "w6d37_3", text: "FinOps & Cost Tuning: Spot instances, Graviton/ARM, cluster autoscaling, Parquet 128MB-1GB sizing", cat: "de" }
+            ]
+          },
+          {
+            day: 38,
+            title: "2D Dynamic Programming & Data Governance",
+            tasks: [
+              { id: "w6d38_1", text: "Unique Paths, Longest Common Subsequence & Stock with Cooldown", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/longest-common-subsequence/" },
+              { id: "w6d38_2", text: "Data Quality & Governance: Great Expectations / Deequ validations, Column lineage, GDPR Right to Forget in Delta", cat: "de" }
+            ]
+          },
+          {
+            day: 39,
+            title: "2D DP Hard & Financial Ledger Blueprint",
+            tasks: [
+              { id: "w6d39_1", text: "Edit Distance & Distinct Subsequences", cat: "dsa", diff: "hard", url: "https://leetcode.com/problems/edit-distance/" },
+              { id: "w6d39_2", text: "Target Sum (Subset Sum Knapsack variation)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/target-sum/" },
+              { id: "w6d39_3", text: "Case Study Blueprint: Real-Time Financial Double-entry Ledger with Exactly-Once Processing", cat: "sys" }
+            ]
+          },
+          {
+            day: 40,
+            title: "Pattern Synthesis & Behavioral STAR Defense",
+            tasks: [
+              { id: "w6d40_1", text: "Decode Ways & Maximum Subarray (Kadane's Algorithm)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/maximum-subarray/" },
+              { id: "w6d40_2", text: "Jump Game I & II (Greedy reachability)", cat: "dsa", diff: "medium", url: "https://leetcode.com/problems/jump-game/" },
+              { id: "w6d40_3", text: "Behavioral Preparation: STAR stories on pipeline failures, architectural trade-offs & scale bottlenecks", cat: "ai" }
+            ]
+          },
+          {
+            day: 41,
+            title: "Full Mock Simulation #1: DSA + Spark Deep-Dive",
+            tasks: [
+              { id: "w6d41_1", text: "Round 1 (60 mins): Timed 2-problem DSA (1 Medium + 1 Hard)", cat: "mock" },
+              { id: "w6d41_2", text: "Round 2 (60 mins): Spark physical execution, memory troubleshooting & SQL tuning drill", cat: "mock" }
+            ]
+          },
+          {
+            day: 42,
+            title: "Full Mock Simulation #2: System Design & AI Tools",
+            tasks: [
+              { id: "w6d42_1", text: "Round 3 (60 mins): Multi-Tenant 1B events/day Data Platform System Design", cat: "mock" },
+              { id: "w6d42_2", text: "Round 4 (45 mins): LLM Tool Calling, Agentic Pipeline Architecture & Leadership Behavioral", cat: "mock" }
+            ]
+          }
+        ],
+        mockDrill: {
+          id: "w6_mock",
+          title: "Mock Drill #6: Capstone 1-Billion Event Multi-Tenant Platform",
+          cat: "mock",
+          questions: [
+            "DSA: Edit Distance (Hard) or Serialize/Deserialize Tree (Hard).",
+            "System Design: Design multi-tenant lakehouse platform with sub-10ms feature store + ad-hoc analytics.",
+            "Evaluation: End-to-end SLA, partitioning, streaming speed layer, and cost calculations."
+          ]
+        }
+      }
+    ];
+
+    // Local Storage Management
+    const STORAGE_KEY = "antigravity_master_prep_tracker_v1";
+    let completedTasks = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"));
+
+    function saveProgress() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(completedTasks)));
+      updateUI();
+    }
+
+    function toggleTask(id) {
+      if (completedTasks.has(id)) {
+        completedTasks.delete(id);
+      } else {
+        completedTasks.add(id);
+      }
+      saveProgress();
+    }
+
+    // Render Function
+    function renderCurriculum() {
+      const container = document.getElementById("weeks-list");
+      container.innerHTML = "";
+
+      const activeFilter = document.querySelector(".filter-tab.active").dataset.filter;
+      const searchQuery = document.getElementById("search-input").value.toLowerCase().trim();
+
+      CURRICULUM.forEach((weekData) => {
+        const weekCard = document.createElement("div");
+        weekCard.className = "week-card expanded";
+        weekCard.id = `week-${weekData.week}`;
+
+        // Calculate Week stats
+        let totalWeekTasks = 0;
+        let completedWeekTasks = 0;
+
+        weekData.days.forEach(d => {
+          d.tasks.forEach(t => {
+            totalWeekTasks++;
+            if (completedTasks.has(t.id)) completedWeekTasks++;
+          });
+        });
+        if (weekData.mockDrill) {
+          totalWeekTasks++;
+          if (completedTasks.has(weekData.mockDrill.id)) completedWeekTasks++;
+        }
+
+        const weekHeader = document.createElement("div");
+        weekHeader.className = "week-header";
+        weekHeader.innerHTML = `
+          <div class="week-header-left">
+            <div class="week-num-badge">W${weekData.week}</div>
+            <div>
+              <div class="week-title">${weekData.title}</div>
+              <div class="week-subtitle">${weekData.subtitle}</div>
+            </div>
+          </div>
+          <div class="week-header-right">
+            <div class="week-progress-pill" id="week-pill-${weekData.week}">
+              ${completedWeekTasks} / ${totalWeekTasks} done
+            </div>
+            <svg class="toggle-chevron" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        `;
+
+        weekHeader.addEventListener("click", () => {
+          weekCard.classList.toggle("expanded");
+        });
+
+        const weekContent = document.createElement("div");
+        weekContent.className = "week-content";
+
+        const daysGrid = document.createElement("div");
+        daysGrid.className = "days-grid";
+
+        let weekHasMatchingItems = false;
+
+        weekData.days.forEach(dayData => {
+          // Filter tasks
+          const filteredTasks = dayData.tasks.filter(task => {
+            const matchesCat = (activeFilter === "all") || (task.cat === activeFilter);
+            const matchesSearch = !searchQuery || 
+              task.text.toLowerCase().includes(searchQuery) || 
+              dayData.title.toLowerCase().includes(searchQuery);
+            return matchesCat && matchesSearch;
+          });
+
+          if (filteredTasks.length > 0) {
+            weekHasMatchingItems = true;
+            const dayCard = document.createElement("div");
+            dayCard.className = "day-card";
+
+            let dayTasksHtml = filteredTasks.map(task => {
+              const isChecked = completedTasks.has(task.id);
+              const diffBadge = task.diff ? `<span class="badge-diff diff-${task.diff}">${task.diff}</span>` : "";
+              const catBadge = `<span class="badge-cat">${task.cat.toUpperCase()}</span>`;
+              const extLink = task.url ? `<a href="${task.url}" target="_blank" class="link-ext"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg> Practice</a>` : "";
+
+              return `
+                <div class="task-item ${isChecked ? 'completed' : ''}">
+                  <input type="checkbox" class="custom-checkbox" id="${task.id}" ${isChecked ? 'checked' : ''} onchange="toggleTask('${task.id}')">
+                  <div style="flex: 1;">
+                    <label for="${task.id}" class="task-text">${task.text}</label>
+                    ${extLink}
+                    <div class="task-badges">
+                      ${catBadge}
+                      ${diffBadge}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join("");
+
+            dayCard.innerHTML = `
+              <div class="day-card-header">
+                <span class="day-tag">Day ${dayData.day} &bull; ${dayData.title}</span>
+                <span class="day-status">${filteredTasks.filter(t => completedTasks.has(t.id)).length}/${filteredTasks.length}</span>
+              </div>
+              <div class="task-group">
+                ${dayTasksHtml}
+              </div>
+            `;
+            daysGrid.appendChild(dayCard);
+          }
+        });
+
+        weekContent.appendChild(daysGrid);
+
+        // Mock drill section
+        if (weekData.mockDrill) {
+          const isMockMatched = (activeFilter === "all" || activeFilter === "mock") &&
+            (!searchQuery || weekData.mockDrill.title.toLowerCase().includes(searchQuery) || weekData.mockDrill.questions.some(q => q.toLowerCase().includes(searchQuery)));
+
+          if (isMockMatched) {
+            weekHasMatchingItems = true;
+            const isMockChecked = completedTasks.has(weekData.mockDrill.id);
+            const mockBanner = document.createElement("div");
+            mockBanner.className = "mock-drill-banner";
+            mockBanner.innerHTML = `
+              <div class="mock-drill-header">
+                <div class="mock-drill-title">
+                  <input type="checkbox" class="custom-checkbox" id="${weekData.mockDrill.id}" ${isMockChecked ? 'checked' : ''} onchange="toggleTask('${weekData.mockDrill.id}')">
+                  <label for="${weekData.mockDrill.id}">🏆 ${weekData.mockDrill.title}</label>
+                </div>
+                <span class="badge-pill" style="margin: 0; font-size: 0.7rem;">Weekly Milestone</span>
+              </div>
+              <div class="rubric-box">
+                <strong style="color: #cbd5e1;">Interview Questions & Evaluation Rubric:</strong>
+                <ul class="rubric-list">
+                  ${weekData.mockDrill.questions.map(q => `<li class="rubric-item"><span>🔹</span> <span>${q}</span></li>`).join("")}
+                </ul>
+              </div>
+            `;
+            weekContent.appendChild(mockBanner);
+          }
+        }
+
+        weekCard.appendChild(weekHeader);
+        weekCard.appendChild(weekContent);
+
+        if (weekHasMatchingItems || (!searchQuery && activeFilter === "all")) {
+          container.appendChild(weekCard);
+        }
+      });
+
+      updateStats();
+    }
+
+    function updateStats() {
+      let total = 0;
+      let completed = 0;
+
+      let dsaTotal = 0, dsaDone = 0;
+      let deTotal = 0, deDone = 0;
+      let sysTotal = 0, sysDone = 0;
+      let mockTotal = 0, mockDone = 0;
+
+      CURRICULUM.forEach(w => {
+        w.days.forEach(d => {
+          d.tasks.forEach(t => {
+            total++;
+            const isDone = completedTasks.has(t.id);
+            if (isDone) completed++;
+
+            if (t.cat === "dsa") { dsaTotal++; if (isDone) dsaDone++; }
+            else if (t.cat === "de") { deTotal++; if (isDone) deDone++; }
+            else if (t.cat === "sys") { sysTotal++; if (isDone) sysDone++; }
+          });
+        });
+        if (w.mockDrill) {
+          total++;
+          mockTotal++;
+          if (completedTasks.has(w.mockDrill.id)) {
+            completed++;
+            mockDone++;
+          }
+        }
+      });
+
+      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+      document.getElementById("overall-percentage").innerText = `${percentage}%`;
+      document.getElementById("overall-progress-bar").style.width = `${percentage}%`;
+
+      document.getElementById("stat-total-tasks").innerText = `${completed} / ${total}`;
+      document.getElementById("stat-dsa-tasks").innerText = `${dsaDone} / ${dsaTotal}`;
+      document.getElementById("stat-de-tasks").innerText = `${deDone} / ${deTotal}`;
+      document.getElementById("stat-sys-tasks").innerText = `${sysDone} / ${sysTotal}`;
+      document.getElementById("stat-mock-tasks").innerText = `${mockDone} / ${mockTotal}`;
+    }
+
+    function updateUI() {
+      renderCurriculum();
+    }
+
+    // Event Listeners
+    document.addEventListener("DOMContentLoaded", () => {
+      renderCurriculum();
+
+      // Search input
+      document.getElementById("search-input").addEventListener("input", () => {
+        renderCurriculum();
+      });
+
+      // Filter tabs
+      document.querySelectorAll(".filter-tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+          tab.classList.add("active");
+          renderCurriculum();
+        });
+      });
+
+      // Expand / Collapse all
+      document.getElementById("btn-expand-all").addEventListener("click", () => {
+        document.querySelectorAll(".week-card").forEach(c => c.classList.add("expanded"));
+      });
+      document.getElementById("btn-collapse-all").addEventListener("click", () => {
+        document.querySelectorAll(".week-card").forEach(c => c.classList.remove("expanded"));
+      });
+
+      // Reset progress
+      document.getElementById("btn-reset").addEventListener("click", () => {
+        if (confirm("Are you sure you want to reset all tracked progress?")) {
+          completedTasks.clear();
+          saveProgress();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

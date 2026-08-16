@@ -8,12 +8,12 @@
 
 ## Overview
 
-| Topic | Key idea |
-| ----- | -------- |
-| Grid DFS/BFS | Water flows from a cell to an equal-or-lower neighbor |
-| Search backwards from the goal | Instead of asking "can cell X reach an ocean?" for every cell, climb *uphill* from each ocean's border cells |
-| Multi-source flood fill | Seed the search from **every** border cell of an ocean at once, not just one |
-| Intersect two reachable sets | The answer is exactly the cells reachable from **both** oceans' border searches |
+| Topic                          | Key idea                                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Grid DFS/BFS                   | Water flows from a cell to an equal-or-lower neighbor                                                         |
+| Search backwards from the goal | Instead of asking "can cell X reach an ocean?" for every cell, climb*uphill* from each ocean's border cells |
+| Multi-source flood fill        | Seed the search from**every** border cell of an ocean at once, not just one                             |
+| Intersect two reachable sets   | The answer is exactly the cells reachable from**both** oceans' border searches                          |
 
 **Canonical example** (from notebook):
 
@@ -32,10 +32,10 @@ heights =
 
 Expected outputs (from notebook asserts):
 
-| Input | Expected cells reaching both oceans | `pacific_atlantic_brute` | `pacific_atlantic_optimal` |
-| ----- | ------------------------------------ | ------------------------- | ---------------------------- |
-| `heights` above | `[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]` | ✓ matches | ✓ matches |
-| Known-cell spot check | `[0, 4]` and `[4, 0]` must be present | ✓ | ✓ |
+| Input                 | Expected cells reaching both oceans             | `pacific_atlantic_brute` | `pacific_atlantic_optimal` |
+| --------------------- | ----------------------------------------------- | -------------------------- | ---------------------------- |
+| `heights` above     | `[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]` | ✓ matches                 | ✓ matches                   |
+| Known-cell spot check | `[0, 4]` and `[4, 0]` must be present       | ✓                         | ✓                           |
 
 ---
 
@@ -70,38 +70,38 @@ def pacific_atlantic_brute(heights):
 
 ### Line by line
 
-| Line / code | What it does |
-| ----------- | ------------ |
-| `if not heights or not heights[0]: return []` | Empty-grid edge case |
-| `rows, cols = len(heights), len(heights[0])` | Grid dimensions |
-| `def reaches_both(sr, sc):` | Local helper — DFS flood fill starting at `(sr, sc)` |
-| `seen = set(); stack = [(sr, sc)]; pac = atl = False` | Iterative DFS state plus two "did we touch this ocean" flags |
-| `x, y = stack.pop()` | Pop the next cell (LIFO — depth-first) |
-| `if (x, y) in seen: continue` | Skip cells already flooded from this start |
-| `seen.add((x, y))` | Mark visited for this cell's flood fill |
-| `if x == 0 or y == 0: pac = True` | Cell sits on the Pacific border |
-| `if x == rows-1 or y == cols-1: atl = True` | Cell sits on the Atlantic border |
-| `for dx, dy in ((1,0),(-1,0),(0,1),(0,-1)):` | Check all 4 neighbors |
-| `if 0 <= nx < rows and 0 <= ny < cols and heights[nx][ny] <= heights[x][y]:` | Bounds check + **downhill/level** flow condition |
-| `stack.append((nx, ny))` | Push the reachable neighbor to keep flooding |
-| `return pac and atl` | True only if this cell's flood touched **both** borders |
-| `return [[r, c] for r in range(rows) for c in range(cols) if reaches_both(r, c)]` | Rerun the whole flood fill from **every** cell and collect winners |
+| Line / code                                                                         | What it does                                                            |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `if not heights or not heights[0]: return []`                                     | Empty-grid edge case                                                    |
+| `rows, cols = len(heights), len(heights[0])`                                      | Grid dimensions                                                         |
+| `def reaches_both(sr, sc):`                                                       | Local helper — DFS flood fill starting at`(sr, sc)`                  |
+| `seen = set(); stack = [(sr, sc)]; pac = atl = False`                             | Iterative DFS state plus two "did we touch this ocean" flags            |
+| `x, y = stack.pop()`                                                              | Pop the next cell (LIFO — depth-first)                                 |
+| `if (x, y) in seen: continue`                                                     | Skip cells already flooded from this start                              |
+| `seen.add((x, y))`                                                                | Mark visited for this cell's flood fill                                 |
+| `if x == 0 or y == 0: pac = True`                                                 | Cell sits on the Pacific border                                         |
+| `if x == rows-1 or y == cols-1: atl = True`                                       | Cell sits on the Atlantic border                                        |
+| `for dx, dy in ((1,0),(-1,0),(0,1),(0,-1)):`                                      | Check all 4 neighbors                                                   |
+| `if 0 <= nx < rows and 0 <= ny < cols and heights[nx][ny] <= heights[x][y]:`      | Bounds check +**downhill/level** flow condition                   |
+| `stack.append((nx, ny))`                                                          | Push the reachable neighbor to keep flooding                            |
+| `return pac and atl`                                                              | True only if this cell's flood touched**both** borders            |
+| `return [[r, c] for r in range(rows) for c in range(cols) if reaches_both(r, c)]` | Rerun the whole flood fill from**every** cell and collect winners |
 
 ### Step-by-step trace (canonical example, starting cell `(2,2)` — height `5`)
 
 `(2,2)` is one of the 7 cells in the final answer. Tracing `reaches_both(2, 2)`:
 
-| Step | Pop `(x, y)` | height | `pac` after | `atl` after | Neighbors pushed (downhill/level only) |
-| ---- | ------------ | ------ | ----------- | ----------- | ---------------------------------------- |
-| 1 | `(2,2)` | 5 | False | False | `(3,2)`h1, `(1,2)`h3, `(2,3)`h3 *(not `(2,1)` h4 — that's uphill relative? 4<=5 ✓ actually pushed too)* → pushes `(3,2)`, `(1,2)`, `(2,3)`, `(2,1)` |
-| 2 | `(2,1)` | 4 | False | False | pushes `(1,1)`h2 |
-| 3 | `(1,1)` | 2 | False | False | pushes `(0,1)`h2, `(1,0)`h3 *(3<=2? no, skipped)* → only `(0,1)` |
-| 4 | `(0,1)` | 2 | **True** (x==0) | False | pushes `(0,0)`h1, `(0,2)`h2 |
-| 5 | `(0,2)` | 2 | True | False | pushes `(1,2)` (already queued) |
-| 6 | `(0,0)` | 1 | True | False | pushes nothing new in-bounds beyond seen |
-| 7 | `(2,3)` | 3 | True | False | pushes `(3,3)`? h4<=3 no. `(2,4)`h1<=3 yes |
-| 8 | `(2,4)` | 1 | True | True (y==cols-1==4) | pushes `(3,4)`? h5<=1 no. `(1,4)`h4<=1 no |
-| — | (remaining stack drains: `(3,2)`, `(1,2)`, …) | — | True | True | loop continues but `pac and atl` already satisfiable |
+| Step | Pop`(x, y)`                                     | height | `pac` after         | `atl` after           | Neighbors pushed (downhill/level only)                                                                                                                                   |
+| ---- | ------------------------------------------------- | ------ | --------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1    | `(2,2)`                                         | 5      | False                 | False                   | `(3,2)`h1, `(1,2)`h3, `(2,3)`h3 *(not `(2,1)` h4 — that's uphill relative? 4<=5 ✓ actually pushed too)* → pushes `(3,2)`, `(1,2)`, `(2,3)`, `(2,1)` |
+| 2    | `(2,1)`                                         | 4      | False                 | False                   | pushes`(1,1)`h2                                                                                                                                                        |
+| 3    | `(1,1)`                                         | 2      | False                 | False                   | pushes`(0,1)`h2, `(1,0)`h3 *(3<=2? no, skipped)* → only `(0,1)`                                                                                                 |
+| 4    | `(0,1)`                                         | 2      | **True** (x==0) | False                   | pushes`(0,0)`h1, `(0,2)`h2                                                                                                                                           |
+| 5    | `(0,2)`                                         | 2      | True                  | False                   | pushes`(1,2)` (already queued)                                                                                                                                         |
+| 6    | `(0,0)`                                         | 1      | True                  | False                   | pushes nothing new in-bounds beyond seen                                                                                                                                 |
+| 7    | `(2,3)`                                         | 3      | True                  | False                   | pushes`(3,3)`? h4<=3 no. `(2,4)`h1<=3 yes                                                                                                                            |
+| 8    | `(2,4)`                                         | 1      | True                  | True (y==cols-1==4) | pushes`(3,4)`? h5<=1 no. `(1,4)`h4<=1 no                                                                                                                             |
+| —   | (remaining stack drains:`(3,2)`, `(1,2)`, …) | —     | True                  | True                    | loop continues but`pac and atl` already satisfiable                                                                                                                    |
 
 Once `x == 0` was hit at step 4 and `y == cols-1` was hit at step 8, `pac = atl = True`. The DFS still finishes draining the stack (it doesn't early-exit), but the result is already decided: `reaches_both(2, 2)` returns `True`, so `[2, 2]` is added to the answer.
 
@@ -155,17 +155,17 @@ def pacific_atlantic_optimal(heights):
 
 ### Line by line
 
-| Line / code | What it does |
-| ----------- | ------------ |
-| `if not heights or not heights[0]: return []` | Empty-grid edge case |
-| `pac, atl = set(), set()` | Two separate reachable-cell sets, one per ocean |
-| `def dfs(r, c, seen, prev):` | Recursive climb; `seen` is `pac` or `atl`, `prev` is the height just came from |
-| `if (r, c) in seen or ... or heights[r][c] < prev: return` | Stop if already visited, out of bounds, **or this cell is lower than where we came from** (can't climb downhill) |
-| `seen.add((r, c))` | Mark this cell as able to drain to the current ocean |
-| `for dx, dy in (...): dfs(r+dx, c+dy, seen, heights[r][c])` | Recurse into all 4 neighbors, passing **this** cell's height as the new `prev` |
-| `for c in range(cols): dfs(0, c, pac, heights[0][c]); dfs(rows-1, c, atl, heights[rows-1][c])` | Seed Pacific from every cell of the **top row**, Atlantic from every cell of the **bottom row** |
-| `for r in range(rows): dfs(r, 0, pac, heights[r][0]); dfs(r, cols-1, atl, heights[r][cols-1])` | Seed Pacific from every cell of the **left column**, Atlantic from every cell of the **right column** |
-| `return [[r, c] for r in range(rows) for c in range(cols) if (r, c) in pac and (r, c) in atl]` | Answer = cells present in **both** reachable sets |
+| Line / code                                                                                      | What it does                                                                                                          |
+| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `if not heights or not heights[0]: return []`                                                  | Empty-grid edge case                                                                                                  |
+| `pac, atl = set(), set()`                                                                      | Two separate reachable-cell sets, one per ocean                                                                       |
+| `def dfs(r, c, seen, prev):`                                                                   | Recursive climb;`seen` is `pac` or `atl`, `prev` is the height just came from                                 |
+| `if (r, c) in seen or ... or heights[r][c] < prev: return`                                     | Stop if already visited, out of bounds,**or this cell is lower than where we came from** (can't climb downhill) |
+| `seen.add((r, c))`                                                                             | Mark this cell as able to drain to the current ocean                                                                  |
+| `for dx, dy in (...): dfs(r+dx, c+dy, seen, heights[r][c])`                                    | Recurse into all 4 neighbors, passing**this** cell's height as the new `prev`                                 |
+| `for c in range(cols): dfs(0, c, pac, heights[0][c]); dfs(rows-1, c, atl, heights[rows-1][c])` | Seed Pacific from every cell of the**top row**, Atlantic from every cell of the **bottom row**            |
+| `for r in range(rows): dfs(r, 0, pac, heights[r][0]); dfs(r, cols-1, atl, heights[r][cols-1])` | Seed Pacific from every cell of the**left column**, Atlantic from every cell of the **right column**      |
+| `return [[r, c] for r in range(rows) for c in range(cols) if (r, c) in pac and (r, c) in atl]` | Answer = cells present in**both** reachable sets                                                                |
 
 ### Step-by-step trace (canonical example)
 
@@ -181,38 +181,38 @@ r4: 5 1 1 2 4
 
 **Pacific climb** — seeded from top row `(0,0)…(0,4)` and left column `(0,0)…(4,0)` (9 seed cells). Each DFS only advances to a neighbor whose height is `>=` the cell just left:
 
-| Frontier step | Cells added to `pac` this round | Why |
-| -------------- | -------------------------------- | --- |
-| Seeds | `(0,0),(0,1),(0,2),(0,3),(0,4),(1,0),(2,0),(3,0),(4,0)` | All Pacific-border cells |
-| Round 1 | `(1,1)`h2, `(1,2)`h3, `(1,3)`h4, `(2,1)`h4, `(3,1)`h7 | e.g. from `(0,1)`h2 → `(1,1)`h2 (2≥2 ✓); from `(2,0)`h2 → `(2,1)`h4 (4≥2 ✓); from `(3,0)`h6 → `(3,1)`h7 (7≥6 ✓) |
-| Round 2 | `(2,2)`h5, `(1,4)`h4 | from `(1,2)`h3 → `(2,2)`h5 (5≥3 ✓); from `(1,3)`h4 → `(1,4)`h4 (4≥4 ✓) |
-| Round 3 | *(none — e.g. `(2,2)`h5 → `(3,2)`h1 fails 1≥5, `(2,3)`h3 fails 3≥5)* | climb blocked everywhere |
+| Frontier step | Cells added to`pac` this round                                                 | Why                                                                                                                                 |
+| ------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Seeds         | `(0,0),(0,1),(0,2),(0,3),(0,4),(1,0),(2,0),(3,0),(4,0)`                        | All Pacific-border cells                                                                                                            |
+| Round 1       | `(1,1)`h2, `(1,2)`h3, `(1,3)`h4, `(2,1)`h4, `(3,1)`h7                  | e.g. from`(0,1)`h2 → `(1,1)`h2 (2≥2 ✓); from `(2,0)`h2 → `(2,1)`h4 (4≥2 ✓); from `(3,0)`h6 → `(3,1)`h7 (7≥6 ✓) |
+| Round 2       | `(2,2)`h5, `(1,4)`h4                                                         | from`(1,2)`h3 → `(2,2)`h5 (5≥3 ✓); from `(1,3)`h4 → `(1,4)`h4 (4≥4 ✓)                                                 |
+| Round 3       | *(none — e.g. `(2,2)`h5 → `(3,2)`h1 fails 1≥5, `(2,3)`h3 fails 3≥5)* | climb blocked everywhere                                                                                                            |
 
 Final `pac = {(0,0),(0,1),(0,2),(0,3),(0,4),(1,0),(1,1),(1,2),(1,3),(1,4),(2,0),(2,1),(2,2),(3,0),(3,1),(4,0)}` (16 cells).
 
 **Atlantic climb** — seeded from bottom row `(4,0)…(4,4)` and right column `(0,4)…(4,4)` (9 seed cells):
 
-| Frontier step | Cells added to `atl` this round | Why |
-| -------------- | -------------------------------- | --- |
-| Seeds | `(4,0),(4,1),(4,2),(4,3),(4,4),(0,4),(1,4),(2,4),(3,4)` | All Atlantic-border cells |
-| Round 1 | `(3,0)`h6, `(3,1)`h7, `(3,2)`h1, `(3,3)`h4, `(1,3)`h4, `(2,3)`h3 | e.g. from `(4,0)`h5 → `(3,0)`h6 (6≥5 ✓); from `(4,2)`h1 → `(3,2)`h1 (1≥1 ✓); from `(1,4)`h4 → `(1,3)`h4 (4≥4 ✓) |
-| Round 2 | `(2,2)`h5 | from `(3,2)`h1 → `(2,2)`h5 (5≥1 ✓) |
-| Round 3 | *(none)* | climb blocked everywhere else |
+| Frontier step | Cells added to`atl` this round                                             | Why                                                                                                                                 |
+| ------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Seeds         | `(4,0),(4,1),(4,2),(4,3),(4,4),(0,4),(1,4),(2,4),(3,4)`                    | All Atlantic-border cells                                                                                                           |
+| Round 1       | `(3,0)`h6, `(3,1)`h7, `(3,2)`h1, `(3,3)`h4, `(1,3)`h4, `(2,3)`h3 | e.g. from`(4,0)`h5 → `(3,0)`h6 (6≥5 ✓); from `(4,2)`h1 → `(3,2)`h1 (1≥1 ✓); from `(1,4)`h4 → `(1,3)`h4 (4≥4 ✓) |
+| Round 2       | `(2,2)`h5                                                                  | from`(3,2)`h1 → `(2,2)`h5 (5≥1 ✓)                                                                                            |
+| Round 3       | *(none)*                                                                   | climb blocked everywhere else                                                                                                       |
 
 Final `atl = {(4,0),(4,1),(4,2),(4,3),(4,4),(0,4),(1,4),(2,4),(3,4),(3,0),(3,1),(3,2),(3,3),(1,3),(2,3),(2,2)}` (16 cells).
 
 **Intersection** `pac ∩ atl`:
 
-| Cell | In `pac`? | In `atl`? | In answer? |
-| ---- | --------- | --------- | ---------- |
-| `(0,4)` | ✓ | ✓ | ✓ |
-| `(1,3)` | ✓ | ✓ | ✓ |
-| `(1,4)` | ✓ | ✓ | ✓ |
-| `(2,2)` | ✓ | ✓ | ✓ |
-| `(3,0)` | ✓ | ✓ | ✓ |
-| `(3,1)` | ✓ | ✓ | ✓ |
-| `(4,0)` | ✓ | ✓ | ✓ |
-| all other cells | at most one set | — | ✗ |
+| Cell            | In`pac`?      | In`atl`? | In answer? |
+| --------------- | --------------- | ---------- | ---------- |
+| `(0,4)`       | ✓              | ✓         | ✓         |
+| `(1,3)`       | ✓              | ✓         | ✓         |
+| `(1,4)`       | ✓              | ✓         | ✓         |
+| `(2,2)`       | ✓              | ✓         | ✓         |
+| `(3,0)`       | ✓              | ✓         | ✓         |
+| `(3,1)`       | ✓              | ✓         | ✓         |
+| `(4,0)`       | ✓              | ✓         | ✓         |
+| all other cells | at most one set | —         | ✗         |
 
 **Result:** `[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]` — matches the expected output.
 
@@ -239,10 +239,10 @@ Final `atl = {(4,0),(4,1),(4,2),(4,3),(4,4),(0,4),(1,4),(2,4),(3,4),(3,0),(3,1),
 
 ## Quick reference
 
-| Function | Technique | Direction of flow check | Result on canonical grid | Time | Space |
-| -------- | --------- | ------------------------ | -------------------------- | ---- | ----- |
-| `pacific_atlantic_brute` | DFS from every cell, forward flow | `heights[neighbor] <= heights[current]` (downhill) | `[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]` | `O((mn)²)` | `O(mn)` |
-| `pacific_atlantic_optimal` | Multi-source DFS from ocean borders, reversed climb | `heights[neighbor] >= heights[current]` (uphill) | `[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]` | `O(mn)` | `O(mn)` |
+| Function                     | Technique                                           | Direction of flow check                              | Result on canonical grid                        | Time          | Space     |
+| ---------------------------- | --------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------- | ------------- | --------- |
+| `pacific_atlantic_brute`   | DFS from every cell, forward flow                   | `heights[neighbor] <= heights[current]` (downhill) | `[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]` | `O((mn)²)` | `O(mn)` |
+| `pacific_atlantic_optimal` | Multi-source DFS from ocean borders, reversed climb | `heights[neighbor] >= heights[current]` (uphill)   | `[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]` | `O(mn)`     | `O(mn)` |
 
 ## Patterns to remember
 
