@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevRev DSA — Interactive Visual Explainers</title>
+<style>
+:root{
+  --bg:#f8fafc;--panel:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--accent-soft:#dbeafe;--accent2:#7c3aed;--warn:#f59e0b;--good:#059669;--bad:#dc2626;
+  --box:#eef2ff;--box-border:#c7d2fe;--code-bg:#f1f5f9;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b1220;--panel:#141e30;--text:#e2e8f0;--muted:#94a3b8;--border:#2b3a55;
+    --accent:#60a5fa;--accent-soft:#1e3a5f;--accent2:#c084fc;--warn:#fbbf24;--good:#34d399;--bad:#f87171;
+    --box:#1c2b45;--box-border:#3b4f75;--code-bg:#0f1a2e;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+header.topbar{padding:32px 20px 10px;text-align:center}
+header.topbar h1{margin:0 0 6px;font-size:26px}
+header.topbar p{color:var(--muted);margin:0}
+main{max-width:920px;margin:0 auto;padding:20px 20px 80px}
+.patterns-cta{display:block;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;text-decoration:none;border-radius:14px;padding:22px 24px;margin-bottom:26px}
+.patterns-cta h2{margin:0 0 6px;font-size:19px}
+.patterns-cta p{margin:0;opacity:.9;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{display:block;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;text-decoration:none;color:var(--text);transition:transform .15s,border-color .15s}
+.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card .num{font-size:12px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
+.card h3{margin:4px 0 8px;font-size:16px}
+.card .meta{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot.medium{background:var(--warn)}
+.dot.hard{background:var(--bad)}
+h2.topic{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:30px 0 12px;border-bottom:1px solid var(--border);padding-bottom:6px}
+h2.topic:first-of-type{margin-top:6px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>DevRev DSA — Interactive Visual Explainers</h1>
+  <p>Step-through diagrams for the DevRev interview-prep problem set. No install, no server — just open in a browser.</p>
+</header>
+<main>
+
+<a class="patterns-cta" href="patterns.html">
+  <h2>&#128161; Patterns Cheat Sheet</h2>
+  <p>The reusable tricks behind all 7 problems, with the "tell" that reveals which one applies and a sentence you can actually say in an interview.</p>
+</a>
+
+<h2 class="topic">Array</h2>
+<div class="grid">
+  <a class="card" href="Array/subarray_sum_equals_k.html">
+    <div class="num">01</div>
+    <h3>Subarray Sum Equals K</h3>
+    <div class="meta"><span class="dot medium"></span>Medium &middot; Prefix Sum + Hash Map</div>
+  </a>
+  <a class="card" href="Array/sliding_window_maximum.html">
+    <div class="num">02</div>
+    <h3>Sliding Window Maximum</h3>
+    <div class="meta"><span class="dot hard"></span>Hard &middot; Monotonic Deque</div>
+  </a>
+</div>
+
+<h2 class="topic">Graph</h2>
+<div class="grid">
+  <a class="card" href="Graph/topological_wave_scheduling.html">
+    <div class="num">03</div>
+    <h3>Topological Wave Scheduling</h3>
+    <div class="meta"><span class="dot medium"></span>Medium &middot; Kahn's Algorithm</div>
+  </a>
+  <a class="card" href="Graph/downstream_of_a_failure.html">
+    <div class="num">04</div>
+    <h3>Downstream of a Failure</h3>
+    <div class="meta"><span class="dot medium"></span>Medium &middot; BFS / DFS Reachability</div>
+  </a>
+</div>
+
+<h2 class="topic">Tree</h2>
+<div class="grid">
+  <a class="card" href="Tree/build_tree_from_flat_list.html">
+    <div class="num">05</div>
+    <h3>Build Tree from Flat List</h3>
+    <div class="meta"><span class="dot medium"></span>Medium &middot; Hash-Map Index</div>
+  </a>
+  <a class="card" href="Tree/lowest_common_ancestor_binary_tree.html">
+    <div class="num">06</div>
+    <h3>Lowest Common Ancestor</h3>
+    <div class="meta"><span class="dot medium"></span>Medium &middot; Return-Up DFS</div>
+  </a>
+</div>
+
+<h2 class="topic">Design</h2>
+<div class="grid">
+  <a class="card" href="Design/lru_cache.html">
+    <div class="num">07</div>
+    <h3>LRU Cache</h3>
+    <div class="meta"><span class="dot medium"></span>Medium &middot; Hash Map + Doubly Linked List</div>
+  </a>
+</div>
+
+</main>
+<footer>Generated visual explainer set &middot; matches the notebooks in DevRev_Preparation/dsa_notebooks</footer>
+</body>
+</html>

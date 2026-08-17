@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lowest Common Ancestor — Visual Explainer</title>
+<style>
+:root{
+  --bg:#f8fafc;--panel:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--accent-soft:#dbeafe;--accent2:#7c3aed;--warn:#f59e0b;--good:#059669;--bad:#dc2626;
+  --box:#eef2ff;--box-border:#c7d2fe;--code-bg:#f1f5f9;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b1220;--panel:#141e30;--text:#e2e8f0;--muted:#94a3b8;--border:#2b3a55;
+    --accent:#60a5fa;--accent-soft:#1e3a5f;--accent2:#c084fc;--warn:#fbbf24;--good:#34d399;--bad:#f87171;
+    --box:#1c2b45;--box-border:#3b4f75;--code-bg:#0f1a2e;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+header.topbar{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header.topbar a.back{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
+header.topbar h1{font-size:18px;margin:0}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--warn)}
+main{max-width:920px;margin:0 auto;padding:24px 20px 80px}
+section{margin-bottom:44px}
+h2{font-size:20px;border-left:4px solid var(--accent);padding-left:10px;margin:0 0 12px}
+h3{font-size:16px;margin:24px 0 8px}
+p{color:var(--text)}
+.muted{color:var(--muted);font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.example{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow-x:auto;white-space:pre}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+button{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+button.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:disabled{opacity:0.4;cursor:not-allowed}
+.step-count{font-size:12px;color:var(--muted);margin-left:auto}
+.caption{margin-top:12px;font-size:14px;background:var(--accent-soft);border-radius:8px;padding:10px 14px;min-height:20px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.swatch{width:12px;height:12px;border-radius:50%;display:inline-block;border:2px solid var(--box-border);background:var(--box)}
+.swatch.target{border-color:var(--accent2);background:rgba(124,58,237,.2)}
+.swatch.visiting{border-color:var(--accent);background:rgba(37,99,235,.15)}
+.swatch.lca{border-color:var(--good);background:rgba(5,150,105,.25)}
+svg{width:100%;height:auto;max-width:620px;display:block;margin:10px auto}
+.node-circle{fill:var(--box);stroke:var(--box-border);stroke-width:2.5;transition:all .25s}
+.node-circle.target{stroke:var(--accent2);stroke-width:4}
+.node-circle.visiting{stroke:var(--accent);stroke-width:4}
+.node-circle.lca{fill:rgba(5,150,105,.25);stroke:var(--good);stroke-width:4}
+.node-circle.dim{opacity:.35}
+.node-label{fill:var(--text);font-family:ui-monospace,Consolas,monospace;font-size:15px;font-weight:700;text-anchor:middle;dominant-baseline:middle}
+.edge-line{stroke:var(--border);stroke-width:2}
+.edge-line.path{stroke:var(--accent);stroke-width:3}
+.path-row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.path-box{padding:5px 10px;border-radius:6px;background:var(--code-bg);border:1px solid var(--border);font-family:ui-monospace,Consolas,monospace;font-size:13px}
+.path-box.match{background:rgba(5,150,105,.18);border-color:var(--good)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="back" href="../index.html">&larr; All problems</a>
+  <h1>6. Lowest Common Ancestor of a Binary Tree</h1>
+  <span class="badge"><span class="dot"></span>Medium &middot; Trees / DFS</span>
+</header>
+<main>
+
+<section id="intro">
+  <h2>The problem, in plain words</h2>
+  <p>Given a tree and two nodes <code>p</code> and <code>q</code>, find their <b>lowest common ancestor</b> — the deepest node that has both of them somewhere below it (a node counts as its own ancestor).</p>
+  <div class="example">        3
+       / \
+      5   1
+     / \ / \
+    6  2 0  8
+      / \
+     7   4
+
+LCA(5, 1) = 3   (they only meet at the root)
+LCA(5, 4) = 5   (5 is itself an ancestor of 4)</div>
+  <p class="muted">Purple ring = one of our two targets (p=5, q=1). Unlike a search tree, values aren't sorted here — you can't "navigate" toward the answer, you have to search.</p>
+  <div class="panel">
+    <svg viewBox="0 0 480 280" id="introSvg">
+      <g id="introEdgeLayer"></g>
+      <g id="introNodeLayer"></g>
+    </svg>
+  </div>
+</section>
+
+<section id="approach1">
+  <h2>Approach 1 — Root-to-node paths (works, but uses more memory)</h2>
+  <p><b>The idea:</b> find the path from the root down to <code>p</code>, and the path down to <code>q</code>. Walk both paths together from the start — the last node they still agree on is the LCA.</p>
+  <div class="panel">
+    <svg viewBox="0 0 480 280" id="pathSvg">
+      <g id="pathEdgeLayer"></g>
+      <g id="pathNodeLayer"></g>
+    </svg>
+    <h3>Path to p=5</h3>
+    <div class="path-row" id="pathP"></div>
+    <h3>Path to q=1</h3>
+    <div class="path-row" id="pathQ"></div>
+    <div class="controls">
+      <button class="secondary" id="pathPrev">&larr; Prev</button>
+      <button id="pathPlay">&#9654; Play</button>
+      <button class="secondary" id="pathNext">Next &rarr;</button>
+      <button class="secondary" id="pathReset">&#8635; Reset</button>
+      <span class="step-count" id="pathCounter"></span>
+    </div>
+    <div class="caption" id="pathCaption"></div>
+  </div>
+  <p class="muted" style="margin-top:10px">Speed &amp; memory: O(n) time, but O(n) extra space for the two stored paths.</p>
+</section>
+
+<section id="approach2">
+  <h2>Approach 2 — Single recursive DFS (the optimal way)</h2>
+  <p><b>The idea:</b> search both children and ask each "did you find p or q down there?" If <b>both</b> sides answer yes, the current node is the split point — the LCA. If only one side answers, pass that answer up.</p>
+  <div class="panel">
+    <svg viewBox="0 0 480 280" id="dfsSvg">
+      <g id="dfsEdgeLayer"></g>
+      <g id="dfsNodeLayer"></g>
+    </svg>
+    <div class="legend">
+      <span><span class="swatch target"></span>target (p or q)</span>
+      <span><span class="swatch visiting"></span>currently visiting</span>
+      <span><span class="swatch lca"></span>found: LCA!</span>
+    </div>
+    <div class="controls">
+      <button class="secondary" id="dfsPrev">&larr; Prev</button>
+      <button id="dfsPlay">&#9654; Play</button>
+      <button class="secondary" id="dfsNext">Next &rarr;</button>
+      <button class="secondary" id="dfsReset">&#8635; Reset</button>
+      <span class="step-count" id="dfsCounter"></span>
+    </div>
+    <div class="caption" id="dfsCaption"></div>
+  </div>
+  <p class="muted" style="margin-top:10px">Speed &amp; memory: O(n) time, only O(height) space (the recursion stack) — no stored paths needed.</p>
+</section>
+
+<section id="when">
+  <h2>When you'd reach for this</h2>
+  <p>"Deepest common parent / where two nodes meet" in a tree with <b>no ordering</b> to exploit (a BST would let you compare values and navigate in O(height) instead). Also watch for the case where one target is itself an ancestor of the other — like LCA(5,4)=5 above — the recursion returns as soon as it hits node 5, no need to search further down that branch.</p>
+</section>
+
+</main>
+<footer>Generated visual explainer &middot; matches "6. lowest_common_ancestor_binary_tree.ipynb"</footer>
+
+<script>
+function initStepper(cfg){
+  let i = 0, playing = false, timer = null;
+  function show(){
+    cfg.render(cfg.frames[i], i, cfg.frames.length);
+    cfg.caption.textContent = cfg.frames[i].caption;
+    cfg.counter.textContent = `Step ${i+1} / ${cfg.frames.length}`;
+    cfg.prevBtn.disabled = i===0;
+    cfg.nextBtn.disabled = i===cfg.frames.length-1;
+  }
+  function next(){ if(i<cfg.frames.length-1){ i++; show(); } else { pause(); } }
+  function prev(){ if(i>0){ i--; show(); } }
+  function reset(){ i=0; pause(); show(); }
+  function play(){
+    playing = true; cfg.playBtn.textContent='⏸ Pause';
+    timer = setInterval(()=>{ if(i<cfg.frames.length-1){ next(); } else { pause(); } }, cfg.speed||1500);
+  }
+  function pause(){ playing=false; cfg.playBtn.textContent='▶ Play'; clearInterval(timer); }
+  cfg.prevBtn.onclick=prev; cfg.nextBtn.onclick=next; cfg.resetBtn.onclick=reset;
+  cfg.playBtn.onclick=()=> playing? pause(): play();
+  show();
+}
+
+const tree = {v:3, l:{v:5, l:{v:6}, r:{v:2, l:{v:7}, r:{v:4}}}, r:{v:1, l:{v:0}, r:{v:8}}};
+const pos = {3:{x:240,y:36},5:{x:140,y:110},1:{x:340,y:110},6:{x:70,y:190},2:{x:210,y:190},0:{x:290,y:190},8:{x:390,y:190},7:{x:170,y:250},4:{x:250,y:250}};
+const edgeDefs = [[3,5],[3,1],[5,6],[5,2],[1,0],[1,8],[2,7],[2,4]];
+const P = 5, Q = 1;
+
+function buildTreeSvg(svgId, edgeLayerId, nodeLayerId){
+  const edgeLayer = document.getElementById(edgeLayerId);
+  const nodeLayer = document.getElementById(nodeLayerId);
+  edgeDefs.forEach(([from,to])=>{
+    const p1=pos[from], p2=pos[to];
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',p1.x); line.setAttribute('y1',p1.y+20);
+    line.setAttribute('x2',p2.x); line.setAttribute('y2',p2.y-20);
+    line.setAttribute('class','edge-line');
+    line.id = `${svgId}-edge-${from}-${to}`;
+    edgeLayer.appendChild(line);
+  });
+  Object.keys(pos).forEach(k=>{
+    const val = +k, p = pos[val];
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',p.x); c.setAttribute('cy',p.y); c.setAttribute('r',20);
+    c.setAttribute('class','node-circle'); c.id=`${svgId}-node-${val}`;
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',p.x); t.setAttribute('y',p.y); t.setAttribute('class','node-label');
+    t.textContent = val;
+    g.appendChild(c); g.appendChild(t);
+    nodeLayer.appendChild(g);
+  });
+}
+
+// ---------- Intro: just show the tree with p/q marked ----------
+buildTreeSvg('introSvg','introEdgeLayer','introNodeLayer');
+document.getElementById('introSvg-node-'+P).classList.add('target');
+document.getElementById('introSvg-node-'+Q).classList.add('target');
+
+// ---------- Approach 1: root-to-node paths ----------
+buildTreeSvg('pathSvg','pathEdgeLayer','pathNodeLayer');
+function findPath(node, target, path){
+  if(!node) return false;
+  path.push(node.v);
+  if(node.v===target) return true;
+  if(findPath(node.l, target, path) || findPath(node.r, target, path)) return true;
+  path.pop();
+  return false;
+}
+function buildPathFrames(){
+  const pathP = []; findPath(tree, P, pathP);
+  const pathQ = []; findPath(tree, Q, pathQ);
+  const frames = [];
+  frames.push({caption:`Find the root-to-node path for p=${P}: [${pathP.join(' → ')}].`, pShow:[...pathP], qShow:[], lca:null});
+  frames.push({caption:`Find the root-to-node path for q=${Q}: [${pathQ.join(' → ')}].`, pShow:[...pathP], qShow:[...pathQ], lca:null});
+  let lca = null;
+  for(let i=0;i<Math.min(pathP.length,pathQ.length);i++){
+    if(pathP[i]===pathQ[i]){
+      lca = pathP[i];
+      frames.push({caption:`Compare position ${i}: both paths have ${pathP[i]} — still a common ancestor. Keep going.`, pShow:[...pathP], qShow:[...pathQ], lca});
+    } else {
+      frames.push({caption:`Compare position ${i}: paths diverge (${pathP[i]} vs ${pathQ[i]}). Stop — the last node they agreed on, ${lca}, is the LCA.`, pShow:[...pathP], qShow:[...pathQ], lca});
+      break;
+    }
+  }
+  frames.push({caption:`Result: LCA(${P}, ${Q}) = ${lca}.`, pShow:[...pathP], qShow:[...pathQ], lca});
+  return frames;
+}
+const pathFrames = buildPathFrames();
+initStepper({
+  frames: pathFrames,
+  prevBtn: document.getElementById('pathPrev'),
+  nextBtn: document.getElementById('pathNext'),
+  playBtn: document.getElementById('pathPlay'),
+  resetBtn: document.getElementById('pathReset'),
+  counter: document.getElementById('pathCounter'),
+  caption: document.getElementById('pathCaption'),
+  render(frame){
+    Object.keys(pos).forEach(k=>{
+      const val=+k;
+      const c = document.getElementById('pathSvg-node-'+val);
+      c.classList.remove('target','lca','dim');
+      c.classList.add('dim');
+    });
+    frame.pShow.forEach(v=>document.getElementById('pathSvg-node-'+v).classList.remove('dim'));
+    frame.qShow.forEach(v=>document.getElementById('pathSvg-node-'+v).classList.remove('dim'));
+    if(frame.lca!==null) document.getElementById('pathSvg-node-'+frame.lca).classList.add('lca');
+    document.getElementById('pathSvg-node-'+P).classList.remove('dim'); document.getElementById('pathSvg-node-'+P).classList.add('target');
+    document.getElementById('pathSvg-node-'+Q).classList.remove('dim'); document.getElementById('pathSvg-node-'+Q).classList.add('target');
+    const pRow = document.getElementById('pathP'); pRow.innerHTML='';
+    frame.pShow.forEach(v=>{
+      const d = document.createElement('div'); d.className='path-box'+(v===frame.lca?' match':''); d.textContent=v; pRow.appendChild(d);
+    });
+    const qRow = document.getElementById('pathQ'); qRow.innerHTML='';
+    frame.qShow.forEach(v=>{
+      const d = document.createElement('div'); d.className='path-box'+(v===frame.lca?' match':''); d.textContent=v; qRow.appendChild(d);
+    });
+  }
+});
+
+// ---------- Approach 2: recursive DFS ----------
+buildTreeSvg('dfsSvg','dfsEdgeLayer','dfsNodeLayer');
+function buildDfsFrames(){
+  const frames = [];
+  function dfs(node){
+    if(!node){
+      return null;
+    }
+    frames.push({caption:`Visit node ${node.v}.`, visiting:node.v, resultOf:{}, decided:null});
+    if(node.v===P || node.v===Q){
+      frames.push({caption:`Node ${node.v} IS one of our targets — report it up immediately.`, visiting:node.v, found:node.v, decided:null});
+      return node.v;
+    }
+    const left = dfs(node.l);
+    const right = dfs(node.r);
+    if(left && right){
+      frames.push({caption:`Node ${node.v}: left side found ${left}, right side found ${right} — BOTH sides found something! Node ${node.v} is the LCA.`, visiting:node.v, decided:'lca', lca:node.v});
+      return node.v;
+    }
+    const result = left || right;
+    frames.push({caption: result
+      ? `Node ${node.v}: only one side found something (${result}). Pass it up unchanged.`
+      : `Node ${node.v}: neither side found anything. Pass up "nothing."`,
+      visiting:node.v, decided:'bubble', bubble:result});
+    return result;
+  }
+  frames.push({caption:`Start the search at the root (3). We'll ask each subtree: "did you find p=${P} or q=${Q}?"`, visiting:null});
+  const finalAns = dfs(tree);
+  frames.push({caption:`Done. LCA(${P}, ${Q}) = ${finalAns}.`, visiting:null, decided:'lca', lca:finalAns});
+  return frames;
+}
+const dfsFrames = buildDfsFrames();
+initStepper({
+  frames: dfsFrames,
+  prevBtn: document.getElementById('dfsPrev'),
+  nextBtn: document.getElementById('dfsNext'),
+  playBtn: document.getElementById('dfsPlay'),
+  resetBtn: document.getElementById('dfsReset'),
+  counter: document.getElementById('dfsCounter'),
+  caption: document.getElementById('dfsCaption'),
+  render(frame){
+    Object.keys(pos).forEach(k=>{
+      const val=+k;
+      const c = document.getElementById('dfsSvg-node-'+val);
+      c.classList.remove('visiting','lca');
+      c.classList.toggle('target', val===P||val===Q);
+    });
+    if(frame.visiting!==null) document.getElementById('dfsSvg-node-'+frame.visiting).classList.add('visiting');
+    if(frame.decided==='lca' && frame.lca!==undefined) document.getElementById('dfsSvg-node-'+frame.lca).classList.add('lca');
+  }
+});
+</script>
+</body>
+</html>

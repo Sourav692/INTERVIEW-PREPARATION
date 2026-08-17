@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subarray Sum Equals K — Visual Explainer</title>
+<style>
+:root{
+  --bg:#f8fafc;--panel:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--accent-soft:#dbeafe;--accent2:#7c3aed;--warn:#f59e0b;--good:#059669;--bad:#dc2626;
+  --box:#eef2ff;--box-border:#c7d2fe;--code-bg:#f1f5f9;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b1220;--panel:#141e30;--text:#e2e8f0;--muted:#94a3b8;--border:#2b3a55;
+    --accent:#60a5fa;--accent-soft:#1e3a5f;--accent2:#c084fc;--warn:#fbbf24;--good:#34d399;--bad:#f87171;
+    --box:#1c2b45;--box-border:#3b4f75;--code-bg:#0f1a2e;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+header.topbar{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header.topbar a.back{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
+header.topbar h1{font-size:18px;margin:0}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--warn)}
+main{max-width:920px;margin:0 auto;padding:24px 20px 80px}
+section{margin-bottom:44px}
+h2{font-size:20px;border-left:4px solid var(--accent);padding-left:10px;margin:0 0 12px}
+h3{font-size:16px;margin:24px 0 8px}
+p{color:var(--text)}
+.muted{color:var(--muted);font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.example{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow-x:auto}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+button{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+button.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:disabled{opacity:0.4;cursor:not-allowed}
+.step-count{font-size:12px;color:var(--muted);margin-left:auto}
+.caption{margin-top:12px;font-size:14px;background:var(--accent-soft);border-radius:8px;padding:10px 14px;min-height:20px}
+.arr-row{display:flex;gap:6px;flex-wrap:wrap;margin:22px 0 10px}
+.cell-box{min-width:44px;padding:10px 6px;text-align:center;border-radius:8px;background:var(--box);border:2px solid var(--box-border);font-family:ui-monospace,Consolas,monospace;font-weight:700;position:relative;transition:all .2s}
+.cell-box .idx{position:absolute;top:-18px;left:0;right:0;font-size:10px;color:var(--muted);font-weight:400}
+.cell-box.active{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.cell-box.found{border-color:var(--good);background:rgba(5,150,105,.15)}
+.stat-row{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0}
+.stat{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px}
+.stat b{color:var(--accent);font-family:ui-monospace,Consolas,monospace;font-size:15px}
+table.trace{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
+table.trace th,table.trace td{border:1px solid var(--border);padding:6px 10px;text-align:left;font-family:ui-monospace,Consolas,monospace}
+table.trace th{background:var(--code-bg);font-family:-apple-system,Segoe UI,sans-serif}
+table.trace tr.hl td{background:rgba(5,150,105,.12)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="back" href="../index.html">&larr; All problems</a>
+  <h1>1. Subarray Sum Equals K</h1>
+  <span class="badge"><span class="dot"></span>Medium &middot; Arrays / Hash Maps</span>
+</header>
+<main>
+
+<section id="intro">
+  <h2>The problem, in plain words</h2>
+  <p>You get a list of numbers and a target number <code>k</code>. Count how many <b>stretches of numbers sitting next to each other</b> (contiguous subarrays) add up to exactly <code>k</code>.</p>
+  <p class="muted">Real-world flavor: imagine a row of daily expenses. "How many runs of consecutive days did I spend exactly $50 in total?" — that's this problem.</p>
+  <div class="example">nums = [1, 2, 3], k = 3&#10;matches: [1,2] (sums to 3) and [3] (sums to 3) &rarr; answer = 2</div>
+</section>
+
+<section id="demo">
+  <h2>Feel the task first</h2>
+  <p>Below is the array. Step through and watch every possible contiguous stretch get checked against <code>k = 3</code>. Green means it matched.</p>
+  <div class="panel">
+    <div class="arr-row" id="demoArr"></div>
+    <div class="stat-row">
+      <div class="stat">Checking: <b id="demoSpan">—</b></div>
+      <div class="stat">Sum of that stretch: <b id="demoSum">—</b></div>
+      <div class="stat">Matches found so far: <b id="demoCount">0</b></div>
+    </div>
+    <div class="controls">
+      <button class="secondary" id="demoPrev">&larr; Prev</button>
+      <button id="demoPlay">&#9654; Play</button>
+      <button class="secondary" id="demoNext">Next &rarr;</button>
+      <button class="secondary" id="demoReset">&#8635; Reset</button>
+      <span class="step-count" id="demoCounter"></span>
+    </div>
+    <div class="caption" id="demoCaption"></div>
+  </div>
+</section>
+
+<section id="approach1">
+  <h2>Approach 1 — Check every stretch (the slow way)</h2>
+  <p>For every possible start, keep extending the end one step at a time, adding a running total. Any time that running total equals <code>k</code>, count it. Simple, but you redo work: for <code>n</code> numbers this checks roughly <code>n&sup2;</code> stretches — <b>O(n&sup2;)</b>.</p>
+  <p class="muted">This is exactly what the demo above just showed you.</p>
+</section>
+
+<section id="approach2">
+  <h2>Approach 2 — Prefix sum + hash map (the fast way)</h2>
+  <p>Walk through the array <b>once</b>, keeping a running total. At each position, ask: <i>"has the running total been exactly <code>(current total &minus; k)</code> at some earlier point?"</i> If yes, every one of those earlier points is the start of a stretch ending here that sums to <code>k</code>. A hash map remembers every running total we've seen (and how many times), so this lookup is instant.</p>
+  <div class="panel">
+    <div class="arr-row" id="fastArr"></div>
+    <div class="stat-row">
+      <div class="stat">Running sum: <b id="fastSum">0</b></div>
+      <div class="stat">Looking for: <b id="fastLooking">—</b></div>
+      <div class="stat">Found in map: <b id="fastFound">—</b></div>
+      <div class="stat">Total matches: <b id="fastCount">0</b></div>
+    </div>
+    <h3>The hash map (running total &rarr; how many times seen)</h3>
+    <table class="trace" id="fastMapTable"><thead><tr><th>running total</th><th>times seen</th></tr></thead><tbody></tbody></table>
+    <div class="controls">
+      <button class="secondary" id="fastPrev">&larr; Prev</button>
+      <button id="fastPlay">&#9654; Play</button>
+      <button class="secondary" id="fastNext">Next &rarr;</button>
+      <button class="secondary" id="fastReset">&#8635; Reset</button>
+      <span class="step-count" id="fastCounter"></span>
+    </div>
+    <div class="caption" id="fastCaption"></div>
+  </div>
+  <p class="muted" style="margin-top:14px">Speed &amp; memory: one pass over the array, O(1) average hash-map lookups &rarr; <b>O(n) time</b>, <b>O(n) space</b> for the map.</p>
+</section>
+
+<section id="when">
+  <h2>When you'd reach for this</h2>
+  <p>Whenever you see "count/find a <b>contiguous</b> stretch that sums to a target" — especially if the numbers can be <b>negative</b> (which rules out a sliding window, because the running sum stops being monotonic). Seed the map with <code>{0: 1}</code> so a stretch starting at index 0 is counted correctly.</p>
+</section>
+
+</main>
+<footer>Generated visual explainer &middot; matches "1. subarray_sum_equals_k.ipynb"</footer>
+
+<script>
+function initStepper(cfg){
+  let i = 0, playing = false, timer = null;
+  function show(){
+    cfg.render(cfg.frames[i], i, cfg.frames.length);
+    cfg.caption.textContent = cfg.frames[i].caption;
+    cfg.counter.textContent = `Step ${i+1} / ${cfg.frames.length}`;
+    cfg.prevBtn.disabled = i===0;
+    cfg.nextBtn.disabled = i===cfg.frames.length-1;
+  }
+  function next(){ if(i<cfg.frames.length-1){ i++; show(); } else { pause(); } }
+  function prev(){ if(i>0){ i--; show(); } }
+  function reset(){ i=0; pause(); show(); }
+  function play(){
+    playing = true; cfg.playBtn.textContent='⏸ Pause';
+    timer = setInterval(()=>{ if(i<cfg.frames.length-1){ next(); } else { pause(); } }, cfg.speed||1300);
+  }
+  function pause(){ playing=false; cfg.playBtn.textContent='▶ Play'; clearInterval(timer); }
+  cfg.prevBtn.onclick=prev; cfg.nextBtn.onclick=next; cfg.resetBtn.onclick=reset;
+  cfg.playBtn.onclick=()=> playing? pause(): play();
+  show();
+}
+
+// ---------- Demo: brute-force every stretch ----------
+const demoNums = [1, 2, 3];
+const demoK = 3;
+function buildDemoFrames(nums, k){
+  const frames = [];
+  let matches = 0;
+  frames.push({caption:`We'll check every contiguous stretch of [${nums.join(', ')}] against k = ${k}.`, start:-1, end:-1, sum:null, matches:0});
+  for(let start=0; start<nums.length; start++){
+    let running = 0;
+    for(let end=start; end<nums.length; end++){
+      running += nums[end];
+      const hit = running === k;
+      if(hit) matches++;
+      frames.push({
+        caption: hit
+          ? `Stretch [${start}..${end}] = ${nums.slice(start,end+1).join('+')} = ${running}. That's k! Match #${matches}.`
+          : `Stretch [${start}..${end}] = ${nums.slice(start,end+1).join('+')} = ${running}. Not k (${k}).`,
+        start, end, sum: running, matches
+      });
+    }
+  }
+  frames.push({caption:`Done. Total stretches that sum to k = ${k}: ${matches}.`, start:-1, end:-1, sum:null, matches});
+  return frames;
+}
+const demoFrames = buildDemoFrames(demoNums, demoK);
+function renderDemoArr(){
+  const row = document.getElementById('demoArr');
+  row.innerHTML='';
+  demoNums.forEach((v,idx)=>{
+    const d = document.createElement('div');
+    d.className='cell-box';
+    d.id='demo-box-'+idx;
+    d.innerHTML = `<span class="idx">${idx}</span>${v}`;
+    row.appendChild(d);
+  });
+}
+renderDemoArr();
+initStepper({
+  frames: demoFrames,
+  prevBtn: document.getElementById('demoPrev'),
+  nextBtn: document.getElementById('demoNext'),
+  playBtn: document.getElementById('demoPlay'),
+  resetBtn: document.getElementById('demoReset'),
+  counter: document.getElementById('demoCounter'),
+  caption: document.getElementById('demoCaption'),
+  render(frame){
+    demoNums.forEach((v,idx)=>{
+      const box = document.getElementById('demo-box-'+idx);
+      box.classList.remove('active','found');
+      if(frame.start!==-1 && idx>=frame.start && idx<=frame.end){
+        box.classList.add(frame.sum===demoK ? 'found' : 'active');
+      }
+    });
+    document.getElementById('demoSpan').textContent = frame.start===-1 ? '—' : `[${frame.start}..${frame.end}]`;
+    document.getElementById('demoSum').textContent = frame.sum===null ? '—' : frame.sum;
+    document.getElementById('demoCount').textContent = frame.matches;
+  }
+});
+
+// ---------- Fast approach: prefix sum + hash map ----------
+const fastNums = [1, 2, 3];
+const fastK = 3;
+function buildFastFrames(nums, k){
+  const frames = [];
+  const seen = new Map([[0,1]]);
+  let running = 0, count = 0;
+  frames.push({caption:`Start with running sum 0. Seed the map with {0: 1} so a stretch starting at index 0 can be counted.`, idx:-1, running:0, looking:null, found:0, count:0, map:new Map(seen), active:-1});
+  for(let idx=0; idx<nums.length; idx++){
+    running += nums[idx];
+    const need = running - k;
+    const found = seen.get(need) || 0;
+    count += found;
+    frames.push({
+      caption: found>0
+        ? `num = ${nums[idx]}. Running sum is now ${running}. Looking for ${running} - ${k} = ${need} in the map... found it ${found} time(s)! That means ${found} stretch(es) ending here sum to k. Total matches: ${count}.`
+        : `num = ${nums[idx]}. Running sum is now ${running}. Looking for ${running} - ${k} = ${need} in the map... not there. No new match yet.`,
+      idx, running, looking: need, found, count, map: new Map(seen), active: idx
+    });
+    seen.set(running, (seen.get(running)||0)+1);
+    frames.push({
+      caption: `Record that we've now seen running sum ${running} (${seen.get(running)} time${seen.get(running)>1?'s':''}). Map updated.`,
+      idx, running, looking: need, found, count, map: new Map(seen), active: idx
+    });
+  }
+  frames.push({caption:`Done. Total stretches summing to k = ${k}: ${count}.`, idx:-1, running, looking:null, found:0, count, map:new Map(seen), active:-1});
+  return frames;
+}
+const fastFrames = buildFastFrames(fastNums, fastK);
+function renderFastArr(){
+  const row = document.getElementById('fastArr');
+  row.innerHTML='';
+  fastNums.forEach((v,idx)=>{
+    const d = document.createElement('div');
+    d.className='cell-box';
+    d.id='fast-box-'+idx;
+    d.innerHTML = `<span class="idx">${idx}</span>${v}`;
+    row.appendChild(d);
+  });
+}
+renderFastArr();
+initStepper({
+  frames: fastFrames,
+  prevBtn: document.getElementById('fastPrev'),
+  nextBtn: document.getElementById('fastNext'),
+  playBtn: document.getElementById('fastPlay'),
+  resetBtn: document.getElementById('fastReset'),
+  counter: document.getElementById('fastCounter'),
+  caption: document.getElementById('fastCaption'),
+  render(frame){
+    fastNums.forEach((v,idx)=>{
+      const box = document.getElementById('fast-box-'+idx);
+      box.classList.remove('active','found');
+      if(idx===frame.active) box.classList.add(frame.found>0 ? 'found' : 'active');
+    });
+    document.getElementById('fastSum').textContent = frame.running;
+    document.getElementById('fastLooking').textContent = frame.looking===null ? '—' : frame.looking;
+    document.getElementById('fastFound').textContent = frame.active===-1 ? '—' : frame.found;
+    document.getElementById('fastCount').textContent = frame.count;
+    const tbody = document.querySelector('#fastMapTable tbody');
+    tbody.innerHTML='';
+    [...frame.map.entries()].sort((a,b)=>a[0]-b[0]).forEach(([k,v])=>{
+      const tr = document.createElement('tr');
+      if(k===frame.looking && frame.found>0) tr.className='hl';
+      tr.innerHTML = `<td>${k}</td><td>${v}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+});
+</script>
+</body>
+</html>

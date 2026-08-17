@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LRU Cache — Visual Explainer</title>
+<style>
+:root{
+  --bg:#f8fafc;--panel:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--accent-soft:#dbeafe;--accent2:#7c3aed;--warn:#f59e0b;--good:#059669;--bad:#dc2626;
+  --box:#eef2ff;--box-border:#c7d2fe;--code-bg:#f1f5f9;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b1220;--panel:#141e30;--text:#e2e8f0;--muted:#94a3b8;--border:#2b3a55;
+    --accent:#60a5fa;--accent-soft:#1e3a5f;--accent2:#c084fc;--warn:#fbbf24;--good:#34d399;--bad:#f87171;
+    --box:#1c2b45;--box-border:#3b4f75;--code-bg:#0f1a2e;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+header.topbar{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header.topbar a.back{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
+header.topbar h1{font-size:18px;margin:0}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--warn)}
+main{max-width:920px;margin:0 auto;padding:24px 20px 80px}
+section{margin-bottom:44px}
+h2{font-size:20px;border-left:4px solid var(--accent);padding-left:10px;margin:0 0 12px}
+h3{font-size:16px;margin:24px 0 8px}
+p{color:var(--text)}
+.muted{color:var(--muted);font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.example{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow-x:auto;white-space:pre}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+button{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+button.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:disabled{opacity:0.4;cursor:not-allowed}
+.step-count{font-size:12px;color:var(--muted);margin-left:auto}
+.caption{margin-top:12px;font-size:14px;background:var(--accent-soft);border-radius:8px;padding:10px 14px;min-height:20px}
+.op-badge{display:inline-block;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-family:ui-monospace,Consolas,monospace;font-size:14px;font-weight:700;margin-bottom:10px}
+.list-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0;min-height:70px}
+.end-label{font-size:11px;color:var(--muted);text-align:center}
+.node-box{border:2px solid var(--box-border);background:var(--box);border-radius:10px;padding:10px 16px;font-family:ui-monospace,Consolas,monospace;text-align:center;transition:all .25s}
+.node-box .k{font-weight:700;font-size:15px}
+.node-box .v{color:var(--muted);font-size:12px}
+.node-box.new{border-color:var(--good);box-shadow:0 0 0 3px rgba(5,150,105,.18)}
+.node-box.evicted{border-color:var(--bad);opacity:.4;text-decoration:line-through}
+.arrow{color:var(--muted);font-size:18px}
+table.trace{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
+table.trace th,table.trace td{border:1px solid var(--border);padding:6px 10px;text-align:left;font-family:ui-monospace,Consolas,monospace}
+table.trace th{background:var(--code-bg);font-family:-apple-system,Segoe UI,sans-serif}
+.stat-row{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0}
+.stat{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px}
+.stat b{color:var(--accent);font-family:ui-monospace,Consolas,monospace;font-size:15px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="back" href="../index.html">&larr; All problems</a>
+  <h1>7. LRU Cache</h1>
+  <span class="badge"><span class="dot"></span>Medium &middot; Hash Map + Doubly Linked List</span>
+</header>
+<main>
+
+<section id="intro">
+  <h2>The problem, in plain words</h2>
+  <p>Build a cache holding a fixed number of items. <code>get(key)</code> returns the value (or -1). <code>put(key,value)</code> inserts/updates. When full, evict the <b>Least Recently Used</b> item. Both operations must be <b>instant</b> — O(1) — no matter how big the cache gets.</p>
+  <div class="example">cache = LRUCache(capacity=2)
+put(1,1); put(2,2)
+get(1)      -> 1   (using 1 makes it "most recent")
+put(3,3)    -> evicts key 2 (least recently used)
+get(2)      -> -1</div>
+</section>
+
+<section id="demo">
+  <h2>Watch it run, operation by operation</h2>
+  <p>The list is ordered by recency: <b>front = most recently used</b>, <b>back = least recently used</b>. Every touch moves a node to the front. Capacity here is 2.</p>
+  <div class="panel">
+    <div class="op-badge" id="opBadge">—</div>
+    <div class="list-row">
+      <span class="end-label">front<br>(most recent)</span>
+      <div id="listRow" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"></div>
+      <span class="end-label">back<br>(least recent)</span>
+    </div>
+    <h3>Hash map (key &rarr; node)</h3>
+    <table class="trace"><thead><tr><th>key</th><th>value</th></tr></thead><tbody id="mapBody"></tbody></table>
+    <div class="stat-row">
+      <div class="stat">Return value: <b id="retVal">—</b></div>
+    </div>
+    <div class="controls">
+      <button class="secondary" id="prevBtn">&larr; Prev</button>
+      <button id="playBtn">&#9654; Play</button>
+      <button class="secondary" id="nextBtn">Next &rarr;</button>
+      <button class="secondary" id="resetBtn">&#8635; Reset</button>
+      <span class="step-count" id="counter"></span>
+    </div>
+    <div class="caption" id="caption"></div>
+  </div>
+</section>
+
+<section id="approach1">
+  <h2>Approach 1 — Dict + plain order list (the slow way)</h2>
+  <p>Keep values in a dict, plus a plain list of keys in use-order. Every touch removes the key from wherever it sits in the list and appends it at the end. Removing from the middle (or front) of a plain list means <b>shifting every element after it</b> &rarr; <b>O(n) per operation</b>.</p>
+</section>
+
+<section id="approach2">
+  <h2>Approach 2 — Hash map + doubly linked list (the fast way)</h2>
+  <p><b>The idea:</b> a dict maps key &rarr; node instantly. The nodes also live in a doubly linked list ordered by recency. Unlinking a node and re-inserting it at the front costs O(1) — no shifting, because each node just points to its neighbors directly. That's exactly what the animation above shows.</p>
+  <p class="muted">Speed &amp; memory: <b>O(1)</b> for both <code>get</code> and <code>put</code>, <b>O(capacity)</b> space. Dummy head/tail sentinel nodes remove all the "is this the first/last node?" edge cases.</p>
+</section>
+
+<section id="when">
+  <h2>When you'd reach for this</h2>
+  <p>"O(1) get/set with eviction", "least/most recently used", "bounded cache with a fixed size" — response caches, session caches, memoizing expensive calls.</p>
+</section>
+
+</main>
+<footer>Generated visual explainer &middot; matches "7. lru_cache.ipynb"</footer>
+
+<script>
+function initStepper(cfg){
+  let i = 0, playing = false, timer = null;
+  function show(){
+    cfg.render(cfg.frames[i], i, cfg.frames.length);
+    cfg.caption.textContent = cfg.frames[i].caption;
+    cfg.counter.textContent = `Step ${i+1} / ${cfg.frames.length}`;
+    cfg.prevBtn.disabled = i===0;
+    cfg.nextBtn.disabled = i===cfg.frames.length-1;
+  }
+  function next(){ if(i<cfg.frames.length-1){ i++; show(); } else { pause(); } }
+  function prev(){ if(i>0){ i--; show(); } }
+  function reset(){ i=0; pause(); show(); }
+  function play(){
+    playing = true; cfg.playBtn.textContent='⏸ Pause';
+    timer = setInterval(()=>{ if(i<cfg.frames.length-1){ next(); } else { pause(); } }, cfg.speed||1600);
+  }
+  function pause(){ playing=false; cfg.playBtn.textContent='▶ Play'; clearInterval(timer); }
+  cfg.prevBtn.onclick=prev; cfg.nextBtn.onclick=next; cfg.resetBtn.onclick=reset;
+  cfg.playBtn.onclick=()=> playing? pause(): play();
+  show();
+}
+
+const CAP = 2;
+const ops = [
+  ['put',1,1], ['put',2,2], ['get',1], ['put',3,3], ['get',2],
+  ['put',4,4], ['get',1], ['get',3], ['get',4]
+];
+
+function buildFrames(){
+  const frames = [];
+  let order = []; // front..back, most recent first
+  const map = new Map(); // key -> value
+
+  function snap(caption, opLabel, retVal, evicted, newKey){
+    frames.push({caption, opLabel, order:[...order], map:new Map(map), retVal, evicted, newKey});
+  }
+
+  frames.push({caption:`Empty cache, capacity ${CAP}. Let's run a sequence of operations.`, opLabel:'start', order:[], map:new Map(), retVal:null});
+
+  for(const op of ops){
+    if(op[0]==='get'){
+      const key = op[1];
+      if(map.has(key)){
+        order = order.filter(k=>k!==key);
+        order.unshift(key);
+        snap(`get(${key}) — found! Value is ${map.get(key)}. Move key ${key} to the front (it's now most recently used).`, `get(${key})`, map.get(key), null, key);
+      } else {
+        snap(`get(${key}) — not in the cache. Return -1.`, `get(${key})`, -1, null, null);
+      }
+    } else {
+      const [, key, val] = op;
+      let evicted = null;
+      if(map.has(key)){
+        order = order.filter(k=>k!==key);
+        snap(`put(${key}, ${val}) — key already exists. Remove its old spot first.`, `put(${key},${val})`, null, null, null);
+      }
+      map.set(key, val);
+      order.unshift(key);
+      snap(`put(${key}, ${val}) — insert at the front (most recently used).`, `put(${key},${val})`, null, null, key);
+      if(order.length > CAP){
+        evicted = order.pop();
+        map.delete(evicted);
+        snap(`Cache exceeded capacity ${CAP} — evict the node at the back: key ${evicted} (least recently used).`, `put(${key},${val})`, null, evicted, null);
+      }
+    }
+  }
+  frames.push({caption:`Done running all operations.`, opLabel:'end', order:[...order], map:new Map(map), retVal:null});
+  return frames;
+}
+const frames = buildFrames();
+
+initStepper({
+  frames,
+  prevBtn: document.getElementById('prevBtn'),
+  nextBtn: document.getElementById('nextBtn'),
+  playBtn: document.getElementById('playBtn'),
+  resetBtn: document.getElementById('resetBtn'),
+  counter: document.getElementById('counter'),
+  caption: document.getElementById('caption'),
+  render(frame){
+    document.getElementById('opBadge').textContent = frame.opLabel;
+    const row = document.getElementById('listRow');
+    row.innerHTML = '';
+    if(frame.order.length===0){
+      row.innerHTML = '<span class="muted">(empty)</span>';
+    } else {
+      frame.order.forEach((key,idx)=>{
+        if(idx>0){
+          const arrow = document.createElement('span');
+          arrow.className='arrow'; arrow.textContent='→';
+          row.appendChild(arrow);
+        }
+        const box = document.createElement('div');
+        box.className='node-box'+(key===frame.newKey?' new':'');
+        box.innerHTML = `<div class="k">${key}</div><div class="v">val: ${frame.map.get(key)}</div>`;
+        row.appendChild(box);
+      });
+    }
+    if(frame.evicted!==null && frame.evicted!==undefined){
+      const arrow = document.createElement('span');
+      arrow.className='arrow'; arrow.textContent='✕';
+      row.appendChild(arrow);
+      const box = document.createElement('div');
+      box.className='node-box evicted';
+      box.innerHTML = `<div class="k">${frame.evicted}</div><div class="v">evicted</div>`;
+      row.appendChild(box);
+    }
+    const mapBody = document.getElementById('mapBody');
+    mapBody.innerHTML='';
+    [...frame.map.entries()].forEach(([k,v])=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${k}</td><td>${v}</td>`;
+      mapBody.appendChild(tr);
+    });
+    document.getElementById('retVal').textContent = frame.retVal===null ? '—' : frame.retVal;
+  }
+});
+</script>
+</body>
+</html>

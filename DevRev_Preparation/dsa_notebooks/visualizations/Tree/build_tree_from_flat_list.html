@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build a Tree from a Flat List — Visual Explainer</title>
+<style>
+:root{
+  --bg:#f8fafc;--panel:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--accent-soft:#dbeafe;--accent2:#7c3aed;--warn:#f59e0b;--good:#059669;--bad:#dc2626;
+  --box:#eef2ff;--box-border:#c7d2fe;--code-bg:#f1f5f9;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b1220;--panel:#141e30;--text:#e2e8f0;--muted:#94a3b8;--border:#2b3a55;
+    --accent:#60a5fa;--accent-soft:#1e3a5f;--accent2:#c084fc;--warn:#fbbf24;--good:#34d399;--bad:#f87171;
+    --box:#1c2b45;--box-border:#3b4f75;--code-bg:#0f1a2e;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+header.topbar{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header.topbar a.back{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
+header.topbar h1{font-size:18px;margin:0}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--warn)}
+main{max-width:920px;margin:0 auto;padding:24px 20px 80px}
+section{margin-bottom:44px}
+h2{font-size:20px;border-left:4px solid var(--accent);padding-left:10px;margin:0 0 12px}
+h3{font-size:16px;margin:24px 0 8px}
+p{color:var(--text)}
+.muted{color:var(--muted);font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.example{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow-x:auto;white-space:pre}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+button{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+button.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:disabled{opacity:0.4;cursor:not-allowed}
+.step-count{font-size:12px;color:var(--muted);margin-left:auto}
+.caption{margin-top:12px;font-size:14px;background:var(--accent-soft);border-radius:8px;padding:10px 14px;min-height:20px}
+.records-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.record-card{border:2px solid var(--box-border);background:var(--box);border-radius:10px;padding:8px 12px;font-size:12px;min-width:120px;transition:all .2s}
+.record-card.active{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.record-card .rid{font-family:ui-monospace,Consolas,monospace;font-weight:700}
+.record-card .rtitle{color:var(--muted)}
+table.trace{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
+table.trace th,table.trace td{border:1px solid var(--border);padding:6px 10px;text-align:left}
+table.trace th{background:var(--code-bg)}
+svg{width:100%;height:auto;max-width:660px;display:block;margin:10px auto}
+.node-circle{fill:var(--box);stroke:var(--box-border);stroke-width:2.5;transition:all .25s}
+.node-circle.active{stroke:var(--accent);stroke-width:4}
+.node-circle.root{stroke:var(--good);stroke-width:3.5}
+.node-circle.orphan{stroke:var(--warn);stroke-dasharray:4 3}
+.node-label{fill:var(--text);font-family:ui-monospace,Consolas,monospace;font-size:14px;font-weight:700;text-anchor:middle;dominant-baseline:middle}
+.edge-line{stroke:var(--border);stroke-width:2;opacity:0}
+.edge-line.shown{opacity:1;stroke:var(--good)}
+.roots-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.root-chip{background:rgba(5,150,105,.15);border:1px solid var(--good);border-radius:8px;padding:4px 10px;font-size:12px;font-family:ui-monospace,Consolas,monospace}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="back" href="../index.html">&larr; All problems</a>
+  <h1>5. Build a Tree from a Flat List</h1>
+  <span class="badge"><span class="dot"></span>Medium &middot; Trees / Hash Maps</span>
+</header>
+<main>
+
+<section id="intro">
+  <h2>The problem, in plain words</h2>
+  <p>Databases store hierarchies as flat rows — each row just has its own <code>id</code> and its <code>parent_id</code>. Turn that flat list back into a real nested tree.</p>
+  <div class="example">{id:1, parent_id:None} Epic: Login
+{id:2, parent_id:1}    Backend
+{id:3, parent_id:1}    Frontend
+{id:4, parent_id:2}    Auth API
+{id:5, parent_id:99}   Orphan task (parent doesn't exist!)</div>
+</section>
+
+<section id="demo">
+  <h2>Watch the tree get built, two passes</h2>
+  <p><b>Pass 1</b> creates an empty "node" for every record and drops it in a lookup table (so any id can be found instantly). <b>Pass 2</b> walks the records again and links each one under its parent — using the lookup table instead of scanning.</p>
+  <div class="panel">
+    <h3>Flat records</h3>
+    <div class="records-row" id="recordsRow"></div>
+    <h3>Node lookup table (id &rarr; node)</h3>
+    <table class="trace" id="lookupTable"><thead><tr><th>id</th><th>title</th><th>status</th></tr></thead><tbody></tbody></table>
+    <h3>Tree taking shape</h3>
+    <svg viewBox="0 0 560 260" id="graphSvg">
+      <g id="edgeLayer"></g>
+      <g id="nodeLayer"></g>
+    </svg>
+    <h3>Root nodes found so far</h3>
+    <div class="roots-row" id="rootsRow"></div>
+    <div class="controls">
+      <button class="secondary" id="prevBtn">&larr; Prev</button>
+      <button id="playBtn">&#9654; Play</button>
+      <button class="secondary" id="nextBtn">Next &rarr;</button>
+      <button class="secondary" id="resetBtn">&#8635; Reset</button>
+      <span class="step-count" id="counter"></span>
+    </div>
+    <div class="caption" id="caption"></div>
+  </div>
+</section>
+
+<section id="approach1">
+  <h2>Approach 1 — Scan for each parent (the slow way)</h2>
+  <p>For every record, scan the <b>whole list</b> to find the row whose id matches its parent_id. For <code>n</code> records that's an O(n) scan per record &rarr; <b>O(n&sup2;)</b> total.</p>
+</section>
+
+<section id="approach2">
+  <h2>Approach 2 — Hash-map index + one pass (the fast way)</h2>
+  <p><b>The idea:</b> build an <code>id &rarr; node</code> lookup table first (Pass 1). Then in one more pass, look each parent up in O(1) and attach the child. That's exactly what the animation above shows.</p>
+  <p class="muted">Speed &amp; memory: two linear passes &rarr; <b>O(n) time</b>, <b>O(n) space</b> for the lookup table.</p>
+</section>
+
+<section id="when">
+  <h2>When you'd reach for this</h2>
+  <p>Any time you catch yourself thinking "find the record with this id" inside a loop — that's the signal to build a dictionary first. Rendering task/comment trees, org charts, category hierarchies from flat DB rows.</p>
+</section>
+
+</main>
+<footer>Generated visual explainer &middot; matches "5. build_tree_from_flat_list.ipynb"</footer>
+
+<script>
+function initStepper(cfg){
+  let i = 0, playing = false, timer = null;
+  function show(){
+    cfg.render(cfg.frames[i], i, cfg.frames.length);
+    cfg.caption.textContent = cfg.frames[i].caption;
+    cfg.counter.textContent = `Step ${i+1} / ${cfg.frames.length}`;
+    cfg.prevBtn.disabled = i===0;
+    cfg.nextBtn.disabled = i===cfg.frames.length-1;
+  }
+  function next(){ if(i<cfg.frames.length-1){ i++; show(); } else { pause(); } }
+  function prev(){ if(i>0){ i--; show(); } }
+  function reset(){ i=0; pause(); show(); }
+  function play(){
+    playing = true; cfg.playBtn.textContent='⏸ Pause';
+    timer = setInterval(()=>{ if(i<cfg.frames.length-1){ next(); } else { pause(); } }, cfg.speed||1500);
+  }
+  function pause(){ playing=false; cfg.playBtn.textContent='▶ Play'; clearInterval(timer); }
+  cfg.prevBtn.onclick=prev; cfg.nextBtn.onclick=next; cfg.resetBtn.onclick=reset;
+  cfg.playBtn.onclick=()=> playing? pause(): play();
+  show();
+}
+
+const records = [
+  {id:1, parent_id:null, title:'Epic: Login'},
+  {id:2, parent_id:1, title:'Backend'},
+  {id:3, parent_id:1, title:'Frontend'},
+  {id:4, parent_id:2, title:'Auth API'},
+  {id:5, parent_id:99, title:'Orphan task'},
+];
+const nodePos = {1:{x:250,y:40}, 2:{x:150,y:140}, 3:{x:350,y:140}, 4:{x:150,y:240}, 5:{x:480,y:60}};
+
+function buildFrames(){
+  const frames = [];
+  const indexed = new Set();
+  const linked = {}; // id -> {parentLinked: bool, isRoot: bool, orphan: bool}
+  const roots = [];
+  function snap(caption, activeId, opts){
+    frames.push({caption, activeId, indexed:new Set(indexed), linked:JSON.parse(JSON.stringify(linked)), roots:[...roots], edge: (opts&&opts.edge)||null});
+  }
+  snap(`We'll build the node lookup table first (Pass 1), then link parents (Pass 2).`, null);
+  // Pass 1
+  for(const r of records){
+    indexed.add(r.id);
+    snap(`Pass 1 — create an empty node for id ${r.id} ("${r.title}") and store it in the lookup table.`, r.id);
+  }
+  // Pass 2
+  const idSet = new Set(records.map(r=>r.id));
+  for(const r of records){
+    if(r.parent_id===null){
+      linked[r.id] = {isRoot:true};
+      roots.push(r.id);
+      snap(`Pass 2 — record ${r.id} has no parent_id &rarr; it's a true root.`, r.id);
+    } else if(idSet.has(r.parent_id)){
+      linked[r.id] = {parentLinked:true, parent:r.parent_id};
+      snap(`Pass 2 — record ${r.id}'s parent_id is ${r.parent_id}. Look it up in the table (O(1))... found! Attach ${r.id} under ${r.parent_id}.`, r.id, {edge:[r.parent_id, r.id]});
+    } else {
+      linked[r.id] = {orphan:true};
+      roots.push(r.id);
+      snap(`Pass 2 — record ${r.id}'s parent_id is ${r.parent_id}, but that id doesn't exist in our records &rarr; orphan. Treat ${r.id} as a root too.`, r.id);
+    }
+  }
+  snap(`Done! Root nodes: [${roots.join(', ')}]. Everything else is nested underneath.`, null);
+  return frames;
+}
+const frames = buildFrames();
+
+function renderRecords(){
+  const row = document.getElementById('recordsRow');
+  row.innerHTML='';
+  records.forEach(r=>{
+    const d = document.createElement('div');
+    d.className='record-card';
+    d.id='rec-'+r.id;
+    d.innerHTML = `<div class="rid">id ${r.id}</div><div>${r.title}</div><div class="rtitle">parent_id: ${r.parent_id===null?'None':r.parent_id}</div>`;
+    row.appendChild(d);
+  });
+}
+renderRecords();
+
+function buildGraph(){
+  const edgeLayer = document.getElementById('edgeLayer');
+  const nodeLayer = document.getElementById('nodeLayer');
+  const edgeDefs = [[1,2],[1,3],[2,4]];
+  edgeDefs.forEach(([from,to])=>{
+    const p1=nodePos[from], p2=nodePos[to];
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',p1.x); line.setAttribute('y1',p1.y+22);
+    line.setAttribute('x2',p2.x); line.setAttribute('y2',p2.y-22);
+    line.setAttribute('class','edge-line');
+    line.id=`edge-${from}-${to}`;
+    edgeLayer.appendChild(line);
+  });
+  records.forEach(r=>{
+    const p = nodePos[r.id];
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',p.x); c.setAttribute('cy',p.y); c.setAttribute('r',22);
+    c.setAttribute('class','node-circle'); c.id='node-'+r.id;
+    c.setAttribute('opacity','0.15');
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',p.x); t.setAttribute('y',p.y); t.setAttribute('class','node-label');
+    t.textContent = r.id; t.id='label-'+r.id; t.setAttribute('opacity','0.3');
+    g.appendChild(c); g.appendChild(t);
+    nodeLayer.appendChild(g);
+  });
+}
+buildGraph();
+
+initStepper({
+  frames,
+  prevBtn: document.getElementById('prevBtn'),
+  nextBtn: document.getElementById('nextBtn'),
+  playBtn: document.getElementById('playBtn'),
+  resetBtn: document.getElementById('resetBtn'),
+  counter: document.getElementById('counter'),
+  caption: document.getElementById('caption'),
+  render(frame){
+    records.forEach(r=>{
+      document.getElementById('rec-'+r.id).classList.toggle('active', frame.activeId===r.id);
+      const circle = document.getElementById('node-'+r.id);
+      const label = document.getElementById('label-'+r.id);
+      circle.classList.remove('active','root','orphan');
+      if(frame.indexed.has(r.id)){
+        circle.setAttribute('opacity','1'); label.setAttribute('opacity','1');
+      } else {
+        circle.setAttribute('opacity','0.15'); label.setAttribute('opacity','0.3');
+      }
+      const info = frame.linked[r.id];
+      if(info){
+        if(info.isRoot) circle.classList.add('root');
+        if(info.orphan) circle.classList.add('orphan');
+      }
+      if(frame.activeId===r.id) circle.classList.add('active');
+    });
+    [[1,2],[1,3],[2,4]].forEach(([from,to])=>{
+      const line = document.getElementById(`edge-${from}-${to}`);
+      const shouldShow = frame.linked[to] && frame.linked[to].parent===from;
+      line.classList.toggle('shown', !!shouldShow);
+    });
+    const tbody = document.querySelector('#lookupTable tbody');
+    tbody.innerHTML='';
+    records.forEach(r=>{
+      if(!frame.indexed.has(r.id)) return;
+      const info = frame.linked[r.id];
+      let status = 'indexed';
+      if(info){
+        if(info.isRoot) status='root';
+        else if(info.orphan) status='orphan (root)';
+        else if(info.parentLinked) status=`child of ${info.parent}`;
+      }
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.id}</td><td>${r.title}</td><td>${status}</td>`;
+      tbody.appendChild(tr);
+    });
+    const rr = document.getElementById('rootsRow');
+    rr.innerHTML='';
+    if(frame.roots.length===0){ rr.innerHTML='<span class="muted">(none yet)</span>'; }
+    frame.roots.forEach(id=>{
+      const chip = document.createElement('div');
+      chip.className='root-chip';
+      chip.textContent = `root: ${id}`;
+      rr.appendChild(chip);
+    });
+  }
+});
+</script>
+</body>
+</html>

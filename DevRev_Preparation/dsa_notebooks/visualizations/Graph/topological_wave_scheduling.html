@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topological Wave Scheduling — Visual Explainer</title>
+<style>
+:root{
+  --bg:#f8fafc;--panel:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--accent-soft:#dbeafe;--accent2:#7c3aed;--warn:#f59e0b;--good:#059669;--bad:#dc2626;
+  --box:#eef2ff;--box-border:#c7d2fe;--code-bg:#f1f5f9;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b1220;--panel:#141e30;--text:#e2e8f0;--muted:#94a3b8;--border:#2b3a55;
+    --accent:#60a5fa;--accent-soft:#1e3a5f;--accent2:#c084fc;--warn:#fbbf24;--good:#34d399;--bad:#f87171;
+    --box:#1c2b45;--box-border:#3b4f75;--code-bg:#0f1a2e;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+header.topbar{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header.topbar a.back{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
+header.topbar h1{font-size:18px;margin:0}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--warn)}
+main{max-width:920px;margin:0 auto;padding:24px 20px 80px}
+section{margin-bottom:44px}
+h2{font-size:20px;border-left:4px solid var(--accent);padding-left:10px;margin:0 0 12px}
+h3{font-size:16px;margin:24px 0 8px}
+p{color:var(--text)}
+.muted{color:var(--muted);font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.example{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow-x:auto}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+button{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+button.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:disabled{opacity:0.4;cursor:not-allowed}
+.step-count{font-size:12px;color:var(--muted);margin-left:auto}
+.caption{margin-top:12px;font-size:14px;background:var(--accent-soft);border-radius:8px;padding:10px 14px;min-height:20px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.swatch{width:12px;height:12px;border-radius:50%;display:inline-block;border:2px solid var(--box-border);background:var(--box)}
+.swatch.ready{border-color:var(--accent)}
+.swatch.done{border-color:var(--good);background:rgba(5,150,105,.25)}
+svg{width:100%;height:auto;max-width:660px;display:block;margin:10px auto}
+.node-circle{fill:var(--box);stroke:var(--box-border);stroke-width:2.5;transition:all .25s}
+.node-circle.ready{stroke:var(--accent);stroke-width:4}
+.node-circle.done{fill:rgba(5,150,105,.25);stroke:var(--good)}
+.node-label{fill:var(--text);font-family:ui-monospace,Consolas,monospace;font-size:16px;font-weight:700;text-anchor:middle;dominant-baseline:middle}
+.node-badge{fill:var(--muted);font-family:ui-monospace,Consolas,monospace;font-size:11px;text-anchor:middle}
+.edge-line{stroke:var(--border);stroke-width:2;marker-end:url(#arrow)}
+.edge-line.highlight{stroke:var(--accent);stroke-width:3;marker-end:url(#arrowActive)}
+.wave-list{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.wave-chip{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;font-family:ui-monospace,Consolas,monospace}
+.wave-chip b{color:var(--accent)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="back" href="../index.html">&larr; All problems</a>
+  <h1>3. Topological "Wave" Scheduling</h1>
+  <span class="badge"><span class="dot"></span>Medium &middot; Graphs / Topological Sort</span>
+</header>
+<main>
+
+<section id="intro">
+  <h2>The problem, in plain words</h2>
+  <p>You have tasks, and some tasks need others finished first (a dependency graph, arrows point "this unlocks that"). Group the tasks into <b>waves</b>: everything with zero remaining prerequisites runs together, then the next wave, and so on. If two tasks depend on each other in a loop, it's impossible — that's a <b>cycle</b>.</p>
+  <div class="example">6 tasks (0-5). "2 needs 0" means an arrow 0 &rarr; 2.&#10;deps: 2 needs 0, 3 needs 0, 4 needs 1, 4 needs 2, 5 needs 3, 5 needs 4&#10;waves: [0,1] &rarr; [2,3] &rarr; [4] &rarr; [5]</div>
+</section>
+
+<section id="demo">
+  <h2>Watch the waves unfold</h2>
+  <p>Grey = not ready yet. Blue outline = ready to run this wave. Green = done. The number under each node is how many prerequisites it's still waiting on.</p>
+  <div class="panel">
+    <svg viewBox="0 0 640 320" id="graphSvg">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--border)"/></marker>
+        <marker id="arrowActive" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--accent)"/></marker>
+      </defs>
+      <g id="edgeLayer"></g>
+      <g id="nodeLayer"></g>
+    </svg>
+    <div class="legend">
+      <span><span class="swatch"></span>not ready</span>
+      <span><span class="swatch ready"></span>ready this wave</span>
+      <span><span class="swatch done"></span>done</span>
+    </div>
+    <h3>Waves scheduled so far</h3>
+    <div class="wave-list" id="waveList"></div>
+    <div class="controls">
+      <button class="secondary" id="prevBtn">&larr; Prev</button>
+      <button id="playBtn">&#9654; Play</button>
+      <button class="secondary" id="nextBtn">Next &rarr;</button>
+      <button class="secondary" id="resetBtn">&#8635; Reset</button>
+      <span class="step-count" id="counter"></span>
+    </div>
+    <div class="caption" id="caption"></div>
+  </div>
+</section>
+
+<section id="approach1">
+  <h2>Approach 1 — Rescan every dependency each round (the slow way)</h2>
+  <p>Each round: recompute every remaining task's prerequisite count by scanning <b>all</b> dependencies from scratch, take whatever's ready, remove it, repeat. Correct, but you redo the same scan every round &rarr; <b>O(tasks &times; dependencies)</b>.</p>
+</section>
+
+<section id="approach2">
+  <h2>Approach 2 — Kahn's algorithm, grouped by wave (the fast way)</h2>
+  <p><b>The idea:</b> count every task's prerequisites <i>once</i> up front. Anything at 0 is ready — that's a wave. When a task finishes, tell its dependents "one prerequisite done" (subtract 1). Any dependent that hits 0 becomes ready for the <i>next</i> wave. This is exactly what the animation above just showed.</p>
+  <p class="muted">Speed &amp; memory: each dependency edge is walked exactly once, total &rarr; <b>O(tasks + dependencies)</b> time and space.</p>
+</section>
+
+<section id="when">
+  <h2>When you'd reach for this</h2>
+  <p>"Run tasks in dependency order", "what can run in parallel", "detect a scheduling cycle" — build systems, CI/CD pipelines, workflow orchestration. If not every task ends up scheduled, there's a cycle.</p>
+</section>
+
+</main>
+<footer>Generated visual explainer &middot; matches "3. topological_wave_scheduling.ipynb"</footer>
+
+<script>
+function initStepper(cfg){
+  let i = 0, playing = false, timer = null;
+  function show(){
+    cfg.render(cfg.frames[i], i, cfg.frames.length);
+    cfg.caption.textContent = cfg.frames[i].caption;
+    cfg.counter.textContent = `Step ${i+1} / ${cfg.frames.length}`;
+    cfg.prevBtn.disabled = i===0;
+    cfg.nextBtn.disabled = i===cfg.frames.length-1;
+  }
+  function next(){ if(i<cfg.frames.length-1){ i++; show(); } else { pause(); } }
+  function prev(){ if(i>0){ i--; show(); } }
+  function reset(){ i=0; pause(); show(); }
+  function play(){
+    playing = true; cfg.playBtn.textContent='⏸ Pause';
+    timer = setInterval(()=>{ if(i<cfg.frames.length-1){ next(); } else { pause(); } }, cfg.speed||1500);
+  }
+  function pause(){ playing=false; cfg.playBtn.textContent='▶ Play'; clearInterval(timer); }
+  cfg.prevBtn.onclick=prev; cfg.nextBtn.onclick=next; cfg.resetBtn.onclick=reset;
+  cfg.playBtn.onclick=()=> playing? pause(): play();
+  show();
+}
+
+const N = 6;
+const deps = [[2,0],[3,0],[4,1],[4,2],[5,3],[5,4]]; // a needs b
+const nodePos = {0:{x:90,y:110},1:{x:90,y:230},2:{x:280,y:50},3:{x:280,y:290},4:{x:460,y:170},5:{x:620,y:170}};
+const edges = deps.map(([a,b])=>[b,a]); // b unlocks a
+
+function buildFrames(){
+  const graph = {}; for(let i=0;i<N;i++) graph[i]=[];
+  const indeg = new Array(N).fill(0);
+  deps.forEach(([a,b])=>{ graph[b].push(a); indeg[a]++; });
+
+  const frames = [];
+  const state = new Array(N).fill('pending');
+  const waves = [];
+  function snap(caption, highlightEdge){
+    frames.push({caption, state:[...state], indeg:[...indeg], highlightEdge: highlightEdge||null, waves: waves.map(w=>[...w])});
+  }
+  snap(`Count each task's prerequisites: ${indeg.map((v,i)=>`task ${i}=${v}`).join(', ')}.`);
+  let wave = [];
+  for(let t=0;t<N;t++) if(indeg[t]===0) wave.push(t);
+  while(wave.length){
+    wave.forEach(t=>state[t]='ready');
+    snap(`Wave ${waves.length}: [${wave.join(', ')}] have 0 prerequisites left — they run together.`);
+    const next = [];
+    for(const task of wave){
+      state[task]='done';
+      snap(`Task ${task} finishes.`, null);
+      for(const dep of graph[task]){
+        indeg[dep]--;
+        snap(`Task ${task} finishing unlocks task ${dep} a little: its remaining prerequisites drop to ${indeg[dep]}.`, [task,dep]);
+        if(indeg[dep]===0){
+          next.push(dep);
+          snap(`Task ${dep} now has 0 prerequisites left — it's ready for the next wave.`);
+        }
+      }
+    }
+    waves.push(wave);
+    wave = next;
+  }
+  snap(`Done! Waves: ${waves.map(w=>`[${w.join(',')}]`).join(' → ')}.`);
+  return frames;
+}
+const frames = buildFrames();
+
+function buildGraph(){
+  const nodeLayer = document.getElementById('nodeLayer');
+  const edgeLayer = document.getElementById('edgeLayer');
+  edges.forEach(([from,to])=>{
+    const p1=nodePos[from], p2=nodePos[to];
+    const dx=p2.x-p1.x, dy=p2.y-p1.y, len=Math.hypot(dx,dy);
+    const ux=dx/len, uy=dy/len;
+    const x1=p1.x+ux*24, y1=p1.y+uy*24, x2=p2.x-ux*26, y2=p2.y-uy*26;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x1); line.setAttribute('y1',y1);
+    line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+    line.setAttribute('class','edge-line');
+    line.id = `edge-${from}-${to}`;
+    edgeLayer.appendChild(line);
+  });
+  for(let i=0;i<N;i++){
+    const p = nodePos[i];
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',p.x); c.setAttribute('cy',p.y); c.setAttribute('r',24);
+    c.setAttribute('class','node-circle'); c.id='node-'+i;
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',p.x); t.setAttribute('y',p.y); t.setAttribute('class','node-label');
+    t.textContent = i;
+    const b = document.createElementNS('http://www.w3.org/2000/svg','text');
+    b.setAttribute('x',p.x); b.setAttribute('y',p.y+40); b.setAttribute('class','node-badge');
+    b.id = 'badge-'+i;
+    g.appendChild(c); g.appendChild(t); g.appendChild(b);
+    nodeLayer.appendChild(g);
+  }
+}
+buildGraph();
+
+initStepper({
+  frames,
+  prevBtn: document.getElementById('prevBtn'),
+  nextBtn: document.getElementById('nextBtn'),
+  playBtn: document.getElementById('playBtn'),
+  resetBtn: document.getElementById('resetBtn'),
+  counter: document.getElementById('counter'),
+  caption: document.getElementById('caption'),
+  render(frame){
+    for(let i=0;i<N;i++){
+      const c = document.getElementById('node-'+i);
+      c.classList.remove('ready','done');
+      if(frame.state[i]==='ready') c.classList.add('ready');
+      if(frame.state[i]==='done') c.classList.add('done');
+      document.getElementById('badge-'+i).textContent = 'left: '+frame.indeg[i];
+    }
+    edges.forEach(([from,to])=>{
+      const line = document.getElementById(`edge-${from}-${to}`);
+      line.classList.remove('highlight');
+      if(frame.highlightEdge && frame.highlightEdge[0]===from && frame.highlightEdge[1]===to) line.classList.add('highlight');
+    });
+    const wl = document.getElementById('waveList');
+    wl.innerHTML='';
+    frame.waves.forEach((w,idx)=>{
+      const chip = document.createElement('div');
+      chip.className='wave-chip';
+      chip.innerHTML = `Wave ${idx}: <b>[${w.join(', ')}]</b>`;
+      wl.appendChild(chip);
+    });
+    if(frame.waves.length===0) wl.innerHTML = '<span class="muted">(none yet)</span>';
+  }
+});
+</script>
+</body>
+</html>

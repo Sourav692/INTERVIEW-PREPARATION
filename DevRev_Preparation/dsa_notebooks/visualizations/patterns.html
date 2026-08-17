@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevRev DSA Patterns — Cheat Sheet</title>
+<style>
+:root{
+  --bg:#f8fafc;--panel:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--accent-soft:#dbeafe;--accent2:#7c3aed;--warn:#f59e0b;--good:#059669;--bad:#dc2626;
+  --box:#eef2ff;--box-border:#c7d2fe;--code-bg:#f1f5f9;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b1220;--panel:#141e30;--text:#e2e8f0;--muted:#94a3b8;--border:#2b3a55;
+    --accent:#60a5fa;--accent-soft:#1e3a5f;--accent2:#c084fc;--warn:#fbbf24;--good:#34d399;--bad:#f87171;
+    --box:#1c2b45;--box-border:#3b4f75;--code-bg:#0f1a2e;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+header.topbar{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header.topbar a.back{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
+header.topbar h1{font-size:18px;margin:0}
+main{max-width:920px;margin:0 auto;padding:24px 20px 80px}
+.intro{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:26px}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.filter-btn{background:var(--code-bg);border:1px solid var(--border);color:var(--text);border-radius:999px;padding:6px 14px;font-size:12px;cursor:pointer}
+.filter-btn.active{background:var(--accent);color:white;border-color:var(--accent)}
+.pattern-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:20px;transition:transform .15s}
+.pattern-card h2{margin:0 0 4px;font-size:19px}
+.pattern-card .analogy{color:var(--muted);font-size:14px;margin-bottom:14px}
+.pattern-card h3{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin:16px 0 6px}
+.tell{background:var(--accent-soft);border-radius:8px;padding:10px 14px;font-size:14px}
+.problinks{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+a.problink{color:var(--accent);text-decoration:none;font-size:13px;background:var(--code-bg);border:1px solid var(--border);padding:4px 10px;border-radius:6px}
+a.problink:hover{border-color:var(--accent)}
+.saysentence{background:var(--code-bg);border-left:3px solid var(--accent2);padding:10px 14px;font-style:italic;font-size:14px;border-radius:0 8px 8px 0}
+.tips{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:10px}
+.tips ul{margin:8px 0 0;padding-left:20px}
+.tips li{margin-bottom:8px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="back" href="index.html">&larr; All problems</a>
+  <h1>DevRev DSA — Patterns Cheat Sheet</h1>
+</header>
+<main>
+
+<div class="intro">
+  <p>These 7 problems all reduce to the same handful of tricks. The trick is to spot which trick applies <b>before</b> you start coding — the tell below is exactly the phrase or shape that gives it away.</p>
+</div>
+
+<div class="filter-row" id="filterRow"></div>
+
+<div id="cards"></div>
+
+<div class="tips">
+  <h2 style="margin-top:0">Interview tips</h2>
+  <ul>
+    <li><b>Say the tell out loud.</b> "We need contiguous sums, and values can be negative, so I'll use prefix sum + hash map instead of a sliding window" shows you're pattern-matching, not guessing.</li>
+    <li><b>Name the data structure's job, not just its name.</b> "A hash map so I can look this up in O(1) instead of scanning" is more convincing than just "I'll use a dict."</li>
+    <li><b>State the naive approach's complexity first</b>, then explain what specifically makes your optimized approach faster (fewer re-scans, O(1) eviction, one pass instead of many).</li>
+    <li><b>If a trick doesn't fit,</b> say why — e.g. "sliding window won't work here because of negative numbers" is a strong signal you understand the tool, not just the trick.</li>
+  </ul>
+</div>
+
+</main>
+<footer>Generated visual explainer &middot; patterns synthesized from all 7 DevRev DSA notebooks</footer>
+
+<script>
+const patterns = [
+  {
+    id:'prefix-hashmap',
+    name:'Prefix Sum + Hash Map',
+    analogy:'Keep a running total, and a memory of every running total you\'ve seen — so any "does an earlier point plus something equal this?" question is an instant lookup, not a re-scan.',
+    tell:'"Count/find a contiguous subarray/span that sums to a target" — especially when values can be negative (which rules out a sliding window).',
+    how:'Walk once keeping a running sum. At each step, look up (running sum &minus; target) in a hash map of "running total &rarr; how many times seen." Seed the map with {0: 1} so a span starting at index 0 counts.',
+    problems:[['Array/subarray_sum_equals_k.html','Subarray Sum Equals K']],
+    say:'"I notice we need contiguous sums, so I\'ll track a running total and use a hash map to check in O(1) whether an earlier prefix makes the target, turning an O(n²) scan into O(n)."'
+  },
+  {
+    id:'monotonic-deque',
+    name:'Monotonic Deque',
+    analogy:'A line of "candidates that could still win," kept sorted biggest-to-smallest. A bigger, newer arrival permanently evicts every smaller candidate behind it.',
+    tell:'"Max/min over every sliding window", "rolling peak", "nearest greater/smaller element."',
+    how:'Store indices in a deque. Before pushing a new index, pop smaller values off the back (they can never win again). Pop the front once it slides out of the window. The front is always the current max.',
+    problems:[['Array/sliding_window_maximum.html','Sliding Window Maximum']],
+    say:'"I\'ll keep a deque of indices in decreasing value order — each element enters and leaves at most once, so the whole sweep is O(n) instead of O(n·k)."'
+  },
+  {
+    id:'kahn-waves',
+    name:"Kahn's Algorithm, Grouped by Level",
+    analogy:'Run everything with zero remaining prerequisites together as one wave; finishing a wave frees up the next one.',
+    tell:'"Schedule tasks with dependencies", "what can run in parallel", "detect a scheduling cycle."',
+    how:'Count each node\'s in-degree once. Nodes at 0 form wave 0. When a node finishes, decrement its dependents\' in-degree; anyone who hits 0 joins the next wave. If not every node gets scheduled, there\'s a cycle.',
+    problems:[['Graph/topological_wave_scheduling.html','Topological Wave Scheduling']],
+    say:'"I\'ll count in-degrees once and process nodes level by level with a queue — that\'s O(V+E) instead of rescanning every dependency each round."'
+  },
+  {
+    id:'reachability-bfs',
+    name:'Reachability from a Source (BFS/DFS + visited set)',
+    analogy:'Ripples spreading outward from a dropped stone — you visit everything connected, marking what you\'ve already touched so you never loop.',
+    tell:'"Who is affected / blast radius / cascading failure / everything downstream of X."',
+    how:'Build an adjacency list once. Walk outward from the source with a queue (BFS) or stack (DFS), adding unseen neighbors to a visited set as you go. Reverse the edges to trace upstream/root-cause instead.',
+    problems:[['Graph/downstream_of_a_failure.html','Downstream of a Failure']],
+    say:'"This is reachability from a source, so one BFS with a visited set finds everyone affected in O(V+E), safely even if the graph has cycles."'
+  },
+  {
+    id:'hashmap-index',
+    name:'Hash-Map Index + One Pass',
+    analogy:'Build a phone book first, so "find the record with this id" becomes an instant lookup instead of flipping through every page.',
+    tell:'"Reconstruct a hierarchy/tree from flat rows", "adjacency from {id, parent_id}."',
+    how:'Pass 1: create every node up front, indexed by id in a dict. Pass 2: for each record, look its parent up in O(1) and attach it (or mark it a root if the parent is missing or null).',
+    problems:[['Tree/build_tree_from_flat_list.html','Build Tree from Flat List']],
+    say:'"Instead of scanning the whole list to find each parent, I\'ll index every record by id first — that turns an O(n²) lookup into two O(n) passes."'
+  },
+  {
+    id:'return-up-dfs',
+    name:'Return-Something-Up DFS',
+    analogy:'Each subtree reports "here\'s what I found" to its parent; the parent combines both children\'s reports to make its own decision.',
+    tell:'"Deepest common parent / where two nodes meet" in a tree with no ordering to exploit.',
+    how:'Recurse into both children. If a node itself is one of the targets, report itself. If both children report something, the current node is the answer (the split point). Otherwise pass up whichever side found something.',
+    problems:[['Tree/lowest_common_ancestor_binary_tree.html','Lowest Common Ancestor']],
+    say:'"Since there\'s no ordering to navigate by, I\'ll do a DFS where each call reports up whether it found p or q — the node where both sides report something is the LCA."'
+  },
+  {
+    id:'hashmap-dll',
+    name:'Hash Map + Doubly Linked List',
+    analogy:'A dict for instant lookup, paired with a chain of nodes you can slide to the front or snip from the back without shifting anything else.',
+    tell:'"O(1) get/set with eviction", "least/most recently used", "bounded cache with a fixed size."',
+    how:'Dict maps key &rarr; node. Nodes live in a doubly linked list ordered by recency. Every touch unlinks the node and reinserts it at the front (O(1)); overflow evicts the node at the back. Dummy head/tail sentinels remove edge cases.',
+    problems:[['Design/lru_cache.html','LRU Cache']],
+    say:'"Neither structure alone is enough — the dict gives O(1) lookup, the doubly linked list gives O(1) reordering and eviction, so together every operation is O(1)."'
+  }
+];
+
+function render(filterId){
+  const cards = document.getElementById('cards');
+  cards.innerHTML='';
+  patterns.filter(p=>!filterId||p.id===filterId).forEach(p=>{
+    const div = document.createElement('div');
+    div.className='pattern-card';
+    div.innerHTML = `
+      <h2>${p.name}</h2>
+      <div class="analogy">${p.analogy}</div>
+      <h3>The tell</h3>
+      <div class="tell">${p.tell}</div>
+      <h3>How it works</h3>
+      <p>${p.how}</p>
+      <h3>Problems that use it</h3>
+      <div class="problinks">${p.problems.map(([href,label])=>`<a class="problink" href="${href}">${label}</a>`).join('')}</div>
+      <h3>Say it in the interview</h3>
+      <div class="saysentence">${p.say}</div>
+    `;
+    cards.appendChild(div);
+  });
+}
+const filterRow = document.getElementById('filterRow');
+const allBtn = document.createElement('button');
+allBtn.className='filter-btn active'; allBtn.textContent='All patterns';
+allBtn.onclick=()=>{ setActive(allBtn); render(null); };
+filterRow.appendChild(allBtn);
+patterns.forEach(p=>{
+  const btn = document.createElement('button');
+  btn.className='filter-btn'; btn.textContent=p.name;
+  btn.onclick=()=>{ setActive(btn); render(p.id); };
+  filterRow.appendChild(btn);
+});
+function setActive(btn){
+  [...filterRow.children].forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+render(null);
+</script>
+</body>
+</html>

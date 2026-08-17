@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Downstream of a Failure (Blast Radius) — Visual Explainer</title>
+<style>
+:root{
+  --bg:#f8fafc;--panel:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--accent-soft:#dbeafe;--accent2:#7c3aed;--warn:#f59e0b;--good:#059669;--bad:#dc2626;
+  --box:#eef2ff;--box-border:#c7d2fe;--code-bg:#f1f5f9;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b1220;--panel:#141e30;--text:#e2e8f0;--muted:#94a3b8;--border:#2b3a55;
+    --accent:#60a5fa;--accent-soft:#1e3a5f;--accent2:#c084fc;--warn:#fbbf24;--good:#34d399;--bad:#f87171;
+    --box:#1c2b45;--box-border:#3b4f75;--code-bg:#0f1a2e;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+header.topbar{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header.topbar a.back{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
+header.topbar h1{font-size:18px;margin:0}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--warn)}
+main{max-width:920px;margin:0 auto;padding:24px 20px 80px}
+section{margin-bottom:44px}
+h2{font-size:20px;border-left:4px solid var(--accent);padding-left:10px;margin:0 0 12px}
+h3{font-size:16px;margin:24px 0 8px}
+p{color:var(--text)}
+.muted{color:var(--muted);font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.example{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow-x:auto}
+.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+button{background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+button.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:disabled{opacity:0.4;cursor:not-allowed}
+.step-count{font-size:12px;color:var(--muted);margin-left:auto}
+.caption{margin-top:12px;font-size:14px;background:var(--accent-soft);border-radius:8px;padding:10px 14px;min-height:20px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.swatch{width:12px;height:12px;border-radius:50%;display:inline-block;border:2px solid var(--box-border);background:var(--box)}
+.swatch.failed{border-color:var(--bad);background:rgba(220,38,38,.25)}
+.swatch.affected{border-color:var(--warn);background:rgba(245,158,11,.2)}
+.swatch.frontier{border-color:var(--accent);background:rgba(37,99,235,.2)}
+svg{width:100%;height:auto;max-width:660px;display:block;margin:10px auto}
+.node-circle{fill:var(--box);stroke:var(--box-border);stroke-width:2.5;transition:all .25s}
+.node-circle.failed{stroke:var(--bad);stroke-width:4;fill:rgba(220,38,38,.2)}
+.node-circle.affected{stroke:var(--warn);fill:rgba(245,158,11,.18)}
+.node-circle.frontier{stroke:var(--accent);stroke-width:4}
+.node-label{fill:var(--text);font-family:ui-monospace,Consolas,monospace;font-size:13px;font-weight:700;text-anchor:middle;dominant-baseline:middle}
+.node-name{fill:var(--muted);font-family:-apple-system,Segoe UI,sans-serif;font-size:11px;text-anchor:middle}
+.edge-line{stroke:var(--border);stroke-width:2;marker-end:url(#arrow)}
+.edge-line.highlight{stroke:var(--accent);stroke-width:3;marker-end:url(#arrowActive)}
+.queue-row{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;min-height:40px;align-items:center}
+.qbox{padding:6px 12px;border-radius:6px;background:var(--code-bg);border:1px solid var(--border);font-family:ui-monospace,Consolas,monospace;font-size:13px}
+.stat-row{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0}
+.stat{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px}
+.stat b{color:var(--accent);font-family:ui-monospace,Consolas,monospace;font-size:15px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:30px 0}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="back" href="../index.html">&larr; All problems</a>
+  <h1>4. Downstream of a Failure (Blast Radius)</h1>
+  <span class="badge"><span class="dot"></span>Medium &middot; Graphs / BFS &middot; DFS</span>
+</header>
+<main>
+
+<section id="intro">
+  <h2>The problem, in plain words</h2>
+  <p>Services depend on each other (an arrow <code>u &rarr; v</code> means v depends on u). If <code>u</code> <b>fails</b>, everything reachable from it — directly or through a chain — is affected. Find that whole "blast radius."</p>
+  <div class="example">Auth(0) &rarr; API(1), Auth(0) &rarr; Billing(2)&#10;API(1) &rarr; Notif(3), API(1) &rarr; Dashboard(4)&#10;Billing(2) &rarr; Dashboard(4), Dashboard(4) &rarr; Reports(5)&#10;&#10;API (1) fails &rarr; affected = {Notif(3), Dashboard(4), Reports(5)}</div>
+</section>
+
+<section id="demo">
+  <h2>Watch the failure ripple outward (BFS)</h2>
+  <p>Red = the failed node. Blue outline = currently being processed. Orange = affected (found so far). We use a <b>queue</b> and a <b>visited set</b> so nothing is checked twice.</p>
+  <div class="panel">
+    <svg viewBox="0 0 640 380" id="graphSvg">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--border)"/></marker>
+        <marker id="arrowActive" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--accent)"/></marker>
+      </defs>
+      <g id="edgeLayer"></g>
+      <g id="nodeLayer"></g>
+    </svg>
+    <div class="legend">
+      <span><span class="swatch failed"></span>failed node (source)</span>
+      <span><span class="swatch frontier"></span>being processed</span>
+      <span><span class="swatch affected"></span>affected (found)</span>
+    </div>
+    <h3>Queue (who's left to process)</h3>
+    <div class="queue-row" id="queueRow"></div>
+    <div class="stat-row">
+      <div class="stat">Visited set: <b id="visitedSet">—</b></div>
+    </div>
+    <div class="controls">
+      <button class="secondary" id="prevBtn">&larr; Prev</button>
+      <button id="playBtn">&#9654; Play</button>
+      <button class="secondary" id="nextBtn">Next &rarr;</button>
+      <button class="secondary" id="resetBtn">&#8635; Reset</button>
+      <span class="step-count" id="counter"></span>
+    </div>
+    <div class="caption" id="caption"></div>
+  </div>
+</section>
+
+<section id="approach1">
+  <h2>Approach 1 — Rescan every edge until stable (the slow way)</h2>
+  <p>Keep a "reached" set starting with the failure. Repeatedly scan <b>all</b> edges: if one starts at a reached node, its endpoint becomes reached too. Repeat until a full pass changes nothing. Correct, but you re-walk every edge every round &rarr; <b>O(nodes &times; edges)</b>.</p>
+</section>
+
+<section id="approach2">
+  <h2>Approach 2 — Single BFS/DFS sweep (the fast way)</h2>
+  <p><b>The idea:</b> build a lookup once (who depends on each node), then walk outward from the failure with a queue, marking each node visited exactly once. That's what the animation above does. Each node and edge is touched once.</p>
+  <p class="muted">Speed &amp; memory: <b>O(nodes + edges)</b> time and space. The visited set is what makes this safe even if the graph has a cycle — without it you could loop forever.</p>
+</section>
+
+<section id="when">
+  <h2>When you'd reach for this</h2>
+  <p>"Who is affected / blast radius / cascading failure / everything downstream of X" — incident impact analysis, dependency graphs. Reverse the arrows to instead trace <b>upstream</b> (root cause: what did this task wait on?).</p>
+</section>
+
+</main>
+<footer>Generated visual explainer &middot; matches "4. downstream_of_a_failure.ipynb"</footer>
+
+<script>
+function initStepper(cfg){
+  let i = 0, playing = false, timer = null;
+  function show(){
+    cfg.render(cfg.frames[i], i, cfg.frames.length);
+    cfg.caption.textContent = cfg.frames[i].caption;
+    cfg.counter.textContent = `Step ${i+1} / ${cfg.frames.length}`;
+    cfg.prevBtn.disabled = i===0;
+    cfg.nextBtn.disabled = i===cfg.frames.length-1;
+  }
+  function next(){ if(i<cfg.frames.length-1){ i++; show(); } else { pause(); } }
+  function prev(){ if(i>0){ i--; show(); } }
+  function reset(){ i=0; pause(); show(); }
+  function play(){
+    playing = true; cfg.playBtn.textContent='⏸ Pause';
+    timer = setInterval(()=>{ if(i<cfg.frames.length-1){ next(); } else { pause(); } }, cfg.speed||1500);
+  }
+  function pause(){ playing=false; cfg.playBtn.textContent='▶ Play'; clearInterval(timer); }
+  cfg.prevBtn.onclick=prev; cfg.nextBtn.onclick=next; cfg.resetBtn.onclick=reset;
+  cfg.playBtn.onclick=()=> playing? pause(): play();
+  show();
+}
+
+const N = 6;
+const names = {0:'Auth',1:'API',2:'Billing',3:'Notif',4:'Dashboard',5:'Reports'};
+const edges = [[0,1],[0,2],[1,3],[1,4],[2,4],[4,5]];
+const nodePos = {0:{x:320,y:40},1:{x:150,y:150},2:{x:490,y:150},3:{x:60,y:280},4:{x:320,y:280},5:{x:320,y:360}};
+const SOURCE = 1;
+
+function buildFrames(){
+  const graph = {}; for(let i=0;i<N;i++) graph[i]=[];
+  edges.forEach(([u,v])=>graph[u].push(v));
+
+  const frames = [];
+  const seen = new Set([SOURCE]);
+  const queue = [SOURCE];
+  function snap(caption, current, highlightEdge){
+    frames.push({caption, seen:new Set(seen), queue:[...queue], current: current===undefined?null:current, highlightEdge: highlightEdge||null});
+  }
+  snap(`Failure at node ${SOURCE} (${names[SOURCE]}). Start the queue with just this node, mark it visited.`, SOURCE);
+  while(queue.length){
+    const node = queue.shift();
+    snap(`Take ${node} (${names[node]}) out of the queue. Look at everything that depends on it.`, node);
+    for(const dep of graph[node]){
+      if(!seen.has(dep)){
+        seen.add(dep); queue.push(dep);
+        snap(`${dep} (${names[dep]}) depends on ${node} and hasn't been seen — mark it affected, add it to the queue.`, node, [node,dep]);
+      } else {
+        snap(`${dep} (${names[dep]}) already visited — skip it.`, node, [node,dep]);
+      }
+    }
+  }
+  const affected = [...seen].filter(x=>x!==SOURCE).sort((a,b)=>a-b);
+  frames.push({caption:`Queue is empty — done! Affected (blast radius): {${affected.join(', ')}} = {${affected.map(a=>names[a]).join(', ')}}.`, seen:new Set(seen), queue:[], current:null, highlightEdge:null});
+  return frames;
+}
+const frames = buildFrames();
+
+function buildGraph(){
+  const nodeLayer = document.getElementById('nodeLayer');
+  const edgeLayer = document.getElementById('edgeLayer');
+  edges.forEach(([from,to])=>{
+    const p1=nodePos[from], p2=nodePos[to];
+    const dx=p2.x-p1.x, dy=p2.y-p1.y, len=Math.hypot(dx,dy);
+    const ux=dx/len, uy=dy/len;
+    const x1=p1.x+ux*26, y1=p1.y+uy*26, x2=p2.x-ux*28, y2=p2.y-uy*28;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x1); line.setAttribute('y1',y1);
+    line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+    line.setAttribute('class','edge-line');
+    line.id = `edge-${from}-${to}`;
+    edgeLayer.appendChild(line);
+  });
+  for(let i=0;i<N;i++){
+    const p = nodePos[i];
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',p.x); c.setAttribute('cy',p.y); c.setAttribute('r',26);
+    c.setAttribute('class','node-circle'); c.id='node-'+i;
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',p.x); t.setAttribute('y',p.y-4); t.setAttribute('class','node-label');
+    t.textContent = i;
+    const nm = document.createElementNS('http://www.w3.org/2000/svg','text');
+    nm.setAttribute('x',p.x); nm.setAttribute('y',p.y+11); nm.setAttribute('class','node-name');
+    nm.textContent = names[i];
+    g.appendChild(c); g.appendChild(t); g.appendChild(nm);
+    nodeLayer.appendChild(g);
+  }
+}
+buildGraph();
+
+initStepper({
+  frames,
+  prevBtn: document.getElementById('prevBtn'),
+  nextBtn: document.getElementById('nextBtn'),
+  playBtn: document.getElementById('playBtn'),
+  resetBtn: document.getElementById('resetBtn'),
+  counter: document.getElementById('counter'),
+  caption: document.getElementById('caption'),
+  render(frame){
+    for(let i=0;i<N;i++){
+      const c = document.getElementById('node-'+i);
+      c.classList.remove('failed','affected','frontier');
+      if(i===SOURCE) c.classList.add('failed');
+      else if(frame.seen.has(i)) c.classList.add('affected');
+      if(frame.current===i) c.classList.add('frontier');
+    }
+    edges.forEach(([from,to])=>{
+      const line = document.getElementById(`edge-${from}-${to}`);
+      line.classList.remove('highlight');
+      if(frame.highlightEdge && frame.highlightEdge[0]===from && frame.highlightEdge[1]===to) line.classList.add('highlight');
+    });
+    const qr = document.getElementById('queueRow');
+    qr.innerHTML='';
+    if(frame.queue.length===0){
+      qr.innerHTML = '<span class="muted">(empty)</span>';
+    } else {
+      frame.queue.forEach(n=>{
+        const d = document.createElement('div');
+        d.className='qbox';
+        d.textContent = `${n} (${names[n]})`;
+        qr.appendChild(d);
+      });
+    }
+    document.getElementById('visitedSet').textContent = '{' + [...frame.seen].sort((a,b)=>a-b).join(', ') + '}';
+  }
+});
+</script>
+</body>
+</html>
