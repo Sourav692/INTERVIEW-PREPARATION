@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tree Reconstruction &amp; Serialization</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 14px; cursor:pointer; color:var(--dim); font-size:0.88rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.83rem;}
+  .status{font-family:var(--mono); font-size:0.84rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .tree-svg{display:block; margin:16px auto;}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  .seq-row{display:flex; gap:6px; flex-wrap:wrap; margin:10px 0;}
+  .seq-chip{font-family:var(--mono); font-size:0.85rem; background:var(--panel2); border:1px solid var(--line); border-radius:6px; padding:5px 10px; position:relative;}
+  .seq-chip.used{opacity:0.35;}
+  .seq-chip.current{border-color:var(--accent2); background:rgba(224,164,88,0.2); color:var(--accent2);}
+  .seq-chip.marker{color:var(--danger); border-color:var(--danger);}
+  .seq-label{font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:14px;}
+  .encoded-str{font-family:var(--mono); font-size:0.9rem; background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; word-break:break-all; line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Tree Reconstruction &amp; Serialization</h1>
+  <div class="sub">Construct Binary Tree from Preorder/Inorder · Serialize and Deserialize Binary Tree — two traversal orders (or explicit markers) uniquely pin down a tree's shape</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="construct">Construct from Preorder/Inorder</div>
+    <div class="tab" data-tab="serialize">Serialize &amp; Deserialize</div>
+  </div>
+
+  <!-- CONSTRUCT FROM PREORDER/INORDER -->
+  <div class="panel active" id="panel-construct">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p><b>Preorder</b> always gives you the root first. <b>Inorder</b> tells you which values fall left vs right of that root — everything before it in inorder belongs to the left subtree, everything after belongs to the right. Combine both: pop the next preorder value as the root, use it to split the current inorder range, and recurse.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">preorder = [3,9,20,15,7] &nbsp; inorder = [9,3,15,20,7]</span>
+        <button id="cn-reset">↺ Reset</button>
+        <button id="cn-step" class="primary">Step →</button>
+        <button id="cn-run">▶ Run all</button>
+      </div>
+
+      <div class="seq-label">Preorder (read left → right, one root at a time)</div>
+      <div class="seq-row" id="cn-preorder"></div>
+
+      <div class="seq-label">Inorder range currently being split</div>
+      <div class="seq-row" id="cn-inorder"></div>
+
+      <svg id="cn-svg" class="tree-svg" width="440" height="220" viewBox="0 0 440 220"></svg>
+
+      <div class="status" id="cn-status">Press "Step" to begin. Next preorder value = 3 → this is the root.</div>
+    </div>
+
+    <div class="why">
+      <b>Why a hash map beats scanning for the split:</b> naively calling <code>inorder.index(value)</code> at every node costs O(n) per lookup → O(n²) total. Precomputing <code>value → index</code> in a dict turns that into an O(1) lookup, bringing the whole algorithm down to O(n). Passing index bounds instead of slicing the arrays also avoids the O(n) cost of creating new list slices at every recursive call.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Hash Map + Index Bounds · O(n) time, O(n) space</h3>
+      <pre><code>def build_tree(preorder, inorder):
+    idx = {v: i for i, v in enumerate(inorder)}   # value -> its position in inorder
+    pre_ptr = [0]                                  # current position in preorder
+
+    def helper(lo, hi):               # build the subtree covering inorder[lo..hi]
+        if lo > hi:
+            return None
+        val = preorder[pre_ptr[0]]    # next preorder value is this subtree's root
+        pre_ptr[0] += 1
+        node = TreeNode(val)
+        m = idx[val]                  # where root splits inorder (O(1) lookup)
+        node.left = helper(lo, m - 1)      # left part first (preorder does left first)
+        node.right = helper(m + 1, hi)     # then right part
+        return node
+
+    return helper(0, len(inorder) - 1)</code></pre>
+      <p class="note" style="color:var(--dim);">Hash map build is O(n); each of n nodes does O(1) split work → <b>O(n)</b> time overall. Map plus recursion → <b>O(n)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- SERIALIZE / DESERIALIZE -->
+  <div class="panel" id="panel-serialize">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>To rebuild a tree exactly, the text has to capture <b>shape</b>, not just values — including where children are <em>missing</em>. Writing an explicit marker (e.g. <code>#</code>) for every empty child turns a simple preorder walk into a lossless snapshot: reading tokens back in the exact same order reconstructs the tree with zero ambiguity.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">tree = [1, 2, 3, null, null, 4, 5]</span>
+        <button id="sz-reset">↺ Reset</button>
+        <button id="sz-step" class="primary">Step →</button>
+        <button id="sz-run">▶ Run all</button>
+      </div>
+
+      <svg id="sz-svg" class="tree-svg" width="440" height="220" viewBox="0 0 440 220"></svg>
+
+      <div class="seq-label">Serialized output (building left → right)</div>
+      <div class="encoded-str" id="sz-encoded">(not started)</div>
+
+      <div class="status" id="sz-status" style="margin-top:12px;">Press "Step" to begin. Preorder DFS: visit root (1) first.</div>
+    </div>
+
+    <div class="why">
+      <b>Why markers are non-negotiable:</b> without a marker for empty children, the sequence <code>1,2,3</code> could describe several different tree shapes — a chain, or 2 and 3 both being children of 1, or other configurations. Writing <code>1,2,#,#,3,#,#</code> makes exactly one tree shape consistent with the text, because deserialize always knows precisely when to stop building a subtree.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Preorder with Null Markers · O(n) time, O(n) space</h3>
+      <pre><code>def serialize(root):
+    out = []
+    def dfs(node):
+        if not node:
+            out.append("#")            # marker for a missing child
+            return
+        out.append(str(node.val))
+        dfs(node.left)
+        dfs(node.right)
+    dfs(root)
+    return ",".join(out)
+
+def deserialize(data):
+    vals = iter(data.split(","))       # read tokens in the SAME order they were written
+    def build():
+        v = next(vals)
+        if v == "#":
+            return None
+        node = TreeNode(int(v))
+        node.left = build()            # left subtree first (matches preorder)
+        node.right = build()
+        return node
+    return build()</code></pre>
+      <p class="note" style="color:var(--dim);">Every node (and every empty slot) visited exactly once, both directions → <b>O(n)</b> time. Output string and recursion → <b>O(n)</b> space.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ============ Shared tree drawing helper ============
+function drawTree(svgId, nodes, edges){
+  const svg = document.getElementById(svgId);
+  let content = '';
+  edges.forEach(([x1,y1,x2,y2])=>{
+    content += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#2a3438" stroke-width="2"/>`;
+  });
+  nodes.forEach(n=>{
+    let fill = '#1c2528', stroke = '#2a3438', textColor='#e8edee';
+    if (n.state==='current'){ fill='rgba(224,164,88,0.25)'; stroke='#e0a458'; }
+    if (n.state==='done'){ fill='rgba(95,179,163,0.22)'; stroke='#5fb3a3'; }
+    content += `<circle cx="${n.x}" cy="${n.y}" r="19" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+    content += `<text x="${n.x}" y="${n.y+5}" text-anchor="middle" font-family="SF Mono, monospace" font-size="14" fill="${textColor}" font-weight="600">${n.val}</text>`;
+  });
+  svg.innerHTML = content;
+}
+
+// ================= CONSTRUCT FROM PREORDER/INORDER =================
+const cnPreorder = [3,9,20,15,7];
+const cnInorder = [9,3,15,20,7];
+// Trace of construction steps (matches the helper(lo,hi) recursion)
+// helper(0,4): root=3 (pre[0]), m=idx[3]=1 -> left=helper(0,0), right=helper(2,4)
+//   helper(0,0): root=9 (pre[1]), m=idx[9]=0 -> left=helper(0,-1)=None, right=helper(1,0)=None -> leaf 9
+//   helper(2,4): root=20 (pre[2]), m=idx[20]=3 -> left=helper(2,2), right=helper(4,4)
+//     helper(2,2): root=15 (pre[3]) -> leaf
+//     helper(4,4): root=7 (pre[4]) -> leaf
+const cnSteps = [
+  {val:3, x:220, y:40, parent:null, edge:null},
+  {val:9, x:120, y:120, parent:3, edge:[220,40,120,120]},
+  {val:20, x:320, y:120, parent:3, edge:[220,40,320,120]},
+  {val:15, x:270, y:190, parent:20, edge:[320,120,270,190]},
+  {val:7, x:370, y:190, parent:20, edge:[320,120,370,190]},
+];
+let cnStepIdx = 0;
+let cnPreUsed = 0;
+let cnPlaced = [];
+let cnEdgesDrawn = [];
+let cnDone = false;
+
+function renderCN(){
+  const preEl = document.getElementById('cn-preorder');
+  preEl.innerHTML = '';
+  cnPreorder.forEach((v,i)=>{
+    const chip = document.createElement('div');
+    chip.className = 'seq-chip' + (i < cnPreUsed ? ' used' : '') + (i === cnPreUsed && !cnDone ? ' current' : '');
+    chip.textContent = v;
+    preEl.appendChild(chip);
+  });
+
+  const inoEl = document.getElementById('cn-inorder');
+  inoEl.innerHTML = '';
+  cnInorder.forEach((v)=>{
+    const chip = document.createElement('div');
+    chip.className = 'seq-chip' + (cnPlaced.includes(v) ? ' used' : '');
+    chip.textContent = v;
+    inoEl.appendChild(chip);
+  });
+
+  const nodes = cnSteps.slice(0, cnStepIdx).map((s,i)=>({
+    id:s.val, val:s.val, x:s.x, y:s.y,
+    state: i === cnStepIdx-1 && !cnDone ? 'current' : 'done'
+  }));
+  drawTree('cn-svg', nodes, cnEdgesDrawn);
+}
+
+function cnStep(){
+  if (cnDone) return;
+  const statusEl = document.getElementById('cn-status');
+  if (cnStepIdx >= cnSteps.length){
+    statusEl.textContent = `Done! Tree fully reconstructed: root 3, children 9 and 20, with 20's children 15 and 7.`;
+    statusEl.classList.add('win');
+    cnDone = true;
+    document.getElementById('cn-step').disabled = true;
+    renderCN();
+    return;
+  }
+  const step = cnSteps[cnStepIdx];
+  cnPreUsed = cnStepIdx + 1;
+  cnPlaced.push(step.val);
+  if (step.edge) cnEdgesDrawn.push(step.edge);
+  const parentMsg = step.parent !== null ? ` Attach as a child of ${step.parent}.` : ' This is the root.';
+  statusEl.textContent = `Pop next preorder value: ${step.val}. Look up its inorder split position (O(1) via hash map).${parentMsg}`;
+  cnStepIdx++;
+  renderCN();
+}
+
+function cnReset(){
+  cnStepIdx=0; cnPreUsed=0; cnPlaced=[]; cnEdgesDrawn=[]; cnDone=false;
+  document.getElementById('cn-step').disabled = false;
+  document.getElementById('cn-status').className = 'status';
+  document.getElementById('cn-status').textContent = 'Press "Step" to begin. Next preorder value = 3 → this is the root.';
+  renderCN();
+}
+
+document.getElementById('cn-step').onclick = cnStep;
+document.getElementById('cn-reset').onclick = cnReset;
+document.getElementById('cn-run').onclick = ()=>{
+  cnReset();
+  const iv = setInterval(()=>{ cnStep(); if (cnDone) clearInterval(iv); }, 700);
+};
+renderCN();
+
+// ================= SERIALIZE AND DESERIALIZE =================
+// tree: 1 -> (2), (3 -> 4,5)
+const szTreeDef = {
+  1: {left:2, right:3, x:220, y:40},
+  2: {left:null, right:null, x:120, y:120},
+  3: {left:4, right:5, x:320, y:120},
+  4: {left:null, right:null, x:270, y:190},
+  5: {left:null, right:null, x:370, y:190},
+};
+const szEdges = [
+  [220,40,120,120],[220,40,320,120],
+  [320,120,270,190],[320,120,370,190],
+];
+// Preorder DFS trace with null markers: 1,2,#,#,3,4,#,#,5,#,#
+const szTrace = [
+  {node:1, token:'1'},
+  {node:2, token:'2'},
+  {node:'null-L-2', token:'#'},
+  {node:'null-R-2', token:'#'},
+  {node:3, token:'3'},
+  {node:4, token:'4'},
+  {node:'null-L-4', token:'#'},
+  {node:'null-R-4', token:'#'},
+  {node:5, token:'5'},
+  {node:'null-L-5', token:'#'},
+  {node:'null-R-5', token:'#'},
+];
+let szTraceIdx = 0;
+let szTokens = [];
+let szVisited = new Set();
+let szCurrent = null;
+let szDone = false;
+
+function renderSZ(){
+  const nodes = Object.entries(szTreeDef).map(([id,n])=>{
+    id = parseInt(id);
+    let state = 'normal';
+    if (szVisited.has(id)) state = 'done';
+    if (id === szCurrent && !szDone) state = 'current';
+    return {id, val:id, x:n.x, y:n.y, state};
+  });
+  drawTree('sz-svg', nodes, szEdges);
+
+  const encEl = document.getElementById('sz-encoded');
+  if (szTokens.length === 0){
+    encEl.textContent = '(not started)';
+  } else {
+    encEl.innerHTML = szTokens.map(t => t==='#' ? `<span style="color:var(--danger); font-weight:700;">#</span>` : `<span style="color:var(--accent);">${t}</span>`).join(', ');
+  }
+}
+
+function szStep(){
+  if (szDone) return;
+  const statusEl = document.getElementById('sz-status');
+  if (szTraceIdx >= szTrace.length){
+    statusEl.textContent = `Done! Serialized string: "${szTokens.join(',')}". Deserializing would read these tokens back in the exact same order to rebuild the identical tree.`;
+    statusEl.classList.add('win');
+    szDone = true;
+    document.getElementById('sz-step').disabled = true;
+    szCurrent = null;
+    renderSZ();
+    return;
+  }
+  const step = szTrace[szTraceIdx];
+  szTokens.push(step.token);
+  if (typeof step.node === 'number'){
+    szCurrent = step.node;
+    szVisited.add(step.node);
+    statusEl.textContent = `Visit node ${step.node}: write "${step.token}" to output. Recurse left, then right.`;
+  } else {
+    statusEl.textContent = `Reached an empty child (${step.node.includes('L') ? 'left' : 'right'} of the last node) → write marker "#".`;
+  }
+  szTraceIdx++;
+  renderSZ();
+}
+
+function szReset(){
+  szTraceIdx=0; szTokens=[]; szVisited=new Set(); szCurrent=null; szDone=false;
+  document.getElementById('sz-step').disabled = false;
+  document.getElementById('sz-status').className = 'status';
+  document.getElementById('sz-status').textContent = 'Press "Step" to begin. Preorder DFS: visit root (1) first.';
+  renderSZ();
+}
+
+document.getElementById('sz-step').onclick = szStep;
+document.getElementById('sz-reset').onclick = szReset;
+document.getElementById('sz-run').onclick = ()=>{
+  szReset();
+  const iv = setInterval(()=>{ szStep(); if (szDone) clearInterval(iv); }, 450);
+};
+renderSZ();
+</script>
+</body>
+</html>

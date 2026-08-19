@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sliding Window — Longest Unique / Char Replacement / Min Window</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 14px; cursor:pointer; color:var(--dim); font-size:0.88rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .array{display:flex; gap:5px; margin:26px 0 10px; flex-wrap:wrap;}
+  .cell{width:42px; height:48px; border:1.5px solid var(--line); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:1rem; position:relative; background:var(--panel2); transition: all 0.2s;}
+  .cell .idx{position:absolute; top:-19px; font-size:0.65rem; color:var(--dim); font-family:var(--mono);}
+  .cell .ptr{position:absolute; bottom:-19px; font-size:0.68rem; font-weight:700; font-family:var(--mono); white-space:nowrap;}
+  .cell.inwindow{background:rgba(95,179,163,0.18); border-color:rgba(95,179,163,0.5);}
+  .cell.right{border-color:var(--accent2); box-shadow:0 0 0 2px rgba(224,164,88,0.25);}
+  .cell.left{border-color:var(--purple);}
+  .cell.best{background:rgba(95,179,163,0.32); border-color:var(--accent); color:var(--accent); font-weight:700;}
+  .cell.outside{opacity:0.35;}
+  .status{font-family:var(--mono); font-size:0.85rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.85rem;}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 11px; min-width:90px;}
+  .tracker .lbl{color:var(--dim); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.02rem; font-weight:600;}
+  .counts{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0;}
+  .countchip{font-family:var(--mono); font-size:0.78rem; background:var(--panel2); border:1px solid var(--line); border-radius:6px; padding:4px 9px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Sliding Window Pattern</h1>
+  <div class="sub">Longest Substring Without Repeating · Longest Repeating Character Replacement · Minimum Window Substring — grow right, shrink left, never re-scan</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="longestuniq">Longest Substring w/o Repeating</div>
+    <div class="tab" data-tab="charreplace">Longest Repeating Char Replacement</div>
+    <div class="tab" data-tab="minwindow">Minimum Window Substring</div>
+  </div>
+
+  <!-- LONGEST SUBSTRING WITHOUT REPEATING -->
+  <div class="panel active" id="panel-longestuniq">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Keep a window <code>[left, right]</code> that always holds only <b>unique</b> characters. Grow <code>right</code> freely; the moment a repeat would enter, shrink from the left until the duplicate is gone. Each character enters and leaves the window at most once — the whole scan is <b>O(n)</b>, not O(n²).</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">s = "abcabcbb"</span>
+        <button id="lu-reset">↺ Reset</button>
+        <button id="lu-step" class="primary">Step →</button>
+        <button id="lu-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="lu-array"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">left</span><span class="val" id="lu-left" style="color:var(--purple);">0</span></div>
+        <div class="tracker"><span class="lbl">right</span><span class="val" id="lu-right" style="color:var(--accent2);">−</span></div>
+        <div class="tracker"><span class="lbl">best length</span><span class="val" id="lu-best" style="color:var(--accent);">0</span></div>
+      </div>
+
+      <div class="status" id="lu-status">Press "Step" to begin. left=0, right will start at 0.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:rgba(95,179,163,0.32); border:1px solid var(--accent)"></span> current window</span>
+        <span><span class="dot" style="background:var(--accent2)"></span> right pointer</span>
+        <span><span class="dot" style="background:var(--purple)"></span> left pointer</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Two valid speeds:</b> shrinking one character at a time with a <code>set</code> is O(n) amortized. Remembering each character's <b>last seen index</b> in a map lets <code>left</code> <em>jump</em> straight past the duplicate in one step — same complexity class, fewer individual operations.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Sliding Window + Last-Seen Map · O(n) time, O(min(n, alphabet)) space</h3>
+      <pre><code>def length_of_longest_substring(s: str) -> int:
+    last = {}                    # character -> last index we saw it at
+    left = best = 0
+    for right, c in enumerate(s):
+        if c in last and last[c] >= left:
+            left = last[c] + 1   # jump left straight past the previous copy
+        last[c] = right
+        best = max(best, right - left + 1)
+    return best</code></pre>
+      <p class="note" style="color:var(--dim);">Each index visited by <code>right</code> once, <code>left</code> only moves forward → <b>O(n)</b> total. Map holds at most one entry per distinct character → <b>O(min(n, alphabet size))</b> space.</p>
+    </div>
+  </div>
+
+  <!-- LONGEST REPEATING CHARACTER REPLACEMENT -->
+  <div class="panel" id="panel-charreplace">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>A window can be turned all-one-letter using <code>window length − (count of its most frequent letter)</code> replacements. Grow the window while that number stays <code>≤ k</code>; shrink from the left the moment it exceeds <code>k</code>. Track only the <b>running max frequency</b> — no need to fully recompute it on every shrink.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">s = "AABABBA", k = 1</span>
+        <button id="cr-reset">↺ Reset</button>
+        <button id="cr-step" class="primary">Step →</button>
+        <button id="cr-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="cr-array"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">left</span><span class="val" id="cr-left" style="color:var(--purple);">0</span></div>
+        <div class="tracker"><span class="lbl">right</span><span class="val" id="cr-right" style="color:var(--accent2);">−</span></div>
+        <div class="tracker"><span class="lbl">maxFreq</span><span class="val" id="cr-maxf" style="color:var(--danger);">0</span></div>
+        <div class="tracker"><span class="lbl">best length</span><span class="val" id="cr-best" style="color:var(--accent);">0</span></div>
+      </div>
+
+      <div class="counts" id="cr-counts"></div>
+
+      <div class="status" id="cr-status">Press "Step" to begin. left=0, k=1.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:rgba(95,179,163,0.32); border:1px solid var(--accent)"></span> current window</span>
+        <span><span class="dot" style="background:var(--accent2)"></span> right pointer</span>
+        <span><span class="dot" style="background:var(--purple)"></span> left pointer</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why <code>maxFreq</code> never needs to decrease:</b> even after shrinking, the recorded <code>maxFreq</code> might be stale (too high) — but that's harmless. A stale (too-large) <code>maxFreq</code> only makes the "needs more than k changes" check <em>stricter</em>, which can never report an invalid window as valid. It just means the window won't grow again until a genuinely larger frequency appears — the max-length answer is unaffected.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Sliding Window + Max Frequency Tracker · O(n) time, O(1) space</h3>
+      <pre><code>def character_replacement(s: str, k: int) -> int:
+    count = {}          # letter counts inside the window
+    left = best = maxf = 0
+    for right in range(len(s)):
+        count[s[right]] = count.get(s[right], 0) + 1
+        maxf = max(maxf, count[s[right]])       # most frequent letter in the window
+        # window needs more than k replacements -> shrink
+        while (right - left + 1) - maxf > k:
+            count[s[left]] -= 1
+            left += 1
+        best = max(best, right - left + 1)
+    return best</code></pre>
+      <p class="note" style="color:var(--dim);">Each index visited by <code>right</code> once, <code>left</code> only moves forward → <b>O(n)</b> time. Count map has at most 26 letters → <b>O(1)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- MINIMUM WINDOW SUBSTRING -->
+  <div class="panel" id="panel-minwindow">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>This is a <b>grow-then-shrink</b> window: expand <code>right</code> until the window covers every character of <code>t</code> (with repeats), then squeeze <code>left</code> as far as possible while it still covers — recording the smallest valid window along the way. A single <code>missing</code> counter tracks coverage in O(1) per step, instead of re-scanning counts.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">s = "ADOBECODEBANC", t = "ABC"</span>
+        <button id="mw-reset">↺ Reset</button>
+        <button id="mw-step" class="primary">Step →</button>
+        <button id="mw-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="mw-array"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">left</span><span class="val" id="mw-left" style="color:var(--purple);">0</span></div>
+        <div class="tracker"><span class="lbl">right</span><span class="val" id="mw-right" style="color:var(--accent2);">−</span></div>
+        <div class="tracker"><span class="lbl">missing</span><span class="val" id="mw-missing" style="color:var(--danger);">3</span></div>
+        <div class="tracker"><span class="lbl">best window</span><span class="val" id="mw-best" style="color:var(--accent);">−</span></div>
+      </div>
+
+      <div class="status" id="mw-status">Press "Step" to begin. need = {A:1, B:1, C:1}, missing = 3.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:rgba(95,179,163,0.32); border:1px solid var(--accent)"></span> current window</span>
+        <span><span class="dot" style="background:var(--accent2)"></span> right pointer</span>
+        <span><span class="dot" style="background:var(--purple)"></span> left pointer</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.5); border:1px solid var(--accent)"></span> best window found (final)</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why decrement <code>need</code> below zero is fine:</b> extra copies of a needed character just make <code>need[c]</code> go negative — harmless bookkeeping. It only matters when checking <em>before</em> decrementing/incrementing whether we cross the zero boundary, since that's the moment coverage is gained or lost.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Grow/Shrink Window + Missing Counter · O(n) time, O(m) space</h3>
+      <pre><code>from collections import Counter
+
+def min_window(s: str, t: str) -> str:
+    if not t or not s:
+        return ""
+    need = Counter(t)              # remaining count needed per character
+    missing = len(t)                # total characters still to cover (with repeats)
+    left = 0
+    best = (float("inf"), 0, 0)     # (length, start, end+1)
+    for right, c in enumerate(s):
+        if need[c] > 0:
+            missing -= 1
+        need[c] -= 1
+        while missing == 0:         # window covers all of t -> try to shrink
+            if right - left + 1 < best[0]:
+                best = (right - left + 1, left, right + 1)
+            need[s[left]] += 1
+            if need[s[left]] > 0:
+                missing += 1        # dropping this char breaks coverage
+            left += 1
+    return "" if best[0] == float("inf") else s[best[1]:best[2]]</code></pre>
+      <p class="note" style="color:var(--dim);">Each index visited by <code>right</code> once and by <code>left</code> at most once → <b>O(n)</b> time (<code>n = len(s)</code>). Counter holds at most <code>m</code> distinct characters from <code>t</code> → <b>O(m)</b> space.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ================= LONGEST SUBSTRING WITHOUT REPEATING =================
+const luStr = "abcabcbb";
+let luLeft=0, luRight=-1, luLast={}, luBest=0, luBestRange=[0,-1], luDone=false;
+
+function renderLU(){
+  const arrEl = document.getElementById('lu-array');
+  arrEl.innerHTML = '';
+  [...luStr].forEach((ch,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (idx>=luLeft && idx<=luRight) cell.classList.add('inwindow');
+    if (luDone && idx>=luBestRange[0] && idx<=luBestRange[1]) cell.classList.add('best');
+    let ptr='';
+    if (idx===luLeft){ cell.classList.add('left'); ptr='left'; }
+    if (idx===luRight && !luDone){ cell.classList.add('right'); ptr = ptr? ptr+'/right':'right'; }
+    cell.innerHTML = `<span class="idx">${idx}</span>${ch}${ptr?`<span class="ptr" style="color:${idx===luRight?'var(--accent2)':'var(--purple)'}">${ptr}</span>`:''}`;
+    arrEl.appendChild(cell);
+  });
+  document.getElementById('lu-left').textContent = luLeft;
+  document.getElementById('lu-right').textContent = luRight>=0?luRight:'−';
+  document.getElementById('lu-best').textContent = luBest;
+}
+
+function luStep(){
+  if (luDone) return;
+  const statusEl = document.getElementById('lu-status');
+  if (luRight+1 >= luStr.length){
+    statusEl.textContent = `Reached end of string. Longest substring without repeating characters = ${luBest}.`;
+    statusEl.classList.add('win');
+    luDone = true;
+    document.getElementById('lu-step').disabled = true;
+    renderLU();
+    return;
+  }
+  luRight++;
+  const c = luStr[luRight];
+  let msg = `right=${luRight}, char='${c}'. `;
+  if (c in luLast && luLast[c] >= luLeft){
+    msg += `'${c}' last seen at index ${luLast[c]}, which is inside the window → jump left to ${luLast[c]+1}.`;
+    luLeft = luLast[c]+1;
+  } else {
+    msg += `'${c}' not in window → safe to extend.`;
+  }
+  luLast[c] = luRight;
+  const len = luRight - luLeft + 1;
+  if (len > luBest){
+    luBest = len;
+    luBestRange = [luLeft, luRight];
+    msg += ` New best length = ${luBest}.`;
+  }
+  statusEl.textContent = msg;
+  renderLU();
+}
+
+function luReset(){
+  luLeft=0; luRight=-1; luLast={}; luBest=0; luBestRange=[0,-1]; luDone=false;
+  document.getElementById('lu-step').disabled = false;
+  document.getElementById('lu-status').className = 'status';
+  document.getElementById('lu-status').textContent = 'Press "Step" to begin. left=0, right will start at 0.';
+  renderLU();
+}
+
+document.getElementById('lu-step').onclick = luStep;
+document.getElementById('lu-reset').onclick = luReset;
+document.getElementById('lu-run').onclick = ()=>{
+  luReset();
+  const iv = setInterval(()=>{ luStep(); if (luDone) clearInterval(iv); }, 500);
+};
+renderLU();
+
+// ================= LONGEST REPEATING CHARACTER REPLACEMENT =================
+const crStr = "AABABBA", crK = 1;
+let crLeft=0, crRight=-1, crCount={}, crMaxf=0, crBest=0, crBestRange=[0,-1], crDone=false;
+
+function renderCR(){
+  const arrEl = document.getElementById('cr-array');
+  arrEl.innerHTML = '';
+  [...crStr].forEach((ch,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (idx>=crLeft && idx<=crRight) cell.classList.add('inwindow');
+    if (crDone && idx>=crBestRange[0] && idx<=crBestRange[1]) cell.classList.add('best');
+    let ptr='';
+    if (idx===crLeft){ cell.classList.add('left'); ptr='left'; }
+    if (idx===crRight && !crDone){ cell.classList.add('right'); ptr = ptr? ptr+'/right':'right'; }
+    cell.innerHTML = `<span class="idx">${idx}</span>${ch}${ptr?`<span class="ptr" style="color:${idx===crRight?'var(--accent2)':'var(--purple)'}">${ptr}</span>`:''}`;
+    arrEl.appendChild(cell);
+  });
+  document.getElementById('cr-left').textContent = crLeft;
+  document.getElementById('cr-right').textContent = crRight>=0?crRight:'−';
+  document.getElementById('cr-maxf').textContent = crMaxf;
+  document.getElementById('cr-best').textContent = crBest;
+
+  const countsEl = document.getElementById('cr-counts');
+  countsEl.innerHTML = '';
+  Object.entries(crCount).forEach(([k,v])=>{
+    if (v>0){
+      const chip = document.createElement('div');
+      chip.className = 'countchip';
+      chip.textContent = `${k}: ${v}`;
+      countsEl.appendChild(chip);
+    }
+  });
+}
+
+function crStep(){
+  if (crDone) return;
+  const statusEl = document.getElementById('cr-status');
+  if (crRight+1 >= crStr.length && !( (crRight-crLeft+1) - crMaxf > crK)){
+    if (crRight+1>=crStr.length){
+      statusEl.textContent = `Reached end of string. Longest achievable run = ${crBest}.`;
+      statusEl.classList.add('win');
+      crDone = true;
+      document.getElementById('cr-step').disabled = true;
+      renderCR();
+      return;
+    }
+  }
+  if (crRight+1 < crStr.length){
+    crRight++;
+    const c = crStr[crRight];
+    crCount[c] = (crCount[c]||0)+1;
+    crMaxf = Math.max(crMaxf, crCount[c]);
+    const windowLen = crRight-crLeft+1;
+    const needed = windowLen - crMaxf;
+    let msg = `right=${crRight}, char='${c}'. count['${c}']=${crCount[c]}, maxFreq=${crMaxf}. Window size=${windowLen}, changes needed = ${windowLen}−${crMaxf} = ${needed}.`;
+    if (needed > crK){
+      msg += ` > k(${crK}) → shrink from left.`;
+      crCount[crStr[crLeft]]--;
+      crLeft++;
+      statusEl.textContent = msg;
+      renderCR();
+      return;
+    } else {
+      const len = crRight-crLeft+1;
+      if (len > crBest){
+        crBest = len; crBestRange=[crLeft,crRight];
+        msg += ` ≤ k → valid! New best length = ${crBest}.`;
+      } else {
+        msg += ` ≤ k → valid window.`;
+      }
+      statusEl.textContent = msg;
+      renderCR();
+      return;
+    }
+  } else {
+    statusEl.textContent = `Reached end of string. Longest achievable run = ${crBest}.`;
+    statusEl.classList.add('win');
+    crDone = true;
+    document.getElementById('cr-step').disabled = true;
+    renderCR();
+  }
+}
+
+function crReset(){
+  crLeft=0; crRight=-1; crCount={}; crMaxf=0; crBest=0; crBestRange=[0,-1]; crDone=false;
+  document.getElementById('cr-step').disabled = false;
+  document.getElementById('cr-status').className = 'status';
+  document.getElementById('cr-status').textContent = 'Press "Step" to begin. left=0, k=1.';
+  renderCR();
+}
+
+document.getElementById('cr-step').onclick = crStep;
+document.getElementById('cr-reset').onclick = crReset;
+document.getElementById('cr-run').onclick = ()=>{
+  crReset();
+  const iv = setInterval(()=>{ crStep(); if (crDone) clearInterval(iv); }, 450);
+};
+renderCR();
+
+// ================= MINIMUM WINDOW SUBSTRING =================
+const mwS = "ADOBECODEBANC", mwT = "ABC";
+function makeNeed(t){ const m={}; for (const c of t) m[c]=(m[c]||0)+1; return m; }
+let mwNeed = makeNeed(mwT), mwMissing = mwT.length, mwLeft=0, mwRight=-1;
+let mwBest=[Infinity,0,0], mwDone=false;
+
+function renderMW(){
+  const arrEl = document.getElementById('mw-array');
+  arrEl.innerHTML = '';
+  [...mwS].forEach((ch,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (idx>=mwLeft && idx<=mwRight && !mwDone) cell.classList.add('inwindow');
+    if (mwDone && mwBest[0]!==Infinity && idx>=mwBest[1] && idx<mwBest[2]) cell.classList.add('best');
+    let ptr='';
+    if (idx===mwLeft && !mwDone){ cell.classList.add('left'); ptr='left'; }
+    if (idx===mwRight && !mwDone){ cell.classList.add('right'); ptr = ptr? ptr+'/right':'right'; }
+    cell.innerHTML = `<span class="idx">${idx}</span>${ch}${ptr?`<span class="ptr" style="color:${idx===mwRight?'var(--accent2)':'var(--purple)'}">${ptr}</span>`:''}`;
+    arrEl.appendChild(cell);
+  });
+  document.getElementById('mw-left').textContent = mwLeft;
+  document.getElementById('mw-right').textContent = mwRight>=0?mwRight:'−';
+  document.getElementById('mw-missing').textContent = mwMissing;
+  document.getElementById('mw-best').textContent = mwBest[0]===Infinity ? '−' : mwS.slice(mwBest[1],mwBest[2]);
+}
+
+function mwStep(){
+  if (mwDone) return;
+  const statusEl = document.getElementById('mw-status');
+
+  // If window currently valid, try shrinking one step
+  if (mwMissing === 0){
+    if (mwRight-mwLeft+1 < mwBest[0]){
+      mwBest = [mwRight-mwLeft+1, mwLeft, mwRight+1];
+    }
+    const c = mwS[mwLeft];
+    mwNeed[c] = (mwNeed[c]||0)+1;
+    let msg = `Window "${mwS.slice(mwLeft,mwRight+1)}" is valid (covers t). Recorded as candidate. Shrinking: drop s[${mwLeft}]='${c}'.`;
+    if (mwNeed[c] > 0){
+      mwMissing++;
+      msg += ` need['${c}'] now > 0 → coverage broken, missing=${mwMissing}.`;
+    }
+    mwLeft++;
+    statusEl.textContent = msg;
+    renderMW();
+    return;
+  }
+
+  // else grow right
+  if (mwRight+1 >= mwS.length){
+    statusEl.textContent = mwBest[0]===Infinity
+      ? `Reached end of string with no valid window found. Return "".`
+      : `Reached end of string. Minimum window = "${mwS.slice(mwBest[1],mwBest[2])}".`;
+    statusEl.classList.add('win');
+    mwDone = true;
+    document.getElementById('mw-step').disabled = true;
+    renderMW();
+    return;
+  }
+  mwRight++;
+  const c = mwS[mwRight];
+  let msg = `right=${mwRight}, char='${c}'. `;
+  if ((mwNeed[c]||0) > 0){
+    mwMissing--;
+    msg += `Needed! missing → ${mwMissing}.`;
+  } else {
+    msg += `Not currently needed (or already covered).`;
+  }
+  mwNeed[c] = (mwNeed[c]||0) - 1;
+  statusEl.textContent = msg;
+  renderMW();
+}
+
+function mwReset(){
+  mwNeed = makeNeed(mwT); mwMissing = mwT.length; mwLeft=0; mwRight=-1; mwBest=[Infinity,0,0]; mwDone=false;
+  document.getElementById('mw-step').disabled = false;
+  document.getElementById('mw-status').className = 'status';
+  document.getElementById('mw-status').textContent = 'Press "Step" to begin. need = {A:1, B:1, C:1}, missing = 3.';
+  renderMW();
+}
+
+document.getElementById('mw-step').onclick = mwStep;
+document.getElementById('mw-reset').onclick = mwReset;
+document.getElementById('mw-run').onclick = ()=>{
+  mwReset();
+  const iv = setInterval(()=>{ mwStep(); if (mwDone) clearInterval(iv); }, 420);
+};
+renderMW();
+</script>
+</body>
+</html>

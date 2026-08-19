@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Interval Patterns — Sort &amp; Sweep, Concurrency, Greedy</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:1040px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 14px; cursor:pointer; color:var(--dim); font-size:0.85rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.85rem;}
+  .status{font-family:var(--mono); font-size:0.85rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .status.lose{border-left-color:var(--danger); color:var(--danger);}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 11px; min-width:100px;}
+  .tracker .lbl{color:var(--dim); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.02rem; font-weight:600;}
+
+  /* Timeline visualization */
+  .timeline{position:relative; margin:26px 0 10px; min-height:150px;}
+  .axis{position:relative; height:24px; border-top:1px solid var(--line); margin-top:8px;}
+  .axis-tick{position:absolute; top:0; font-size:0.68rem; color:var(--dim); font-family:var(--mono); transform:translateX(-50%);}
+  .interval-row{position:relative; height:34px; margin-bottom:4px;}
+  .interval-bar{
+    position:absolute; height:26px; border-radius:6px; top:2px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:0.75rem; font-weight:600;
+    border:1.5px solid var(--line); background:var(--panel2); color:var(--dim);
+    transition: all 0.3s;
+  }
+  .interval-bar.pending{opacity:0.35;}
+  .interval-bar.current{border-color:var(--accent2); background:rgba(224,164,88,0.22); color:var(--accent2); box-shadow:0 0 0 2px rgba(224,164,88,0.2);}
+  .interval-bar.kept{border-color:var(--accent); background:rgba(95,179,163,0.22); color:var(--accent);}
+  .interval-bar.merged{border-color:var(--accent); background:rgba(95,179,163,0.3); color:var(--accent);}
+  .interval-bar.removed{border-color:var(--danger); background:rgba(217,115,106,0.15); color:var(--danger); text-decoration:line-through; opacity:0.6;}
+  .interval-bar.newinterval{border-color:var(--purple); background:rgba(163,148,217,0.22); color:var(--purple);}
+  .heap-viz{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;}
+  .heap-item{font-family:var(--mono); font-size:0.85rem; background:rgba(163,148,217,0.18); border:1px solid var(--purple); color:var(--purple); border-radius:6px; padding:5px 12px; font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Interval Patterns</h1>
+  <div class="sub">Merge Intervals · Insert Interval · Meeting Rooms · Meeting Rooms II · Non-overlapping Intervals — sort, then sweep</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="merge">Merge Intervals</div>
+    <div class="tab" data-tab="insert">Insert Interval</div>
+    <div class="tab" data-tab="canattend">Meeting Rooms</div>
+    <div class="tab" data-tab="minrooms">Meeting Rooms II</div>
+    <div class="tab" data-tab="erase">Non-overlapping Intervals</div>
+  </div>
+
+  <!-- MERGE INTERVALS -->
+  <div class="panel active" id="panel-merge">
+    <div class="card">
+      <h3>The core flip — sort by start, overlaps become neighbors</h3>
+      <p>Every interval problem starts the same way: <b>sort</b> (usually by start time) so that anything overlapping ends up <em>adjacent</em>. Then a single left-to-right sweep does the rest — here, extend the last kept block's end whenever the next interval overlaps it, otherwise start a new block.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">[[1,3],[2,6],[8,10],[15,18]]</span>
+        <button id="mg-reset">↺ Reset</button>
+        <button id="mg-step" class="primary">Step →</button>
+        <button id="mg-run">▶ Run all</button>
+      </div>
+
+      <div class="timeline" id="mg-timeline"></div>
+
+      <div class="status" id="mg-status">Press "Step" to begin. Sorted by start: [[1,3],[2,6],[8,10],[15,18]].</div>
+    </div>
+
+    <div class="why">
+      <b>Why <code>start &lt;= merged[-1][1]</code>, not <code>&lt;</code>:</b> touching intervals like <code>[1,4]</code> and <code>[4,5]</code> should merge into <code>[1,5]</code> — using strict <code>&lt;</code> would leave them separate, which is usually wrong unless the problem explicitly treats touching as non-overlapping.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Sort + Sweep · O(n log n) time, O(n) space</h3>
+      <pre><code>def merge_intervals(intervals):
+    intervals.sort(key=lambda x: x[0])       # sort by start -> overlaps become adjacent
+    merged = []
+    for start, end in intervals:
+        if merged and start <= merged[-1][1]:  # overlaps the current block
+            merged[-1][1] = max(merged[-1][1], end)   # extend its end
+        else:
+            merged.append([start, end])        # no overlap -> new block
+    return merged</code></pre>
+      <p class="note" style="color:var(--dim);">Sort dominates → <b>O(n log n)</b> time. Output holds up to n intervals → <b>O(n)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- INSERT INTERVAL -->
+  <div class="panel" id="panel-insert">
+    <div class="card">
+      <h3>The core flip — three phases: before, overlapping, after</h3>
+      <p>The list is already sorted and non-overlapping, so no full sort is needed — just three phases in one pass: copy intervals ending before the new one starts, <b>widen</b> the new interval to swallow everything that overlaps it, then copy whatever's left.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">[[1,2],[3,5],[6,7],[8,10],[12,16]], new=[4,8]</span>
+        <button id="ins-reset">↺ Reset</button>
+        <button id="ins-step" class="primary">Step →</button>
+        <button id="ins-run">▶ Run all</button>
+      </div>
+
+      <div class="timeline" id="ins-timeline"></div>
+
+      <div class="status" id="ins-status">Press "Step" to begin. Phase 1: copy intervals ending before new[0]=4.</div>
+    </div>
+
+    <div class="why">
+      <b>Why this stays O(n), not O(n log n):</b> the input is guaranteed already sorted — no sort step needed, just a single linear sweep across the three phases.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Three-Phase Scan · O(n) time, O(n) space</h3>
+      <pre><code>def insert_interval(intervals, new):
+    res = []
+    i, n = 0, len(intervals)
+    while i < n and intervals[i][1] < new[0]:    # phase 1: entirely BEFORE new
+        res.append(intervals[i]); i += 1
+    while i < n and intervals[i][0] <= new[1]:   # phase 2: OVERLAPS new -> merge
+        new = [min(new[0], intervals[i][0]), max(new[1], intervals[i][1])]
+        i += 1
+    res.append(new)
+    while i < n:                                  # phase 3: everything AFTER
+        res.append(intervals[i]); i += 1
+    return res</code></pre>
+      <p class="note" style="color:var(--dim);">Already sorted, one pass, three phases → <b>O(n)</b> time. Output array → <b>O(n)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- MEETING ROOMS (CAN ATTEND) -->
+  <div class="panel" id="panel-canattend">
+    <div class="card">
+      <h3>The core flip — after sorting, conflicts are always adjacent</h3>
+      <p>One person can attend every meeting only if <b>none overlap</b>. After sorting by start time, if two meetings conflict, they must be <em>consecutive</em> in the sorted order — so a single pass checking each meeting against the previous one is sufficient.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">[[0,30],[5,10],[15,20]]</span>
+        <button id="ca-reset">↺ Reset</button>
+        <button id="ca-step" class="primary">Step →</button>
+        <button id="ca-run">▶ Run all</button>
+      </div>
+
+      <div class="timeline" id="ca-timeline"></div>
+
+      <div class="status" id="ca-status">Press "Step" to begin. Sorted by start: [[0,30],[5,10],[15,20]].</div>
+    </div>
+
+    <div class="why">
+      <b>Why only checking adjacent pairs is enough:</b> once sorted by start, if meeting <code>i</code> doesn't overlap meeting <code>i-1</code>, it can't possibly overlap anything even earlier either — their start times are even smaller and their intervals already ended before <code>i-1</code>'s did (in the non-overlap case). The check only needs to look one step back.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Sort + Adjacent Check · O(n log n) time, O(1) space</h3>
+      <pre><code>def can_attend_meetings(intervals):
+    intervals.sort(key=lambda x: x[0])
+    for i in range(1, len(intervals)):
+        if intervals[i][0] < intervals[i - 1][1]:   # starts before previous ends
+            return False                             # -> overlap
+    return True</code></pre>
+      <p class="note" style="color:var(--dim);">Sort dominates → <b>O(n log n)</b> time. No extra structures → <b>O(1)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- MEETING ROOMS II -->
+  <div class="panel" id="panel-minrooms">
+    <div class="card">
+      <h3>The core flip — rooms needed = peak concurrency</h3>
+      <p>The minimum rooms required equals the <b>maximum number of meetings overlapping at any single instant</b>. A min-heap of end times tracks rooms currently in use: when the earliest-ending meeting is already over by the time a new one starts, reuse that room instead of allocating a new one.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">[[0,30],[5,10],[15,20]]</span>
+        <button id="mr-reset">↺ Reset</button>
+        <button id="mr-step" class="primary">Step →</button>
+        <button id="mr-run">▶ Run all</button>
+      </div>
+
+      <div class="timeline" id="mr-timeline"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">rooms in use</span><span class="val" id="mr-rooms" style="color:var(--accent);">0</span></div>
+        <div class="tracker"><span class="lbl">peak so far</span><span class="val" id="mr-peak" style="color:var(--danger);">0</span></div>
+      </div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:12px;">Heap of end times (rooms currently occupied)</div>
+      <div class="heap-viz" id="mr-heap"></div>
+
+      <div class="status" id="mr-status">Press "Step" to begin. Sorted by start: [[0,30],[5,10],[15,20]].</div>
+    </div>
+
+    <div class="why">
+      <b>Why the heap's smallest end time matters:</b> the earliest-ending meeting is the <em>only</em> candidate room that could possibly be free by the time the next meeting starts — checking any other end time first would be wasted work, since a min-heap always surfaces the smallest in O(log n).
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Min-Heap of End Times · O(n log n) time, O(n) space</h3>
+      <pre><code>import heapq
+
+def min_meeting_rooms(intervals):
+    if not intervals:
+        return 0
+    intervals.sort(key=lambda x: x[0])
+    heap = []                          # end times of meetings currently using a room
+    for start, end in intervals:
+        if heap and heap[0] <= start:  # earliest-ending meeting is already over
+            heapq.heappop(heap)        # -> reuse that room
+        heapq.heappush(heap, end)      # this meeting occupies a room until `end`
+    return len(heap)                   # rooms in use at the peak</code></pre>
+      <p class="note" style="color:var(--dim);">Sort + n heap operations (each O(log n)) → <b>O(n log n)</b> time. Heap holds up to n end times → <b>O(n)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- NON-OVERLAPPING INTERVALS -->
+  <div class="panel" id="panel-erase">
+    <div class="card">
+      <h3>The core flip — greedy by earliest finish time</h3>
+      <p>To remove the <em>fewest</em> intervals, keep as many as possible. Sort by <b>end</b> time (not start!) and always keep the interval that finishes earliest — it leaves the most room for everything after it. This is the classic "activity selection" greedy, provably optimal.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">[[1,2],[2,3],[3,4],[1,3]]</span>
+        <button id="er-reset">↺ Reset</button>
+        <button id="er-step" class="primary">Step →</button>
+        <button id="er-run">▶ Run all</button>
+      </div>
+
+      <div class="timeline" id="er-timeline"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">removed count</span><span class="val" id="er-removed" style="color:var(--danger);">0</span></div>
+      </div>
+
+      <div class="status" id="er-status">Press "Step" to begin. Sorted by END time: [[1,2],[2,3],[1,3],[3,4]].</div>
+    </div>
+
+    <div class="why">
+      <b>Why sort by end, not start:</b> sorting by start would let a long early-starting interval block the greedy choice unfairly. Sorting by <em>end</em> guarantees the greedy always considers the interval that frees up the timeline soonest — the key insight that makes this greedy provably optimal (an exchange-argument proof, common to interval scheduling).
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Greedy by End Time · O(n log n) time, O(1) space</h3>
+      <pre><code>def erase_overlap_intervals(intervals):
+    intervals.sort(key=lambda x: x[1])   # sort by EARLIEST finish time
+    removed = 0
+    prev_end = float("-inf")
+    for start, end in intervals:
+        if start >= prev_end:            # doesn't overlap the last kept one
+            prev_end = end               # keep it
+        else:
+            removed += 1                 # overlaps -> must remove this one
+    return removed</code></pre>
+      <p class="note" style="color:var(--dim);">Sort dominates → <b>O(n log n)</b> time. Only a counter and boundary tracked → <b>O(1)</b> space.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ============ shared timeline renderer ============
+// intervals: [{start, end, label, state}], domain: [min,max]
+function renderTimeline(containerId, intervals, domainMin, domainMax){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const width = container.clientWidth || 900;
+  const pad = 10;
+  const usableWidth = width - pad*2;
+  const scale = usableWidth / (domainMax - domainMin || 1);
+
+  intervals.forEach(iv=>{
+    const row = document.createElement('div');
+    row.className = 'interval-row';
+    const bar = document.createElement('div');
+    bar.className = 'interval-bar ' + (iv.state||'pending');
+    const left = pad + (iv.start - domainMin) * scale;
+    const w = Math.max((iv.end - iv.start) * scale, 24);
+    bar.style.left = left + 'px';
+    bar.style.width = w + 'px';
+    bar.textContent = iv.label !== undefined ? iv.label : `[${iv.start},${iv.end}]`;
+    row.appendChild(bar);
+    container.appendChild(row);
+  });
+
+  // axis
+  const axis = document.createElement('div');
+  axis.className = 'axis';
+  const ticks = 6;
+  for (let k=0;k<=ticks;k++){
+    const val = Math.round(domainMin + (domainMax-domainMin)*k/ticks);
+    const tick = document.createElement('div');
+    tick.className = 'axis-tick';
+    tick.style.left = (pad + (val-domainMin)*scale) + 'px';
+    tick.textContent = val;
+    axis.appendChild(tick);
+  }
+  container.appendChild(axis);
+}
+
+// ================= MERGE INTERVALS =================
+const mgOriginal = [[1,3],[2,6],[8,10],[15,18]];
+let mgSorted = [...mgOriginal].sort((a,b)=>a[0]-b[0]);
+let mgI = 0;
+let mgMerged = [];
+let mgDone = false;
+
+function mgDomain(){ return [0, 19]; }
+
+function renderMG(){
+  const [dmin,dmax] = mgDomain();
+  const items = [];
+  mgSorted.forEach(([s,e],idx)=>{
+    let state = 'pending';
+    if (idx < mgI) state = 'merged';
+    if (idx === mgI && !mgDone) state = 'current';
+    items.push({start:s, end:e, label:`[${s},${e}]`, state});
+  });
+  renderTimeline('mg-timeline', items, dmin, dmax);
+}
+
+function mgStep(){
+  if (mgDone) return;
+  const statusEl = document.getElementById('mg-status');
+  if (mgI >= mgSorted.length){
+    statusEl.textContent = `Done! Merged result: ${JSON.stringify(mgMerged)}.`;
+    statusEl.classList.add('win');
+    mgDone = true;
+    document.getElementById('mg-step').disabled = true;
+    renderMG();
+    return;
+  }
+  const [start,end] = mgSorted[mgI];
+  if (mgMerged.length && start <= mgMerged[mgMerged.length-1][1]){
+    const prevEnd = mgMerged[mgMerged.length-1][1];
+    mgMerged[mgMerged.length-1][1] = Math.max(prevEnd, end);
+    document.getElementById('mg-status').textContent = `[${start},${end}] overlaps current block (start ${start} ≤ ${prevEnd}) → extend end to max(${prevEnd}, ${end}) = ${mgMerged[mgMerged.length-1][1]}.`;
+  } else {
+    mgMerged.push([start,end]);
+    document.getElementById('mg-status').textContent = `[${start},${end}] does NOT overlap current block → start a new merged block.`;
+  }
+  mgI++;
+  renderMG();
+}
+
+function mgReset(){
+  mgI=0; mgMerged=[]; mgDone=false;
+  document.getElementById('mg-step').disabled = false;
+  document.getElementById('mg-status').className = 'status';
+  document.getElementById('mg-status').textContent = 'Press "Step" to begin. Sorted by start: [[1,3],[2,6],[8,10],[15,18]].';
+  renderMG();
+}
+
+document.getElementById('mg-step').onclick = mgStep;
+document.getElementById('mg-reset').onclick = mgReset;
+document.getElementById('mg-run').onclick = ()=>{
+  mgReset();
+  const iv = setInterval(()=>{ mgStep(); if (mgDone) clearInterval(iv); }, 700);
+};
+renderMG();
+
+// ================= INSERT INTERVAL =================
+const insIntervals = [[1,2],[3,5],[6,7],[8,10],[12,16]];
+const insNewOriginal = [4,8];
+let insI = 0;
+let insPhase = 1; // 1=before, 2=overlap-merge, 3=after
+let insRes = [];
+let insNew = [...insNewOriginal];
+let insDone = false;
+
+function renderINS(){
+  const items = [];
+  insIntervals.forEach(([s,e],idx)=>{
+    let state = 'pending';
+    if (idx < insI) state = 'kept';
+    if (idx === insI && !insDone) state = 'current';
+    items.push({start:s,end:e,label:`[${s},${e}]`,state});
+  });
+  // show new interval as its own row (evolving)
+  items.push({start:insNew[0], end:insNew[1], label:`new=[${insNew[0]},${insNew[1]}]`, state: insDone?'merged':'newinterval'});
+  renderTimeline('ins-timeline', items, 0, 17);
+}
+
+function insStep(){
+  if (insDone) return;
+  const statusEl = document.getElementById('ins-status');
+  const n = insIntervals.length;
+
+  if (insPhase === 1){
+    if (insI < n && insIntervals[insI][1] < insNew[0]){
+      statusEl.textContent = `Phase 1: [${insIntervals[insI]}] ends before new starts (${insNew[0]}) → keep as-is.`;
+      insI++;
+      renderINS();
+      return;
+    } else {
+      insPhase = 2;
+      statusEl.textContent = `Phase 1 complete. Phase 2: merge every interval overlapping new=[${insNew[0]},${insNew[1]}].`;
+      renderINS();
+      return;
+    }
+  }
+
+  if (insPhase === 2){
+    if (insI < n && insIntervals[insI][0] <= insNew[1]){
+      const [s,e] = insIntervals[insI];
+      const oldNew = [...insNew];
+      insNew = [Math.min(insNew[0], s), Math.max(insNew[1], e)];
+      statusEl.textContent = `[${s},${e}] overlaps new → widen new from [${oldNew}] to [${insNew}].`;
+      insI++;
+      renderINS();
+      return;
+    } else {
+      insPhase = 3;
+      statusEl.textContent = `Phase 2 complete. Merged interval = [${insNew}]. Phase 3: copy remaining intervals.`;
+      renderINS();
+      return;
+    }
+  }
+
+  if (insPhase === 3){
+    if (insI < n){
+      statusEl.textContent = `Phase 3: [${insIntervals[insI]}] comes after new → keep as-is.`;
+      insI++;
+      renderINS();
+      return;
+    } else {
+      statusEl.textContent = `Done! Result includes merged interval [${insNew}] in its sorted position.`;
+      statusEl.classList.add('win');
+      insDone = true;
+      document.getElementById('ins-step').disabled = true;
+      renderINS();
+      return;
+    }
+  }
+}
+
+function insReset(){
+  insI=0; insPhase=1; insRes=[]; insNew=[...insNewOriginal]; insDone=false;
+  document.getElementById('ins-step').disabled = false;
+  document.getElementById('ins-status').className = 'status';
+  document.getElementById('ins-status').textContent = 'Press "Step" to begin. Phase 1: copy intervals ending before new[0]=4.';
+  renderINS();
+}
+
+document.getElementById('ins-step').onclick = insStep;
+document.getElementById('ins-reset').onclick = insReset;
+document.getElementById('ins-run').onclick = ()=>{
+  insReset();
+  const iv = setInterval(()=>{ insStep(); if (insDone) clearInterval(iv); }, 650);
+};
+renderINS();
+
+// ================= MEETING ROOMS (CAN ATTEND) =================
+const caOriginal = [[0,30],[5,10],[15,20]];
+let caSorted = [...caOriginal].sort((a,b)=>a[0]-b[0]);
+let caI = 1;
+let caDone = false;
+let caFailedAt = -1;
+
+function renderCA(){
+  const items = [];
+  caSorted.forEach(([s,e],idx)=>{
+    let state = 'pending';
+    if (idx < caI) state = 'kept';
+    if (idx === caI && !caDone) state = 'current';
+    if (caFailedAt>=0 && (idx===caFailedAt || idx===caFailedAt-1)) state='removed';
+    items.push({start:s,end:e,label:`[${s},${e}]`,state});
+  });
+  renderTimeline('ca-timeline', items, 0, 32);
+}
+
+function caStep(){
+  if (caDone) return;
+  const statusEl = document.getElementById('ca-status');
+  if (caI >= caSorted.length){
+    statusEl.textContent = `Checked all consecutive pairs, no overlaps found → True, one person CAN attend all meetings.`;
+    statusEl.classList.add('win');
+    caDone = true;
+    document.getElementById('ca-step').disabled = true;
+    renderCA();
+    return;
+  }
+  const [s,e] = caSorted[caI];
+  const prevEnd = caSorted[caI-1][1];
+  if (s < prevEnd){
+    statusEl.textContent = `Meeting [${s},${e}] starts before previous ends (${prevEnd}) → OVERLAP. Return False.`;
+    statusEl.classList.add('lose');
+    caDone = true;
+    caFailedAt = caI;
+    document.getElementById('ca-step').disabled = true;
+    renderCA();
+    return;
+  }
+  statusEl.textContent = `Meeting [${s},${e}] starts at/after previous ends (${prevEnd}) → no conflict.`;
+  caI++;
+  renderCA();
+}
+
+function caReset(){
+  caI=1; caDone=false; caFailedAt=-1;
+  document.getElementById('ca-step').disabled = false;
+  document.getElementById('ca-status').className = 'status';
+  document.getElementById('ca-status').textContent = 'Press "Step" to begin. Sorted by start: [[0,30],[5,10],[15,20]].';
+  renderCA();
+}
+
+document.getElementById('ca-step').onclick = caStep;
+document.getElementById('ca-reset').onclick = caReset;
+document.getElementById('ca-run').onclick = ()=>{
+  caReset();
+  const iv = setInterval(()=>{ caStep(); if (caDone) clearInterval(iv); }, 700);
+};
+renderCA();
+
+// ================= MEETING ROOMS II =================
+const mrOriginal = [[0,30],[5,10],[15,20]];
+let mrSorted = [...mrOriginal].sort((a,b)=>a[0]-b[0]);
+let mrI = 0;
+let mrHeap = [];
+let mrPeak = 0;
+let mrDone = false;
+
+function heapPush(heap, val){ heap.push(val); heap.sort((a,b)=>a-b); }
+function heapPop(heap){ return heap.shift(); }
+
+function renderMR(){
+  const items = [];
+  mrSorted.forEach(([s,e],idx)=>{
+    let state = 'pending';
+    if (idx < mrI) state = 'kept';
+    if (idx === mrI && !mrDone) state = 'current';
+    items.push({start:s,end:e,label:`[${s},${e}]`,state});
+  });
+  renderTimeline('mr-timeline', items, 0, 32);
+  document.getElementById('mr-rooms').textContent = mrHeap.length;
+  document.getElementById('mr-peak').textContent = mrPeak;
+  const heapEl = document.getElementById('mr-heap');
+  heapEl.innerHTML = '';
+  if (mrHeap.length===0){
+    heapEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(empty)</span>';
+  } else {
+    mrHeap.forEach(v=>{
+      const chip = document.createElement('div');
+      chip.className = 'heap-item';
+      chip.textContent = `end=${v}`;
+      heapEl.appendChild(chip);
+    });
+  }
+}
+
+function mrStep(){
+  if (mrDone) return;
+  const statusEl = document.getElementById('mr-status');
+  if (mrI >= mrSorted.length){
+    statusEl.textContent = `All meetings processed. Minimum rooms required = peak concurrency = ${mrPeak}.`;
+    statusEl.classList.add('win');
+    mrDone = true;
+    document.getElementById('mr-step').disabled = true;
+    renderMR();
+    return;
+  }
+  const [start,end] = mrSorted[mrI];
+  let msg = `Meeting [${start},${end}]: `;
+  if (mrHeap.length && mrHeap[0] <= start){
+    const freed = heapPop(mrHeap);
+    msg += `earliest end (${freed}) ≤ start (${start}) → reuse that room (pop ${freed} from heap). `;
+  } else {
+    msg += `no room free yet (or heap empty) → need a NEW room. `;
+  }
+  heapPush(mrHeap, end);
+  mrPeak = Math.max(mrPeak, mrHeap.length);
+  msg += `Push end=${end}. Rooms in use = ${mrHeap.length}.`;
+  statusEl.textContent = msg;
+  mrI++;
+  renderMR();
+}
+
+function mrReset(){
+  mrI=0; mrHeap=[]; mrPeak=0; mrDone=false;
+  document.getElementById('mr-step').disabled = false;
+  document.getElementById('mr-status').className = 'status';
+  document.getElementById('mr-status').textContent = 'Press "Step" to begin. Sorted by start: [[0,30],[5,10],[15,20]].';
+  renderMR();
+}
+
+document.getElementById('mr-step').onclick = mrStep;
+document.getElementById('mr-reset').onclick = mrReset;
+document.getElementById('mr-run').onclick = ()=>{
+  mrReset();
+  const iv = setInterval(()=>{ mrStep(); if (mrDone) clearInterval(iv); }, 750);
+};
+renderMR();
+
+// ================= NON-OVERLAPPING INTERVALS =================
+const erOriginal = [[1,2],[2,3],[3,4],[1,3]];
+let erSorted = [...erOriginal].sort((a,b)=>a[1]-b[1]);
+let erI = 0;
+let erPrevEnd = -Infinity;
+let erRemoved = 0;
+let erDone = false;
+
+function renderER(){
+  const items = [];
+  erSorted.forEach(([s,e],idx)=>{
+    let state = 'pending';
+    if (idx < erI) state = 'kept'; // will be overridden below if removed
+    if (idx === erI && !erDone) state = 'current';
+    items.push({start:s,end:e,label:`[${s},${e}]`,state, _idx:idx});
+  });
+  // mark removed based on tracked set
+  items.forEach(it=>{
+    if (erRemovedSet.has(it._idx)) it.state = 'removed';
+  });
+  renderTimeline('er-timeline', items, 0, 5);
+  document.getElementById('er-removed').textContent = erRemoved;
+}
+
+let erRemovedSet = new Set();
+
+function erStep(){
+  if (erDone) return;
+  const statusEl = document.getElementById('er-status');
+  if (erI >= erSorted.length){
+    statusEl.textContent = `All intervals processed. Minimum removals needed = ${erRemoved}.`;
+    statusEl.classList.add('win');
+    erDone = true;
+    document.getElementById('er-step').disabled = true;
+    renderER();
+    return;
+  }
+  const [start,end] = erSorted[erI];
+  if (start >= erPrevEnd){
+    statusEl.textContent = `[${start},${end}]: start (${start}) ≥ prev_end (${erPrevEnd===-Infinity?'−∞':erPrevEnd}) → no overlap. KEEP it; prev_end = ${end}.`;
+    erPrevEnd = end;
+  } else {
+    statusEl.textContent = `[${start},${end}]: start (${start}) < prev_end (${erPrevEnd}) → overlaps the kept interval. REMOVE it.`;
+    erRemoved++;
+    erRemovedSet.add(erI);
+  }
+  erI++;
+  renderER();
+}
+
+function erReset(){
+  erI=0; erPrevEnd=-Infinity; erRemoved=0; erDone=false; erRemovedSet=new Set();
+  document.getElementById('er-step').disabled = false;
+  document.getElementById('er-status').className = 'status';
+  document.getElementById('er-status').textContent = 'Press "Step" to begin. Sorted by END time: [[1,2],[2,3],[1,3],[3,4]].';
+  renderER();
+}
+
+document.getElementById('er-step').onclick = erStep;
+document.getElementById('er-reset').onclick = erReset;
+document.getElementById('er-run').onclick = ()=>{
+  erReset();
+  const iv = setInterval(()=>{ erStep(); if (erDone) clearInterval(iv); }, 700);
+};
+renderER();
+</script>
+</body>
+</html>

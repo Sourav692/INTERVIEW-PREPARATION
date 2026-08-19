@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced DFS — Binary Tree Maximum Path Sum</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:940px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.85rem;}
+  .status{font-family:var(--mono); font-size:0.84rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 11px; min-width:110px;}
+  .tracker .lbl{color:var(--dim); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.02rem; font-weight:600;}
+  .tree-svg{display:block; margin:16px auto;}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  .callstack{display:flex; flex-direction:column; gap:4px; margin:10px 0; font-family:var(--mono); font-size:0.8rem;}
+  .frame{background:var(--panel2); border:1px solid var(--line); border-radius:6px; padding:6px 12px; display:flex; justify-content:space-between; align-items:center;}
+  .frame.active{border-color:var(--accent2); background:rgba(224,164,88,0.15);}
+  .frame .gain{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Advanced DFS: Return One Thing, Track Another</h1>
+  <div class="sub">Binary Tree Maximum Path Sum — the DFS returns a single arm, but updates a global "bent path" answer along the way</div>
+
+  <div class="card">
+    <h3>The core flip</h3>
+    <p>A path can <b>bend</b> at any node — come up the left subtree, pass through the node, go down the right subtree. So at each node, two different questions get answered simultaneously:</p>
+    <ul style="color:var(--dim); font-size:0.9rem; line-height:1.6;">
+      <li><b>What's the best "bent" path through this node?</b> → <code>node.val + best_left_arm + best_right_arm</code> — used only to update a <b>global</b> best, since a bent path can't be extended further by a parent.</li>
+      <li><b>What's the best single arm I can hand my parent?</b> → <code>node.val + max(best_left_arm, best_right_arm)</code> — a parent can only attach <em>one</em> straight branch, not two.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <span class="target-badge">tree = [-10, 9, 20, null, null, 15, 7]</span>
+      <button id="mp-reset">↺ Reset</button>
+      <button id="mp-step" class="primary">Step →</button>
+      <button id="mp-run">▶ Run all</button>
+    </div>
+
+    <svg id="mp-svg" class="tree-svg" width="440" height="240" viewBox="0 0 440 240"></svg>
+
+    <div class="trackers">
+      <div class="tracker"><span class="lbl">global best</span><span class="val" id="mp-best" style="color:var(--accent);">−∞</span></div>
+    </div>
+
+    <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:14px;">Call stack (postorder resolution)</div>
+    <div class="callstack" id="mp-callstack"></div>
+
+    <div class="status" id="mp-status" style="margin-top:6px;">Press "Step" to begin. Calling gain(−10) — the root.</div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent2)"></span> currently resolving</span>
+      <span><span class="dot" style="background:var(--accent)"></span> resolved (arm value known)</span>
+    </div>
+  </div>
+
+  <div class="why">
+    <b>Why clamp negative arms to zero:</b> <code>max(0, gain(child))</code> means "if this branch would only hurt the sum, don't take it — treat it as contributing nothing rather than something negative." This is what correctly handles a node like <code>-10</code> at the root: its own value is so negative that including it in any path would only make things worse, so the best path skips right past it and lives entirely in the right subtree (<code>15 → 20 → 7</code> = 42).
+  </div>
+
+  <div class="why" style="border-left-color:var(--danger);">
+    <b>The single most common bug:</b> returning the <em>bent</em> (two-arm) value up to the parent instead of the single-arm value. A parent receiving a two-arm value would be tempted to add a third branch on top of it — but a real tree path can't fork twice. The function must return <code>node.val + max(left, right)</code>, never <code>node.val + left + right</code>.
+  </div>
+
+  <div class="card code-card">
+    <h3>Optimal Solution — One-Pass DFS · O(n) time, O(h) space</h3>
+    <pre><code>def max_path_sum(root):
+    best = [float("-inf")]           # global answer, found anywhere in the tree
+
+    def gain(node):                  # returns the best single downward arm from `node`
+        if not node:
+            return 0
+        left = max(0, gain(node.left))    # clamp: skip a branch that would hurt
+        right = max(0, gain(node.right))
+        best[0] = max(best[0], node.val + left + right)   # bent path through this node
+        return node.val + max(left, right)                 # but hand parent only ONE arm
+
+    gain(root)
+    return best[0]</code></pre>
+    <p class="note" style="color:var(--dim);">Every node visited once, O(1) work per node → <b>O(n)</b> time. Recursion stack depth = tree height → <b>O(h)</b> space.</p>
+  </div>
+</div>
+
+<script>
+// ============ Tree drawing ============
+function drawTree(svgId, nodes, edges){
+  const svg = document.getElementById(svgId);
+  let content = '';
+  edges.forEach(([x1,y1,x2,y2])=>{
+    content += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#2a3438" stroke-width="2"/>`;
+  });
+  nodes.forEach(n=>{
+    let fill = '#1c2528', stroke = '#2a3438', textColor='#e8edee';
+    if (n.state==='current'){ fill='rgba(224,164,88,0.25)'; stroke='#e0a458'; }
+    if (n.state==='done'){ fill='rgba(95,179,163,0.22)'; stroke='#5fb3a3'; }
+    content += `<circle cx="${n.x}" cy="${n.y}" r="22" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+    content += `<text x="${n.x}" y="${n.y+5}" text-anchor="middle" font-family="SF Mono, monospace" font-size="13" fill="${textColor}" font-weight="600">${n.val}</text>`;
+    if (n.gain !== undefined){
+      content += `<text x="${n.x}" y="${n.y-30}" text-anchor="middle" font-family="SF Mono, monospace" font-size="10" fill="#5fb3a3">arm=${n.gain}</text>`;
+    }
+  });
+  svg.innerHTML = content;
+}
+
+// tree: -10 -> (9), (20 -> 15,7)
+const mpTreeDef = {
+  '-10': {left:'9', right:'20', x:220, y:40},
+  '9': {left:null, right:null, x:120, y:130},
+  '20': {left:'15', right:'7', x:320, y:130},
+  '15': {left:null, right:null, x:270, y:210},
+  '7': {left:null, right:null, x:370, y:210},
+};
+const mpEdges = [
+  [220,40,120,130],[220,40,320,130],
+  [320,130,270,210],[320,130,370,210],
+];
+
+// Manually trace the postorder gain() calls
+// gain(9) = 9 (leaf, own value); best updated with 9+0+0=9
+// gain(15) = 15 (leaf); best updated with 15
+// gain(7) = 7 (leaf); best updated with 7
+// gain(20): left=max(0,15)=15, right=max(0,7)=7; through=20+15+7=42; best=42; return 20+max(15,7)=35
+// gain(-10): left=max(0,9)=9, right=max(0,35)=35; through=-10+9+35=34; best stays 42; return -10+max(9,35)=25
+const mpTrace = [
+  {node:'9', action:'call'},
+  {node:'9', action:'resolve', gain:9, through:9, note:'leaf: left=0, right=0. Bent path through 9 = 9+0+0 = 9.'},
+  {node:'15', action:'call'},
+  {node:'15', action:'resolve', gain:15, through:15, note:'leaf: left=0, right=0. Bent path through 15 = 15+0+0 = 15.'},
+  {node:'7', action:'call'},
+  {node:'7', action:'resolve', gain:7, through:7, note:'leaf: left=0, right=0. Bent path through 7 = 7+0+0 = 7.'},
+  {node:'20', action:'resolve', gain:35, through:42, note:'left arm=max(0,gain(15))=15, right arm=max(0,gain(7))=7. Bent path through 20 = 20+15+7 = 42 -> NEW BEST! Returns single arm: 20+max(15,7) = 35 (only the better arm goes up).'},
+  {node:'-10', action:'resolve', gain:25, through:34, note:'left arm=max(0,gain(9))=9, right arm=max(0,gain(20))=35. Bent path through -10 = -10+9+35 = 34 (does NOT beat 42). Returns 25 up (irrelevant, this is the root).'},
+];
+
+let mpTraceIdx = 0;
+let mpCurrent = null;
+let mpResolved = {};
+let mpBest = -Infinity;
+let mpDone = false;
+let mpCallStack = [];
+
+function renderMP(){
+  const nodes = Object.entries(mpTreeDef).map(([id,n])=>{
+    let state = 'normal';
+    if (id in mpResolved) state = 'done';
+    if (id === mpCurrent && !mpDone) state = 'current';
+    return {id, val:id, x:n.x, y:n.y, state, gain: mpResolved[id]};
+  });
+  drawTree('mp-svg', nodes, mpEdges);
+  document.getElementById('mp-best').textContent = mpBest === -Infinity ? '−∞' : mpBest;
+
+  const csEl = document.getElementById('mp-callstack');
+  csEl.innerHTML = '';
+  if (mpCallStack.length === 0){
+    csEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(empty)</span>';
+  } else {
+    mpCallStack.forEach(id=>{
+      const frame = document.createElement('div');
+      frame.className = 'frame' + (id===mpCurrent && !mpDone ? ' active' : '');
+      const label = document.createElement('span');
+      label.textContent = `gain(${id})`;
+      frame.appendChild(label);
+      if (id in mpResolved){
+        const gainSpan = document.createElement('span');
+        gainSpan.className = 'gain';
+        gainSpan.textContent = `→ ${mpResolved[id]}`;
+        frame.appendChild(gainSpan);
+      }
+      csEl.appendChild(frame);
+    });
+  }
+}
+
+function mpStep(){
+  if (mpDone) return;
+  const statusEl = document.getElementById('mp-status');
+  if (mpTraceIdx >= mpTrace.length){
+    statusEl.textContent = `Done! Maximum path sum = ${mpBest} (the path 15 → 20 → 7, found while resolving node 20).`;
+    statusEl.classList.add('win');
+    mpDone = true;
+    document.getElementById('mp-step').disabled = true;
+    mpCurrent = null;
+    renderMP();
+    return;
+  }
+  const step = mpTrace[mpTraceIdx];
+  mpCurrent = step.node;
+  if (step.action === 'call'){
+    mpCallStack.push(step.node);
+    statusEl.textContent = `Call gain(${step.node}). Need its children's arm values first (if any).`;
+  } else {
+    mpCallStack = mpCallStack.filter(id => id !== step.node);
+    mpResolved[step.node] = step.gain;
+    if (step.through > mpBest){
+      mpBest = step.through;
+    }
+    statusEl.textContent = `Resolve gain(${step.node}): ${step.note}`;
+  }
+  mpTraceIdx++;
+  renderMP();
+}
+
+function mpReset(){
+  mpTraceIdx=0; mpCurrent=null; mpResolved={}; mpBest=-Infinity; mpDone=false; mpCallStack=[];
+  document.getElementById('mp-step').disabled = false;
+  document.getElementById('mp-status').className = 'status';
+  document.getElementById('mp-status').textContent = 'Press "Step" to begin. Calling gain(−10) — the root.';
+  renderMP();
+}
+
+document.getElementById('mp-step').onclick = mpStep;
+document.getElementById('mp-reset').onclick = mpReset;
+document.getElementById('mp-run').onclick = ()=>{
+  mpReset();
+  const iv = setInterval(()=>{ mpStep(); if (mpDone) clearInterval(iv); }, 750);
+};
+renderMP();
+</script>
+</body>
+</html>

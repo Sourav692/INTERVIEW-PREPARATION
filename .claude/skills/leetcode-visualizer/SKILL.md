@@ -54,7 +54,37 @@ Build the page in this order.
    - A plain-words idea (2–3 sentences: what it does and why it works).
    - An **interactive step-through diagram** (controls below) that animates the algorithm on a sample input, highlighting the current state at each step (which items are compared, what's stored, which pointer moved, what got ruled out).
    - A one-line **speed & memory** note in plain words ("checks every pair, so it gets slow fast" alongside the Big-O).
+   - A **static step-by-step trace table** right under the speed note (see below) — required for every solution, not just the optimal one.
 5. **"When you'd use this":** one or two lines on the signal that suggests this approach.
+
+### Step-by-step trace table (required, per solution)
+
+In addition to the interactive stepper, add a plain `<table>` that lays out the *entire* run of that approach on the same sample input, in the same style as the trace tables in the `reference/**/*_explained.md` files (e.g. `DevRev_Preparation/dsa_notebooks/reference/Array/subarray_sum_equals_k_explained.md`). This gives a reader something to scan/screenshot without pressing buttons.
+
+- One row per step/iteration; one column per state variable that changes (`i`, `j`, pointer positions, current value, running total, map/set contents, etc.) — pick columns that match that specific solution's mechanics, not a fixed template.
+- Last column states the decision made that step, in plain words (e.g. "Too small → lo++", "Not in map yet → store and continue").
+- Mark the final/answer row visually distinct (a `final` row class or similar) so the reader's eye lands on the answer.
+- Values must come from actually tracing the code on the sample input used by the interactive demo above it — do not fabricate a trace that doesn't match.
+- Markup/CSS pattern to reuse (keep it self-contained, no new dependencies):
+  ```html
+  <div class="trace-title">Step-by-step trace — nums = [2, 7, 11, 15], target = 26</div>
+  <div class="trace-wrap">
+  <table class="trace">
+    <tr><th>Step</th><th>i</th><th>...</th></tr>
+    <tr><td>1</td><td>0</td><td>...</td></tr>
+    <tr class="final"><td>...</td></tr>
+  </table>
+  </div>
+  ```
+  ```css
+  .trace-title{font-size:13px;color:var(--muted);font-weight:600;margin:16px 0 6px}
+  .trace-wrap{overflow-x:auto}
+  table.trace{border-collapse:collapse;width:100%;font-size:13.5px;min-width:480px}
+  table.trace th,table.trace td{border:1px solid var(--border);padding:6px 10px;text-align:center;white-space:nowrap}
+  table.trace th{background:var(--accent-soft);color:var(--fg);font-weight:600}
+  table.trace tr.final td{background:var(--good);border-color:var(--good-bd);font-weight:700}
+  ```
+  (Reuse whatever theme variables the page already defines for `--muted`/`--border`/`--accent-soft`/`--good`/`--good-bd` — don't hardcode colors that break dark mode.)
 
 ### Interactive controls (required for each diagram)
 Provide at minimum: **Prev**, **Next**, **Play/Pause**, **Reset**, and a **step counter / caption** that updates to explain the current step in one plain sentence. Optional: a small input the reader can change (e.g. edit the array) and re-run. Keep the step model simple: precompute an ordered list of "frames" (state snapshots), and the buttons just move an index through them.
@@ -87,6 +117,7 @@ Built after all problem pages. It is the topic's "cheat sheet you actually under
 
 - Write each `.html` with the Write tool.
 - **Verify** every file before finishing: confirm it exists, parse/lint the markup (e.g. load it and check the tags balance), and check that the control elements and their JS handlers are present (search the file for the button ids and the functions they call). Fix anything that isn't wired.
+- Confirm every solution section has both the interactive stepper **and** a `table.trace` with a `final` row, and that the traced values match what the interactive demo computes for the same input.
 - Report the list of files created and their paths, and offer to open the `index.html`.
 
 ## Quality bar

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hashing & Frequency — Two Sum / Contains Duplicate</title>
+<style>
+  :root{
+    --bg:#0f1416;
+    --panel:#161d20;
+    --panel2:#1c2528;
+    --line:#2a3438;
+    --text:#e8edee;
+    --dim:#8fa0a6;
+    --accent:#5fb3a3;
+    --accent2:#e0a458;
+    --danger:#d9736a;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family: var(--sans);
+    padding:28px 20px 60px;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+  h1{
+    font-size:1.5rem; font-weight:600; margin:0 0 4px;
+    letter-spacing:-0.01em;
+  }
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line);}
+  .tab{
+    padding:10px 16px; cursor:pointer; color:var(--dim); font-size:0.95rem;
+    border-bottom:2px solid transparent; user-select:none; font-weight:500;
+  }
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:18px 20px; margin-bottom:16px;
+  }
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{
+    background:var(--panel2); color:var(--text); border:1px solid var(--line);
+    padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem;
+    font-family: var(--sans); transition: all 0.15s;
+  }
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .array{display:flex; gap:6px; margin:10px 0; flex-wrap:wrap;}
+  .cell{
+    width:52px; height:52px; border:1.5px solid var(--line); border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:1rem; position:relative;
+    background:var(--panel2); transition: all 0.25s;
+  }
+  .cell .idx{
+    position:absolute; top:-19px; font-size:0.68rem; color:var(--dim); font-family:var(--mono);
+  }
+  .cell.current{border-color:var(--accent2); box-shadow:0 0 0 2px rgba(224,164,88,0.25); transform: translateY(-3px);}
+  .cell.found{border-color:var(--accent); background:rgba(95,179,163,0.18); color:var(--accent);}
+  .cell.dup{border-color:var(--danger); background:rgba(217,115,106,0.18); color:var(--danger);}
+  .cell.seen{opacity:0.55;}
+  .map-title{font-size:0.8rem; color:var(--dim); margin:16px 0 8px; text-transform:uppercase; letter-spacing:0.05em;}
+  .map{display:flex; gap:8px; flex-wrap:wrap; min-height:44px;}
+  .entry{
+    font-family:var(--mono); font-size:0.88rem; background:var(--panel2);
+    border:1px solid var(--line); border-radius:6px; padding:6px 10px;
+    animation: pop 0.25s ease;
+  }
+  @keyframes pop{ from{transform:scale(0.85); opacity:0;} to{transform:scale(1); opacity:1;} }
+  .status{
+    font-family:var(--mono); font-size:0.92rem; padding:12px 14px; border-radius:8px;
+    background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px;
+    white-space:pre-wrap; line-height:1.5;
+  }
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .status.lose{border-left-color:var(--danger); color:var(--danger);}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:10px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .target-badge{
+    font-family:var(--mono); background:var(--panel2); border:1px solid var(--line);
+    padding:6px 12px; border-radius:7px; font-size:0.9rem;
+  }
+  .why{
+    background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px;
+    font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);
+  }
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  pre{
+    background:#0b1012; border:1px solid var(--line); border-radius:8px;
+    padding:14px 16px; overflow-x:auto; margin:0;
+  }
+  pre code{
+    background:none; padding:0; color:var(--text); font-size:0.85rem;
+    line-height:1.6; white-space:pre;
+  }
+  .note{margin-top:10px; margin-bottom:0; font-size:0.83rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Hashing &amp; Frequency Pattern</h1>
+  <div class="sub">Two Sum · Contains Duplicate — the "have I seen this before?" trick</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="twosum">Two Sum</div>
+    <div class="tab" data-tab="dup">Contains Duplicate</div>
+  </div>
+
+  <!-- TWO SUM -->
+  <div class="panel active" id="panel-twosum">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Instead of asking <em>"for this pair, do they sum to target?"</em> (checking every pair), ask <em>"I have <code>x</code> — have I already seen <code>target − x</code>?"</em> One pass, one hash-map lookup per element.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">nums = [2, 7, 11, 15]&nbsp;&nbsp;target = <b id="ts-target">9</b></span>
+        <button id="ts-reset">↺ Reset</button>
+        <button id="ts-step" class="primary">Step →</button>
+        <button id="ts-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="ts-array"></div>
+
+      <div class="map-title">Hash Map (seen so far: value → index)</div>
+      <div class="map" id="ts-map"></div>
+
+      <div class="status" id="ts-status">Press "Step" to begin. i = 0, x = nums[0] = 2.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> current element</span>
+        <span><span class="dot" style="background:var(--accent)"></span> pair found</span>
+        <span><span class="dot" style="background:var(--panel2); border:1px solid var(--line)"></span> already scanned</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why check before inserting:</b> if we inserted <code>x</code> first, then looked up <code>target − x</code>, an element could pair with <em>itself</em> when <code>target == 2*x</code>. Checking the map before adding the current element is what prevents reusing the same index twice.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — O(n) time, O(n) space</h3>
+      <pre><code>def two_sum(nums: list[int], target: int) -> list[int]:
+    seen = {}                    # value -> index, for numbers already passed
+    for i, x in enumerate(nums):
+        need = target - x        # the partner that would complete the pair
+        if need in seen:          # already passed that partner?
+            return [seen[need], i]
+        seen[x] = i               # remember x so a future number can find it
+    return []                     # (never reached: a solution is guaranteed)</code></pre>
+      <p class="note">Single pass, O(1) map lookups → <b>O(n)</b> time. The map holds up to n entries → <b>O(n)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- CONTAINS DUPLICATE -->
+  <div class="panel" id="panel-dup">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>A duplicate exists <em>iff</em>, while scanning left to right, you ever meet a value you've already recorded. A hash <b>set</b> answers "seen before?" in O(1) — no complement needed, just membership.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">nums = [1, 2, 3, 1]</span>
+        <button id="dup-reset">↺ Reset</button>
+        <button id="dup-step" class="primary">Step →</button>
+        <button id="dup-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="dup-array"></div>
+
+      <div class="map-title">Hash Set (seen so far)</div>
+      <div class="map" id="dup-map"></div>
+
+      <div class="status" id="dup-status">Press "Step" to begin. i = 0, x = nums[0] = 1.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> current element</span>
+        <span><span class="dot" style="background:var(--danger)"></span> duplicate found</span>
+        <span><span class="dot" style="background:var(--panel2); border:1px solid var(--line)"></span> already scanned</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why not a list?</b> <code>x in some_list</code> is an O(n) scan every time, so the whole algorithm degrades back to O(n²). A <code>set</code>'s O(1) average membership test is what makes the single pass genuinely O(n).
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — O(n) time, O(n) space</h3>
+      <pre><code>def contains_duplicate(nums: list[int]) -> bool:
+    seen = set()               # values already encountered
+    for x in nums:
+        if x in seen:           # already met this value -> duplicate
+            return True
+        seen.add(x)             # otherwise remember it and continue
+    return False</code></pre>
+      <p class="note">Single pass, O(1) average set operations → <b>O(n)</b> time. Set holds up to n values → <b>O(n)</b> space.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Tabs ----------
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ---------- Two Sum ----------
+const tsNums = [2,7,11,15], tsTarget = 9;
+let tsI = 0, tsMap = {}, tsDone = false, tsFoundPair = null;
+
+function renderTS(){
+  const arrEl = document.getElementById('ts-array');
+  arrEl.innerHTML = '';
+  tsNums.forEach((v,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (tsFoundPair && tsFoundPair.includes(idx)) cell.classList.add('found');
+    else if (idx === tsI && !tsDone) cell.classList.add('current');
+    else if (idx < tsI) cell.classList.add('seen');
+    cell.innerHTML = `<span class="idx">i=${idx}</span>${v}`;
+    arrEl.appendChild(cell);
+  });
+  const mapEl = document.getElementById('ts-map');
+  mapEl.innerHTML = '';
+  Object.entries(tsMap).forEach(([k,v])=>{
+    const e = document.createElement('div');
+    e.className = 'entry';
+    e.textContent = `${k} → idx ${v}`;
+    mapEl.appendChild(e);
+  });
+  if (Object.keys(tsMap).length===0) mapEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(empty)</span>';
+}
+
+function tsStep(){
+  if (tsDone) return;
+  const statusEl = document.getElementById('ts-status');
+  if (tsI >= tsNums.length){
+    statusEl.textContent = 'No pair found (shouldn\'t happen — problem guarantees a solution).';
+    tsDone = true;
+    document.getElementById('ts-step').disabled = true;
+    return;
+  }
+  const x = tsNums[tsI];
+  const need = tsTarget - x;
+  if (need in tsMap){
+    tsFoundPair = [tsMap[need], tsI];
+    statusEl.textContent = `x = nums[${tsI}] = ${x}. Need complement = ${tsTarget} − ${x} = ${need}.\n${need} IS in the map (seen at index ${tsMap[need]})! → Pair found: indices [${tsMap[need]}, ${tsI}] → values [${tsNums[tsMap[need]]}, ${x}]`;
+    statusEl.classList.add('win');
+    tsDone = true;
+    document.getElementById('ts-step').disabled = true;
+  } else {
+    statusEl.textContent = `x = nums[${tsI}] = ${x}. Need complement = ${tsTarget} − ${x} = ${need}.\n${need} not in map yet → store {${x}: ${tsI}} and move on.`;
+    tsMap[x] = tsI;
+    tsI++;
+  }
+  renderTS();
+}
+
+function tsReset(){
+  tsI = 0; tsMap = {}; tsDone = false; tsFoundPair = null;
+  document.getElementById('ts-step').disabled = false;
+  document.getElementById('ts-status').className = 'status';
+  document.getElementById('ts-status').textContent = 'Press "Step" to begin. i = 0, x = nums[0] = 2.';
+  renderTS();
+}
+
+document.getElementById('ts-step').onclick = tsStep;
+document.getElementById('ts-reset').onclick = tsReset;
+document.getElementById('ts-run').onclick = ()=>{
+  tsReset();
+  const iv = setInterval(()=>{
+    tsStep();
+    if (tsDone) clearInterval(iv);
+  }, 550);
+};
+renderTS();
+
+// ---------- Contains Duplicate ----------
+const dupNums = [1,2,3,1];
+let dupI = 0, dupSet = new Set(), dupDone = false, dupHitIdx = null;
+
+function renderDup(){
+  const arrEl = document.getElementById('dup-array');
+  arrEl.innerHTML = '';
+  dupNums.forEach((v,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (dupHitIdx===idx) cell.classList.add('dup');
+    else if (idx === dupI && !dupDone) cell.classList.add('current');
+    else if (idx < dupI) cell.classList.add('seen');
+    cell.innerHTML = `<span class="idx">i=${idx}</span>${v}`;
+    arrEl.appendChild(cell);
+  });
+  const mapEl = document.getElementById('dup-map');
+  mapEl.innerHTML = '';
+  [...dupSet].forEach(v=>{
+    const e = document.createElement('div');
+    e.className = 'entry';
+    e.textContent = v;
+    mapEl.appendChild(e);
+  });
+  if (dupSet.size===0) mapEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(empty)</span>';
+}
+
+function dupStep(){
+  if (dupDone) return;
+  const statusEl = document.getElementById('dup-status');
+  if (dupI >= dupNums.length){
+    statusEl.textContent = 'Reached the end with no repeat → return False (no duplicates).';
+    statusEl.classList.add('win');
+    dupDone = true;
+    document.getElementById('dup-step').disabled = true;
+    return;
+  }
+  const x = dupNums[dupI];
+  if (dupSet.has(x)){
+    dupHitIdx = dupI;
+    statusEl.textContent = `x = nums[${dupI}] = ${x}. ${x} IS already in the set! → return True (duplicate found).`;
+    statusEl.classList.add('lose');
+    dupDone = true;
+    document.getElementById('dup-step').disabled = true;
+  } else {
+    statusEl.textContent = `x = nums[${dupI}] = ${x}. Not in set yet → add it and continue.`;
+    dupSet.add(x);
+    dupI++;
+  }
+  renderDup();
+}
+
+function dupReset(){
+  dupI = 0; dupSet = new Set(); dupDone = false; dupHitIdx = null;
+  document.getElementById('dup-step').disabled = false;
+  document.getElementById('dup-status').className = 'status';
+  document.getElementById('dup-status').textContent = 'Press "Step" to begin. i = 0, x = nums[0] = 1.';
+  renderDup();
+}
+
+document.getElementById('dup-step').onclick = dupStep;
+document.getElementById('dup-reset').onclick = dupReset;
+document.getElementById('dup-run').onclick = ()=>{
+  dupReset();
+  const iv = setInterval(()=>{
+    dupStep();
+    if (dupDone) clearInterval(iv);
+  }, 550);
+};
+renderDup();
+</script>
+</body>
+</html>

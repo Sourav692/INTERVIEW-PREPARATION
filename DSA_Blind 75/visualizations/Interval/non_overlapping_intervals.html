@@ -101,13 +101,32 @@
   .ivbar{fill:var(--accent-soft);stroke:var(--border);stroke-width:1.5}
   .ivbar.hi{fill:var(--hi);stroke:var(--hi-bd)} .ivbar.good{fill:var(--good);stroke:var(--good-bd)}
   .ivbar.bad{fill:var(--bad);stroke:var(--bad-bd)} .ivbar.dim{opacity:.3}
+  .trace-title{font-size:13px;color:var(--muted);font-weight:600;margin:16px 0 6px}
+  .trace-wrap{overflow-x:auto}
+  table.trace{border-collapse:collapse;width:100%;font-size:13.5px;min-width:480px}
+  table.trace th,table.trace td{border:1px solid var(--border);padding:6px 10px;text-align:center;white-space:nowrap}
+  table.trace th{background:var(--accent-soft);color:var(--fg);font-weight:600}
+  table.trace td.match{background:var(--good);border-color:var(--good-bd);font-weight:700}
+  table.trace td.rule{color:var(--muted)}
+  table.trace tr.final td{background:var(--good);border-color:var(--good-bd);font-weight:700}
 </style>
 </head>
 <body><div class="wrap">
 <div class="top"><a class="back" href="index.html">← All Interval problems</a><span class="tag"><span class="dot" style="background:#eab308"></span> Medium · Interval</span></div>
 <h1>435 · Non-overlapping Intervals</h1>
 <p class="lead">Fewest removals.</p>
-<div class="card"><h2 style="margin-top:.2em">The problem, in plain words</h2><p class="big">Remove the fewest intervals so none overlap.</p><div class="idea">Keep the interval that ends earliest — it leaves the most room for the rest.</div><div class="legend"><span><span class="sw" style="background:var(--hi);border-color:var(--hi-bd)"></span>looking at</span><span><span class="sw" style="background:var(--seen);border-color:var(--seen-bd)"></span>remembered / kept</span><span><span class="sw" style="background:var(--good);border-color:var(--good-bd)"></span>match / answer</span><span><span class="sw" style="background:var(--bad);border-color:var(--bad-bd)"></span>ruled out</span></div></div><div class="card"><h2>The smart way — greedy, sorted by END time</h2><div class="idea">Sort by end. Keep the first; then for each interval, if it starts after the last kept one ended, keep it — otherwise it overlaps, so remove it.</div><div class="viz" id="no-viz"></div><div class="badges" id="no-b"></div><div class="caption" id="no-cap"></div><div class="controls" data-player="no"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="no-count"></span></div><p class="speed"><b>Speed:</b> sort + sweep — <code>O(n log n)</code>.</p></div><div class="card"><h2>When you'd use this</h2>See <b>"fewest removals / max non-overlapping"</b>? Greedy by earliest finish.<p><a href="patterns.html">→ See all the Interval patterns and how to use them in an interview</a></p></div>
+<div class="card"><h2 style="margin-top:.2em">The problem, in plain words</h2><p class="big">Remove the fewest intervals so none overlap.</p><div class="idea">Keep the interval that ends earliest — it leaves the most room for the rest.</div><div class="legend"><span><span class="sw" style="background:var(--hi);border-color:var(--hi-bd)"></span>looking at</span><span><span class="sw" style="background:var(--seen);border-color:var(--seen-bd)"></span>remembered / kept</span><span><span class="sw" style="background:var(--good);border-color:var(--good-bd)"></span>match / answer</span><span><span class="sw" style="background:var(--bad);border-color:var(--bad-bd)"></span>ruled out</span></div></div><div class="card"><h2>The smart way — greedy, sorted by END time</h2><div class="idea">Sort by end. Keep the first; then for each interval, if it starts after the last kept one ended, keep it — otherwise it overlaps, so remove it.</div><div class="viz" id="no-viz"></div><div class="badges" id="no-b"></div><div class="caption" id="no-cap"></div><div class="controls" data-player="no"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="no-count"></span></div><p class="speed"><b>Speed:</b> sort + sweep — <code>O(n log n)</code>.</p>
+<div class="trace-title">Step-by-step trace — sorted by end = [1,2], [2,3], [1,3], [3,4]</div>
+<div class="trace-wrap">
+<table class="trace">
+  <tr><th>Step</th><th>i</th><th>Interval</th><th>prev kept end</th><th>start ≥ prev end?</th><th>Decision</th><th>removed</th></tr>
+  <tr><td>1</td><td>0</td><td>[1,2]</td><td>−∞</td><td>Yes</td><td>Keep it. prev end = 2</td><td>0</td></tr>
+  <tr><td>2</td><td>1</td><td>[2,3]</td><td>2</td><td>2 ≥ 2 → Yes</td><td>Keep it. prev end = 3</td><td>0</td></tr>
+  <tr><td>3</td><td>2</td><td>[1,3]</td><td>3</td><td class="rule">1 ≥ 3 → No</td><td>Overlaps the kept one → remove it</td><td>1</td></tr>
+  <tr class="final"><td>4</td><td>3</td><td>[3,4]</td><td>3</td><td>3 ≥ 3 → Yes</td><td>Keep it. prev end = 4</td><td>1 (final answer)</td></tr>
+</table>
+</div>
+</div><div class="card"><h2>When you'd use this</h2>See <b>"fewest removals / max non-overlapping"</b>? Greedy by earliest finish.<p><a href="patterns.html">→ See all the Interval patterns and how to use them in an interview</a></p></div>
 </div>
 <script>
 "use strict";

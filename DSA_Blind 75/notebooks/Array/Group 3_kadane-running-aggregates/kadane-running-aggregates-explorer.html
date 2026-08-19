@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Kadane's & Running Aggregates — Max Subarray / Max Product Subarray / Buy-Sell Stock</title>
+<style>
+  :root{
+    --bg:#0f1416;
+    --panel:#161d20;
+    --panel2:#1c2528;
+    --line:#2a3438;
+    --text:#e8edee;
+    --dim:#8fa0a6;
+    --accent:#5fb3a3;
+    --accent2:#e0a458;
+    --danger:#d9736a;
+    --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:980px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 16px; cursor:pointer; color:var(--dim); font-size:0.92rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .array{display:flex; gap:6px; margin:26px 0 10px; flex-wrap:wrap;}
+  .cell{width:54px; height:54px; border:1.5px solid var(--line); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.98rem; position:relative; background:var(--panel2); transition: all 0.25s;}
+  .cell .idx{position:absolute; top:-19px; font-size:0.68rem; color:var(--dim); font-family:var(--mono);}
+  .cell.current{border-color:var(--accent2); box-shadow:0 0 0 2px rgba(224,164,88,0.25); transform: translateY(-3px);}
+  .cell.inrun{background:rgba(95,179,163,0.15); border-color:rgba(95,179,163,0.5);}
+  .cell.bestrun{background:rgba(95,179,163,0.28); border-color:var(--accent); color:var(--accent);}
+  .cell.seen{opacity:0.55;}
+  .cell.minmark{border-bottom:3px solid var(--purple);}
+  .status{font-family:var(--mono); font-size:0.88rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.87rem;}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.82rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.85rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:8px 12px; min-width:110px;}
+  .tracker .lbl{color:var(--dim); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.05rem; font-weight:600;}
+  .tracker.cur .val{color:var(--accent2);}
+  .tracker.best .val{color:var(--accent);}
+  .tracker.min .val{color:var(--purple);}
+  .tracker.max .val{color:var(--accent2);}
+  svg{display:block; margin:14px 0;}
+  .barlabel{font-family:var(--mono); font-size:11px; fill:var(--dim);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Kadane's &amp; Running Aggregates</h1>
+  <div class="sub">Maximum Subarray · Maximum Product Subarray · Best Time to Buy and Sell Stock — carry one answer forward instead of rescanning</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="maxsub">Maximum Subarray</div>
+    <div class="tab" data-tab="maxprod">Maximum Product Subarray</div>
+    <div class="tab" data-tab="stock">Best Time to Buy/Sell Stock</div>
+  </div>
+
+  <!-- MAX SUBARRAY -->
+  <div class="panel active" id="panel-maxsub">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>The best subarray <em>ending at</em> index <code>i</code> is either just <code>nums[i]</code> alone, or <code>nums[i]</code> tacked onto the best subarray ending at <code>i-1</code>. That single recurrence — carried in one variable — is Kadane's algorithm: <b>a running sum that resets to zero (well, to the current element) whenever carrying it forward would only hurt.</b></p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]</span>
+        <button id="ms-reset">↺ Reset</button>
+        <button id="ms-step" class="primary">Step →</button>
+        <button id="ms-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="ms-array"></div>
+
+      <div class="trackers">
+        <div class="tracker cur"><span class="lbl">cur (run ending here)</span><span class="val" id="ms-cur">−</span></div>
+        <div class="tracker best"><span class="lbl">best so far</span><span class="val" id="ms-best">−</span></div>
+      </div>
+
+      <div class="status" id="ms-status">Press "Step" to begin. cur = best = nums[0] = −2.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> current element</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.28); border:1px solid var(--accent)"></span> best subarray (final)</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>"Drop the negative prefix":</b> if <code>cur</code> ever goes negative, carrying it into the next element can only drag the sum down — so it's always at least as good to restart fresh at the current element. That's exactly what <code>max(x, cur + x)</code> encodes.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Kadane's Algorithm · O(n) time, O(1) space</h3>
+      <pre><code>def max_subarray(nums: list[int]) -> int:
+    cur = best = nums[0]        # cur = best sum of a subarray ENDING at this index
+    for x in nums[1:]:
+        cur = max(x, cur + x)   # extend the previous run, or start fresh at x
+        best = max(best, cur)   # track the best run seen anywhere
+    return best</code></pre>
+      <p class="note" style="color:var(--dim);">One pass, O(1) work per element → <b>O(n)</b> time. Two scalar variables → <b>O(1)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- MAX PRODUCT SUBARRAY -->
+  <div class="panel" id="panel-maxprod">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Same "extend or restart" skeleton as Maximum Subarray — but multiplication doesn't preserve ordering the way addition does. A <b>negative</b> number flips sign: today's most-negative running product can become the largest the instant it's multiplied by another negative. So we must track <b>both</b> a running max <em>and</em> a running min.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">nums = [2, 3, -2, 4]</span>
+        <button id="mp-reset">↺ Reset</button>
+        <button id="mp-step" class="primary">Step →</button>
+        <button id="mp-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="mp-array"></div>
+
+      <div class="trackers">
+        <div class="tracker cur"><span class="lbl">cur_max</span><span class="val" id="mp-max">−</span></div>
+        <div class="tracker min"><span class="lbl">cur_min</span><span class="val" id="mp-min">−</span></div>
+        <div class="tracker best"><span class="lbl">best so far</span><span class="val" id="mp-best">−</span></div>
+      </div>
+
+      <div class="status" id="mp-status">Press "Step" to begin. cur_max = cur_min = best = nums[0] = 2.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> current element</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.28); border:1px solid var(--accent)"></span> best-product window (final)</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why track the min too?</b> Consider <code>[-2, 3, -4]</code>: after <code>-2</code>, <code>cur_max=-2</code>. After <code>3</code>, naively you'd think max=3 — but the real winner appears after <code>-4</code>: <code>cur_min</code> (which held <code>-6</code>) times <code>-4</code> gives <b>24</b>, the true answer. Only tracking max would have missed it entirely.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Track Max &amp; Min · O(n) time, O(1) space</h3>
+      <pre><code>def max_product(nums: list[int]) -> int:
+    best = cur_max = cur_min = nums[0]
+    for x in nums[1:]:
+        # a negative x swaps big <-> small, so consider all three candidates
+        cand = (x, cur_max * x, cur_min * x)
+        cur_max, cur_min = max(cand), min(cand)
+        best = max(best, cur_max)
+    return best</code></pre>
+      <p class="note" style="color:var(--dim);">One pass, O(1) work per element (constant-size candidate set) → <b>O(n)</b> time. Three scalar variables → <b>O(1)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- STOCK -->
+  <div class="panel" id="panel-stock">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Profit for selling on day <code>j</code> is <code>price[j] − (cheapest price on any day before j)</code>. So carry the <b>minimum price seen so far</b> as you sweep left to right — at each day you can compute the best possible sell profit in O(1), no need to re-scan every earlier day.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">prices = [7, 1, 5, 3, 6, 4]</span>
+        <button id="st-reset">↺ Reset</button>
+        <button id="st-step" class="primary">Step →</button>
+        <button id="st-run">▶ Run all</button>
+      </div>
+
+      <svg id="st-svg" width="100%" height="230" viewBox="0 0 400 230"></svg>
+
+      <div class="trackers">
+        <div class="tracker min"><span class="lbl">min_price so far</span><span class="val" id="st-min">−</span></div>
+        <div class="tracker best"><span class="lbl">best profit so far</span><span class="val" id="st-best">0</span></div>
+      </div>
+
+      <div class="status" id="st-status">Press "Step" to begin. Day 0: price = 7.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--purple)"></span> min_price so far</span>
+        <span><span class="dot" style="background:var(--accent2)"></span> current day</span>
+        <span><span class="dot" style="background:var(--accent)"></span> best buy/sell pair</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Greedy, and provably safe:</b> for any fixed sell day, the best buy day is simply the cheapest day before it. Since we recompute "cheapest so far" as we go, we never need to look backward — each new price either lowers the buy price or raises the best profit, never needing both checked against history.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — One-Pass Running Minimum · O(n) time, O(1) space</h3>
+      <pre><code>def max_profit(prices: list[int]) -> int:
+    min_price = float("inf")     # cheapest buy price seen so far
+    best = 0                     # best profit found so far
+    for p in prices:
+        min_price = min(min_price, p)   # new cheapest day to buy?
+        best = max(best, p - min_price) # best profit if sold today
+    return best</code></pre>
+      <p class="note" style="color:var(--dim);">One pass, O(1) work per element → <b>O(n)</b> time. Two scalar variables → <b>O(1)</b> space.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ================= MAXIMUM SUBARRAY (Kadane) =================
+const msNums = [-2,1,-3,4,-1,2,1,-5,4];
+let msI=0, msCur=msNums[0], msBest=msNums[0], msDone=false;
+let msRunStart=0, msBestStart=0, msBestEnd=0, msCurStart=0;
+
+function renderMS(){
+  const arrEl = document.getElementById('ms-array');
+  arrEl.innerHTML = '';
+  msNums.forEach((v,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (idx === msI && !msDone) cell.classList.add('current');
+    else if (idx < msI) cell.classList.add('seen');
+    if (msDone && idx >= msBestStart && idx <= msBestEnd) cell.classList.add('bestrun');
+    cell.innerHTML = `<span class="idx">${idx}</span>${v}`;
+    arrEl.appendChild(cell);
+  });
+  document.getElementById('ms-cur').textContent = msCur;
+  document.getElementById('ms-best').textContent = msBest;
+}
+
+function msStep(){
+  if (msDone) return;
+  const statusEl = document.getElementById('ms-status');
+  if (msI === 0){
+    msI = 1;
+    statusEl.textContent = `Seed: cur = best = nums[0] = ${msNums[0]}. Now consider index 1.`;
+    renderMS();
+    return;
+  }
+  if (msI >= msNums.length){
+    statusEl.textContent = `Done! Maximum subarray sum = ${msBest} (highlighted range).`;
+    statusEl.classList.add('win');
+    msDone = true;
+    document.getElementById('ms-step').disabled = true;
+    renderMS();
+    return;
+  }
+  const x = msNums[msI];
+  const extend = msCur + x;
+  if (x > extend){
+    statusEl.textContent = `x = nums[${msI}] = ${x}. cur + x = ${extend} < x → restarting is better. cur = ${x}.`;
+    msCur = x; msCurStart = msI;
+  } else {
+    statusEl.textContent = `x = nums[${msI}] = ${x}. cur + x = ${extend} ≥ x → extend the run. cur = ${extend}.`;
+    msCur = extend;
+  }
+  if (msCur > msBest){
+    msBest = msCur; msBestStart = msCurStart; msBestEnd = msI;
+    statusEl.textContent += ` New best = ${msBest}.`;
+  }
+  msI++;
+  renderMS();
+}
+
+function msReset(){
+  msI=0; msCur=msNums[0]; msBest=msNums[0]; msDone=false; msRunStart=0; msBestStart=0; msBestEnd=0; msCurStart=0;
+  document.getElementById('ms-step').disabled = false;
+  document.getElementById('ms-status').className = 'status';
+  document.getElementById('ms-status').textContent = 'Press "Step" to begin. cur = best = nums[0] = −2.';
+  renderMS();
+}
+
+document.getElementById('ms-step').onclick = msStep;
+document.getElementById('ms-reset').onclick = msReset;
+document.getElementById('ms-run').onclick = ()=>{
+  msReset();
+  const iv = setInterval(()=>{ msStep(); if (msDone) clearInterval(iv); }, 500);
+};
+renderMS();
+
+// ================= MAXIMUM PRODUCT SUBARRAY =================
+const mpNums = [2,3,-2,4];
+let mpI=0, mpCurMax=mpNums[0], mpCurMin=mpNums[0], mpBest=mpNums[0], mpDone=false;
+let mpBestStart=0, mpBestEnd=0, mpMaxStart=0, mpCurStart=0;
+
+function renderMP(){
+  const arrEl = document.getElementById('mp-array');
+  arrEl.innerHTML = '';
+  mpNums.forEach((v,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (idx === mpI && !mpDone) cell.classList.add('current');
+    else if (idx < mpI) cell.classList.add('seen');
+    if (mpDone && idx >= mpBestStart && idx <= mpBestEnd) cell.classList.add('bestrun');
+    cell.innerHTML = `<span class="idx">${idx}</span>${v}`;
+    arrEl.appendChild(cell);
+  });
+  document.getElementById('mp-max').textContent = mpCurMax;
+  document.getElementById('mp-min').textContent = mpCurMin;
+  document.getElementById('mp-best').textContent = mpBest;
+}
+
+function mpStep(){
+  if (mpDone) return;
+  const statusEl = document.getElementById('mp-status');
+  if (mpI === 0){
+    mpI = 1;
+    statusEl.textContent = `Seed: cur_max = cur_min = best = nums[0] = ${mpNums[0]}. Now consider index 1.`;
+    renderMP();
+    return;
+  }
+  if (mpI >= mpNums.length){
+    statusEl.textContent = `Done! Maximum product subarray = ${mpBest}.`;
+    statusEl.classList.add('win');
+    mpDone = true;
+    document.getElementById('mp-step').disabled = true;
+    renderMP();
+    return;
+  }
+  const x = mpNums[mpI];
+  const cands = [x, mpCurMax*x, mpCurMin*x];
+  const newMax = Math.max(...cands);
+  const newMin = Math.min(...cands);
+  statusEl.textContent = `x = nums[${mpI}] = ${x}. Candidates {x, cur_max·x, cur_min·x} = {${cands.join(', ')}} → new cur_max = ${newMax}, cur_min = ${newMin}.`;
+  mpCurMax = newMax; mpCurMin = newMin;
+  if (mpCurMax > mpBest){
+    mpBest = mpCurMax; mpBestEnd = mpI;
+    statusEl.textContent += ` New best = ${mpBest}.`;
+  }
+  mpI++;
+  renderMP();
+}
+
+function mpReset(){
+  mpI=0; mpCurMax=mpNums[0]; mpCurMin=mpNums[0]; mpBest=mpNums[0]; mpDone=false; mpBestStart=0; mpBestEnd=0;
+  document.getElementById('mp-step').disabled = false;
+  document.getElementById('mp-status').className = 'status';
+  document.getElementById('mp-status').textContent = 'Press "Step" to begin. cur_max = cur_min = best = nums[0] = 2.';
+  renderMP();
+}
+
+document.getElementById('mp-step').onclick = mpStep;
+document.getElementById('mp-reset').onclick = mpReset;
+document.getElementById('mp-run').onclick = ()=>{
+  mpReset();
+  const iv = setInterval(()=>{ mpStep(); if (mpDone) clearInterval(iv); }, 500);
+};
+renderMP();
+
+// ================= BEST TIME TO BUY/SELL STOCK =================
+const stPrices = [7,1,5,3,6,4];
+let stI=0, stMin=Infinity, stBest=0, stDone=false, stBuyIdx=-1, stSellIdx=-1, stBestBuy=-1, stBestSell=-1;
+
+function drawStock(){
+  const svg = document.getElementById('st-svg');
+  const n = stPrices.length;
+  const w = 400, h = 230, padB = 30, padT = 16, padL=10, padR=10;
+  const stepX = (w - padL - padR) / (n-1);
+  const maxP = Math.max(...stPrices), minP = Math.min(...stPrices);
+  const scaleY = (h - padB - padT) / (maxP - minP || 1);
+  const xOf = i => padL + i*stepX;
+  const yOf = p => h - padB - (p-minP)*scaleY;
+
+  let pts = stPrices.map((p,i)=>`${xOf(i)},${yOf(p)}`).join(' ');
+  let svgContent = `<polyline points="${pts}" fill="none" stroke="#2a3438" stroke-width="2"/>`;
+
+  stPrices.forEach((p,idx)=>{
+    let fill = '#1c2528', stroke='#2a3438', r=5;
+    if (idx === stI && !stDone){ fill='#e0a458'; stroke='#e0a458'; r=7; }
+    else if (idx < stI) { stroke = '#3a464b'; }
+    if (stDone && idx===stBestBuy){ fill='#5fb3a3'; stroke='#5fb3a3'; r=7; }
+    if (stDone && idx===stBestSell){ fill='#5fb3a3'; stroke='#5fb3a3'; r=7; }
+    svgContent += `<circle cx="${xOf(idx)}" cy="${yOf(p)}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+    svgContent += `<text x="${xOf(idx)}" y="${yOf(p)-14}" text-anchor="middle" class="barlabel">$${p}</text>`;
+    svgContent += `<text x="${xOf(idx)}" y="${h-padB+18}" text-anchor="middle" class="barlabel">day ${idx}</text>`;
+  });
+
+  // min price marker line
+  if (stMin !== Infinity && !stDone){
+    svgContent += `<line x1="${padL}" y1="${yOf(stMin)}" x2="${w-padR}" y2="${yOf(stMin)}" stroke="#a394d9" stroke-width="1" stroke-dasharray="4 3"/>`;
+  }
+  if (stDone && stBestBuy>=0 && stBestSell>=0){
+    svgContent += `<line x1="${xOf(stBestBuy)}" y1="${yOf(stPrices[stBestBuy])}" x2="${xOf(stBestSell)}" y2="${yOf(stPrices[stBestSell])}" stroke="#5fb3a3" stroke-width="2" stroke-dasharray="5 3"/>`;
+  }
+
+  svg.innerHTML = svgContent;
+}
+
+function stStep(){
+  if (stDone) return;
+  const statusEl = document.getElementById('st-status');
+  if (stI >= stPrices.length){
+    statusEl.textContent = `Done! Best profit = ${stBest} (buy day ${stBestBuy} @ $${stPrices[stBestBuy]}, sell day ${stBestSell} @ $${stPrices[stBestSell]}).`;
+    statusEl.classList.add('win');
+    stDone = true;
+    document.getElementById('st-step').disabled = true;
+    drawStock();
+    return;
+  }
+  const p = stPrices[stI];
+  const oldMin = stMin;
+  stMin = Math.min(stMin, p);
+  const profitToday = p - stMin;
+  let msg = `Day ${stI}: price = $${p}. `;
+  if (stMin < oldMin){
+    msg += `New min_price = $${stMin} (today is the cheapest so far).`;
+    stBuyIdx = stI;
+  } else {
+    msg += `min_price stays $${stMin}. Profit if sold today = $${p} − $${stMin} = $${profitToday}.`;
+    if (profitToday > stBest){
+      stBest = profitToday;
+      stBestBuy = stBuyIdx;
+      stBestSell = stI;
+      msg += ` New best profit = $${stBest}!`;
+    }
+  }
+  statusEl.textContent = msg;
+  document.getElementById('st-min').textContent = '$' + stMin;
+  document.getElementById('st-best').textContent = '$' + stBest;
+  stI++;
+  drawStock();
+}
+
+function stReset(){
+  stI=0; stMin=Infinity; stBest=0; stDone=false; stBuyIdx=-1; stSellIdx=-1; stBestBuy=-1; stBestSell=-1;
+  document.getElementById('st-step').disabled = false;
+  document.getElementById('st-status').className = 'status';
+  document.getElementById('st-status').textContent = 'Press "Step" to begin. Day 0: price = 7.';
+  document.getElementById('st-min').textContent = '−';
+  document.getElementById('st-best').textContent = '0';
+  drawStock();
+}
+
+document.getElementById('st-step').onclick = stStep;
+document.getElementById('st-reset').onclick = stReset;
+document.getElementById('st-run').onclick = ()=>{
+  stReset();
+  const iv = setInterval(()=>{ stStep(); if (stDone) clearInterval(iv); }, 500);
+};
+drawStock();
+</script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Expand Around Center — Longest Palindromic Substring / Palindromic Substrings</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 16px; cursor:pointer; color:var(--dim); font-size:0.92rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  select{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 12px; border-radius:7px; font-family:var(--sans); font-size:0.88rem;}
+  .array{display:flex; gap:5px; margin:26px 0 10px; flex-wrap:wrap;}
+  .cell{width:42px; height:48px; border:1.5px solid var(--line); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:1rem; position:relative; background:var(--panel2); transition: all 0.2s;}
+  .cell .idx{position:absolute; top:-19px; font-size:0.65rem; color:var(--dim); font-family:var(--mono);}
+  .cell.matched{background:rgba(95,179,163,0.2); border-color:rgba(95,179,163,0.6);}
+  .cell.checking{border-color:var(--accent2); box-shadow:0 0 0 2px rgba(224,164,88,0.25); transform: translateY(-3px);}
+  .cell.center{border-color:var(--purple); box-shadow:0 0 0 2px rgba(163,148,217,0.3);}
+  .cell.best{background:rgba(95,179,163,0.32); border-color:var(--accent); color:var(--accent); font-weight:700;}
+  .gapmarker{width:16px; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:0.7rem;}
+  .status{font-family:var(--mono); font-size:0.85rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .status.fail{border-left-color:var(--danger); color:var(--danger);}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.87rem;}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 11px; min-width:110px;}
+  .tracker .lbl{color:var(--dim); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.02rem; font-weight:600;}
+  .centerviz{display:flex; align-items:center; gap:2px; margin:20px 0 4px; flex-wrap:wrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Expand Around Center Pattern</h1>
+  <div class="sub">Longest Palindromic Substring · Palindromic Substrings — every palindrome has a middle; grow outward from it</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="longest">Longest Palindromic Substring</div>
+    <div class="tab" data-tab="count">Palindromic Substrings (Count)</div>
+  </div>
+
+  <!-- LONGEST PALINDROMIC SUBSTRING -->
+  <div class="panel active" id="panel-longest">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Every palindrome is symmetric around a middle — either a single character (odd length) or the gap between two characters (even length). There are <code>~2n</code> possible centers. Plant a pointer pair at each one and walk outward while both sides match; the longest successful expansion wins.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">s = "babad"</span>
+        <button id="lp-reset">↺ Reset</button>
+        <button id="lp-step" class="primary">Step →</button>
+        <button id="lp-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="lp-array"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">center</span><span class="val" id="lp-center" style="color:var(--purple);">−</span></div>
+        <div class="tracker"><span class="lbl">current match len</span><span class="val" id="lp-curlen" style="color:var(--accent2);">0</span></div>
+        <div class="tracker"><span class="lbl">best palindrome</span><span class="val" id="lp-best" style="color:var(--accent);">−</span></div>
+      </div>
+
+      <div class="status" id="lp-status">Press "Step" to begin. Trying center i=0 (odd, char 'b').</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--purple)"></span> center</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.2); border:1px solid rgba(95,179,163,0.6)"></span> currently matching outward</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.32); border:1px solid var(--accent)"></span> best palindrome (final)</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why 2n centers, not n?</b> A center can be a single character (<code>"aba"</code> centered on <code>b</code>) or a gap between two characters (<code>"aa"</code> centered between the two a's). Checking only single-character centers would silently miss every even-length palindrome.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Expand Around Center · O(n²) time, O(1) space</h3>
+      <pre><code>def longest_palindrome(s: str) -> str:
+    if not s:
+        return ""
+    start, end = 0, 0
+    def grow(l, r):
+        while l >= 0 and r < len(s) and s[l] == s[r]:
+            l -= 1; r += 1
+        return l + 1, r - 1              # step back to the last valid bounds
+    for i in range(len(s)):
+        l1, r1 = grow(i, i)              # odd-length, centered ON i
+        l2, r2 = grow(i, i + 1)          # even-length, centered BETWEEN i and i+1
+        if r1 - l1 > end - start:
+            start, end = l1, r1
+        if r2 - l2 > end - start:
+            start, end = l2, r2
+    return s[start:end + 1]</code></pre>
+      <p class="note" style="color:var(--dim);">~2n centers, each can expand up to n steps → <b>O(n²)</b> time. Only pointers and bounds tracked → <b>O(1)</b> space (versus O(n²) for the DP-table alternative).</p>
+    </div>
+  </div>
+
+  <!-- PALINDROMIC SUBSTRINGS (COUNT) -->
+  <div class="panel" id="panel-count">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Same engine as Longest Palindromic Substring — but instead of tracking the single longest expansion, <b>every successful outward step is one more palindrome to count</b>. Counting is a natural by-product of the same expansion loop.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">s = "aaa"</span>
+        <button id="pc-reset">↺ Reset</button>
+        <button id="pc-step" class="primary">Step →</button>
+        <button id="pc-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="pc-array"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">center</span><span class="val" id="pc-center" style="color:var(--purple);">−</span></div>
+        <div class="tracker"><span class="lbl">total count</span><span class="val" id="pc-total" style="color:var(--accent);">0</span></div>
+      </div>
+
+      <div class="status" id="pc-status">Press "Step" to begin. Trying center i=0 (odd, char 'a').</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--purple)"></span> center</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.2); border:1px solid rgba(95,179,163,0.6)"></span> matched palindrome (+1 to count)</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why this can't double-count:</b> each palindromic substring has exactly <em>one</em> center and one radius — <code>"aa"</code> at positions [0,1] is only ever discovered by the even-center expansion starting between index 0 and 1, never by any odd-center expansion. Every distinct (center, radius) pair is a distinct substring.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Expand Around Center, Count Successes · O(n²) time, O(1) space</h3>
+      <pre><code>def count_substrings(s: str) -> int:
+    n = len(s)
+    def grow(l, r):
+        cnt = 0
+        while l >= 0 and r < n and s[l] == s[r]:
+            cnt += 1                      # each successful step = one more palindrome
+            l -= 1; r += 1
+        return cnt
+    total = 0
+    for i in range(n):
+        total += grow(i, i)               # odd-length, centered on i
+        total += grow(i, i + 1)           # even-length, centered between i and i+1
+    return total</code></pre>
+      <p class="note" style="color:var(--dim);">Same shape as Longest Palindromic Substring → <b>O(n²)</b> time, <b>O(1)</b> space. Counting instead of comparing lengths is the only change.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ================= LONGEST PALINDROMIC SUBSTRING =================
+const lpStr = "babad";
+// Build list of (i, type) centers: for each i, odd center then even center
+let lpCenters = [];
+for (let i=0;i<lpStr.length;i++){ lpCenters.push([i,i,'odd']); lpCenters.push([i,i+1,'even']); }
+let lpCenterIdx = 0;
+let lpL=-1, lpR=-1; // current expansion pointers, -1 = not started for this center
+let lpBestStart=0, lpBestEnd=0;
+let lpDone=false;
+
+function lpCurrentBestLen(){ return lpBestEnd - lpBestStart + 1; }
+
+function renderLP(){
+  const arrEl = document.getElementById('lp-array');
+  arrEl.innerHTML = '';
+  [...lpStr].forEach((ch,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (lpL>=0 && idx>=lpL && idx<=lpR) cell.classList.add('matched');
+    if (lpDone && idx>=lpBestStart && idx<=lpBestEnd) cell.classList.add('best');
+    if (!lpDone && lpCenterIdx < lpCenters.length){
+      const [ci,cj,type] = lpCenters[lpCenterIdx];
+      if (type==='odd' && idx===ci) cell.classList.add('center');
+      if (type==='even' && (idx===ci || idx===cj)) cell.classList.add('center');
+    }
+    cell.innerHTML = `<span class="idx">${idx}</span>${ch}`;
+    arrEl.appendChild(cell);
+  });
+  document.getElementById('lp-curlen').textContent = lpLastLen;
+  document.getElementById('lp-best').textContent = lpDone || lpBestEnd>=lpBestStart ? `"${lpStr.slice(lpBestStart,lpBestEnd+1)}"` : '−';
+  if (!lpDone && lpCenterIdx < lpCenters.length){
+    const [ci,cj,type] = lpCenters[lpCenterIdx];
+    document.getElementById('lp-center').textContent = type==='odd' ? `i=${ci} (odd)` : `${ci}|${cj} (even)`;
+  } else if (lpDone){
+    document.getElementById('lp-center').textContent = 'done';
+  }
+}
+
+let lpLastLen = 0;
+
+function lpStep(){
+  if (lpDone) return;
+  const statusEl = document.getElementById('lp-status');
+
+  if (lpCenterIdx >= lpCenters.length){
+    statusEl.textContent = `All centers tried. Longest palindromic substring = "${lpStr.slice(lpBestStart,lpBestEnd+1)}".`;
+    statusEl.classList.add('win');
+    lpDone = true;
+    document.getElementById('lp-step').disabled = true;
+    lpL=-1; lpR=-1;
+    renderLP();
+    return;
+  }
+
+  // Fully resolve ONE center's expansion in this single step.
+  const [ci,cj,type] = lpCenters[lpCenterIdx];
+  let l = ci, r = cj;
+  let steps = 0;
+  while (l >= 0 && r < lpStr.length && lpStr[l] === lpStr[r]){
+    l--; r++; steps++;
+  }
+  // step back to the last valid (matching) bounds
+  l++; r--;
+
+  lpL = l; lpR = r;
+  lpLastLen = (r >= l) ? (r - l + 1) : 0;
+
+  let msg;
+  if (lpLastLen > 0){
+    msg = `Center ${type==='odd'?`i=${ci}`:`${ci}|${cj}`}: expanded outward ${steps} step(s) while characters matched → palindrome "${lpStr.slice(l,r+1)}" (length ${lpLastLen}).`;
+    if (lpLastLen > lpCurrentBestLen()){
+      lpBestStart = l; lpBestEnd = r;
+      msg += ` New best!`;
+    }
+  } else {
+    msg = `Center ${type==='odd'?`i=${ci}`:`${ci}|${cj}`}: immediate mismatch — no palindrome here (this can happen for an even-center where the two middle characters differ).`;
+  }
+
+  statusEl.textContent = msg;
+  lpCenterIdx++;
+  renderLP();
+}
+
+function lpReset(){
+  lpCenterIdx=0; lpL=-1; lpR=-1; lpBestStart=0; lpBestEnd=0; lpDone=false; lpLastLen=0;
+  document.getElementById('lp-step').disabled = false;
+  document.getElementById('lp-status').className = 'status';
+  document.getElementById('lp-status').textContent = 'Press "Step" to begin. Trying center i=0 (odd, char \'b\').';
+  renderLP();
+}
+
+document.getElementById('lp-step').onclick = lpStep;
+document.getElementById('lp-reset').onclick = lpReset;
+document.getElementById('lp-run').onclick = ()=>{
+  lpReset();
+  const iv = setInterval(()=>{ lpStep(); if (lpDone) clearInterval(iv); }, 550);
+};
+renderLP();
+
+// ================= PALINDROMIC SUBSTRINGS (COUNT) =================
+const pcStr = "aaa";
+let pcCenters = [];
+for (let i=0;i<pcStr.length;i++){ pcCenters.push([i,i,'odd']); pcCenters.push([i,i+1,'even']); }
+let pcCenterIdx = 0;
+let pcL=-1, pcR=-1;
+let pcTotal = 0;
+let pcDone=false;
+
+function renderPC(){
+  const arrEl = document.getElementById('pc-array');
+  arrEl.innerHTML = '';
+  [...pcStr].forEach((ch,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (pcL>=0 && idx>=pcL && idx<=pcR) cell.classList.add('matched');
+    if (!pcDone && pcCenterIdx < pcCenters.length){
+      const [ci,cj,type] = pcCenters[pcCenterIdx];
+      if (type==='odd' && idx===ci) cell.classList.add('center');
+      if (type==='even' && (idx===ci || idx===cj)) cell.classList.add('center');
+    }
+    cell.innerHTML = `<span class="idx">${idx}</span>${ch}`;
+    arrEl.appendChild(cell);
+  });
+  document.getElementById('pc-total').textContent = pcTotal;
+  if (!pcDone && pcCenterIdx < pcCenters.length){
+    const [ci,cj,type] = pcCenters[pcCenterIdx];
+    document.getElementById('pc-center').textContent = type==='odd' ? `i=${ci} (odd)` : `${ci}|${cj} (even)`;
+  } else if (pcDone){
+    document.getElementById('pc-center').textContent = 'done';
+  }
+}
+
+function pcStep(){
+  if (pcDone) return;
+  const statusEl = document.getElementById('pc-status');
+
+  if (pcCenterIdx >= pcCenters.length){
+    statusEl.textContent = `All centers tried. Total palindromic substrings = ${pcTotal}.`;
+    statusEl.classList.add('win');
+    pcDone = true;
+    document.getElementById('pc-step').disabled = true;
+    pcL=-1; pcR=-1;
+    renderPC();
+    return;
+  }
+
+  // Fully resolve ONE center's expansion in this single step, counting each match.
+  const [ci,cj,type] = pcCenters[pcCenterIdx];
+  let l = ci, r = cj;
+  let found = 0;
+  let lastMatchL = -1, lastMatchR = -1;
+  while (l >= 0 && r < pcStr.length && pcStr[l] === pcStr[r]){
+    found++;
+    lastMatchL = l; lastMatchR = r;
+    l--; r++;
+  }
+
+  pcL = lastMatchL; pcR = lastMatchR;
+  pcTotal += found;
+
+  let msg;
+  if (found > 0){
+    msg = `Center ${type==='odd'?`i=${ci}`:`${ci}|${cj}`}: matched outward ${found} time(s) → +${found} palindrome(s) (widest: "${pcStr.slice(lastMatchL,lastMatchR+1)}"). Total = ${pcTotal}.`;
+  } else {
+    msg = `Center ${type==='odd'?`i=${ci}`:`${ci}|${cj}`}: immediate mismatch — no palindrome here.`;
+  }
+
+  statusEl.textContent = msg;
+  pcCenterIdx++;
+  renderPC();
+}
+
+function pcReset(){
+  pcCenterIdx=0; pcL=-1; pcR=-1; pcTotal=0; pcDone=false;
+  document.getElementById('pc-step').disabled = false;
+  document.getElementById('pc-status').className = 'status';
+  document.getElementById('pc-status').textContent = 'Press "Step" to begin. Trying center i=0 (odd, char \'a\').';
+  renderPC();
+}
+
+document.getElementById('pc-step').onclick = pcStep;
+document.getElementById('pc-reset').onclick = pcReset;
+document.getElementById('pc-run').onclick = ()=>{
+  pcReset();
+  const iv = setInterval(()=>{ pcStep(); if (pcDone) clearInterval(iv); }, 550);
+};
+renderPC();
+</script>
+</body>
+</html>

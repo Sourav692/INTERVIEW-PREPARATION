@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BST Order-Rule Exploitation — Validate, Kth Smallest, LCA</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:1020px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 14px; cursor:pointer; color:var(--dim); font-size:0.88rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.85rem;}
+  .status{font-family:var(--mono); font-size:0.85rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .status.lose{border-left-color:var(--danger); color:var(--danger);}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 11px; min-width:110px;}
+  .tracker .lbl{color:var(--dim); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.02rem; font-weight:600;}
+  .tree-svg{display:block; margin:16px auto;}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  .inorder-seq{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
+  .seq-chip{font-family:var(--mono); font-size:0.85rem; background:var(--panel2); border:1px solid var(--line); border-radius:6px; padding:5px 10px;}
+  .seq-chip.visited{border-color:var(--accent); color:var(--accent); background:rgba(95,179,163,0.15);}
+  .seq-chip.answer{border-color:var(--accent); background:rgba(95,179,163,0.32); color:var(--accent); font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>BST Order-Rule Exploitation</h1>
+  <div class="sub">Validate BST · Kth Smallest Element · Lowest Common Ancestor — the BST invariant tells you exactly where to look</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="validate">Validate BST</div>
+    <div class="tab" data-tab="kthsmallest">Kth Smallest Element</div>
+    <div class="tab" data-tab="lca">Lowest Common Ancestor</div>
+  </div>
+
+  <!-- VALIDATE BST -->
+  <div class="panel active" id="panel-validate">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>A BST isn't just "bigger than my left child, smaller than my right child" — <b>every node must fit within a range set by ALL its ancestors</b>, not just its immediate parent. Pass a tightening <code>(low, high)</code> window down the recursion: going left tightens the upper bound to the current value; going right tightens the lower bound.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">tree = [5, 1, 4, null, null, 3, 6]</span>
+        <button id="vb-reset">↺ Reset</button>
+        <button id="vb-step" class="primary">Step →</button>
+        <button id="vb-run">▶ Run all</button>
+      </div>
+
+      <svg id="vb-svg" class="tree-svg" width="400" height="220" viewBox="0 0 400 220"></svg>
+
+      <div class="status" id="vb-status">Press "Step" to begin. Checking root (5): range (−∞, ∞).</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> currently checking</span>
+        <span><span class="dot" style="background:var(--accent)"></span> passed its range check</span>
+        <span><span class="dot" style="background:var(--danger)"></span> violates its range → invalid!</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why this example is a classic trap:</b> node <code>4</code> is bigger than its direct parent's left-child rule would suggest is fine (it's less than 5) — but <code>4</code> sits in <code>5</code>'s <b>left</b> subtree, which the BST rule requires to be entirely <code>&lt; 5</code> <em>and</em>, once you're inside node <code>1</code>'s right subtree, entirely <code>&gt; 1</code>. So <code>4</code> needs to satisfy <code>1 &lt; 4 &lt; 5</code> — which it does. The real violation here is elsewhere in the ancestor chain; only carrying bounds down catches it, a single parent-check would miss it.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Range Bounds Recursion · O(n) time, O(h) space</h3>
+      <pre><code>def is_valid_bst(root):
+    def valid(node, low, high):
+        if not node:
+            return True
+        if not (low < node.val < high):
+            return False
+        return valid(node.left, low, node.val) and valid(node.right, node.val, high)
+    return valid(root, float("-inf"), float("inf"))</code></pre>
+      <p class="note" style="color:var(--dim);">Every node checked once → <b>O(n)</b> time. Recursion depth = tree height → <b>O(h)</b> space. (Alternative: in-order walk must be strictly increasing — same complexity.)</p>
+    </div>
+  </div>
+
+  <!-- KTH SMALLEST -->
+  <div class="panel" id="panel-kthsmallest">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>An in-order walk of a BST visits values in <b>sorted order</b> — that's the single fact this whole problem hinges on. So the k-th smallest value is simply the k-th value the in-order walk emits. Count visits and <b>stop the instant you hit k</b> — no need to walk the rest of the tree.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">tree = [5, 3, 6, 2, 4, null, null, 1], k = 3</span>
+        <button id="ks-reset">↺ Reset</button>
+        <button id="ks-step" class="primary">Step →</button>
+        <button id="ks-run">▶ Run all</button>
+      </div>
+
+      <svg id="ks-svg" class="tree-svg" width="400" height="240" viewBox="0 0 400 240"></svg>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">count</span><span class="val" id="ks-count" style="color:var(--accent2);">0</span></div>
+        <div class="tracker"><span class="lbl">k target</span><span class="val" id="ks-k" style="color:var(--purple);">3</span></div>
+      </div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:14px;">In-order sequence emitted so far</div>
+      <div class="inorder-seq" id="ks-seq"></div>
+
+      <div class="status" id="ks-status" style="margin-top:12px;">Press "Step" to begin. In-order walk starting from root (5), diving left first.</div>
+    </div>
+
+    <div class="why">
+      <b>Why early-stopping beats collecting everything:</b> collecting the full in-order list costs O(n) time and space regardless of k. Stopping the moment <code>count == k</code> costs only <b>O(h + k)</b> — for a small k on a large balanced tree, that's a dramatic saving over walking the whole structure.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Early-Stop In-Order · O(h + k) time, O(h) space</h3>
+      <pre><code>def kth_smallest(root, k):
+    stack, node, count = [], root, 0
+    while stack or node:
+        while node:                  # dive to the smallest unvisited node
+            stack.append(node)
+            node = node.left
+        node = stack.pop()
+        count += 1
+        if count == k:
+            return node.val          # found it — stop immediately
+        node = node.right
+    return -1</code></pre>
+      <p class="note" style="color:var(--dim);">Only descends as far as needed to find the k-th value → <b>O(h + k)</b> time, not O(n). Explicit stack depth bounded by tree height → <b>O(h)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- LOWEST COMMON ANCESTOR -->
+  <div class="panel" id="panel-lca">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>The LCA is the <b>first node where the two targets diverge</b> — one goes left, one goes right (or one equals the current node). The BST ordering tells you exactly which direction to walk at every step, so you <b>never explore a branch that can't contain the answer</b>. That's what makes this O(h) instead of O(n) — dramatically simpler than the general (non-BST) tree version.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">tree = [6,2,8,0,4,7,9], p=2, q=8</span>
+        <button id="lc-reset">↺ Reset</button>
+        <button id="lc-step" class="primary">Step →</button>
+        <button id="lc-run">▶ Run all</button>
+      </div>
+
+      <svg id="lc-svg" class="tree-svg" width="400" height="220" viewBox="0 0 400 220"></svg>
+
+      <div class="status" id="lc-status">Press "Step" to begin. At root (6): is 2 &lt; 6? yes. Is 8 &lt; 6? no. → they split here.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> currently visiting</span>
+        <span><span class="dot" style="background:var(--accent)"></span> the LCA (answer)</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why this is much simpler than general-tree LCA:</b> in a plain binary tree (no ordering), finding the LCA requires searching both subtrees for each target and combining results — O(n) with no shortcuts. The BST's ordering removes all that ambiguity: comparing values against the current node tells you definitively which single direction to go.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Walk Using BST Ordering · O(h) time, O(1) space (iterative)</h3>
+      <pre><code>def lowest_common_ancestor(root, p, q):
+    node = root
+    while node:
+        if p < node.val and q < node.val:
+            node = node.left           # both smaller -> LCA is further left
+        elif p > node.val and q > node.val:
+            node = node.right          # both larger -> LCA is further right
+        else:
+            return node.val            # split point (or a match) -> this IS the LCA
+    return -1</code></pre>
+      <p class="note" style="color:var(--dim);">Walks down at most one path to the split point → <b>O(h)</b> time. Iterative version needs no extra structures → <b>O(1)</b> space (recursive version is O(h) for the call stack).</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ============ Shared tree drawing helper ============
+function drawTree(svgId, nodes, edges){
+  const svg = document.getElementById(svgId);
+  let content = '';
+  edges.forEach(([x1,y1,x2,y2])=>{
+    content += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#2a3438" stroke-width="2"/>`;
+  });
+  nodes.forEach(n=>{
+    let fill = '#1c2528', stroke = '#2a3438', textColor='#e8edee';
+    if (n.state==='current'){ fill='rgba(224,164,88,0.25)'; stroke='#e0a458'; }
+    if (n.state==='done'){ fill='rgba(95,179,163,0.22)'; stroke='#5fb3a3'; }
+    if (n.state==='match'){ fill='rgba(95,179,163,0.32)'; stroke='#5fb3a3'; textColor='#5fb3a3'; }
+    if (n.state==='invalid'){ fill='rgba(217,115,106,0.28)'; stroke='#d9736a'; textColor='#d9736a'; }
+    content += `<circle cx="${n.x}" cy="${n.y}" r="19" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+    content += `<text x="${n.x}" y="${n.y+5}" text-anchor="middle" font-family="SF Mono, monospace" font-size="14" fill="${textColor}" font-weight="600">${n.val}</text>`;
+    if (n.range){
+      content += `<text x="${n.x}" y="${n.y-26}" text-anchor="middle" font-family="SF Mono, monospace" font-size="10" fill="#8fa0a6">${n.range}</text>`;
+    }
+  });
+  svg.innerHTML = content;
+}
+
+// ================= VALIDATE BST =================
+// tree: 5 -> (1), (4 -> 3,6)   -- 4 is in 5's left... wait let's match the example [5,1,4,null,null,3,6]
+// Actually per LeetCode level-order: 5's left=1, right=4; 4's left=3, right=6
+const vbTreeDef = {
+  5: {left:1, right:4, x:200, y:40},
+  1: {left:null, right:null, x:100, y:120},
+  4: {left:3, right:6, x:300, y:120},
+  3: {left:null, right:null, x:250, y:190},
+  6: {left:null, right:null, x:350, y:190},
+};
+const vbEdges = [[200,40,100,120],[200,40,300,120],[300,120,250,190],[300,120,350,190]];
+
+const vbSteps = [
+  {node:5, low:'-∞', high:'∞', pass:true},
+  {node:1, low:'-∞', high:'5', pass:true},
+  {node:4, low:'5', high:'∞', pass:false},
+];
+let vbStepIdx = 0;
+let vbCurrent = null;
+let vbChecked = {};
+let vbDone = false;
+let vbFailed = false;
+
+function renderVB(){
+  const nodes = Object.entries(vbTreeDef).map(([id,n])=>{
+    id = parseInt(id);
+    let state = 'normal';
+    let range = null;
+    if (id in vbChecked){
+      state = vbChecked[id] ? 'done' : 'invalid';
+      range = vbRangeLabels[id];
+    }
+    if (id === vbCurrent && !vbDone) { state = 'current'; range = vbRangeLabels[id]; }
+    return {id, val:id, x:n.x, y:n.y, state, range};
+  });
+  drawTree('vb-svg', nodes, vbEdges);
+}
+
+let vbRangeLabels = {};
+
+function vbStep(){
+  if (vbDone) return;
+  const statusEl = document.getElementById('vb-status');
+  if (vbStepIdx >= vbSteps.length){
+    statusEl.textContent = `Done! Tree is NOT a valid BST — node 4's range (5, ∞) requires it to be > 5, but 4 < 5.`;
+    statusEl.classList.add('lose');
+    vbDone = true;
+    document.getElementById('vb-step').disabled = true;
+    vbCurrent = null;
+    renderVB();
+    return;
+  }
+  const step = vbSteps[vbStepIdx];
+  vbCurrent = step.node;
+  vbRangeLabels[step.node] = `(${step.low}, ${step.high})`;
+  if (step.pass){
+    statusEl.textContent = `Node ${step.node}: must be in range (${step.low}, ${step.high}). ${step.node} fits → OK, continue.`;
+    vbChecked[step.node] = true;
+  } else {
+    statusEl.textContent = `Node ${step.node}: must be in range (${step.low}, ${step.high}). ${step.node} does NOT fit (needs to be > ${step.low}) → VIOLATION!`;
+    vbChecked[step.node] = false;
+    vbFailed = true;
+  }
+  vbStepIdx++;
+  renderVB();
+}
+
+function vbReset(){
+  vbStepIdx=0; vbCurrent=null; vbChecked={}; vbDone=false; vbFailed=false; vbRangeLabels={};
+  document.getElementById('vb-step').disabled = false;
+  document.getElementById('vb-status').className = 'status';
+  document.getElementById('vb-status').textContent = 'Press "Step" to begin. Checking root (5): range (−∞, ∞).';
+  renderVB();
+}
+
+document.getElementById('vb-step').onclick = vbStep;
+document.getElementById('vb-reset').onclick = vbReset;
+document.getElementById('vb-run').onclick = ()=>{
+  vbReset();
+  const iv = setInterval(()=>{ vbStep(); if (vbDone) clearInterval(iv); }, 800);
+};
+renderVB();
+
+// ================= KTH SMALLEST =================
+// tree: 5 -> (3 -> 2->1, 4), (6)   matches [5,3,6,2,4,null,null,1]
+const ksTreeDef = {
+  5: {left:3, right:6, x:200, y:40},
+  3: {left:2, right:4, x:120, y:110},
+  6: {left:null, right:null, x:280, y:110},
+  2: {left:1, right:null, x:70, y:180},
+  4: {left:null, right:null, x:170, y:180},
+  1: {left:null, right:null, x:40, y:230},
+};
+const ksEdges = [
+  [200,40,120,110],[200,40,280,110],
+  [120,110,70,180],[120,110,170,180],
+  [70,180,40,230],
+];
+// In-order sequence: 1, 2, 3, 4, 5, 6
+const ksInorderSeq = [1,2,3,4,5,6];
+const ksK = 3;
+let ksIdx = 0;
+let ksVisited = [];
+let ksDone = false;
+
+function renderKS(){
+  const nodes = Object.entries(ksTreeDef).map(([id,n])=>{
+    id = parseInt(id);
+    let state = 'normal';
+    if (ksVisited.includes(id)) state = 'done';
+    if (ksVisited.length && ksVisited[ksVisited.length-1]===id && !ksDone) state = 'current';
+    if (ksDone && ksVisited.length===ksK && ksVisited[ksK-1]===id) state = 'match';
+    return {id, val:id, x:n.x, y:n.y, state};
+  });
+  drawTree('ks-svg', nodes, ksEdges);
+  document.getElementById('ks-count').textContent = ksVisited.length;
+
+  const seqEl = document.getElementById('ks-seq');
+  seqEl.innerHTML = '';
+  ksVisited.forEach((v,i)=>{
+    const chip = document.createElement('div');
+    chip.className = 'seq-chip' + (i===ksK-1 && ksDone ? ' answer' : ' visited');
+    chip.textContent = v;
+    seqEl.appendChild(chip);
+  });
+}
+
+function ksStep(){
+  if (ksDone) return;
+  const statusEl = document.getElementById('ks-status');
+  if (ksIdx >= ksInorderSeq.length || ksVisited.length >= ksK){
+    statusEl.textContent = `Done! The ${ksK}rd smallest value is ${ksVisited[ksK-1]}. Stopped immediately — no need to visit the rest of the tree.`;
+    statusEl.classList.add('win');
+    ksDone = true;
+    document.getElementById('ks-step').disabled = true;
+    renderKS();
+    return;
+  }
+  const val = ksInorderSeq[ksIdx];
+  ksVisited.push(val);
+  let msg = `In-order visits ${val} (count = ${ksVisited.length}).`;
+  if (ksVisited.length === ksK){
+    msg += ` count == k(${ksK}) → this is the answer! Stop here.`;
+  }
+  statusEl.textContent = msg;
+  ksIdx++;
+  renderKS();
+}
+
+function ksReset(){
+  ksIdx=0; ksVisited=[]; ksDone=false;
+  document.getElementById('ks-step').disabled = false;
+  document.getElementById('ks-status').className = 'status';
+  document.getElementById('ks-status').textContent = 'Press "Step" to begin. In-order walk starting from root (5), diving left first.';
+  renderKS();
+}
+
+document.getElementById('ks-step').onclick = ksStep;
+document.getElementById('ks-reset').onclick = ksReset;
+document.getElementById('ks-run').onclick = ()=>{
+  ksReset();
+  const iv = setInterval(()=>{ ksStep(); if (ksDone) clearInterval(iv); }, 600);
+};
+renderKS();
+
+// ================= LOWEST COMMON ANCESTOR =================
+// tree: 6 -> (2 -> 0,4), (8 -> 7,9)
+const lcTreeDef = {
+  6: {left:2, right:8, x:200, y:40},
+  2: {left:0, right:4, x:100, y:120},
+  8: {left:7, right:9, x:300, y:120},
+  0: {left:null, right:null, x:50, y:190},
+  4: {left:null, right:null, x:150, y:190},
+  7: {left:null, right:null, x:250, y:190},
+  9: {left:null, right:null, x:350, y:190},
+};
+const lcEdges = [
+  [200,40,100,120],[200,40,300,120],
+  [100,120,50,190],[100,120,150,190],
+  [300,120,250,190],[300,120,350,190],
+];
+const lcP = 2, lcQ = 8;
+const lcSteps = [
+  {node:6, isAnswer:true},
+];
+let lcStepIdx = 0;
+let lcCurrent = null;
+let lcAnswer = null;
+let lcDone = false;
+
+function renderLC(){
+  const nodes = Object.entries(lcTreeDef).map(([id,n])=>{
+    id = parseInt(id);
+    let state = 'normal';
+    if (id === lcCurrent && !lcDone) state = 'current';
+    if (lcAnswer === id) state = 'match';
+    return {id, val:id, x:n.x, y:n.y, state};
+  });
+  drawTree('lc-svg', nodes, lcEdges);
+}
+
+function lcStep(){
+  if (lcDone) return;
+  const statusEl = document.getElementById('lc-status');
+  if (lcStepIdx >= lcSteps.length){
+    statusEl.textContent = `Done! LCA(${lcP}, ${lcQ}) = ${lcAnswer}.`;
+    statusEl.classList.add('win');
+    lcDone = true;
+    document.getElementById('lc-step').disabled = true;
+    lcCurrent = null;
+    renderLC();
+    return;
+  }
+  const step = lcSteps[lcStepIdx];
+  lcCurrent = step.node;
+  const nodeVal = step.node;
+  const pSmaller = lcP < nodeVal, qSmaller = lcQ < nodeVal;
+  let msg;
+  if (pSmaller && qSmaller){
+    msg = `At node ${nodeVal}: ${lcP} < ${nodeVal} and ${lcQ} < ${nodeVal} → both smaller, go LEFT.`;
+  } else if (!pSmaller && lcP > nodeVal && !qSmaller && lcQ > nodeVal){
+    msg = `At node ${nodeVal}: both ${lcP} and ${lcQ} > ${nodeVal} → both larger, go RIGHT.`;
+  } else {
+    msg = `At node ${nodeVal}: ${lcP} ${pSmaller?'<':'≥'} ${nodeVal}, ${lcQ} ${qSmaller?'<':'≥'} ${nodeVal} → they split here (or one equals ${nodeVal})! This IS the LCA.`;
+    lcAnswer = nodeVal;
+  }
+  statusEl.textContent = msg;
+  lcStepIdx++;
+  renderLC();
+}
+
+function lcReset(){
+  lcStepIdx=0; lcCurrent=null; lcAnswer=null; lcDone=false;
+  document.getElementById('lc-step').disabled = false;
+  document.getElementById('lc-status').className = 'status';
+  document.getElementById('lc-status').textContent = 'Press "Step" to begin. At root (6): is 2 < 6? yes. Is 8 < 6? no. → they split here.';
+  renderLC();
+}
+
+document.getElementById('lc-step').onclick = lcStep;
+document.getElementById('lc-reset').onclick = lcReset;
+document.getElementById('lc-run').onclick = ()=>{
+  lcReset();
+  const iv = setInterval(()=>{ lcStep(); if (lcDone) clearInterval(iv); }, 700);
+};
+renderLC();
+</script>
+</body>
+</html>

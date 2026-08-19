@@ -101,13 +101,30 @@
   .ivbar{fill:var(--accent-soft);stroke:var(--border);stroke-width:1.5}
   .ivbar.hi{fill:var(--hi);stroke:var(--hi-bd)} .ivbar.good{fill:var(--good);stroke:var(--good-bd)}
   .ivbar.bad{fill:var(--bad);stroke:var(--bad-bd)} .ivbar.dim{opacity:.3}
+  .trace-title{font-size:13px;color:var(--muted);font-weight:600;margin:16px 0 6px}
+  .trace-wrap{overflow-x:auto}
+  table.trace{border-collapse:collapse;width:100%;font-size:13.5px;min-width:480px}
+  table.trace th,table.trace td{border:1px solid var(--border);padding:6px 10px;text-align:center;white-space:nowrap}
+  table.trace th{background:var(--accent-soft);color:var(--fg);font-weight:600}
+  table.trace td.match{background:var(--good);border-color:var(--good-bd);font-weight:700}
+  table.trace td.rule{color:var(--muted)}
+  table.trace tr.final td{background:var(--good);border-color:var(--good-bd);font-weight:700}
 </style>
 </head>
 <body><div class="wrap">
 <div class="top"><a class="back" href="index.html">← All Interval problems</a><span class="tag"><span class="dot" style="background:#22c55e"></span> Easy · Interval</span></div>
 <h1>252 · Meeting Rooms</h1>
 <p class="lead">Can you attend all?</p>
-<div class="card"><h2 style="margin-top:.2em">The problem, in plain words</h2><p class="big">Can one person attend all meetings (no overlaps)?</p><div class="idea">Sort by start; a clash can only be between consecutive meetings.</div><div class="legend"><span><span class="sw" style="background:var(--hi);border-color:var(--hi-bd)"></span>looking at</span><span><span class="sw" style="background:var(--seen);border-color:var(--seen-bd)"></span>remembered / kept</span><span><span class="sw" style="background:var(--good);border-color:var(--good-bd)"></span>match / answer</span><span><span class="sw" style="background:var(--bad);border-color:var(--bad-bd)"></span>ruled out</span></div></div><div class="card"><h2>The smart way — sort, check neighbors</h2><div class="idea">Sort by start time. If any meeting starts before the previous one ends, they overlap — so the person can’t attend all.</div><div class="viz" id="mr-viz"></div><div class="badges" id="mr-b"></div><div class="caption" id="mr-cap"></div><div class="controls" data-player="mr"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="mr-count"></span></div><p class="speed"><b>Speed:</b> sort + scan — <code>O(n log n)</code>.</p></div><div class="card"><h2>When you'd use this</h2>See <b>"any overlap / attend all"</b>? Sort by start, check neighbors.<p><a href="patterns.html">→ See all the Interval patterns and how to use them in an interview</a></p></div>
+<div class="card"><h2 style="margin-top:.2em">The problem, in plain words</h2><p class="big">Can one person attend all meetings (no overlaps)?</p><div class="idea">Sort by start; a clash can only be between consecutive meetings.</div><div class="legend"><span><span class="sw" style="background:var(--hi);border-color:var(--hi-bd)"></span>looking at</span><span><span class="sw" style="background:var(--seen);border-color:var(--seen-bd)"></span>remembered / kept</span><span><span class="sw" style="background:var(--good);border-color:var(--good-bd)"></span>match / answer</span><span><span class="sw" style="background:var(--bad);border-color:var(--bad-bd)"></span>ruled out</span></div></div><div class="card"><h2>The smart way — sort, check neighbors</h2><div class="idea">Sort by start time. If any meeting starts before the previous one ends, they overlap — so the person can’t attend all.</div><div class="viz" id="mr-viz"></div><div class="badges" id="mr-b"></div><div class="caption" id="mr-cap"></div><div class="controls" data-player="mr"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="mr-count"></span></div><p class="speed"><b>Speed:</b> sort + scan — <code>O(n log n)</code>.</p>
+<div class="trace-title">Step-by-step trace — sorted meetings = [0,30], [5,10], [15,20]</div>
+<div class="trace-wrap">
+<table class="trace">
+  <tr><th>Step</th><th>i</th><th>Meeting[i]</th><th>Meeting[i-1]</th><th>start[i] &lt; end[i-1]?</th><th>Decision</th></tr>
+  <tr class="final"><td>1</td><td>1</td><td>[5,10]</td><td>[0,30]</td><td>5 &lt; 30 → yes</td><td>Overlap found → stop, can't attend all meetings</td></tr>
+</table>
+</div>
+<p style="color:var(--muted);font-size:13px;margin-top:6px">The scan stops as soon as one clash is found — [15,20] is never even checked, since one conflict is enough to answer "no".</p>
+</div><div class="card"><h2>When you'd use this</h2>See <b>"any overlap / attend all"</b>? Sort by start, check neighbors.<p><a href="patterns.html">→ See all the Interval patterns and how to use them in an interview</a></p></div>
 </div>
 <script>
 "use strict";

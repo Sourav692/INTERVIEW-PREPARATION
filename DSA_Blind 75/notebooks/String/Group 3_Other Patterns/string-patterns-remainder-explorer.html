@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hashing · Two Pointers · Stack · Encoding — Remaining String Patterns</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:1020px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 14px; cursor:pointer; color:var(--dim); font-size:0.85rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .array{display:flex; gap:5px; margin:26px 0 10px; flex-wrap:wrap;}
+  .cell{width:42px; height:48px; border:1.5px solid var(--line); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.98rem; position:relative; background:var(--panel2); transition: all 0.2s;}
+  .cell .idx{position:absolute; top:-19px; font-size:0.65rem; color:var(--dim); font-family:var(--mono);}
+  .cell .ptr{position:absolute; bottom:-19px; font-size:0.68rem; font-weight:700; font-family:var(--mono); white-space:nowrap;}
+  .cell.current{border-color:var(--accent2); box-shadow:0 0 0 2px rgba(224,164,88,0.25);}
+  .cell.left{border-color:var(--accent2);}
+  .cell.right{border-color:var(--purple);}
+  .cell.skip{opacity:0.3; text-decoration:line-through;}
+  .cell.match{background:rgba(95,179,163,0.28); border-color:var(--accent); color:var(--accent);}
+  .cell.mismatch{background:rgba(217,115,106,0.22); border-color:var(--danger); color:var(--danger);}
+  .status{font-family:var(--mono); font-size:0.85rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .status.lose{border-left-color:var(--danger); color:var(--danger);}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.85rem;}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 11px; min-width:100px;}
+  .tracker .lbl{color:var(--dim); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.02rem; font-weight:600;}
+  .counts{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0;}
+  .countchip{font-family:var(--mono); font-size:0.78rem; background:var(--panel2); border:1px solid var(--line); border-radius:6px; padding:4px 9px;}
+  .buckets{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+  .bucket{background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:10px 14px;}
+  .bucket .key{font-family:var(--mono); font-size:0.75rem; color:var(--dim); margin-bottom:6px;}
+  .bucket .words{display:flex; gap:6px; flex-wrap:wrap;}
+  .word-chip{font-family:var(--mono); font-size:0.85rem; background:rgba(95,179,163,0.18); border:1px solid var(--accent); color:var(--accent); border-radius:6px; padding:4px 10px;}
+  .stack-viz{display:flex; flex-direction:column-reverse; gap:4px; width:120px; min-height:170px; border:1px dashed var(--line); border-radius:8px; padding:8px; justify-content:flex-start;}
+  .stack-item{background:rgba(163,148,217,0.2); border:1.5px solid var(--purple); color:var(--purple); font-family:var(--mono); font-size:1.1rem; text-align:center; padding:8px; border-radius:6px; font-weight:700;}
+  .stack-row{display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;}
+  .encoded-str{font-family:var(--mono); font-size:0.95rem; background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; word-break:break-all; line-height:1.6;}
+  .encoded-str .highlight{background:rgba(95,179,163,0.28); color:var(--accent); padding:1px 2px; border-radius:3px;}
+  .encoded-str .sep{color:var(--danger); font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Hashing · Two Pointers · Stack · Encoding</h1>
+  <div class="sub">Valid Anagram · Group Anagrams · Valid Palindrome · Valid Parentheses · Encode &amp; Decode Strings</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="validanagram">Valid Anagram</div>
+    <div class="tab" data-tab="groupanagrams">Group Anagrams</div>
+    <div class="tab" data-tab="validpalindrome">Valid Palindrome</div>
+    <div class="tab" data-tab="validparens">Valid Parentheses</div>
+    <div class="tab" data-tab="encodedecode">Encode &amp; Decode</div>
+  </div>
+
+  <!-- VALID ANAGRAM -->
+  <div class="panel active" id="panel-validanagram">
+    <div class="card">
+      <h3>The core flip — compare recipes, not letters</h3>
+      <p>Two words are anagrams iff they use the exact same letters the same number of times. Instead of comparing the words directly, tally each letter's count from <code>s</code>, then "spend" one from that tally for each letter of <code>t</code>. If anything is left over — or <code>t</code> needs a letter <code>s</code> never had — they don't match.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">s = "anagram", t = "nagaram"</span>
+        <button id="va-reset">↺ Reset</button>
+        <button id="va-step" class="primary">Step →</button>
+        <button id="va-run">▶ Run all</button>
+      </div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:16px;">s (build counts)</div>
+      <div class="array" id="va-s" style="margin-top:6px;"></div>
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:16px;">t (spend counts)</div>
+      <div class="array" id="va-t" style="margin-top:6px;"></div>
+
+      <div class="counts" id="va-counts"></div>
+
+      <div class="status" id="va-status">Press "Step" to begin. Phase 1: tally letters of s.</div>
+    </div>
+
+    <div class="why">
+      <b>Why check length first:</b> different lengths can never be anagrams — checking upfront avoids wasted work and handles an edge case the counting loop alone wouldn't catch cleanly.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Letter Counting · O(n) time, O(1) space</h3>
+      <pre><code>def is_anagram(s: str, t: str) -> bool:
+    if len(s) != len(t):
+        return False
+    count = {}
+    for c in s:
+        count[c] = count.get(c, 0) + 1
+    for c in t:
+        if c not in count:
+            return False
+        count[c] -= 1
+        if count[c] == 0:
+            del count[c]
+    return len(count) == 0</code></pre>
+      <p class="note" style="color:var(--dim);">Two linear passes → <b>O(n)</b> time. Count map bounded by the alphabet (26 lowercase letters) → <b>O(1)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- GROUP ANAGRAMS -->
+  <div class="panel" id="panel-groupanagrams">
+    <div class="card">
+      <h3>The core flip — fingerprint, then bucket</h3>
+      <p>Turn each word into a canonical form that every anagram shares — its <b>sorted letters</b> — then group words by that fingerprint in a hash map. Anagrams collide into the same bucket automatically.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">["eat","tea","tan","ate","nat","bat"]</span>
+        <button id="ga-reset">↺ Reset</button>
+        <button id="ga-step" class="primary">Step →</button>
+        <button id="ga-run">▶ Run all</button>
+      </div>
+
+      <div class="status" id="ga-status" style="margin-top:16px;">Press "Step" to begin. Processing word 0: "eat".</div>
+
+      <div class="buckets" id="ga-buckets"></div>
+    </div>
+
+    <div class="why">
+      <b>Why sorted letters (or letter counts) work as a key:</b> sorting is order-independent — <code>"eat"</code> and <code>"tea"</code> both sort to <code>"aet"</code>. A 26-length count tuple works too, and avoids the <code>O(k log k)</code> sort cost, trading it for a flat <code>O(k)</code> tally — the optimal version in the code below.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Letter-Count Key · O(n·k) time, O(n·k) space</h3>
+      <pre><code>from collections import defaultdict
+
+def group_anagrams(strs: list[str]) -> list[list[str]]:
+    groups = defaultdict(list)
+    for w in strs:
+        counts = [0] * 26
+        for c in w:
+            counts[ord(c) - ord('a')] += 1
+        groups[tuple(counts)].append(w)     # tuple is hashable -> valid dict key
+    return list(groups.values())</code></pre>
+      <p class="note" style="color:var(--dim);">n words of length up to k → <b>O(n·k)</b> time (no sort needed, just a flat tally). Storing all words in buckets → <b>O(n·k)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- VALID PALINDROME -->
+  <div class="panel" id="panel-validpalindrome">
+    <div class="card">
+      <h3>The core flip — mirror comparison from both ends</h3>
+      <p>A palindrome reads the same forwards and backwards, so the first useful character must equal the last, the second must equal the second-last, and so on. Two pointers close in from both ends, <b>skipping</b> anything that isn't a letter or digit.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">s = "A man, a plan, a canal: Panama"</span>
+        <button id="vp-reset">↺ Reset</button>
+        <button id="vp-step" class="primary">Step →</button>
+        <button id="vp-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="vp-array"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">i (left)</span><span class="val" id="vp-i" style="color:var(--accent2);">0</span></div>
+        <div class="tracker"><span class="lbl">j (right)</span><span class="val" id="vp-j" style="color:var(--purple);">−</span></div>
+      </div>
+
+      <div class="status" id="vp-status">Press "Step" to begin. i=0, j=last index.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> i (left pointer)</span>
+        <span><span class="dot" style="background:var(--purple)"></span> j (right pointer)</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.28); border:1px solid var(--accent)"></span> matched pair</span>
+        <span><span class="dot" style="background:var(--panel2); border:1px solid var(--line)"></span> skipped (not alnum)</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why filter while scanning instead of building a cleaned copy first:</b> the two-pointer version needs zero extra memory — it just skips non-alphanumeric characters in place on both sides before each comparison, achieving the same result as a "clean, then reverse and compare" approach but in O(1) space instead of O(n).
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Two Pointers, In-Place · O(n) time, O(1) space</h3>
+      <pre><code>def is_palindrome(s: str) -> bool:
+    i, j = 0, len(s) - 1
+    while i < j:
+        while i < j and not s[i].isalnum():
+            i += 1                    # skip non-letters/digits on the left
+        while i < j and not s[j].isalnum():
+            j -= 1                    # skip non-letters/digits on the right
+        if s[i].lower() != s[j].lower():
+            return False               # mirror mismatch -> not a palindrome
+        i += 1; j -= 1
+    return True</code></pre>
+      <p class="note" style="color:var(--dim);">Pointers only move inward, each index visited once → <b>O(n)</b> time. No extra copy of the string → <b>O(1)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- VALID PARENTHESES -->
+  <div class="panel" id="panel-validparens">
+    <div class="card">
+      <h3>The core flip — most-recent opener closes first</h3>
+      <p>Brackets nest like boxes inside boxes: the <b>last</b> one you open must be the <b>first</b> you close. A stack remembers openers in exactly that order — push every opener, and when a closer arrives it must match whatever is currently on top.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">s = "{[()]}"</span>
+        <button id="vpar-reset">↺ Reset</button>
+        <button id="vpar-step" class="primary">Step →</button>
+        <button id="vpar-run">▶ Run all</button>
+      </div>
+
+      <div class="stack-row">
+        <div>
+          <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Input</div>
+          <div class="array" id="vpar-array" style="margin-top:22px;"></div>
+        </div>
+        <div>
+          <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Stack (top at top)</div>
+          <div class="stack-viz" id="vpar-stack"></div>
+        </div>
+      </div>
+
+      <div class="status" id="vpar-status" style="margin-top:16px;">Press "Step" to begin. i=0.</div>
+    </div>
+
+    <div class="why">
+      <b>Two failure modes to catch:</b> a closer arriving when the stack is <em>empty</em> (nothing to close), or a closer whose type doesn't match the top of the stack (wrong pairing, like <code>"([)]"</code>). At the end, the stack must also be completely empty — leftover openers mean something was never closed.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Stack · O(n) time, O(n) space</h3>
+      <pre><code>def is_valid(s: str) -> bool:
+    match = {")": "(", "]": "[", "}": "{"}
+    stack = []
+    for c in s:
+        if c in match:                # c is a CLOSER
+            if not stack or stack[-1] != match[c]:
+                return False           # nothing to close, or wrong type
+            stack.pop()
+        else:                          # c is an OPENER
+            stack.append(c)
+    return not stack                   # valid only if every opener was closed</code></pre>
+      <p class="note" style="color:var(--dim);">Single pass, O(1) work per character → <b>O(n)</b> time. Stack holds at most n openers → <b>O(n)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- ENCODE AND DECODE STRINGS -->
+  <div class="panel" id="panel-encodedecode">
+    <div class="card">
+      <h3>The core flip — say the size before the content</h3>
+      <p>Packing a list of strings into one string is dangerous with a plain separator — the data itself might contain that separator. The fix: write each string's <b>length</b> before it, so decoding always knows exactly how many characters to read, no matter what those characters are.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">["lint", "code"]</span>
+        <button id="ed-reset">↺ Reset</button>
+        <button id="ed-step" class="primary">Step →</button>
+        <button id="ed-run">▶ Run all</button>
+      </div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:16px;">Encoding</div>
+      <div class="encoded-str" id="ed-encoded" style="margin-top:6px;">(not started)</div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:16px;">Decoded so far</div>
+      <div class="counts" id="ed-decoded"></div>
+
+      <div class="status" id="ed-status" style="margin-top:12px;">Press "Step" to begin. Encoding word 0: "lint".</div>
+    </div>
+
+    <div class="why">
+      <b>Why a naive separator (like <code>"#"</code>) breaks:</b> if any input string itself contains <code>"#"</code>, decoding can't tell whether that <code>#</code> is a real separator or part of the data. Try encoding <code>["a#b"]</code> naively — splitting on <code>"#"</code> silently corrupts it into two strings, <code>["a", "b"]</code>, and the original is lost.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Length-Prefix Encoding · O(total length) time &amp; space</h3>
+      <pre><code>def encode(strs: list[str]) -> str:
+    parts = []
+    for w in strs:
+        parts.append(str(len(w)) + "#" + w)   # "<length>#<content>"
+    return "".join(parts)
+
+def decode(s: str) -> list[str]:
+    res = []
+    i = 0
+    while i < len(s):
+        j = i
+        while s[j] != "#":            # read digits up to the '#' marker
+            j += 1
+        length = int(s[i:j])          # those digits are the content length
+        start = j + 1
+        res.append(s[start:start + length])   # read exactly `length` chars — any char is safe
+        i = start + length
+    return res</code></pre>
+      <p class="note" style="color:var(--dim);">Every character is written and read exactly once → <b>O(total length)</b> time and space. Because the reader is told exactly how far to read, the content can safely contain <em>any</em> character, including the <code>#</code> marker itself.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ================= VALID ANAGRAM =================
+const vaS = "anagram", vaT = "nagaram";
+let vaPhase = 1; // 1 = tally s, 2 = spend t
+let vaI = 0;
+let vaCount = {};
+let vaDone = false;
+let vaFailed = false;
+
+function renderVA(){
+  const sEl = document.getElementById('va-s');
+  sEl.innerHTML = '';
+  [...vaS].forEach((ch,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (vaPhase===1 && idx===vaI && !vaDone) cell.classList.add('current');
+    else if (vaPhase>1 || idx<vaI) cell.classList.add('match');
+    cell.innerHTML = `<span class="idx">${idx}</span>${ch}`;
+    sEl.appendChild(cell);
+  });
+  const tEl = document.getElementById('va-t');
+  tEl.innerHTML = '';
+  [...vaT].forEach((ch,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (vaPhase===2 && idx===vaI && !vaDone) cell.classList.add('current');
+    else if (vaPhase===2 && idx<vaI) cell.classList.add('match');
+    cell.innerHTML = `<span class="idx">${idx}</span>${ch}`;
+    tEl.appendChild(cell);
+  });
+  const countsEl = document.getElementById('va-counts');
+  countsEl.innerHTML = '';
+  Object.entries(vaCount).forEach(([k,v])=>{
+    const chip = document.createElement('div');
+    chip.className = 'countchip';
+    chip.textContent = `${k}: ${v}`;
+    countsEl.appendChild(chip);
+  });
+  if (Object.keys(vaCount).length===0 && vaPhase===2) {
+    const chip = document.createElement('div');
+    chip.className = 'countchip';
+    chip.style.color = 'var(--accent)';
+    chip.textContent = '(empty — all matched)';
+    countsEl.appendChild(chip);
+  }
+}
+
+function vaStep(){
+  if (vaDone) return;
+  const statusEl = document.getElementById('va-status');
+
+  if (vaPhase === 1){
+    if (vaI >= vaS.length){
+      vaPhase = 2; vaI = 0;
+      statusEl.textContent = `Tally complete. Phase 2: spend counts using t.`;
+      renderVA();
+      return;
+    }
+    const c = vaS[vaI];
+    vaCount[c] = (vaCount[c]||0)+1;
+    statusEl.textContent = `s[${vaI}] = '${c}'. count['${c}'] → ${vaCount[c]}.`;
+    vaI++;
+    renderVA();
+    return;
+  }
+
+  // Phase 2
+  if (vaI >= vaT.length){
+    const ok = Object.keys(vaCount).length === 0;
+    statusEl.textContent = ok
+      ? `All letters of t spent exactly the counts from s → True, they ARE anagrams.`
+      : `Leftover counts remain: {${Object.entries(vaCount).map(([k,v])=>`${k}:${v}`).join(', ')}} → False, NOT anagrams.`;
+    statusEl.classList.add(ok ? 'win' : 'lose');
+    vaDone = true;
+    document.getElementById('va-step').disabled = true;
+    renderVA();
+    return;
+  }
+  const c = vaT[vaI];
+  if (!(c in vaCount)){
+    statusEl.textContent = `t[${vaI}] = '${c}'. Not in count map (s never had this letter, or already exhausted) → False, NOT anagrams.`;
+    statusEl.classList.add('lose');
+    vaDone = true; vaFailed = true;
+    document.getElementById('va-step').disabled = true;
+    renderVA();
+    return;
+  }
+  vaCount[c]--;
+  let msg = `t[${vaI}] = '${c}'. Spend one → count['${c}'] = ${vaCount[c]}.`;
+  if (vaCount[c] === 0){
+    delete vaCount[c];
+    msg += ` Exhausted, remove from map.`;
+  }
+  statusEl.textContent = msg;
+  vaI++;
+  renderVA();
+}
+
+function vaReset(){
+  vaPhase=1; vaI=0; vaCount={}; vaDone=false; vaFailed=false;
+  document.getElementById('va-step').disabled = false;
+  document.getElementById('va-status').className = 'status';
+  document.getElementById('va-status').textContent = 'Press "Step" to begin. Phase 1: tally letters of s.';
+  renderVA();
+}
+
+document.getElementById('va-step').onclick = vaStep;
+document.getElementById('va-reset').onclick = vaReset;
+document.getElementById('va-run').onclick = ()=>{
+  vaReset();
+  const iv = setInterval(()=>{ vaStep(); if (vaDone) clearInterval(iv); }, 350);
+};
+renderVA();
+
+// ================= GROUP ANAGRAMS =================
+const gaWords = ["eat","tea","tan","ate","nat","bat"];
+let gaI = 0;
+let gaGroups = {}; // key -> [words]
+let gaDone = false;
+
+function keyOf(w){ return [...w].sort().join(''); }
+
+function renderGA(){
+  const bEl = document.getElementById('ga-buckets');
+  bEl.innerHTML = '';
+  Object.entries(gaGroups).forEach(([k,words])=>{
+    const bucket = document.createElement('div');
+    bucket.className = 'bucket';
+    const keyDiv = document.createElement('div');
+    keyDiv.className = 'key';
+    keyDiv.textContent = `key: "${k}"`;
+    bucket.appendChild(keyDiv);
+    const wordsDiv = document.createElement('div');
+    wordsDiv.className = 'words';
+    words.forEach(w=>{
+      const chip = document.createElement('div');
+      chip.className = 'word-chip';
+      chip.textContent = w;
+      wordsDiv.appendChild(chip);
+    });
+    bucket.appendChild(wordsDiv);
+    bEl.appendChild(bucket);
+  });
+  if (Object.keys(gaGroups).length===0){
+    bEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(no buckets yet)</span>';
+  }
+}
+
+function gaStep(){
+  if (gaDone) return;
+  const statusEl = document.getElementById('ga-status');
+  if (gaI >= gaWords.length){
+    statusEl.textContent = `All words processed. ${Object.keys(gaGroups).length} anagram groups formed.`;
+    statusEl.classList.add('win');
+    gaDone = true;
+    document.getElementById('ga-step').disabled = true;
+    renderGA();
+    return;
+  }
+  const w = gaWords[gaI];
+  const k = keyOf(w);
+  const isNew = !(k in gaGroups);
+  if (isNew) gaGroups[k] = [];
+  gaGroups[k].push(w);
+  statusEl.textContent = `word="${w}" → sorted key = "${k}". ${isNew ? 'New bucket created.' : 'Added to existing bucket (anagram match!).'}`;
+  gaI++;
+  renderGA();
+}
+
+function gaReset(){
+  gaI=0; gaGroups={}; gaDone=false;
+  document.getElementById('ga-step').disabled = false;
+  document.getElementById('ga-status').className = 'status';
+  document.getElementById('ga-status').textContent = 'Press "Step" to begin. Processing word 0: "eat".';
+  renderGA();
+}
+
+document.getElementById('ga-step').onclick = gaStep;
+document.getElementById('ga-reset').onclick = gaReset;
+document.getElementById('ga-run').onclick = ()=>{
+  gaReset();
+  const iv = setInterval(()=>{ gaStep(); if (gaDone) clearInterval(iv); }, 550);
+};
+renderGA();
+
+// ================= VALID PALINDROME =================
+const vpStr = "A man, a plan, a canal: Panama";
+let vpI = 0, vpJ = vpStr.length-1, vpDone = false;
+let vpMatched = new Set();
+let vpSkipped = new Set();
+
+function isAlnum(c){ return /[a-zA-Z0-9]/.test(c); }
+
+function renderVP(){
+  const arrEl = document.getElementById('vp-array');
+  arrEl.innerHTML = '';
+  [...vpStr].forEach((ch,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.style.width = '30px';
+    cell.style.fontSize = '0.82rem';
+    if (vpMatched.has(idx)) cell.classList.add('match');
+    if (vpSkipped.has(idx)) cell.classList.add('skip');
+    let ptr='';
+    if (idx===vpI && !vpDone){ cell.classList.add('left'); ptr='i'; }
+    if (idx===vpJ && !vpDone){ cell.classList.add('right'); ptr = ptr?ptr+'/j':'j'; }
+    cell.innerHTML = `${ch==='  '?'&nbsp;':ch}${ptr?`<span class="ptr" style="color:${idx===vpI?'var(--accent2)':'var(--purple)'}">${ptr}</span>`:''}`;
+    arrEl.appendChild(cell);
+  });
+  document.getElementById('vp-i').textContent = vpI;
+  document.getElementById('vp-j').textContent = vpJ;
+}
+
+function vpStep(){
+  if (vpDone) return;
+  const statusEl = document.getElementById('vp-status');
+  if (vpI >= vpJ){
+    statusEl.textContent = `Pointers met (i=${vpI} ≥ j=${vpJ}) → all mirror pairs matched. Return True — it IS a valid palindrome.`;
+    statusEl.classList.add('win');
+    vpDone = true;
+    document.getElementById('vp-step').disabled = true;
+    renderVP();
+    return;
+  }
+  let msg = '';
+  let movedSkip = false;
+  while (vpI < vpJ && !isAlnum(vpStr[vpI])){
+    vpSkipped.add(vpI);
+    msg += `Skip s[${vpI}]='${vpStr[vpI]}' (not alnum). `;
+    vpI++;
+    movedSkip = true;
+  }
+  while (vpI < vpJ && !isAlnum(vpStr[vpJ])){
+    vpSkipped.add(vpJ);
+    msg += `Skip s[${vpJ}]='${vpStr[vpJ]}' (not alnum). `;
+    vpJ--;
+    movedSkip = true;
+  }
+  if (movedSkip){
+    statusEl.textContent = msg;
+    renderVP();
+    return;
+  }
+  const a = vpStr[vpI].toLowerCase(), b = vpStr[vpJ].toLowerCase();
+  if (a === b){
+    vpMatched.add(vpI); vpMatched.add(vpJ);
+    statusEl.textContent = `s[${vpI}]='${vpStr[vpI]}' vs s[${vpJ}]='${vpStr[vpJ]}' (case-insensitive) → match! Move inward.`;
+    vpI++; vpJ--;
+  } else {
+    statusEl.textContent = `s[${vpI}]='${vpStr[vpI]}' vs s[${vpJ}]='${vpStr[vpJ]}' (case-insensitive) → MISMATCH. Return False.`;
+    statusEl.classList.add('lose');
+    vpDone = true;
+    document.getElementById('vp-step').disabled = true;
+  }
+  renderVP();
+}
+
+function vpReset(){
+  vpI=0; vpJ=vpStr.length-1; vpDone=false; vpMatched=new Set(); vpSkipped=new Set();
+  document.getElementById('vp-step').disabled = false;
+  document.getElementById('vp-status').className = 'status';
+  document.getElementById('vp-status').textContent = 'Press "Step" to begin. i=0, j=last index.';
+  renderVP();
+}
+
+document.getElementById('vp-step').onclick = vpStep;
+document.getElementById('vp-reset').onclick = vpReset;
+document.getElementById('vp-run').onclick = ()=>{
+  vpReset();
+  const iv = setInterval(()=>{ vpStep(); if (vpDone) clearInterval(iv); }, 260);
+};
+renderVP();
+
+// ================= VALID PARENTHESES =================
+const vparStr = "{[()]}";
+const vparMatch = {')':'(', ']':'[', '}':'{'};
+let vparI = 0;
+let vparStack = [];
+let vparDone = false;
+
+function renderVPAR(){
+  const arrEl = document.getElementById('vpar-array');
+  arrEl.innerHTML = '';
+  [...vparStr].forEach((ch,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (idx===vparI && !vparDone) cell.classList.add('current');
+    else if (idx<vparI) cell.classList.add('match');
+    cell.innerHTML = `<span class="idx">${idx}</span>${ch}`;
+    arrEl.appendChild(cell);
+  });
+  const stackEl = document.getElementById('vpar-stack');
+  stackEl.innerHTML = '';
+  vparStack.forEach(c=>{
+    const item = document.createElement('div');
+    item.className = 'stack-item';
+    item.textContent = c;
+    stackEl.appendChild(item);
+  });
+}
+
+function vparStep(){
+  if (vparDone) return;
+  const statusEl = document.getElementById('vpar-status');
+  if (vparI >= vparStr.length){
+    const ok = vparStack.length === 0;
+    statusEl.textContent = ok
+      ? `Reached end of string with an empty stack → True, valid!`
+      : `Reached end with unclosed openers still on the stack: [${vparStack.join(', ')}] → False, invalid.`;
+    statusEl.classList.add(ok?'win':'lose');
+    vparDone = true;
+    document.getElementById('vpar-step').disabled = true;
+    renderVPAR();
+    return;
+  }
+  const c = vparStr[vparI];
+  if (c in vparMatch){
+    // closer
+    if (vparStack.length===0 || vparStack[vparStack.length-1] !== vparMatch[c]){
+      statusEl.textContent = vparStack.length===0
+        ? `'${c}' is a closer but the stack is EMPTY → nothing to close. Return False.`
+        : `'${c}' needs opener '${vparMatch[c]}' but top of stack is '${vparStack[vparStack.length-1]}' → mismatch. Return False.`;
+      statusEl.classList.add('lose');
+      vparDone = true;
+      document.getElementById('vpar-step').disabled = true;
+      renderVPAR();
+      return;
+    }
+    const popped = vparStack.pop();
+    statusEl.textContent = `'${c}' matches top of stack '${popped}' → pop it.`;
+  } else {
+    vparStack.push(c);
+    statusEl.textContent = `'${c}' is an opener → push onto stack.`;
+  }
+  vparI++;
+  renderVPAR();
+}
+
+function vparReset(){
+  vparI=0; vparStack=[]; vparDone=false;
+  document.getElementById('vpar-step').disabled = false;
+  document.getElementById('vpar-status').className = 'status';
+  document.getElementById('vpar-status').textContent = 'Press "Step" to begin. i=0.';
+  renderVPAR();
+}
+
+document.getElementById('vpar-step').onclick = vparStep;
+document.getElementById('vpar-reset').onclick = vparReset;
+document.getElementById('vpar-run').onclick = ()=>{
+  vparReset();
+  const iv = setInterval(()=>{ vparStep(); if (vparDone) clearInterval(iv); }, 500);
+};
+renderVPAR();
+
+// ================= ENCODE AND DECODE STRINGS =================
+const edWords = ["lint","code"];
+let edPhase = 1; // 1 = encoding, 2 = decoding
+let edI = 0;
+let edEncoded = "";
+let edDecodeI = 0;
+let edDecoded = [];
+let edDone = false;
+
+function renderED(){
+  const encEl = document.getElementById('ed-encoded');
+  if (edEncoded === ""){
+    encEl.textContent = '(not started)';
+  } else {
+    encEl.innerHTML = edEncoded;
+  }
+  const decEl = document.getElementById('ed-decoded');
+  decEl.innerHTML = '';
+  edDecoded.forEach(w=>{
+    const chip = document.createElement('div');
+    chip.className = 'countchip';
+    chip.textContent = `"${w}"`;
+    decEl.appendChild(chip);
+  });
+  if (edDecoded.length===0){
+    decEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(none yet)</span>';
+  }
+}
+
+function edStep(){
+  if (edDone) return;
+  const statusEl = document.getElementById('ed-status');
+
+  if (edPhase === 1){
+    if (edI >= edWords.length){
+      edPhase = 2; edDecodeI = 0;
+      statusEl.textContent = `Encoding complete: "${edEncoded}". Now decoding it back...`;
+      renderED();
+      return;
+    }
+    const w = edWords[edI];
+    const chunk = `${w.length}#${w}`;
+    edEncoded += `<span class="sep">${w.length}</span><span class="sep">#</span><span class="highlight">${w}</span>`;
+    statusEl.textContent = `Encode word ${edI} = "${w}" (length ${w.length}) → write "${w.length}#${w}".`;
+    edI++;
+    renderED();
+    return;
+  }
+
+  // Phase 2: decode from the plain concatenated string
+  const plain = edWords.map(w=>`${w.length}#${w}`).join('');
+  if (edDecodeI >= plain.length){
+    const ok = JSON.stringify(edDecoded) === JSON.stringify(edWords);
+    statusEl.textContent = ok
+      ? `Decoding complete: [${edDecoded.map(w=>`"${w}"`).join(', ')}] — exactly matches the original list!`
+      : `Decoding complete but mismatch — check logic.`;
+    statusEl.classList.add(ok?'win':'lose');
+    edDone = true;
+    document.getElementById('ed-step').disabled = true;
+    renderED();
+    return;
+  }
+  // read digits up to '#'
+  let j = edDecodeI;
+  while (plain[j] !== '#') j++;
+  const length = parseInt(plain.slice(edDecodeI, j));
+  const start = j+1;
+  const content = plain.slice(start, start+length);
+  edDecoded.push(content);
+  statusEl.textContent = `Read digits "${plain.slice(edDecodeI,j)}" → length=${length}. Read next ${length} chars starting at index ${start} → "${content}".`;
+  edDecodeI = start + length;
+  renderED();
+}
+
+function edReset(){
+  edPhase=1; edI=0; edEncoded=""; edDecodeI=0; edDecoded=[]; edDone=false;
+  document.getElementById('ed-step').disabled = false;
+  document.getElementById('ed-status').className = 'status';
+  document.getElementById('ed-status').textContent = 'Press "Step" to begin. Encoding word 0: "lint".';
+  renderED();
+}
+
+document.getElementById('ed-step').onclick = edStep;
+document.getElementById('ed-reset').onclick = edReset;
+document.getElementById('ed-run').onclick = ()=>{
+  edReset();
+  const iv = setInterval(()=>{ edStep(); if (edDone) clearInterval(iv); }, 500);
+};
+renderED();
+</script>
+</body>
+</html>

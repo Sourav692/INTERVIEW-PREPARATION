@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Two Pointers — 3Sum / Container With Most Water</title>
+<style>
+  :root{
+    --bg:#0f1416;
+    --panel:#161d20;
+    --panel2:#1c2528;
+    --line:#2a3438;
+    --text:#e8edee;
+    --dim:#8fa0a6;
+    --accent:#5fb3a3;
+    --accent2:#e0a458;
+    --danger:#d9736a;
+    --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family: var(--sans);
+    padding:28px 20px 60px;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line);}
+  .tab{padding:10px 16px; cursor:pointer; color:var(--dim); font-size:0.95rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .array{display:flex; gap:6px; margin:10px 0; flex-wrap:wrap;}
+  .cell{width:52px; height:52px; border:1.5px solid var(--line); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:1rem; position:relative; background:var(--panel2); transition: all 0.25s;}
+  .cell .idx{position:absolute; top:-19px; font-size:0.68rem; color:var(--dim); font-family:var(--mono);}
+  .cell .ptr{position:absolute; bottom:-20px; font-size:0.72rem; font-weight:700; font-family:var(--mono);}
+  .cell.anchor{border-color:var(--purple); background:rgba(163,148,217,0.18); color:var(--purple);}
+  .cell.lo{border-color:var(--accent2); box-shadow:0 0 0 2px rgba(224,164,88,0.25); transform: translateY(-3px);}
+  .cell.hi{border-color:var(--danger); box-shadow:0 0 0 2px rgba(217,115,106,0.25); transform: translateY(-3px);}
+  .cell.found{border-color:var(--accent); background:rgba(95,179,163,0.22); color:var(--accent);}
+  .cell.skipped{opacity:0.35;}
+  .status{font-family:var(--mono); font-size:0.9rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .status.lose{border-left-color:var(--danger); color:var(--danger);}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.9rem;}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  .triples{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+  .triple{font-family:var(--mono); font-size:0.85rem; background:rgba(95,179,163,0.15); border:1px solid var(--accent); color:var(--accent); border-radius:6px; padding:5px 10px;}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.82rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  svg{display:block; margin:14px 0;}
+  .barlabel{font-family:var(--mono); font-size:11px; fill:var(--dim);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Two Pointers Pattern</h1>
+  <div class="sub">3Sum · Container With Most Water — converging pointers driven by a greedy rule</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="threesum">3Sum</div>
+    <div class="tab" data-tab="container">Container With Most Water</div>
+  </div>
+
+  <!-- 3SUM -->
+  <div class="panel active" id="panel-threesum">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Fix one number <code>a</code> as an <b>anchor</b> — the rest becomes a classic 2-Sum for target <code>-a</code>. On a <b>sorted</b> array, two pointers (<code>lo</code>, <code>hi</code>) find every pair summing to <code>-a</code> in one linear sweep, turning the O(n³) triple loop into O(n²). Sortedness also makes duplicate-skipping trivial — just skip equal neighbors.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">nums (sorted) = [-4, -1, -1, 0, 1, 2]</span>
+        <button id="ts3-reset">↺ Reset</button>
+        <button id="ts3-step" class="primary">Step →</button>
+        <button id="ts3-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="ts3-array" style="margin-top:26px;"></div>
+
+      <div class="status" id="ts3-status" style="margin-top:22px;">Press "Step" to begin. Anchor i = 0 (value −4).</div>
+
+      <div class="map-title" style="font-size:0.8rem; color:var(--dim); margin:16px 0 4px; text-transform:uppercase; letter-spacing:0.05em;">Triplets found</div>
+      <div class="triples" id="ts3-triples"></div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--purple)"></span> anchor (i)</span>
+        <span><span class="dot" style="background:var(--accent2)"></span> lo pointer</span>
+        <span><span class="dot" style="background:var(--danger)"></span> hi pointer</span>
+        <span><span class="dot" style="background:var(--accent)"></span> triple found</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why sort first?</b> Sorting (O(n log n)) does double duty: it enables the two-pointer sweep (sum too small → move <code>lo</code> right; too big → move <code>hi</code> left) <em>and</em> makes de-duplication a simple "skip equal neighbors" step — both for the anchor and for <code>lo</code>/<code>hi</code> after a hit.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Sort + Two Pointers · O(n²) time, O(1) extra space</h3>
+      <pre><code>def three_sum(nums: list[int]) -> list[list[int]]:
+    nums = sorted(nums)              # enables two pointers + easy dedup
+    n = len(nums)
+    res = []
+    for i in range(n - 2):           # fix the anchor (smallest of the triple)
+        if nums[i] > 0:
+            break                    # smallest is positive -> can't reach 0
+        if i > 0 and nums[i] == nums[i - 1]:
+            continue                 # skip duplicate anchors
+        lo, hi = i + 1, n - 1
+        while lo < hi:
+            s = nums[i] + nums[lo] + nums[hi]
+            if s < 0:
+                lo += 1               # sum too small -> need a bigger value
+            elif s > 0:
+                hi -= 1               # sum too big -> need a smaller value
+            else:
+                res.append([nums[i], nums[lo], nums[hi]])
+                lo += 1; hi -= 1
+                while lo < hi and nums[lo] == nums[lo - 1]:
+                    lo += 1           # skip duplicate seconds
+                while lo < hi and nums[hi] == nums[hi + 1]:
+                    hi -= 1           # skip duplicate thirds
+    return res</code></pre>
+      <p class="note" style="color:var(--dim);">Anchor loop is O(n); each anchor's two-pointer sweep is O(n) → <b>O(n²)</b> total (sort adds O(n log n), dominated by the n² term). Only pointers used beyond output → <b>O(1)</b> extra space.</p>
+    </div>
+  </div>
+
+  <!-- CONTAINER -->
+  <div class="panel" id="panel-container">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Water held between walls <code>i</code> and <code>j</code> is <code>min(height[i], height[j]) × (j - i)</code> — capped by the <b>shorter</b> wall. Start at the widest possible container (both ends). As width can only shrink from here, the <em>only</em> move that could ever increase area is raising the shorter wall — moving the taller one can never help, since width shrinks either way and height stays capped by the same short wall or gets worse.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">height = [1, 8, 6, 2, 5, 4, 8, 3, 7]</span>
+        <button id="cw-reset">↺ Reset</button>
+        <button id="cw-step" class="primary">Step →</button>
+        <button id="cw-run">▶ Run all</button>
+      </div>
+
+      <svg id="cw-svg" width="100%" height="220" viewBox="0 0 470 220"></svg>
+
+      <div class="status" id="cw-status">Press "Step" to begin. lo = 0, hi = 8 (widest container).</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> lo (shorter → moves)</span>
+        <span><span class="dot" style="background:var(--danger)"></span> hi</span>
+        <span><span class="dot" style="background:var(--accent)"></span> current best area</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Greedy proof sketch:</b> the container is bounded by its shorter wall. Keeping that shorter wall and shrinking the width can only <em>decrease</em> area — so no better container uses that wall at this width again. It's provably safe to discard it and move inward.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Two Pointers · O(n) time, O(1) space</h3>
+      <pre><code>def max_area(height: list[int]) -> int:
+    lo, hi = 0, len(height) - 1      # start with the two widest walls
+    best = 0
+    while lo < hi:
+        area = min(height[lo], height[hi]) * (hi - lo)
+        best = max(best, area)
+        if height[lo] < height[hi]:  # move the SHORTER wall inward...
+            lo += 1                  # ...only move that can improve area
+        else:
+            hi -= 1
+    return best</code></pre>
+      <p class="note" style="color:var(--dim);">Single pass, pointers only move inward → each index visited once → <b>O(n)</b> time. Two integer pointers → <b>O(1)</b> space.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Tabs ----------
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ================= 3SUM =================
+const ts3Nums = [-4,-1,-1,0,1,2]; // pre-sorted
+let ts3I=0, ts3Lo=1, ts3Hi=ts3Nums.length-1, ts3Done=false, ts3Triples=[];
+
+function renderTS3(){
+  const arrEl = document.getElementById('ts3-array');
+  arrEl.innerHTML = '';
+  ts3Nums.forEach((v,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    let ptrLabel = '';
+    if (idx === ts3I){ cell.classList.add('anchor'); ptrLabel = 'i'; }
+    if (idx === ts3Lo && !ts3Done){ cell.classList.add('lo'); ptrLabel = 'lo'; }
+    if (idx === ts3Hi && !ts3Done){ cell.classList.add('hi'); ptrLabel = 'hi'; }
+    if (idx < ts3I) cell.classList.add('skipped');
+    cell.innerHTML = `<span class="idx">${idx}</span>${v}${ptrLabel?`<span class="ptr" style="color:${idx===ts3I?'var(--purple)':idx===ts3Lo?'var(--accent2)':'var(--danger)'}">${ptrLabel}</span>`:''}`;
+    arrEl.appendChild(cell);
+  });
+  const trEl = document.getElementById('ts3-triples');
+  trEl.innerHTML = '';
+  if (ts3Triples.length===0) trEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(none yet)</span>';
+  ts3Triples.forEach(t=>{
+    const e = document.createElement('div');
+    e.className = 'triple';
+    e.textContent = `[${t.join(', ')}]`;
+    trEl.appendChild(e);
+  });
+}
+
+function ts3AdvanceAnchor(){
+  ts3I++;
+  while (ts3I>0 && ts3I<ts3Nums.length-2 && ts3Nums[ts3I]===ts3Nums[ts3I-1]) ts3I++;
+  if (ts3I >= ts3Nums.length-2 || ts3Nums[ts3I] > 0){
+    ts3Done = true;
+    return false;
+  }
+  ts3Lo = ts3I+1; ts3Hi = ts3Nums.length-1;
+  return true;
+}
+
+function ts3Step(){
+  if (ts3Done) return;
+  const statusEl = document.getElementById('ts3-status');
+  if (ts3Nums[ts3I] > 0){
+    statusEl.textContent = `nums[${ts3I}] = ${ts3Nums[ts3I]} > 0 → smallest remaining value is positive, no triple can sum to 0. Stop early.`;
+    ts3Done = true;
+    document.getElementById('ts3-step').disabled = true;
+    renderTS3();
+    return;
+  }
+  if (ts3Lo >= ts3Hi){
+    if (!ts3AdvanceAnchor()){
+      statusEl.textContent = 'All anchors processed. Done!';
+      statusEl.classList.add('win');
+      document.getElementById('ts3-step').disabled = true;
+      renderTS3();
+      return;
+    }
+    statusEl.textContent = `Move to next anchor: i = ${ts3I} (value ${ts3Nums[ts3I]}). Reset lo=${ts3Lo}, hi=${ts3Hi}.`;
+    renderTS3();
+    return;
+  }
+  const s = ts3Nums[ts3I] + ts3Nums[ts3Lo] + ts3Nums[ts3Hi];
+  if (s === 0){
+    ts3Triples.push([ts3Nums[ts3I], ts3Nums[ts3Lo], ts3Nums[ts3Hi]]);
+    statusEl.textContent = `sum = ${ts3Nums[ts3I]} + ${ts3Nums[ts3Lo]} + ${ts3Nums[ts3Hi]} = 0 → Triple found! Move both lo→ and ←hi, skipping duplicates.`;
+    statusEl.classList.add('win');
+    let newLo = ts3Lo+1, newHi = ts3Hi-1;
+    while (newLo < newHi && ts3Nums[newLo]===ts3Nums[newLo-1]) newLo++;
+    while (newLo < newHi && ts3Nums[newHi]===ts3Nums[newHi+1]) newHi--;
+    ts3Lo = newLo; ts3Hi = newHi;
+  } else if (s < 0){
+    statusEl.textContent = `sum = ${ts3Nums[ts3I]} + ${ts3Nums[ts3Lo]} + ${ts3Nums[ts3Hi]} = ${s} < 0 → too small, move lo right.`;
+    statusEl.classList.remove('win');
+    ts3Lo++;
+  } else {
+    statusEl.textContent = `sum = ${ts3Nums[ts3I]} + ${ts3Nums[ts3Lo]} + ${ts3Nums[ts3Hi]} = ${s} > 0 → too big, move hi left.`;
+    statusEl.classList.remove('win');
+    ts3Hi--;
+  }
+  renderTS3();
+}
+
+function ts3Reset(){
+  ts3I=0; ts3Lo=1; ts3Hi=ts3Nums.length-1; ts3Done=false; ts3Triples=[];
+  document.getElementById('ts3-step').disabled = false;
+  document.getElementById('ts3-status').className = 'status';
+  document.getElementById('ts3-status').textContent = 'Press "Step" to begin. Anchor i = 0 (value −4).';
+  renderTS3();
+}
+
+document.getElementById('ts3-step').onclick = ts3Step;
+document.getElementById('ts3-reset').onclick = ts3Reset;
+document.getElementById('ts3-run').onclick = ()=>{
+  ts3Reset();
+  const iv = setInterval(()=>{
+    ts3Step();
+    if (ts3Done) clearInterval(iv);
+  }, 500);
+};
+renderTS3();
+
+// ================= CONTAINER WITH MOST WATER =================
+const cwHeights = [1,8,6,2,5,4,8,3,7];
+let cwLo=0, cwHi=cwHeights.length-1, cwBest=0, cwBestPair=[0,cwHeights.length-1], cwDone=false;
+
+function drawContainer(){
+  const svg = document.getElementById('cw-svg');
+  const n = cwHeights.length;
+  const w = 470, h = 220, padB = 30, padT = 10;
+  const barW = (w - 20) / n;
+  const maxH = Math.max(...cwHeights);
+  const scaleY = (h - padB - padT) / maxH;
+
+  let svgContent = '';
+  // baseline
+  svgContent += `<line x1="10" y1="${h-padB}" x2="${w-10}" y2="${h-padB}" stroke="#2a3438" stroke-width="1"/>`;
+
+  cwHeights.forEach((val,idx)=>{
+    const x = 10 + idx*barW;
+    const barH = val*scaleY;
+    const y = h - padB - barH;
+    let fill = '#1c2528', stroke='#2a3438';
+    if (idx===cwLo && !cwDone){ fill='rgba(224,164,88,0.35)'; stroke='#e0a458'; }
+    if (idx===cwHi && !cwDone){ fill='rgba(217,115,106,0.35)'; stroke='#d9736a'; }
+    svgContent += `<rect x="${x+3}" y="${y}" width="${barW-6}" height="${barH}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" rx="3"/>`;
+    svgContent += `<text x="${x+barW/2}" y="${h-padB+16}" text-anchor="middle" class="barlabel">${idx}</text>`;
+    svgContent += `<text x="${x+barW/2}" y="${y-6}" text-anchor="middle" class="barlabel">${val}</text>`;
+  });
+
+  // water rectangle between lo/hi
+  if (!cwDone || true){
+    const x1 = 10 + cwLo*barW + barW/2;
+    const x2 = 10 + cwHi*barW + barW/2;
+    const minH = Math.min(cwHeights[cwLo], cwHeights[cwHi]);
+    const waterY = h - padB - minH*scaleY;
+    svgContent += `<rect x="${Math.min(x1,x2)}" y="${waterY}" width="${Math.abs(x2-x1)}" height="${minH*scaleY}" fill="rgba(95,179,163,0.18)" stroke="#5fb3a3" stroke-width="1" stroke-dasharray="4 3"/>`;
+  }
+
+  svg.innerHTML = svgContent;
+}
+
+function cwStep(){
+  if (cwDone) return;
+  const statusEl = document.getElementById('cw-status');
+  if (cwLo >= cwHi){
+    statusEl.textContent = `Pointers met → done. Max area = ${cwBest} (walls at indices ${cwBestPair[0]}, ${cwBestPair[1]}).`;
+    statusEl.classList.add('win');
+    cwDone = true;
+    document.getElementById('cw-step').disabled = true;
+    drawContainer();
+    return;
+  }
+  const area = Math.min(cwHeights[cwLo], cwHeights[cwHi]) * (cwHi - cwLo);
+  let improved = false;
+  if (area > cwBest){ cwBest = area; cwBestPair=[cwLo,cwHi]; improved = true; }
+  const shorterIsLo = cwHeights[cwLo] < cwHeights[cwHi];
+  statusEl.textContent = `area = min(${cwHeights[cwLo]}, ${cwHeights[cwHi]}) × (${cwHi}−${cwLo}) = ${area}${improved?' → NEW BEST!':''}\nbest so far = ${cwBest}\n${shorterIsLo ? `lo (${cwHeights[cwLo]}) is shorter → move lo right` : `hi (${cwHeights[cwHi]}) is shorter or equal → move hi left`}`;
+  statusEl.classList.toggle('win', improved);
+  if (shorterIsLo) cwLo++; else cwHi--;
+  drawContainer();
+}
+
+function cwReset(){
+  cwLo=0; cwHi=cwHeights.length-1; cwBest=0; cwBestPair=[0,cwHeights.length-1]; cwDone=false;
+  document.getElementById('cw-step').disabled = false;
+  document.getElementById('cw-status').className = 'status';
+  document.getElementById('cw-status').textContent = 'Press "Step" to begin. lo = 0, hi = 8 (widest container).';
+  drawContainer();
+}
+
+document.getElementById('cw-step').onclick = cwStep;
+document.getElementById('cw-reset').onclick = cwReset;
+document.getElementById('cw-run').onclick = ()=>{
+  cwReset();
+  const iv = setInterval(()=>{
+    cwStep();
+    if (cwDone) clearInterval(iv);
+  }, 500);
+};
+drawContainer();
+</script>
+</body>
+</html>

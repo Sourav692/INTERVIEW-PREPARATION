@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BFS Level-by-Level — Binary Tree Level Order Traversal</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:920px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.85rem;}
+  .status{font-family:var(--mono); font-size:0.85rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 11px; min-width:100px;}
+  .tracker .lbl{color:var(--dim); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.02rem; font-weight:600;}
+  .tree-svg{display:block; margin:16px auto;}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  .queue-viz{display:flex; gap:6px; flex-wrap:wrap; min-height:44px; align-items:center; padding:10px; background:var(--panel2); border:1px dashed var(--line); border-radius:8px; margin:10px 0;}
+  .queue-item{font-family:var(--mono); font-size:0.9rem; background:rgba(163,148,217,0.2); border:1.5px solid var(--purple); color:var(--purple); border-radius:6px; padding:6px 12px; font-weight:600;}
+  .queue-arrow{color:var(--dim); font-size:0.85rem;}
+  .levels-output{display:flex; flex-direction:column; gap:6px; margin-top:10px;}
+  .level-row{display:flex; align-items:center; gap:8px;}
+  .level-label{font-family:var(--mono); font-size:0.75rem; color:var(--dim); width:60px;}
+  .level-vals{display:flex; gap:6px;}
+  .level-chip{font-family:var(--mono); font-size:0.85rem; background:rgba(95,179,163,0.18); border:1px solid var(--accent); color:var(--accent); border-radius:6px; padding:4px 10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>BFS Level-by-Level Pattern</h1>
+  <div class="sub">Binary Tree Level Order Traversal — a queue naturally groups nodes by level</div>
+
+  <div class="card">
+    <h3>The core flip</h3>
+    <p>"Level by level" is exactly what a <b>queue</b> gives you for free: at any moment, everything currently sitting in the queue belongs to <em>one</em> level — because every node was enqueued by its parent, and all parents of a given level were processed together in the previous step. The trick is to <b>snapshot the queue's size</b> before processing, so you know exactly how many nodes belong to the current level before their children start getting added.</p>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <span class="target-badge">tree = [3, 9, 20, null, null, 15, 7]</span>
+      <button id="lo-reset">↺ Reset</button>
+      <button id="lo-step" class="primary">Step →</button>
+      <button id="lo-run">▶ Run all</button>
+    </div>
+
+    <svg id="lo-svg" class="tree-svg" width="440" height="220" viewBox="0 0 440 220"></svg>
+
+    <div class="trackers">
+      <div class="tracker"><span class="lbl">current level</span><span class="val" id="lo-level" style="color:var(--accent2);">−</span></div>
+      <div class="tracker"><span class="lbl">level size snapshot</span><span class="val" id="lo-snapshot" style="color:var(--purple);">−</span></div>
+    </div>
+
+    <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:14px;">Queue (front → back)</div>
+    <div class="queue-viz" id="lo-queue"></div>
+
+    <div class="status" id="lo-status" style="margin-top:6px;">Press "Step" to begin. Queue = [3].</div>
+
+    <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:16px;">Levels collected so far</div>
+    <div class="levels-output" id="lo-levels"></div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent2)"></span> currently visiting</span>
+      <span><span class="dot" style="background:var(--accent)"></span> visited (level recorded)</span>
+    </div>
+  </div>
+
+  <div class="why">
+    <b>Why snapshot <code>len(q)</code> before the loop:</b> if you read the queue's length freshly on each iteration instead of freezing it upfront, children pushed for the <em>next</em> level would get counted as part of the <em>current</em> level's processing loop — silently merging two levels into one. Freezing the count first is what cleanly separates "process this level" from "queue up the next one."
+  </div>
+
+  <div class="card code-card">
+    <h3>Optimal Solution — BFS with a Queue · O(n) time, O(n) space</h3>
+    <pre><code>from collections import deque
+
+def level_order(root):
+    res = []
+    if not root:
+        return res
+    q = deque([root])
+    while q:
+        level = []
+        for _ in range(len(q)):        # snapshot: current queue = exactly one level
+            node = q.popleft()
+            level.append(node.val)
+            if node.left:  q.append(node.left)   # push next level's nodes
+            if node.right: q.append(node.right)
+        res.append(level)              # this level is finished
+    return res</code></pre>
+    <p class="note" style="color:var(--dim);">Every node enqueued and dequeued exactly once → <b>O(n)</b> time. The queue can hold up to one full level (widest row) at once, plus the output stores every node → <b>O(n)</b> space.</p>
+  </div>
+
+  <div class="why" style="border-left-color:var(--purple);">
+    <b>Alternative — DFS tagged by depth:</b> recurse with a <code>depth</code> counter; the first time you reach a new depth, create its list in the result, then append. Same O(n) time, but O(h) space instead of O(n) for the traversal itself (plus output either way) — useful if you want to avoid an explicit queue.
+    <pre style="margin-top:8px;"><code>def level_order_dfs(root):
+    res = []
+    def dfs(node, depth):
+        if not node:
+            return
+        if depth == len(res):
+            res.append([])             # first time reaching this depth
+        res[depth].append(node.val)
+        dfs(node.left, depth + 1)
+        dfs(node.right, depth + 1)
+    dfs(root, 0)
+    return res</code></pre>
+  </div>
+</div>
+
+<script>
+// ============ Tree drawing ============
+function drawTree(svgId, nodes, edges){
+  const svg = document.getElementById(svgId);
+  let content = '';
+  edges.forEach(([x1,y1,x2,y2])=>{
+    content += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#2a3438" stroke-width="2"/>`;
+  });
+  nodes.forEach(n=>{
+    let fill = '#1c2528', stroke = '#2a3438', textColor='#e8edee';
+    if (n.state==='current'){ fill='rgba(224,164,88,0.25)'; stroke='#e0a458'; }
+    if (n.state==='done'){ fill='rgba(95,179,163,0.22)'; stroke='#5fb3a3'; }
+    content += `<circle cx="${n.x}" cy="${n.y}" r="19" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+    content += `<text x="${n.x}" y="${n.y+5}" text-anchor="middle" font-family="SF Mono, monospace" font-size="14" fill="${textColor}" font-weight="600">${n.val}</text>`;
+  });
+  svg.innerHTML = content;
+}
+
+// tree: 3 -> (9), (20 -> 15, 7)
+const loTreeDef = {
+  3: {left:9, right:20, x:220, y:40},
+  9: {left:null, right:null, x:120, y:120},
+  20: {left:15, right:7, x:320, y:120},
+  15: {left:null, right:null, x:270, y:190},
+  7: {left:null, right:null, x:370, y:190},
+};
+const loEdges = [
+  [220,40,120,120],[220,40,320,120],
+  [320,120,270,190],[320,120,370,190],
+];
+
+// State machine matching the BFS algorithm exactly
+let loQueue = [3];
+let loLevels = [];
+let loCurrentLevel = [];
+let loLevelRemaining = 0; // how many nodes left to pop in this level's snapshot
+let loSnapshotSize = 0;
+let loVisited = new Set();
+let loCurrent = null;
+let loDone = false;
+let loPhase = 'need-snapshot'; // 'need-snapshot' | 'popping' | 'done'
+
+function renderLO(){
+  const nodes = Object.entries(loTreeDef).map(([id,n])=>{
+    id = parseInt(id);
+    let state = 'normal';
+    if (loVisited.has(id)) state = 'done';
+    if (id === loCurrent && !loDone) state = 'current';
+    return {id, val:id, x:n.x, y:n.y, state};
+  });
+  drawTree('lo-svg', nodes, loEdges);
+
+  const displayLevelIdx = loLevels.length + (loSnapshotSize > 0 ? 1 : 0);
+  document.getElementById('lo-level').textContent = displayLevelIdx > 0 ? displayLevelIdx : '−';
+  document.getElementById('lo-snapshot').textContent = loSnapshotSize>0 ? loSnapshotSize : '−';
+
+  const queueEl = document.getElementById('lo-queue');
+  queueEl.innerHTML = '';
+  if (loQueue.length===0){
+    queueEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(empty)</span>';
+  } else {
+    loQueue.forEach((v,i)=>{
+      const item = document.createElement('div');
+      item.className = 'queue-item';
+      item.textContent = v;
+      queueEl.appendChild(item);
+      if (i < loQueue.length-1){
+        const arrow = document.createElement('div');
+        arrow.className = 'queue-arrow';
+        arrow.textContent = '→';
+        queueEl.appendChild(arrow);
+      }
+    });
+  }
+
+  const levelsEl = document.getElementById('lo-levels');
+  levelsEl.innerHTML = '';
+  loLevels.forEach((lvl,i)=>{
+    const row = document.createElement('div');
+    row.className = 'level-row';
+    const label = document.createElement('div');
+    label.className = 'level-label';
+    label.textContent = `Level ${i}:`;
+    row.appendChild(label);
+    const vals = document.createElement('div');
+    vals.className = 'level-vals';
+    lvl.forEach(v=>{
+      const chip = document.createElement('div');
+      chip.className = 'level-chip';
+      chip.textContent = v;
+      vals.appendChild(chip);
+    });
+    row.appendChild(vals);
+    levelsEl.appendChild(row);
+  });
+  if (loLevels.length===0){
+    levelsEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(none yet)</span>';
+  }
+}
+
+function loStep(){
+  if (loDone) return;
+  const statusEl = document.getElementById('lo-status');
+
+  if (loQueue.length === 0 && loLevelRemaining === 0){
+    statusEl.textContent = `Queue is empty. Done! All levels collected: ${JSON.stringify(loLevels)}.`;
+    statusEl.classList.add('win');
+    loDone = true;
+    loCurrent = null;
+    document.getElementById('lo-step').disabled = true;
+    renderLO();
+    return;
+  }
+
+  if (loLevelRemaining === 0){
+    // start a new level: snapshot the queue size
+    loSnapshotSize = loQueue.length;
+    loLevelRemaining = loSnapshotSize;
+    loCurrentLevel = [];
+    statusEl.textContent = `New level starts. Snapshot queue size = ${loSnapshotSize} (this many nodes belong to this level).`;
+    renderLO();
+    return;
+  }
+
+  // pop one node from the front, process it
+  const nodeVal = loQueue.shift();
+  loCurrent = nodeVal;
+  loVisited.add(nodeVal);
+  loCurrentLevel.push(nodeVal);
+  loLevelRemaining--;
+
+  const def = loTreeDef[nodeVal];
+  let msg = `Pop ${nodeVal} from front of queue, add to current level.`;
+  if (def.left){ loQueue.push(def.left); msg += ` Push left child ${def.left}.`; }
+  if (def.right){ loQueue.push(def.right); msg += ` Push right child ${def.right}.`; }
+  msg += ` (${loLevelRemaining} node(s) left in this level's snapshot.)`;
+
+  if (loLevelRemaining === 0){
+    loLevels.push([...loCurrentLevel]);
+    msg += ` Level complete: [${loCurrentLevel.join(', ')}].`;
+    loSnapshotSize = 0;
+  }
+
+  statusEl.textContent = msg;
+  renderLO();
+}
+
+function loReset(){
+  loQueue = [3]; loLevels = []; loCurrentLevel = []; loLevelRemaining = 0; loSnapshotSize = 0;
+  loVisited = new Set(); loCurrent = null; loDone = false;
+  document.getElementById('lo-step').disabled = false;
+  document.getElementById('lo-status').className = 'status';
+  document.getElementById('lo-status').textContent = 'Press "Step" to begin. Queue = [3].';
+  renderLO();
+}
+
+document.getElementById('lo-step').onclick = loStep;
+document.getElementById('lo-reset').onclick = loReset;
+document.getElementById('lo-run').onclick = ()=>{
+  loReset();
+  const iv = setInterval(()=>{ loStep(); if (loDone) clearInterval(iv); }, 550);
+};
+renderLO();
+</script>
+</body>
+</html>

@@ -101,13 +101,34 @@
   .ivbar{fill:var(--accent-soft);stroke:var(--border);stroke-width:1.5}
   .ivbar.hi{fill:var(--hi);stroke:var(--hi-bd)} .ivbar.good{fill:var(--good);stroke:var(--good-bd)}
   .ivbar.bad{fill:var(--bad);stroke:var(--bad-bd)} .ivbar.dim{opacity:.3}
+  .trace-title{font-size:13px;color:var(--muted);font-weight:600;margin:16px 0 6px}
+  .trace-wrap{overflow-x:auto}
+  table.trace{border-collapse:collapse;width:100%;font-size:13.5px;min-width:480px}
+  table.trace th,table.trace td{border:1px solid var(--border);padding:6px 10px;text-align:center;white-space:nowrap}
+  table.trace th{background:var(--accent-soft);color:var(--fg);font-weight:600}
+  table.trace td.match{background:var(--good);border-color:var(--good-bd);font-weight:700}
+  table.trace td.rule{color:var(--muted)}
+  table.trace tr.final td{background:var(--good);border-color:var(--good-bd);font-weight:700}
 </style>
 </head>
 <body><div class="wrap">
 <div class="top"><a class="back" href="index.html">← All Interval problems</a><span class="tag"><span class="dot" style="background:#eab308"></span> Medium · Interval</span></div>
 <h1>253 · Meeting Rooms II</h1>
 <p class="lead">How many rooms?</p>
-<div class="card"><h2 style="margin-top:.2em">The problem, in plain words</h2><p class="big">How many rooms are needed so no two meetings clash?</p><div class="idea">Rooms needed = the most meetings happening at the same time.</div><div class="legend"><span><span class="sw" style="background:var(--hi);border-color:var(--hi-bd)"></span>looking at</span><span><span class="sw" style="background:var(--seen);border-color:var(--seen-bd)"></span>remembered / kept</span><span><span class="sw" style="background:var(--good);border-color:var(--good-bd)"></span>match / answer</span><span><span class="sw" style="background:var(--bad);border-color:var(--bad-bd)"></span>ruled out</span></div></div><div class="card"><h2>The smart way — count meetings running at once</h2><div class="idea">Sweep through time: a meeting <b>start</b> needs a room (+1), a meeting <b>end</b> frees one (−1). The highest count reached is the number of rooms.</div><div class="viz" id="m2-viz"></div><div class="badges" id="m2-b"></div><div class="caption" id="m2-cap"></div><div class="controls" data-player="m2"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="m2-count"></span></div><p class="speed"><b>Speed:</b> sort + sweep — <code>O(n log n)</code>.</p></div><div class="card"><h2>When you'd use this</h2>See <b>"minimum rooms / max overlap"</b>? Sweep +1/−1 and track the peak (or a heap of end times).<p><a href="patterns.html">→ See all the Interval patterns and how to use them in an interview</a></p></div>
+<div class="card"><h2 style="margin-top:.2em">The problem, in plain words</h2><p class="big">How many rooms are needed so no two meetings clash?</p><div class="idea">Rooms needed = the most meetings happening at the same time.</div><div class="legend"><span><span class="sw" style="background:var(--hi);border-color:var(--hi-bd)"></span>looking at</span><span><span class="sw" style="background:var(--seen);border-color:var(--seen-bd)"></span>remembered / kept</span><span><span class="sw" style="background:var(--good);border-color:var(--good-bd)"></span>match / answer</span><span><span class="sw" style="background:var(--bad);border-color:var(--bad-bd)"></span>ruled out</span></div></div><div class="card"><h2>The smart way — count meetings running at once</h2><div class="idea">Sweep through time: a meeting <b>start</b> needs a room (+1), a meeting <b>end</b> frees one (−1). The highest count reached is the number of rooms.</div><div class="viz" id="m2-viz"></div><div class="badges" id="m2-b"></div><div class="caption" id="m2-cap"></div><div class="controls" data-player="m2"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="m2-count"></span></div><p class="speed"><b>Speed:</b> sort + sweep — <code>O(n log n)</code>.</p>
+<div class="trace-title">Step-by-step trace — meetings = [0,30], [5,10], [15,20]</div>
+<div class="trace-wrap">
+<table class="trace">
+  <tr><th>Step</th><th>Time</th><th>Event</th><th>rooms (running total)</th><th>peak so far</th></tr>
+  <tr><td>1</td><td>0</td><td>start (+1)</td><td>1</td><td>1</td></tr>
+  <tr><td>2</td><td>5</td><td>start (+1)</td><td>2</td><td>2</td></tr>
+  <tr><td>3</td><td>10</td><td>end (−1)</td><td>1</td><td>2</td></tr>
+  <tr><td>4</td><td>15</td><td>start (+1)</td><td>2</td><td>2</td></tr>
+  <tr><td>5</td><td>20</td><td>end (−1)</td><td>1</td><td>2</td></tr>
+  <tr class="final"><td>6</td><td>30</td><td>end (−1)</td><td>0</td><td>2 → rooms needed = 2</td></tr>
+</table>
+</div>
+</div><div class="card"><h2>When you'd use this</h2>See <b>"minimum rooms / max overlap"</b>? Sweep +1/−1 and track the peak (or a heap of end times).<p><a href="patterns.html">→ See all the Interval patterns and how to use them in an interview</a></p></div>
 </div>
 <script>
 "use strict";

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Prefix & Suffix Products — Product of Array Except Self</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:980px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .rowlabel{font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin:14px 0 6px;}
+  .array{display:flex; gap:6px; margin:6px 0; flex-wrap:wrap;}
+  .cell{width:56px; height:52px; border:1.5px solid var(--line); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.92rem; position:relative; background:var(--panel2); transition: all 0.25s;}
+  .cell .idx{position:absolute; top:-19px; font-size:0.68rem; color:var(--dim); font-family:var(--mono);}
+  .cell.current{border-color:var(--accent2); box-shadow:0 0 0 2px rgba(224,164,88,0.25); transform: translateY(-3px);}
+  .cell.written{background:rgba(95,179,163,0.15); border-color:rgba(95,179,163,0.5);}
+  .cell.final{background:rgba(95,179,163,0.28); border-color:var(--accent); color:var(--accent);}
+  .cell.empty{opacity:0.3;}
+  .cell.pass2{border-color:var(--purple);}
+  .status{font-family:var(--mono); font-size:0.88rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.87rem;}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.82rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.85rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:8px 12px; min-width:110px;}
+  .tracker .lbl{color:var(--dim); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.05rem; font-weight:600;}
+  .phase-badge{display:inline-block; font-family:var(--mono); font-size:0.78rem; padding:3px 10px; border-radius:20px; border:1px solid var(--line); margin-bottom:8px;}
+  .phase-badge.p1{color:var(--accent2); border-color:var(--accent2);}
+  .phase-badge.p2{color:var(--purple); border-color:var(--purple);}
+  .phase-badge.done{color:var(--accent); border-color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Prefix &amp; Suffix Products</h1>
+  <div class="sub">Product of Array Except Self — two directional sweeps instead of division</div>
+
+  <div class="card">
+    <h3>The core flip</h3>
+    <p>The answer for index <code>i</code> splits cleanly into two independent halves: <b>(product of everything to its left)</b> × <b>(product of everything to its right)</b>. Precompute the running product from the left in one pass, then the running product from the right in a second pass — no division needed, which matters because division is disallowed <em>and</em> breaks on zeros.</p>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <span class="target-badge">nums = [1, 2, 3, 4]</span>
+      <button id="pa-reset">↺ Reset</button>
+      <button id="pa-step" class="primary">Step →</button>
+      <button id="pa-run">▶ Run all</button>
+    </div>
+
+    <span class="phase-badge p1" id="pa-phase">Phase 1: Prefix pass (left → right)</span>
+
+    <div class="rowlabel">nums</div>
+    <div class="array" id="pa-nums"></div>
+
+    <div class="rowlabel">out[] — after prefix pass, then × suffix pass</div>
+    <div class="array" id="pa-out"></div>
+
+    <div class="trackers">
+      <div class="tracker"><span class="lbl">prefix (running L→R)</span><span class="val" id="pa-prefix" style="color:var(--accent2);">−</span></div>
+      <div class="tracker"><span class="lbl">suffix (running R→L)</span><span class="val" id="pa-suffix" style="color:var(--purple);">−</span></div>
+    </div>
+
+    <div class="status" id="pa-status">Press "Step" to begin. Phase 1 (prefix): i = 0.</div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent2)"></span> current index, prefix pass</span>
+      <span><span class="dot" style="background:var(--purple)"></span> current index, suffix pass</span>
+      <span><span class="dot" style="background:rgba(95,179,163,0.28); border:1px solid var(--accent)"></span> finalized</span>
+    </div>
+  </div>
+
+  <div class="why">
+    <b>Why the output array can double as scratch:</b> Pass 1 writes <code>out[i] = prefix</code> (product of everything strictly left of <code>i</code>) — this only ever reads <code>nums</code>, never <code>out</code>, so it's safe. Pass 2 then <em>multiplies in</em> the suffix product walking right to left. No second array is needed — that's what keeps extra space at O(1).
+  </div>
+
+  <div class="card code-card">
+    <h3>Optimal Solution — Prefix × Suffix, No Division · O(n) time, O(1) extra space</h3>
+    <pre><code>def product_except_self(nums: list[int]) -> list[int]:
+    n = len(nums)
+    out = [1] * n
+
+    prefix = 1                    # running product of everything to the LEFT
+    for i in range(n):
+        out[i] = prefix           # product of all elements before i
+        prefix *= nums[i]         # extend the running left-product
+
+    suffix = 1                    # running product of everything to the RIGHT
+    for i in range(n - 1, -1, -1):     # sweep right to left
+        out[i] *= suffix          # multiply in product of all elements after i
+        suffix *= nums[i]         # extend the running right-product
+
+    return out</code></pre>
+    <p class="note" style="color:var(--dim);">Two linear passes, O(1) work per element → <b>O(n)</b> time. The output array is reused as scratch space, so only two running scalars are extra → <b>O(1)</b> extra space (output itself isn't counted).</p>
+  </div>
+
+  <div class="why" style="border-left-color:var(--danger);">
+    <b>Why not just divide?</b> Multiply everything, then divide by <code>nums[i]</code> — tempting, but the problem forbids division, and it breaks on zeros: with two or more zeros every output is 0 anyway, but with exactly one zero only that slot survives, requiring special-case handling either way. Prefix × suffix sidesteps all of it.
+  </div>
+</div>
+
+<script>
+const paNums = [1,2,3,4];
+const n = paNums.length;
+let paOut = new Array(n).fill(null);
+let paPrefix = 1, paSuffix = 1;
+let paPhase = 1; // 1 = prefix pass, 2 = suffix pass
+let paI = 0;
+let paDone = false;
+
+function renderPA(){
+  const numsEl = document.getElementById('pa-nums');
+  numsEl.innerHTML = '';
+  paNums.forEach((v,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if ((paPhase===1 && idx===paI && !paDone) ) cell.classList.add('current');
+    if ((paPhase===2 && idx===paI && !paDone) ) cell.classList.add('pass2');
+    cell.innerHTML = `<span class="idx">${idx}</span>${v}`;
+    numsEl.appendChild(cell);
+  });
+
+  const outEl = document.getElementById('pa-out');
+  outEl.innerHTML = '';
+  paOut.forEach((v,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (v === null){
+      cell.classList.add('empty');
+      cell.innerHTML = `<span class="idx">${idx}</span>?`;
+    } else {
+      cell.innerHTML = `<span class="idx">${idx}</span>${v}`;
+      if (paDone) cell.classList.add('final');
+      else cell.classList.add('written');
+    }
+    outEl.appendChild(cell);
+  });
+
+  document.getElementById('pa-prefix').textContent = paPhase>=1 ? paPrefix : '−';
+  document.getElementById('pa-suffix').textContent = paPhase>=2 ? paSuffix : '−';
+
+  const phaseBadge = document.getElementById('pa-phase');
+  if (paDone){
+    phaseBadge.textContent = 'Done!';
+    phaseBadge.className = 'phase-badge done';
+  } else if (paPhase===1){
+    phaseBadge.textContent = 'Phase 1: Prefix pass (left → right)';
+    phaseBadge.className = 'phase-badge p1';
+  } else {
+    phaseBadge.textContent = 'Phase 2: Suffix pass (right → left)';
+    phaseBadge.className = 'phase-badge p2';
+  }
+}
+
+function paStep(){
+  if (paDone) return;
+  const statusEl = document.getElementById('pa-status');
+
+  if (paPhase === 1){
+    if (paI >= n){
+      paPhase = 2;
+      paI = n-1;
+      statusEl.textContent = `Prefix pass complete: out = [${paOut.join(', ')}] (each slot = product of everything to its left).\nStarting Phase 2 (suffix pass): i = ${paI}, suffix = 1.`;
+      renderPA();
+      return;
+    }
+    paOut[paI] = paPrefix;
+    statusEl.textContent = `Prefix pass, i=${paI}: out[${paI}] = prefix = ${paPrefix}. Then prefix *= nums[${paI}] (${paNums[paI]}) → prefix = ${paPrefix * paNums[paI]}.`;
+    paPrefix *= paNums[paI];
+    paI++;
+    renderPA();
+    return;
+  }
+
+  // Phase 2
+  if (paI < 0){
+    statusEl.textContent = `Suffix pass complete! Final answer: out = [${paOut.join(', ')}].`;
+    statusEl.classList.add('win');
+    paDone = true;
+    document.getElementById('pa-step').disabled = true;
+    renderPA();
+    return;
+  }
+  const before = paOut[paI];
+  paOut[paI] = paOut[paI] * paSuffix;
+  statusEl.textContent = `Suffix pass, i=${paI}: out[${paI}] *= suffix → ${before} × ${paSuffix} = ${paOut[paI]}. Then suffix *= nums[${paI}] (${paNums[paI]}) → suffix = ${paSuffix * paNums[paI]}.`;
+  paSuffix *= paNums[paI];
+  paI--;
+  renderPA();
+}
+
+function paReset(){
+  paOut = new Array(n).fill(null);
+  paPrefix = 1; paSuffix = 1; paPhase = 1; paI = 0; paDone = false;
+  document.getElementById('pa-step').disabled = false;
+  document.getElementById('pa-status').className = 'status';
+  document.getElementById('pa-status').textContent = 'Press "Step" to begin. Phase 1 (prefix): i = 0.';
+  renderPA();
+}
+
+document.getElementById('pa-step').onclick = paStep;
+document.getElementById('pa-reset').onclick = paReset;
+document.getElementById('pa-run').onclick = ()=>{
+  paReset();
+  const iv = setInterval(()=>{ paStep(); if (paDone) clearInterval(iv); }, 500);
+};
+renderPA();
+</script>
+</body>
+</html>

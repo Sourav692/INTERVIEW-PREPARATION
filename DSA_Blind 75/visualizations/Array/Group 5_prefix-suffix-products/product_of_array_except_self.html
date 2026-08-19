@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product of Array Except Self — Visual Explainer</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --fg:#1c2230; --muted:#5b6472; --card:#ffffff; --border:#e2e6ec;
+    --accent:#3563e9; --accent-soft:#e5edff;
+    --hi:#ffe08a; --hi-bd:#e0a800; --good:#b7ecc4; --good-bd:#2f9e52;
+    --bad:#f6c9c9; --bad-bd:#d24a4a; --seen:#d7ccff; --seen-bd:#7a5cff;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 20px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1420; --fg:#e7ebf2; --muted:#9aa4b5; --card:#171d2b; --border:#28303f;
+      --accent:#6f9bff; --accent-soft:#1c2740;
+      --hi:#6b5a1f; --hi-bd:#d8b23c; --good:#1f5133; --good-bd:#4cc178;
+      --bad:#5a2830; --bad-bd:#e07a7a; --seen:#332a63; --seen-bd:#9b83ff;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.25);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+  a{color:var(--accent)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .back{font-size:14px;text-decoration:none}
+  h1{font-size:26px;margin:.2em 0}
+  h2{font-size:20px;margin:1.5em 0 .4em}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#eab308}
+  .lead{color:var(--muted);font-size:15px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+  .idea{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:10px 0}
+  .big{font-size:17px}
+  code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;font-size:.9em}
+  .viz{overflow-x:auto;padding:8px 2px 4px}
+  .rowlabel{font-size:12px;color:var(--muted);margin:8px 0 2px}
+  .row{display:flex;gap:10px;min-width:min-content;justify-content:center}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .ptr{height:22px;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .box{width:52px;height:52px;border-radius:10px;border:2px solid var(--border);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;transition:.15s}
+  .idxlabel{font-size:11px;color:var(--muted)}
+  .box.hi{background:var(--hi);border-color:var(--hi-bd)}
+  .box.good{background:var(--good);border-color:var(--good-bd)}
+  .box.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .box.seen{background:var(--seen);border-color:var(--seen-bd)}
+  .box.dim{opacity:.35}
+  .bars{display:flex;gap:8px;align-items:flex-end;min-width:min-content;justify-content:center;padding-top:22px}
+  .barcell{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .bar{width:34px;border-radius:8px 8px 0 0;background:var(--accent-soft);border:2px solid var(--border);
+    display:flex;align-items:flex-start;justify-content:center;font-size:12px;font-weight:700;padding-top:3px;color:var(--fg);transition:.15s}
+  .bar.hi{background:var(--hi);border-color:var(--hi-bd)} .bar.good{background:var(--good);border-color:var(--good-bd)}
+  .bar.dim{opacity:.35}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .badge{background:var(--accent-soft);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:14px}
+  .badge.good{background:var(--good);border-color:var(--good-bd)}
+  .badge.bad{background:var(--bad);border-color:var(--bad-bd)}
+  .mem{margin-top:14px}
+  .mem h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;min-height:34px}
+  .chip{background:var(--seen);border:1px solid var(--seen-bd);border-radius:8px;padding:4px 10px;font-size:14px;font-weight:600}
+  .chip.look{background:var(--good);border-color:var(--good-bd)}
+  .empty{color:var(--muted);font-size:13px;font-style:italic}
+  .caption{margin:12px 0 6px;min-height:44px;font-size:15px}
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
+  button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--card);
+    color:var(--fg);border-radius:9px;padding:7px 12px;transition:.12s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .counter{margin-left:auto;font-size:13px;color:var(--muted)}
+  .speed{font-size:14px;color:var(--muted);margin-top:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:6px 0 2px}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .sw{width:13px;height:13px;border-radius:4px;border:2px solid}
+  .trace-title{font-size:13px;color:var(--muted);font-weight:600;margin:16px 0 6px}
+  .trace-wrap{overflow-x:auto}
+  table.trace{border-collapse:collapse;width:100%;font-size:13.5px;min-width:480px}
+  table.trace th,table.trace td{border:1px solid var(--border);padding:6px 10px;text-align:center;white-space:nowrap}
+  table.trace th{background:var(--accent-soft);color:var(--fg);font-weight:600}
+  table.trace td.match{background:var(--good);border-color:var(--good-bd);font-weight:700}
+  table.trace td.rule{color:var(--muted)}
+  table.trace tr.final td{background:var(--good);border-color:var(--good-bd);font-weight:700}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .pcard{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.12s}
+  .pcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .pcard .n{font-size:12px;color:var(--muted)}
+  .pcard .t{font-size:17px;font-weight:700;margin:2px 0 6px}
+  .pcard .b{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><a class="back" href="../index.html">← All Array problems</a><span class="tag"><span class="dot" style="background:#eab308"></span> Medium · Array</span></div>
+<h1>4 · Product of Array Except Self</h1>
+<p class="lead">Multiply all the others — no division.</p>
+<div class="card"><h2 style="margin-top:.2em">The problem, in plain words</h2><p class="big">For each spot, multiply <b>all the other</b> numbers together (everything except the one you’re standing on). Do it without dividing.</p><div class="idea">Example: <b>[1, 2, 3, 4]</b> &rarr; <b>[24, 12, 8, 6]</b>. (For the first spot: 2×3×4 = 24.)</div><div class="legend"><span><span class="sw" style="background:var(--hi);border-color:var(--hi-bd)"></span>looking at</span><span><span class="sw" style="background:var(--seen);border-color:var(--seen-bd)"></span>remembered / kept</span><span><span class="sw" style="background:var(--good);border-color:var(--good-bd)"></span>match / answer</span><span><span class="sw" style="background:var(--bad);border-color:var(--bad-bd)"></span>ruled out</span></div></div><div class="card"><h2>The smart way — two sweeps: left, then right</h2><div class="idea">First sweep left → right: fill each answer with the product of everything <b>to its left</b>. Then sweep right → left, multiplying in the product of everything <b>to its right</b>. A single running number carries the product as you go.</div><div class="rowlabel">the numbers</div><div class="viz" id="pe-viz"></div><div class="rowlabel">the answer, filling in</div><div class="viz" id="pe-out"></div><div class="badges" id="pe-badges"></div><div class="caption" id="pe-cap"></div><div class="controls" data-player="pe"><button data-act="prev">◀ Prev</button><button data-act="play" class="primary">▶ Play</button><button data-act="next">Next ▶</button><button data-act="reset">↺ Reset</button><span class="counter" id="pe-count"></span></div><p class="speed"><b>Speed:</b> two passes — <code>O(n)</code> time, no extra memory beyond the answer. (The obvious way multiplies others each time: <code>O(n²)</code>.)</p><div class="trace-title">Step-by-step trace, left → right sweep — nums = [1, 2, 3, 4]</div><div class="trace-wrap"><table class="trace"><tr><th>Step</th><th>i</th><th>out[i] = run (before)</th><th>run (after) = run × nums[i]</th></tr><tr><td>1</td><td>0</td><td>1</td><td>1 × 1 = 1</td></tr><tr><td>2</td><td>1</td><td>1</td><td>1 × 2 = 2</td></tr><tr><td>3</td><td>2</td><td>2</td><td>2 × 3 = 6</td></tr><tr class="final"><td>4</td><td>3</td><td>6</td><td>6 × 4 = 24</td></tr></table></div><div class="trace-title">Step-by-step trace, right → left sweep — out so far = [1, 1, 2, 6]</div><div class="trace-wrap"><table class="trace"><tr><th>Step</th><th>j</th><th>out[j] = out[j] × run</th><th>run (after) = run × nums[j]</th></tr><tr><td>1</td><td>3</td><td>6 × 1 = 6</td><td>1 × 4 = 4</td></tr><tr><td>2</td><td>2</td><td>2 × 4 = 8</td><td>4 × 3 = 12</td></tr><tr><td>3</td><td>1</td><td>1 × 12 = 12</td><td>12 × 2 = 24</td></tr><tr class="final"><td>4</td><td>0</td><td>1 × 24 = 24</td><td>final answer = [24, 12, 8, 6]</td></tr></table></div></div><div class="card"><h2>When you'd use this</h2>See <b>"combine everything except this one"</b> or range products/sums? Precompute running results from the left and right, then combine.<p><a href="../patterns.html">→ See all the Array patterns and how to use them in an interview</a></p></div>
+</div>
+<script>
+"use strict";
+function makePlayer(name, frames, render){
+  var i=0, timer=null;
+  var controls=document.querySelector('[data-player="'+name+'"]');
+  var counter=document.getElementById(name+'-count');
+  var btn={};
+  controls.querySelectorAll('button').forEach(function(b){ btn[b.dataset.act]=b; });
+  function draw(){
+    render(frames[i], i);
+    counter.textContent='Step '+(i+1)+' / '+frames.length;
+    btn.prev.disabled=(i===0); btn.next.disabled=(i===frames.length-1);
+  }
+  function stop(){ if(timer){clearInterval(timer);timer=null;btn.play.textContent='\u25B6 Play';} }
+  function go(d){ stop(); i=Math.max(0,Math.min(frames.length-1,i+d)); draw(); }
+  btn.prev.addEventListener('click',function(){go(-1);});
+  btn.next.addEventListener('click',function(){go(1);});
+  btn.reset.addEventListener('click',function(){stop();i=0;draw();});
+  btn.play.addEventListener('click',function(){
+    if(timer){stop();return;}
+    if(i===frames.length-1){i=0;draw();}
+    btn.play.textContent='\u23F8 Pause';
+    timer=setInterval(function(){ if(i>=frames.length-1){stop();return;} i++; draw(); },1100);
+  });
+  draw();
+}
+function boxes(targetId, nums, marks, ptrs){
+  marks=marks||{}; ptrs=ptrs||{};
+  var h='<div class="row">';
+  for(var k=0;k<nums.length;k++){
+    h+='<div class="cell"><div class="ptr">'+(ptrs[k]||'')+'</div><div class="box '
+      +(marks[k]||'')+'">'+nums[k]+'</div><div class="idxlabel">'+k+'</div></div>';
+  }
+  document.getElementById(targetId).innerHTML=h+'</div>';
+}
+function bars(targetId, heights, marks, ptrs){
+  marks=marks||{}; ptrs=ptrs||{};
+  var mx=Math.max.apply(null,heights), h='<div class="bars">';
+  for(var k=0;k<heights.length;k++){
+    var px=Math.round(20+heights[k]/mx*150);
+    h+='<div class="barcell"><div class="ptr">'+(ptrs[k]||'')+'</div><div class="bar '
+      +(marks[k]||'')+'" style="height:'+px+'px">'+heights[k]+'</div><div class="idxlabel">'+k+'</div></div>';
+  }
+  document.getElementById(targetId).innerHTML=h+'</div>';
+}
+function badges(targetId, list){
+  var h='';
+  for(var k=0;k<list.length;k++) h+='<span class="badge '+(list[k].cls||'')+'">'+list[k].label+': <b>'+list[k].val+'</b></span>';
+  document.getElementById(targetId).innerHTML=h;
+}
+function chips(targetId, items){
+  if(!items.length){ document.getElementById(targetId).innerHTML='<span class="empty">(empty)</span>'; return; }
+  var h=''; for(var k=0;k<items.length;k++) h+='<span class="chip '+(items[k].cls||'')+'">'+items[k].text+'</span>';
+  document.getElementById(targetId).innerHTML=h;
+}
+
+
+var N=[1,2,3,4], n=N.length;
+var out=new Array(n).fill(1);
+var fr=[{cap:'Answers all start at 1. First we sweep LEFT to RIGHT.',out:out.slice(),i:-1,run:1,phase:'left'}];
+var run=1;
+for(var i=0;i<n;i++){ out[i]=run; run=run*N[i];
+  fr.push({cap:'Left sweep: answer['+i+'] = product of everything before it = <b>'+out[i]+'</b>. Running product becomes '+run+'.',
+    out:out.slice(),i:i,run:run,phase:'left'});
+}
+run=1;
+fr.push({cap:'Now sweep RIGHT to LEFT, multiplying in everything after each spot.',out:out.slice(),i:-1,run:1,phase:'right'});
+for(var j=n-1;j>=0;j--){ out[j]=out[j]*run; run=run*N[j];
+  fr.push({cap:'Right sweep: answer['+j+'] \u00d7= product of everything after it \u2192 <b>'+out[j]+'</b>. Running product becomes '+run+'.',
+    out:out.slice(),i:j,run:run,phase:'right'});
+}
+makePlayer('pe',fr,function(f){
+  var m={}; if(f.i>=0) m[f.i]='hi'; boxes('pe-viz',N,m,{});
+  var mo={}; if(f.i>=0) mo[f.i]='good'; boxes('pe-out',f.out,mo,{});
+  badges('pe-badges',[{label:'sweep',val:f.phase==='left'?'left \u2192 right':'right \u2192 left'},
+    {label:'running product',val:f.run}]);
+  document.getElementById('pe-cap').innerHTML=f.cap;
+});
+</script>
+</body></html>

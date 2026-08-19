@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Basic Tree DFS — Invert, Max Depth, Same Tree, Subtree</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:1020px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 14px; cursor:pointer; color:var(--dim); font-size:0.85rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.85rem;}
+  .status{font-family:var(--mono); font-size:0.85rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .status.lose{border-left-color:var(--danger); color:var(--danger);}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 11px; min-width:100px;}
+  .tracker .lbl{color:var(--dim); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.02rem; font-weight:600;}
+  .tree-svg{display:block; margin:16px auto;}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  .twintrees{display:flex; gap:24px; justify-content:center; flex-wrap:wrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Basic Tree DFS Pattern</h1>
+  <div class="sub">Invert Binary Tree · Maximum Depth · Same Tree · Subtree of Another Tree — visit-and-compare/modify at every node</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="invert">Invert Binary Tree</div>
+    <div class="tab" data-tab="maxdepth">Maximum Depth</div>
+    <div class="tab" data-tab="sametree">Same Tree</div>
+    <div class="tab" data-tab="subtree">Subtree of Another Tree</div>
+  </div>
+
+  <!-- INVERT BINARY TREE -->
+  <div class="panel active" id="panel-invert">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>A mirror image swaps left and right <b>everywhere</b>. Visit every node with DFS (or BFS) and swap its two children — the recursive calls handle inverting everything below automatically. Any full traversal order works, since the swap at each node is independent of the others.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">tree = [4, 2, 7, 1, 3, 6, 9]</span>
+        <button id="iv-reset">↺ Reset</button>
+        <button id="iv-step" class="primary">Step →</button>
+        <button id="iv-run">▶ Run all</button>
+      </div>
+
+      <svg id="iv-svg" class="tree-svg" width="500" height="260" viewBox="0 0 500 260"></svg>
+
+      <div class="status" id="iv-status">Press "Step" to begin. Visiting root (4): about to swap its children.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> currently visiting</span>
+        <span><span class="dot" style="background:var(--accent)"></span> children already swapped</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why a simultaneous assignment matters:</b> <code>root.left, root.right = invert(root.right), invert(root.left)</code> computes both inverted subtrees <em>before</em> assigning either — swapping the raw references first and then recursing into the wrong (already-swapped) slots would silently corrupt the tree.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Recursive DFS · O(n) time, O(h) space</h3>
+      <pre><code>def invert_tree(root):
+    if not root:
+        return None
+    root.left, root.right = invert_tree(root.right), invert_tree(root.left)
+    return root</code></pre>
+      <p class="note" style="color:var(--dim);">Every node visited once → <b>O(n)</b> time. Recursion stack depth = tree height → <b>O(h)</b> space (O(log n) balanced, O(n) worst case skewed).</p>
+    </div>
+  </div>
+
+  <!-- MAXIMUM DEPTH -->
+  <div class="panel" id="panel-maxdepth">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Depth is just "how many levels tall". The classic tree-recursion template: <b>a node's answer = combine its children's answers.</b> Here, depth(node) = 1 + the deeper of its two children's depths — an empty tree has depth 0, the base case that makes the recursion terminate.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">tree = [3, 9, 20, null, null, 15, 7]</span>
+        <button id="md-reset">↺ Reset</button>
+        <button id="md-step" class="primary">Step →</button>
+        <button id="md-run">▶ Run all</button>
+      </div>
+
+      <svg id="md-svg" class="tree-svg" width="500" height="260" viewBox="0 0 500 260"></svg>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">call stack depth</span><span class="val" id="md-stackdepth" style="color:var(--accent2);">0</span></div>
+        <div class="tracker"><span class="lbl">answer so far</span><span class="val" id="md-answer" style="color:var(--accent);">−</span></div>
+      </div>
+
+      <div class="status" id="md-status">Press "Step" to begin. Calling maxDepth(3).</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> currently on call stack (unresolved)</span>
+        <span><span class="dot" style="background:var(--accent)"></span> resolved (depth known)</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Depth vs height, and node vs edge counting:</b> this LeetCode-style depth counts <em>nodes</em> on the path (empty subtree → 0, single node → 1) — different from the edge-counting convention where a single node has height 0. Always match whichever base case the problem specifies.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Recursive DFS · O(n) time, O(h) space</h3>
+      <pre><code>def max_depth(root):
+    if not root:
+        return 0
+    return 1 + max(max_depth(root.left), max_depth(root.right))</code></pre>
+      <p class="note" style="color:var(--dim);">Every node visited once → <b>O(n)</b> time. Recursion stack depth = tree height → <b>O(h)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- SAME TREE -->
+  <div class="panel" id="panel-sametree">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Two trees are identical only if their roots match <b>and</b> their left subtrees match <b>and</b> their right subtrees match. Walk both trees together — the same question, asked in lockstep on corresponding positions of both.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">p = [1,2,3] &nbsp; q = [1,2,3]</span>
+        <button id="st-reset">↺ Reset</button>
+        <button id="st-step" class="primary">Step →</button>
+        <button id="st-run">▶ Run all</button>
+      </div>
+
+      <div class="twintrees">
+        <svg id="st-svg-p" class="tree-svg" width="220" height="200" viewBox="0 0 220 200"></svg>
+        <svg id="st-svg-q" class="tree-svg" width="220" height="200" viewBox="0 0 220 200"></svg>
+      </div>
+
+      <div class="status" id="st-status">Press "Step" to begin. Comparing roots: p=1, q=1.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> currently comparing</span>
+        <span><span class="dot" style="background:var(--accent)"></span> matched</span>
+        <span><span class="dot" style="background:var(--danger)"></span> mismatch</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Order of checks matters:</b> check "both empty" and "one empty / values differ" <em>before</em> recursing — skipping straight to comparing <code>.val</code> on a possibly-None node would crash. This base-case ordering is the most common bug source in tree-comparison problems.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Parallel Recursive DFS · O(n) time, O(h) space</h3>
+      <pre><code>def is_same_tree(p, q):
+    if not p and not q:
+        return True
+    if not p or not q or p.val != q.val:
+        return False
+    return is_same_tree(p.left, q.left) and is_same_tree(p.right, q.right)</code></pre>
+      <p class="note" style="color:var(--dim);">Every node pair visited once → <b>O(n)</b> time. Recursion depth = tree height → <b>O(h)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- SUBTREE OF ANOTHER TREE -->
+  <div class="panel" id="panel-subtree">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p><code>sub</code> is a subtree of <code>root</code> if, at <em>some</em> node of <code>root</code>, the tree hanging there is identical to <code>sub</code>. This reuses the "Same Tree" check as a sub-routine, called at every node of <code>root</code> — a common pattern where a simpler check gets applied repeatedly across a structure.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">root = [3,4,5,1,2] &nbsp; sub = [4,1,2]</span>
+        <button id="sub-reset">↺ Reset</button>
+        <button id="sub-step" class="primary">Step →</button>
+        <button id="sub-run">▶ Run all</button>
+      </div>
+
+      <div class="twintrees">
+        <svg id="sub-svg-root" class="tree-svg" width="260" height="200" viewBox="0 0 260 200"></svg>
+        <svg id="sub-svg-sub" class="tree-svg" width="180" height="160" viewBox="0 0 180 160"></svg>
+      </div>
+
+      <div class="status" id="sub-status">Press "Step" to begin. Checking node 3: is the tree here == sub?</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> checking this node as a candidate root</span>
+        <span><span class="dot" style="background:var(--accent)"></span> match found!</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Faster alternative — serialize and search:</b> flatten both trees to strings with explicit markers for values and empty children (e.g. <code>"^4 ^1 # # ^2 # #"</code>), then check if <code>sub</code>'s string is a substring of <code>root</code>'s. This turns an O(m·n) tree-comparison problem into an O(m+n) string-search problem — but markers are essential, or <code>"12"</code> could wrongly match inside <code>"2"</code>.
+    </div>
+
+    <div class="card code-card">
+      <h3>Two Approaches</h3>
+      <pre><code># Approach 1 — Same-tree check at every node · O(m·n) time, O(h) space
+def is_subtree(root, sub):
+    if not sub:
+        return True
+    if not root:
+        return False
+    if is_same_tree(root, sub):     # reuse the Same Tree check
+        return True
+    return is_subtree(root.left, sub) or is_subtree(root.right, sub)
+
+# Approach 2 — Serialize + substring search · O(m+n) time, O(m+n) space
+def is_subtree_fast(root, sub):
+    def serialize(node):
+        if not node:
+            return "#"                # marker for empty child
+        return "^" + str(node.val) + " " + serialize(node.left) + " " + serialize(node.right)
+    return serialize(sub) in serialize(root)</code></pre>
+      <p class="note" style="color:var(--dim);">Approach 1: O(m) comparison at up to n nodes → <b>O(m·n)</b>. Approach 2: two linear serializations plus a linear substring search → <b>O(m+n)</b>, strictly better for large trees.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ============ Shared tree drawing helper ============
+// nodes: {id, val, x, y, left, right, state}  state: 'normal'|'current'|'done'|'match'|'mismatch'
+function drawTree(svgId, nodes, edges){
+  const svg = document.getElementById(svgId);
+  let content = '';
+  edges.forEach(([x1,y1,x2,y2])=>{
+    content += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#2a3438" stroke-width="2"/>`;
+  });
+  nodes.forEach(n=>{
+    let fill = '#1c2528', stroke = '#2a3438', textColor='#e8edee';
+    if (n.state==='current'){ fill='rgba(224,164,88,0.25)'; stroke='#e0a458'; }
+    if (n.state==='done'){ fill='rgba(95,179,163,0.22)'; stroke='#5fb3a3'; }
+    if (n.state==='match'){ fill='rgba(95,179,163,0.32)'; stroke='#5fb3a3'; textColor='#5fb3a3'; }
+    if (n.state==='mismatch'){ fill='rgba(217,115,106,0.22)'; stroke='#d9736a'; textColor='#d9736a'; }
+    content += `<circle cx="${n.x}" cy="${n.y}" r="19" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+    content += `<text x="${n.x}" y="${n.y+5}" text-anchor="middle" font-family="SF Mono, monospace" font-size="14" fill="${textColor}" font-weight="600">${n.val}</text>`;
+  });
+  svg.innerHTML = content;
+}
+
+// ================= INVERT BINARY TREE =================
+// Tree: 4 -> (2 -> 1,3), (7 -> 6,9)
+const ivTreeDef = {
+  4: {left:2, right:7, x:250, y:40},
+  2: {left:1, right:3, x:130, y:120},
+  7: {left:6, right:9, x:370, y:120},
+  1: {left:null, right:null, x:70, y:200},
+  3: {left:null, right:null, x:190, y:200},
+  6: {left:null, right:null, x:310, y:200},
+  9: {left:null, right:null, x:430, y:200},
+};
+// Postorder sequence for invert: process children first, then swap at parent
+// Order of "swap events": 2 (swap 1/3), 7 (swap 6/9), 4 (swap 2/7)
+const ivSteps = [
+  {node:4, action:'visit'},
+  {node:2, action:'visit'},
+  {node:1, action:'leaf'},
+  {node:3, action:'leaf'},
+  {node:2, action:'swap', children:[1,3]},
+  {node:7, action:'visit'},
+  {node:6, action:'leaf'},
+  {node:9, action:'leaf'},
+  {node:7, action:'swap', children:[6,9]},
+  {node:4, action:'swap', children:[2,7]},
+];
+let ivStepIdx = 0;
+let ivSwapped = new Set(); // node ids whose children have been swapped
+let ivCurrent = null;
+let ivDone = false;
+
+function ivGetEdges(){
+  const edges = [];
+  Object.entries(ivTreeDef).forEach(([id,n])=>{
+    id = parseInt(id);
+    // determine current left/right considering swaps
+    let left = n.left, right = n.right;
+    if (ivSwapped.has(id)){ [left,right] = [right,left]; }
+    if (left) edges.push([n.x, n.y, ivTreeDef[left].x, ivTreeDef[left].y]);
+    if (right) edges.push([n.x, n.y, ivTreeDef[right].x, ivTreeDef[right].y]);
+  });
+  return edges;
+}
+
+function renderIV(){
+  const nodes = Object.entries(ivTreeDef).map(([id,n])=>{
+    id = parseInt(id);
+    let state = 'normal';
+    if (id === ivCurrent) state = 'current';
+    if (ivSwapped.has(id)) state = 'done';
+    return {id, val:id, x:n.x, y:n.y, state};
+  });
+  drawTree('iv-svg', nodes, ivGetEdges());
+}
+
+function ivStep(){
+  if (ivDone) return;
+  const statusEl = document.getElementById('iv-status');
+  if (ivStepIdx >= ivSteps.length){
+    statusEl.textContent = `Done! Tree fully inverted (mirror image).`;
+    statusEl.classList.add('win');
+    ivDone = true;
+    document.getElementById('iv-step').disabled = true;
+    ivCurrent = null;
+    renderIV();
+    return;
+  }
+  const step = ivSteps[ivStepIdx];
+  if (step.action === 'visit'){
+    ivCurrent = step.node;
+    statusEl.textContent = `Visiting node ${step.node}: recurse into children first.`;
+  } else if (step.action === 'leaf'){
+    ivCurrent = step.node;
+    statusEl.textContent = `Node ${step.node} is a leaf (no children to swap) — recursion bottoms out, returns.`;
+  } else if (step.action === 'swap'){
+    ivCurrent = step.node;
+    ivSwapped.add(step.node);
+    statusEl.textContent = `Both children of ${step.node} are inverted → swap them: left ↔ right.`;
+  }
+  ivStepIdx++;
+  renderIV();
+}
+
+function ivReset(){
+  ivStepIdx=0; ivSwapped=new Set(); ivCurrent=null; ivDone=false;
+  document.getElementById('iv-step').disabled = false;
+  document.getElementById('iv-status').className = 'status';
+  document.getElementById('iv-status').textContent = 'Press "Step" to begin. Visiting root (4): about to swap its children.';
+  renderIV();
+}
+
+document.getElementById('iv-step').onclick = ivStep;
+document.getElementById('iv-reset').onclick = ivReset;
+document.getElementById('iv-run').onclick = ()=>{
+  ivReset();
+  const iv2 = setInterval(()=>{ ivStep(); if (ivDone) clearInterval(iv2); }, 600);
+};
+renderIV();
+
+// ================= MAXIMUM DEPTH =================
+// Tree: 3 -> (9 leaf), (20 -> 15,7)
+const mdTreeDef = {
+  3: {left:9, right:20, x:250, y:40},
+  9: {left:null, right:null, x:150, y:120},
+  20: {left:15, right:7, x:350, y:120},
+  15: {left:null, right:null, x:300, y:200},
+  7: {left:null, right:null, x:400, y:200},
+};
+const mdEdges = [
+  [250,40,150,120],[250,40,350,120],
+  [350,120,300,200],[350,120,400,200],
+];
+// DFS trace: postorder resolution with running depths
+const mdSteps = [
+  {node:3, action:'call'},
+  {node:9, action:'call'},
+  {node:9, action:'return', val:0},
+  {node:20, action:'call'},
+  {node:15, action:'call'},
+  {node:15, action:'return', val:0},
+  {node:7, action:'call'},
+  {node:7, action:'return', val:0},
+  {node:20, action:'return', val:1},
+  {node:3, action:'return', val:2},
+];
+let mdStepIdx = 0;
+let mdStack = [];
+let mdResolved = {};
+let mdDone = false;
+
+function renderMD(){
+  const nodes = Object.entries(mdTreeDef).map(([id,n])=>{
+    id = parseInt(id);
+    let state = 'normal';
+    if (mdStack.includes(id)) state = 'current';
+    if (id in mdResolved) state = 'done';
+    return {id, val: id in mdResolved ? `${id}(${mdResolved[id]})` : id, x:n.x, y:n.y, state};
+  });
+  drawTree('md-svg', nodes, mdEdges);
+  document.getElementById('md-stackdepth').textContent = mdStack.length;
+  document.getElementById('md-answer').textContent = (3 in mdResolved) ? mdResolved[3] : '−';
+}
+
+function mdStep(){
+  if (mdDone) return;
+  const statusEl = document.getElementById('md-status');
+  if (mdStepIdx >= mdSteps.length){
+    statusEl.textContent = `Done! Maximum depth = ${mdResolved[3]}.`;
+    statusEl.classList.add('win');
+    mdDone = true;
+    document.getElementById('md-step').disabled = true;
+    renderMD();
+    return;
+  }
+  const step = mdSteps[mdStepIdx];
+  if (step.action === 'call'){
+    mdStack.push(step.node);
+    statusEl.textContent = `Call maxDepth(${step.node}). Need depths of both children first.`;
+  } else {
+    mdStack = mdStack.filter(x=>x!==step.node);
+    mdResolved[step.node] = step.val;
+    statusEl.textContent = `maxDepth(${step.node}) resolves to ${step.val} (1 + max of children's depths, or 0 if a leaf/empty).`;
+  }
+  mdStepIdx++;
+  renderMD();
+}
+
+function mdReset(){
+  mdStepIdx=0; mdStack=[]; mdResolved={}; mdDone=false;
+  document.getElementById('md-step').disabled = false;
+  document.getElementById('md-status').className = 'status';
+  document.getElementById('md-status').textContent = 'Press "Step" to begin. Calling maxDepth(3).';
+  renderMD();
+}
+
+document.getElementById('md-step').onclick = mdStep;
+document.getElementById('md-reset').onclick = mdReset;
+document.getElementById('md-run').onclick = ()=>{
+  mdReset();
+  const iv2 = setInterval(()=>{ mdStep(); if (mdDone) clearInterval(iv2); }, 600);
+};
+renderMD();
+
+// ================= SAME TREE =================
+const stPTree = {1:{left:2,right:3,x:110,y:40}, 2:{left:null,right:null,x:60,y:120}, 3:{left:null,right:null,x:160,y:120}};
+const stQTree = {1:{left:2,right:3,x:110,y:40}, 2:{left:null,right:null,x:60,y:120}, 3:{left:null,right:null,x:160,y:120}};
+const stPEdges = [[110,40,60,120],[110,40,160,120]];
+const stQEdges = [[110,40,60,120],[110,40,160,120]];
+
+const stSteps = [
+  {p:1, q:1, action:'compare'},
+  {p:2, q:2, action:'compare'},
+  {p:3, q:3, action:'compare'},
+];
+let stStepIdx = 0;
+let stCurrentP = null, stCurrentQ = null;
+let stMatched = new Set();
+let stDone = false;
+let stFailed = false;
+
+function renderST(){
+  const nodesP = Object.entries(stPTree).map(([id,n])=>{
+    id = parseInt(id);
+    let state = 'normal';
+    if (id===stCurrentP && !stDone) state = stFailed ? 'mismatch' : 'current';
+    if (stMatched.has(id)) state = 'match';
+    return {id, val:n.val !== undefined ? n.val : id, x:n.x, y:n.y, state};
+  });
+  const nodesQ = Object.entries(stQTree).map(([id,n])=>{
+    id = parseInt(id);
+    let state = 'normal';
+    if (id===stCurrentQ && !stDone) state = stFailed ? 'mismatch' : 'current';
+    if (stMatched.has(id)) state = 'match';
+    return {id, val:id, x:n.x, y:n.y, state};
+  });
+  drawTree('st-svg-p', nodesP, stPEdges);
+  drawTree('st-svg-q', nodesQ, stQEdges);
+}
+
+function stStep(){
+  if (stDone) return;
+  const statusEl = document.getElementById('st-status');
+  if (stStepIdx >= stSteps.length){
+    statusEl.textContent = `All node pairs matched → True, the trees ARE the same.`;
+    statusEl.classList.add('win');
+    stDone = true;
+    document.getElementById('st-step').disabled = true;
+    stCurrentP = null; stCurrentQ = null;
+    renderST();
+    return;
+  }
+  const step = stSteps[stStepIdx];
+  stCurrentP = step.p; stCurrentQ = step.q;
+  statusEl.textContent = `Comparing p=${step.p} vs q=${step.q}: values match, shapes match so far → continue.`;
+  stMatched.add(step.p);
+  stStepIdx++;
+  renderST();
+}
+
+function stReset(){
+  stStepIdx=0; stCurrentP=null; stCurrentQ=null; stMatched=new Set(); stDone=false; stFailed=false;
+  document.getElementById('st-step').disabled = false;
+  document.getElementById('st-status').className = 'status';
+  document.getElementById('st-status').textContent = 'Press "Step" to begin. Comparing roots: p=1, q=1.';
+  renderST();
+}
+
+document.getElementById('st-step').onclick = stStep;
+document.getElementById('st-reset').onclick = stReset;
+document.getElementById('st-run').onclick = ()=>{
+  stReset();
+  const iv2 = setInterval(()=>{ stStep(); if (stDone) clearInterval(iv2); }, 600);
+};
+renderST();
+
+// ================= SUBTREE OF ANOTHER TREE =================
+// root: 3 -> (4 -> 1,2), (5)
+const subRootTree = {
+  3:{left:4,right:5,x:130,y:40},
+  4:{left:1,right:2,x:70,y:120},
+  5:{left:null,right:null,x:190,y:120},
+  1:{left:null,right:null,x:40,y:170},
+  2:{left:null,right:null,x:100,y:170},
+};
+const subRootEdges = [[130,40,70,120],[130,40,190,120],[70,120,40,170],[70,120,100,170]];
+// sub: 4 -> 1,2
+const subSubTree = {
+  4:{left:1,right:2,x:90,y:30},
+  1:{left:null,right:null,x:50,y:100},
+  2:{left:null,right:null,x:130,y:100},
+};
+const subSubEdges = [[90,30,50,100],[90,30,130,100]];
+
+const subCheckSteps = [
+  {node:3, isMatch:false},
+  {node:4, isMatch:true},
+];
+let subStepIdx = 0;
+let subCurrent = null;
+let subMatchFound = false;
+let subDone = false;
+
+function renderSUB(){
+  const nodesRoot = Object.entries(subRootTree).map(([id,n])=>{
+    id = parseInt(id);
+    let state = 'normal';
+    if (id === subCurrent && !subDone) state = 'current';
+    if (subMatchFound && id === 4) state = 'match';
+    if (subMatchFound && (id===1||id===2)) state = 'match';
+    return {id, val:id, x:n.x, y:n.y, state};
+  });
+  const nodesSub = Object.entries(subSubTree).map(([id,n])=>{
+    id = parseInt(id);
+    let state = subMatchFound ? 'match' : 'normal';
+    return {id, val:id, x:n.x, y:n.y, state};
+  });
+  drawTree('sub-svg-root', nodesRoot, subRootEdges);
+  drawTree('sub-svg-sub', nodesSub, subSubEdges);
+}
+
+function subStep(){
+  if (subDone) return;
+  const statusEl = document.getElementById('sub-status');
+  if (subStepIdx >= subCheckSteps.length){
+    statusEl.textContent = `Done! sub IS a subtree of root (found at node 4).`;
+    statusEl.classList.add('win');
+    subDone = true;
+    document.getElementById('sub-step').disabled = true;
+    subCurrent = null;
+    renderSUB();
+    return;
+  }
+  const step = subCheckSteps[subStepIdx];
+  subCurrent = step.node;
+  if (step.isMatch){
+    subMatchFound = true;
+    statusEl.textContent = `Checking node ${step.node}: is the tree hanging here == sub? YES — matches sub=[4,1,2] exactly!`;
+  } else {
+    statusEl.textContent = `Checking node ${step.node}: is the tree hanging here == sub? No (different shape/values) → recurse into left and right children.`;
+  }
+  subStepIdx++;
+  renderSUB();
+}
+
+function subReset(){
+  subStepIdx=0; subCurrent=null; subMatchFound=false; subDone=false;
+  document.getElementById('sub-step').disabled = false;
+  document.getElementById('sub-status').className = 'status';
+  document.getElementById('sub-status').textContent = 'Press "Step" to begin. Checking node 3: is the tree here == sub?';
+  renderSUB();
+}
+
+document.getElementById('sub-step').onclick = subStep;
+document.getElementById('sub-reset').onclick = subReset;
+document.getElementById('sub-run').onclick = ()=>{
+  subReset();
+  const iv2 = setInterval(()=>{ subStep(); if (subDone) clearInterval(iv2); }, 700);
+};
+renderSUB();
+</script>
+</body>
+</html>

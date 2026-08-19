@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Modified Binary Search — Search Rotated / Find Minimum Rotated</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:980px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 16px; cursor:pointer; color:var(--dim); font-size:0.92rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .array{display:flex; gap:6px; margin:26px 0 10px; flex-wrap:wrap;}
+  .cell{width:54px; height:54px; border:1.5px solid var(--line); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.98rem; position:relative; background:var(--panel2); transition: all 0.25s;}
+  .cell .idx{position:absolute; top:-19px; font-size:0.68rem; color:var(--dim); font-family:var(--mono);}
+  .cell .ptr{position:absolute; bottom:-20px; font-size:0.72rem; font-weight:700; font-family:var(--mono);}
+  .cell.lo{border-color:var(--accent2);}
+  .cell.hi{border-color:var(--danger);}
+  .cell.mid{box-shadow:0 0 0 2px rgba(163,148,217,0.35); transform: translateY(-3px); border-color:var(--purple);}
+  .cell.sorted-half{background:rgba(95,179,163,0.14);}
+  .cell.discarded{opacity:0.25;}
+  .cell.found{border-color:var(--accent); background:rgba(95,179,163,0.28); color:var(--accent);}
+  .status{font-family:var(--mono); font-size:0.88rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .status.lose{border-left-color:var(--danger); color:var(--danger);}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.87rem;}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.82rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.85rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:8px 12px; min-width:80px;}
+  .tracker .lbl{color:var(--dim); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.05rem; font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Modified Binary Search Pattern</h1>
+  <div class="sub">Search in Rotated Sorted Array · Find Minimum in Rotated Sorted Array — one half is always sorted</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="search">Search in Rotated Sorted Array</div>
+    <div class="tab" data-tab="findmin">Find Minimum in Rotated Sorted Array</div>
+  </div>
+
+  <!-- SEARCH ROTATED -->
+  <div class="panel active" id="panel-search">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>A rotation breaks full sortedness, but at <b>any midpoint, at least one half is still fully sorted</b>. Detect which half that is by comparing endpoints, range-check the target against that sorted half, and recurse into whichever half must contain it. Each step still halves the search space — <b>O(log n)</b> survives the rotation.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">nums = [4, 5, 6, 7, 0, 1, 2] &nbsp; target = <b>0</b></span>
+        <button id="sr-reset">↺ Reset</button>
+        <button id="sr-step" class="primary">Step →</button>
+        <button id="sr-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="sr-array"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">lo</span><span class="val" id="sr-lo" style="color:var(--accent2);">−</span></div>
+        <div class="tracker"><span class="lbl">mid</span><span class="val" id="sr-mid" style="color:var(--purple);">−</span></div>
+        <div class="tracker"><span class="lbl">hi</span><span class="val" id="sr-hi" style="color:var(--danger);">−</span></div>
+      </div>
+
+      <div class="status" id="sr-status">Press "Step" to begin. lo=0, hi=6.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> lo</span>
+        <span><span class="dot" style="background:var(--purple)"></span> mid</span>
+        <span><span class="dot" style="background:var(--danger)"></span> hi</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.3); border:1px solid var(--accent)"></span> detected sorted half</span>
+        <span><span class="dot" style="background:var(--panel2); border:1px solid var(--line)"></span> discarded</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Decision rule:</b> if <code>nums[lo] &lt;= nums[mid]</code>, the left half <code>[lo..mid]</code> is sorted — check if <code>target</code> falls in <code>[nums[lo], nums[mid])</code>. If so, search left; otherwise the target (if present) must be in the right half, so search there. Mirror the logic when the right half is the sorted one instead.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Modified Binary Search · O(log n) time, O(1) space</h3>
+      <pre><code>def search_rotated(nums: list[int], target: int) -> int:
+    lo, hi = 0, len(nums) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if nums[mid] == target:
+            return mid
+        if nums[lo] <= nums[mid]:        # LEFT half [lo..mid] is sorted
+            if nums[lo] <= target < nums[mid]:
+                hi = mid - 1              # target in that sorted left half
+            else:
+                lo = mid + 1              # otherwise it's on the right
+        else:                             # RIGHT half [mid..hi] is sorted
+            if nums[mid] < target <= nums[hi]:
+                lo = mid + 1              # target in that sorted right half
+            else:
+                hi = mid - 1              # otherwise it's on the left
+    return -1</code></pre>
+      <p class="note" style="color:var(--dim);">Search space halves every step → <b>O(log n)</b> time. Only two/three integer pointers → <b>O(1)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- FIND MIN ROTATED -->
+  <div class="panel" id="panel-findmin">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>We're not hunting a value this time — we're hunting the <b>rotation point</b> (the dip where the array resets). Compare <code>nums[mid]</code> to <code>nums[hi]</code>: if <code>nums[mid] &gt; nums[hi]</code>, the dip must be strictly to the <b>right</b> of mid (mid is still on the "high" side of the rotation); otherwise the dip is at <code>mid</code> or to its <b>left</b>.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">nums = [4, 5, 6, 7, 0, 1, 2]</span>
+        <button id="fm-reset">↺ Reset</button>
+        <button id="fm-step" class="primary">Step →</button>
+        <button id="fm-run">▶ Run all</button>
+      </div>
+
+      <div class="array" id="fm-array"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">lo</span><span class="val" id="fm-lo" style="color:var(--accent2);">−</span></div>
+        <div class="tracker"><span class="lbl">mid</span><span class="val" id="fm-mid" style="color:var(--purple);">−</span></div>
+        <div class="tracker"><span class="lbl">hi</span><span class="val" id="fm-hi" style="color:var(--danger);">−</span></div>
+      </div>
+
+      <div class="status" id="fm-status">Press "Step" to begin. lo=0, hi=6.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> lo</span>
+        <span><span class="dot" style="background:var(--purple)"></span> mid</span>
+        <span><span class="dot" style="background:var(--danger)"></span> hi</span>
+        <span><span class="dot" style="background:var(--panel2); border:1px solid var(--line)"></span> discarded</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.3); border:1px solid var(--accent)"></span> the minimum</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why <code>hi = mid</code>, not <code>mid - 1</code>?</b> When <code>nums[mid] &lt;= nums[hi]</code>, <code>mid</code> itself could <em>be</em> the minimum — discarding it with <code>mid-1</code> risks skipping the answer. Using <code>hi = mid</code> keeps it in play; the loop still terminates because <code>lo</code> only ever moves strictly forward (<code>mid+1</code>) in the other branch.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Binary Search on the Rotation Point · O(log n) time, O(1) space</h3>
+      <pre><code>def find_min(nums: list[int]) -> int:
+    lo, hi = 0, len(nums) - 1
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if nums[mid] > nums[hi]:   # mid is on the "high" side -> dip is to the RIGHT
+            lo = mid + 1
+        else:                       # dip is at mid or to the LEFT
+            hi = mid
+    return nums[lo]                 # lo == hi lands exactly on the minimum</code></pre>
+      <p class="note" style="color:var(--dim);">Search space halves every step → <b>O(log n)</b> time. Two integer pointers → <b>O(1)</b> space.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ================= SEARCH IN ROTATED SORTED ARRAY =================
+const srNums = [4,5,6,7,0,1,2], srTarget = 0;
+let srLo=0, srHi=srNums.length-1, srMid=-1, srDone=false, srFoundIdx=-1, srSortedRange=null;
+
+function renderSR(){
+  const arrEl = document.getElementById('sr-array');
+  arrEl.innerHTML = '';
+  srNums.forEach((v,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (idx < srLo || idx > srHi) cell.classList.add('discarded');
+    if (srSortedRange && idx>=srSortedRange[0] && idx<=srSortedRange[1] && idx>=srLo && idx<=srHi) cell.classList.add('sorted-half');
+    let ptrLabel = '';
+    if (idx === srLo){ ptrLabel='lo'; }
+    if (idx === srHi){ ptrLabel = ptrLabel ? ptrLabel : 'hi'; }
+    if (idx === srMid && !srDone){ cell.classList.add('mid'); ptrLabel='mid'; }
+    if (idx === srFoundIdx){ cell.classList.add('found'); }
+    cell.innerHTML = `<span class="idx">${idx}</span>${v}${ptrLabel?`<span class="ptr" style="color:${idx===srLo?'var(--accent2)':idx===srHi?'var(--danger)':'var(--purple)'}">${ptrLabel}</span>`:''}`;
+    arrEl.appendChild(cell);
+  });
+  document.getElementById('sr-lo').textContent = srLo;
+  document.getElementById('sr-mid').textContent = srMid>=0?srMid:'−';
+  document.getElementById('sr-hi').textContent = srHi;
+}
+
+function srStep(){
+  if (srDone) return;
+  const statusEl = document.getElementById('sr-status');
+  if (srLo > srHi){
+    statusEl.textContent = `lo (${srLo}) > hi (${srHi}) → search space empty. Target not found → return -1.`;
+    statusEl.classList.add('lose');
+    srDone = true;
+    document.getElementById('sr-step').disabled = true;
+    renderSR();
+    return;
+  }
+  srMid = Math.floor((srLo+srHi)/2);
+  const midVal = srNums[srMid];
+  if (midVal === srTarget){
+    srFoundIdx = srMid;
+    statusEl.textContent = `mid=${srMid}, nums[mid]=${midVal} == target(${srTarget}) → Found! Return index ${srMid}.`;
+    statusEl.classList.add('win');
+    srDone = true;
+    document.getElementById('sr-step').disabled = true;
+    renderSR();
+    return;
+  }
+  let msg = `lo=${srLo}, mid=${srMid} (val=${midVal}), hi=${srHi}.\n`;
+  if (srNums[srLo] <= midVal){
+    srSortedRange = [srLo, srMid];
+    msg += `nums[lo]=${srNums[srLo]} ≤ nums[mid]=${midVal} → LEFT half [${srLo}..${srMid}] is sorted.\n`;
+    if (srNums[srLo] <= srTarget && srTarget < midVal){
+      msg += `target(${srTarget}) ∈ [${srNums[srLo]}, ${midVal}) → search LEFT half.`;
+      srHi = srMid-1;
+    } else {
+      msg += `target(${srTarget}) NOT in that range → search RIGHT half.`;
+      srLo = srMid+1;
+    }
+  } else {
+    srSortedRange = [srMid, srHi];
+    msg += `nums[lo]=${srNums[srLo]} > nums[mid]=${midVal} → RIGHT half [${srMid}..${srHi}] is sorted.\n`;
+    if (midVal < srTarget && srTarget <= srNums[srHi]){
+      msg += `target(${srTarget}) ∈ (${midVal}, ${srNums[srHi]}] → search RIGHT half.`;
+      srLo = srMid+1;
+    } else {
+      msg += `target(${srTarget}) NOT in that range → search LEFT half.`;
+      srHi = srMid-1;
+    }
+  }
+  statusEl.textContent = msg;
+  renderSR();
+}
+
+function srReset(){
+  srLo=0; srHi=srNums.length-1; srMid=-1; srDone=false; srFoundIdx=-1; srSortedRange=null;
+  document.getElementById('sr-step').disabled = false;
+  document.getElementById('sr-status').className = 'status';
+  document.getElementById('sr-status').textContent = 'Press "Step" to begin. lo=0, hi=6.';
+  renderSR();
+}
+
+document.getElementById('sr-step').onclick = srStep;
+document.getElementById('sr-reset').onclick = srReset;
+document.getElementById('sr-run').onclick = ()=>{
+  srReset();
+  const iv = setInterval(()=>{ srStep(); if (srDone) clearInterval(iv); }, 700);
+};
+renderSR();
+
+// ================= FIND MINIMUM IN ROTATED SORTED ARRAY =================
+const fmNums = [4,5,6,7,0,1,2];
+let fmLo=0, fmHi=fmNums.length-1, fmMid=-1, fmDone=false;
+
+function renderFM(){
+  const arrEl = document.getElementById('fm-array');
+  arrEl.innerHTML = '';
+  fmNums.forEach((v,idx)=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (idx < fmLo || idx > fmHi) cell.classList.add('discarded');
+    let ptrLabel = '';
+    if (idx === fmLo){ ptrLabel='lo'; }
+    if (idx === fmHi){ ptrLabel = ptrLabel ? ptrLabel+'/hi' : 'hi'; }
+    if (idx === fmMid && !fmDone && fmLo!==fmHi){ cell.classList.add('mid'); ptrLabel='mid'; }
+    if (fmDone && idx===fmLo) cell.classList.add('found');
+    cell.innerHTML = `<span class="idx">${idx}</span>${v}${ptrLabel?`<span class="ptr" style="color:${idx===fmLo?'var(--accent2)':idx===fmHi?'var(--danger)':'var(--purple)'}">${ptrLabel}</span>`:''}`;
+    arrEl.appendChild(cell);
+  });
+  document.getElementById('fm-lo').textContent = fmLo;
+  document.getElementById('fm-mid').textContent = fmMid>=0 && fmLo!==fmHi ? fmMid : '−';
+  document.getElementById('fm-hi').textContent = fmHi;
+}
+
+function fmStep(){
+  if (fmDone) return;
+  const statusEl = document.getElementById('fm-status');
+  if (fmLo >= fmHi){
+    statusEl.textContent = `lo == hi == ${fmLo} → converged. Minimum = nums[${fmLo}] = ${fmNums[fmLo]}.`;
+    statusEl.classList.add('win');
+    fmDone = true;
+    document.getElementById('fm-step').disabled = true;
+    renderFM();
+    return;
+  }
+  fmMid = Math.floor((fmLo+fmHi)/2);
+  const midVal = fmNums[fmMid], hiVal = fmNums[fmHi];
+  let msg = `lo=${fmLo}, mid=${fmMid} (val=${midVal}), hi=${fmHi} (val=${hiVal}).\n`;
+  if (midVal > hiVal){
+    msg += `nums[mid]=${midVal} > nums[hi]=${hiVal} → mid is on the "high" side of the rotation. Dip is strictly RIGHT of mid → lo = mid+1.`;
+    fmLo = fmMid+1;
+  } else {
+    msg += `nums[mid]=${midVal} ≤ nums[hi]=${hiVal} → mid could BE the minimum, or it's further left. Dip is at mid or LEFT → hi = mid.`;
+    fmHi = fmMid;
+  }
+  statusEl.textContent = msg;
+  renderFM();
+}
+
+function fmReset(){
+  fmLo=0; fmHi=fmNums.length-1; fmMid=-1; fmDone=false;
+  document.getElementById('fm-step').disabled = false;
+  document.getElementById('fm-status').className = 'status';
+  document.getElementById('fm-status').textContent = 'Press "Step" to begin. lo=0, hi=6.';
+  renderFM();
+}
+
+document.getElementById('fm-step').onclick = fmStep;
+document.getElementById('fm-reset').onclick = fmReset;
+document.getElementById('fm-run').onclick = ()=>{
+  fmReset();
+  const iv = setInterval(()=>{ fmStep(); if (fmDone) clearInterval(iv); }, 700);
+};
+renderFM();
+</script>
+</body>
+</html>
