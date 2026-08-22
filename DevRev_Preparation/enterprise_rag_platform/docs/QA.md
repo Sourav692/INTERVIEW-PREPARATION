@@ -119,3 +119,30 @@ all-of list logic, content rewriting, or the *latest* value of something that ca
 indexing is structurally outside what a filter compiled once and cached in an index can represent.
 
 ---
+
+**Q: "ACL fields already live in Chroma metadata and are already used as a filter — so why does
+docs/07 list 'metadata filters as first-class' as a gap?"**
+
+A: They're two different axes answering two different questions, even though both end up as a Chroma
+`where` clause on the same metadata.
+
+- **ACL filter (already built, Layer 1).** `compile_prefilter(principal)` builds `where` entirely
+  from the principal's identity, automatically, on every query — the caller has no say in it.
+  Answers: *"given who's asking, what are they even allowed to see?"*
+- **Content/relevance filter (the actual gap).** A user asking *"just search runbooks"* or *"only
+  documents from the last 90 days"* is expressing intent about **what** to search, not **who** they
+  are. There is currently no code path for a caller of `RAGPlatform.ask()` to supply that — `where`
+  in `RetrievalContext` is 100% owned by `compile_prefilter()`; nothing merges in a second,
+  caller-supplied clause.
+
+Why "low effort" to close: the *data* already exists in Chroma metadata (`source` is already a
+column, populated for the `external_restriction` ACL rule) — nothing needs to be added to ingestion
+or storage. The fix is adding a second, optional input to `RetrievalContext`/`ask()` and merging it
+with `$and` alongside the mandatory ACL filter — same mechanism, two different owners (policy engine
+= unconditional; content filter = optional, caller-supplied).
+
+**Interview line:** *"The ACL filter and a content filter are the same mechanism — a Chroma `where`
+clause — but two different owners: the policy engine always contributes one, unconditionally; a
+content filter would be optional and caller-supplied. They compose with `$and`."*
+
+---

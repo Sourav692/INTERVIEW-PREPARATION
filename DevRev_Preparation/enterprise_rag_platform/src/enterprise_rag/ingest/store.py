@@ -34,11 +34,16 @@ from . import catalog
 from ..config import SETTINGS
 from ..models import Chunk, ResourceAttributes, ScoredChunk
 
-# Chroma 0.5 still calls posthog.capture(distinct_id, event, props) even when
-# anonymized_telemetry is False (it only sets posthog.disabled). PostHog SDK 6+
-# made those arguments keyword-only, so every collection open logs
-# ClientCreateCollectionEvent. Drop the send; retrieval is unaffected.
-_ChromaPosthog._direct_capture = lambda self, event: None
+
+def _drop_chroma_telemetry(self, event) -> None:
+    """Chroma 0.5 still calls posthog.capture(distinct_id, event, props) even when
+    anonymized_telemetry is False (it only sets posthog.disabled). PostHog SDK 6+
+    made those arguments keyword-only, so every collection open logs
+    ClientCreateCollectionEvent. Retrieval is unaffected; drop the send.
+    """
+
+
+_ChromaPosthog._direct_capture = _drop_chroma_telemetry
 
 _client: Optional[chromadb.ClientAPI] = None
 

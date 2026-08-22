@@ -13,7 +13,7 @@ know the difference before the round so you don't overclaim what the demo proves
 **The "To close this gap" column** on every ❌/🟡 row below tells you what it would actually take:
 - **Code — low/moderate/large** effort: a real codebase change, roughly sized
 - **Data/content only**: no architecture change, just more authored examples
-- **Verbal only**: infeasible or out of scope to genuinely demo locally (production infra, real scale) — answer from the prep doc, and say so if asked whether it's built
+- **Verbal only**: infeasible or out of scope to genuinely demo locally (production infra, real scale) — answer from the prep doc, and say so if asked whether it's built. Where this applies, the table also carries a **"What to say"** column with the actual answer to give, worded ready to speak.
 
 ---
 
@@ -61,25 +61,25 @@ This is the strongest section — every named pattern is not just discussed but 
 
 ## §4.5 — Evaluation
 
-| Pointer | Status | Notes | To close this gap |
-|---|---|---|---|
-| recall@k, MRR (retrieval) vs. groundedness (generation) kept separate | ✅ | `evaluation/harness.py` — two explicit metric families | — |
-| nDCG | ❌ | Only recall@k/MRR | **Code — low.** A pure formula addition to `evaluation/harness.py::_score_case()`/`CaseResult` — needs graded relevance per expected doc (currently binary expected/not-expected), so the golden-set schema would also need a relevance-grade field per `expected_docs` entry, not just the scoring function. |
-| Golden set of 100-300 real customer questions | 🟡 | The golden-set *mechanism* is real; only 22 synthetic cases, not real customer questions at that scale | **Data/content only.** No code change — `data/golden_set.json` just needs more authored cases. Since there's no real customer, this specific gap can only ever be closed with more synthetic cases, not "real" ones — worth naming that limit if asked directly. |
-| Permission-specific eval suite (personas × restricted content) | ✅ | `security`-kind cases, `leak_rate` — the hard release gate | — |
-| LLM-as-judge calibrated against human labels | 🟡 | LLM-as-judge is used (grading, groundedness); no calibration-against-human-labels step | **Code — moderate.** Would need a small script that samples N graded cases, has a human (you) label them, and computes agreement (accuracy or Cohen's kappa) between the judge's score and the human label — a new, self-contained script, not a change to the graph itself. |
-| Online signals (thumbs up/down, escalation rate, unanswered-query clustering) | ❌ | This is an offline eval harness only, no production feedback loop | **Verbal only**, mostly. This needs a live serving surface (an API/UI capturing feedback) that doesn't exist at all in this project — genuinely out of scope for a local demo. If you want *some* code signal, a `record_feedback(run_id, rating)` stub appended to `RunTrace`/a feedback JSONL file is a low-effort gesture, but it won't demonstrate the clustering/escalation-rate part. |
+| Pointer | Status | Notes | To close this gap | What to say (verbal-only rows) |
+|---|---|---|---|---|
+| recall@k, MRR (retrieval) vs. groundedness (generation) kept separate | ✅ | `evaluation/harness.py` — two explicit metric families | — | — |
+| nDCG | ❌ | Only recall@k/MRR | **Code — low.** A pure formula addition to `evaluation/harness.py::_score_case()`/`CaseResult` — needs graded relevance per expected doc (currently binary expected/not-expected), so the golden-set schema would also need a relevance-grade field per `expected_docs` entry, not just the scoring function. | — |
+| Golden set of 100-300 real customer questions | 🟡 | The golden-set *mechanism* is real; only 22 synthetic cases, not real customer questions at that scale | **Data/content only.** No code change — `data/golden_set.json` just needs more authored cases. Since there's no real customer, this specific gap can only ever be closed with more synthetic cases, not "real" ones — worth naming that limit if asked directly. | — |
+| Permission-specific eval suite (personas × restricted content) | ✅ | `security`-kind cases, `leak_rate` — the hard release gate | — | — |
+| LLM-as-judge calibrated against human labels | 🟡 | LLM-as-judge is used (grading, groundedness); no calibration-against-human-labels step | **Code — moderate.** Would need a small script that samples N graded cases, has a human (you) label them, and computes agreement (accuracy or Cohen's kappa) between the judge's score and the human label — a new, self-contained script, not a change to the graph itself. | — |
+| Online signals (thumbs up/down, escalation rate, unanswered-query clustering) | ❌ | This is an offline eval harness only, no production feedback loop | **Verbal only**, mostly. This needs a live serving surface (an API/UI capturing feedback) that doesn't exist at all in this project — genuinely out of scope for a local demo. If you want *some* code signal, a `record_feedback(run_id, rating)` stub appended to `RunTrace`/a feedback JSONL file is a low-effort gesture, but it won't demonstrate the clustering/escalation-rate part. | *"In production, every answer would capture a thumbs up/down and citation click-through, tied to the same `run_id` the trace already produces. Escalation-to-human rate becomes a proxy for retrieval failure — if it climbs, retrieval or grading regressed before anyone files a ticket. Refused/unanswered questions get embedded and clustered periodically; a cluster is a content gap, and it becomes a backlog item for whoever owns that source system, not a dead end for the user. I'd reuse the golden-set harness's `EvalReport` shape for this — same metrics, sourced from live traffic instead of a fixed case list — rather than building a second, separate metrics system."* |
 
 ---
 
 ## §4.6 — Likely Follow-Ups
 
-| Follow-up | Status | To close this gap |
-|---|---|---|
-| "How fast does a permission change propagate?" | ✅ Directly demoed — event-driven, zero reindex, both principal-side and document-side | — |
-| "Retrieval returns nothing — what does the user see?" | ✅ Covered — explicit refusal path, never a silent empty answer | — |
-| "Cost at 10M chunks?" | ❌ Not demonstrated — this is a 22-doc/86-chunk toy corpus; answer from the cheat sheet, not the code | **Verbal only**, in the main — no local demo can honestly show 10M-chunk economics. The one *piece* of this that is a tractable code change is response/embedding caching (see the caching row below); building that would let you show the cache-hit mechanism even though it can't prove behavior at real scale. |
-| "Same fact, conflicting sources — which wins?" | ❌ Not built — no source-authority/recency conflict resolution | **Code — moderate.** Would need a new, non-ACL dimension on `ResourceAttributes` (e.g. `authority_rank` or reuse `valid_from`/recency), a rule for picking a winner when multiple retrieved chunks answering the same sub-claim disagree, and a change to `SYNTHESIS_SYSTEM`/`generate()` to surface the conflict rather than silently pick one. Also needs a golden case that actually contains a contradiction, which the current 22-doc corpus does not. |
+| Follow-up | Status | To close this gap | What to say (verbal-only rows) |
+|---|---|---|---|
+| "How fast does a permission change propagate?" | ✅ Directly demoed — event-driven, zero reindex, both principal-side and document-side | — | — |
+| "Retrieval returns nothing — what does the user see?" | ✅ Covered — explicit refusal path, never a silent empty answer | — | — |
+| "Cost at 10M chunks?" | ❌ Not demonstrated — this is a 22-doc/86-chunk toy corpus; answer from the cheat sheet, not the code | **Verbal only**, in the main — no local demo can honestly show 10M-chunk economics. The one *piece* of this that is a tractable code change is response/embedding caching (see the caching row below); building that would let you show the cache-hit mechanism even though it can't prove behavior at real scale. | *"Five levers, in order of impact: (1) route by difficulty — a small/cheap model for query rewriting, HyDE, grading, and reranking, the large model reserved only for final synthesis — this platform already does exactly that with `fast_model` vs `synthesis_model`, so the pattern is proven, just not the scale. (2) Aggressive Layer-1 prefiltering already shrinks the candidate pool before the expensive reranking step runs — the bigger the corpus, the more that filter is doing. (3) Cache embeddings and full responses for repeated/near-duplicate questions — never pay to re-embed or re-generate the same thing twice. (4) Tiered storage — hot, recently-queried embeddings stay in the fast index; cold ones move to cheaper storage and get rehydrated on demand. (5) A smaller, cheaper model specifically for reranking, since it runs on every request but only needs a relevance judgment, not full reasoning."* |
+| "Same fact, conflicting sources — which wins?" | ❌ Not built — no source-authority/recency conflict resolution | **Code — moderate.** Would need a new, non-ACL dimension on `ResourceAttributes` (e.g. `authority_rank` or reuse `valid_from`/recency), a rule for picking a winner when multiple retrieved chunks answering the same sub-claim disagree, and a change to `SYNTHESIS_SYSTEM`/`generate()` to surface the conflict rather than silently pick one. Also needs a golden case that actually contains a contradiction, which the current 22-doc corpus does not. | — |
 
 ---
 
