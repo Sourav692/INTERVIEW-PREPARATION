@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
-"""Load corpus documents and their ACL frontmatter.
+"""Load corpus documents and join them with their ACL attributes.
 
-In production these attributes come from the *source system* - Confluence space
-permissions, SharePoint groups, Zendesk brand/organisation. The connector's real
-job is to faithfully translate that system's permission model into ours. Getting
-this translation wrong is the number one cause of enterprise RAG leaks, which is
-why it lives in its own, boringly explicit function.
+Markdown frontmatter carries only identity (`doc_id`, `title`) - no access-control
+data. Permissions come from a separate feed, the ACL manifest
+(`ingest/acl_manifest.py`), the stand-in for whatever real system actually owns
+entitlements in production (an admin console, an HR/entitlements system, a
+Confluence-space-permissions export). The connector's real job is joining the two
+by `doc_id` and translating the permission side into our ABAC attributes.
+
+A document with no matching manifest entry has no usable access-control metadata,
+so it is refused rather than defaulted to something that looks safe. Getting this
+join wrong is the number one cause of enterprise RAG leaks, which is why it lives
+in its own, boringly explicit function.
 """
 from __future__ import annotations
 
@@ -15,6 +21,7 @@ from typing import Dict, List, Optional
 
 from ..config import SETTINGS
 from ..models import Document, ResourceAttributes
+from .acl_manifest import load_acl_manifest
 
 DEFAULT_TENANT = "meridian"
 
@@ -36,43 +43,29 @@ def _parse_frontmatter(text: str) -> (Dict[str, str], str):
     return meta, body
 
 
-def _csv(value: Optional[str]) -> List[str]:
-    if not value:
-        return []
-    return [s.strip() for s in value.split(",") if s.strip()]
-
-
-def attrs_from_frontmatter(meta: Dict[str, str], tenant_id: str = DEFAULT_TENANT) -> ResourceAttributes:
-    """The connector's translation step: source metadata -> our ABAC attributes."""
-    return ResourceAttributes(
-        doc_id=meta["doc_id"],
-        tenant_id=tenant_id,
-        source=meta["source"],
-        sensitivity=meta["sensitivity"],
-        allowed_groups=_csv(meta.get("allowed_groups")),
-        region=meta.get("region", "GLOBAL"),
-        product=meta.get("product", "platform"),
-        owner=meta.get("owner", "unassigned"),
-        contains_pii=str(meta.get("contains_pii", "false")).lower() == "true",
-        need_to_know=_csv(meta.get("need_to_know")),
-        valid_from=meta.get("valid_from") or None,
-        valid_until=meta.get("valid_until") or None,
-    )
-
-
 def load_corpus(corpus_dir: Optional[Path] = None,
-                tenant_id: str = DEFAULT_TENANT) -> List[Document]:
+                tenant_id: str = DEFAULT_TENANT,
+                acl_manifest_path: Optional[Path] = None) -> List[Document]:
     corpus_dir = Path(corpus_dir or SETTINGS.corpus_dir)
+    acl_by_doc_id: Dict[str, ResourceAttributes] = load_acl_manifest(acl_manifest_path, tenant_id)
+
     docs: List[Document] = []
     for path in sorted(corpus_dir.glob("*.md")):
         raw = io.open(path, encoding="utf-8").read()
         meta, body = _parse_frontmatter(raw)
-        if not meta.get("doc_id"):
+        doc_id = meta.get("doc_id")
+        if not doc_id:
             raise ValueError(f"{path.name} has no doc_id in frontmatter - refusing to index "
-                             f"a document with no identity or ACL")
-        attrs = attrs_from_frontmatter(meta, tenant_id)
+                             f"a document with no identity")
+
+        attrs = acl_by_doc_id.get(doc_id)
+        if attrs is None:
+            raise ValueError(f"{path.name} (doc_id={doc_id!r}) has no entry in the ACL manifest "
+                             f"({SETTINGS.acl_manifest_file}) - refusing to index a document with "
+                             f"no usable access-control metadata")
+
         docs.append(Document(attrs=attrs,
-                             title=meta.get("title", attrs.doc_id),
+                             title=meta.get("title", doc_id),
                              text=body,
                              uri=f"file://{path.as_posix()}"))
     return docs

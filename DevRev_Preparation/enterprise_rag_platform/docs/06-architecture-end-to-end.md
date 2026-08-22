@@ -20,8 +20,9 @@ implemented?".
 flowchart LR
     subgraph OFFLINE["OFFLINE — Ingestion (run once / on doc change)"]
         direction TB
-        CORPUS["Source documents\n21 markdown files"]
-        LOAD["Read + validate\neach doc's access rules"]
+        CORPUS["Source documents\n22 markdown files — CONTENT ONLY"]
+        MANIFEST["ACL manifest\none JSON record per doc — PERMISSIONS ONLY"]
+        JOIN["Join by doc_id + validate\nunmatched or unmappable -> refused"]
         CHUNK["Split into\nretrieval-sized chunks"]
         PIPE["Orchestrate the run\nper tenant"]
         EMBED["Turn chunk text\ninto vectors"]
@@ -30,7 +31,9 @@ flowchart LR
         CATWRITE["Write one access-rule row\nper document"]
         CATDB[("ACL catalog\nSQLite — authoritative")]
 
-        CORPUS --> LOAD --> PIPE
+        CORPUS --> JOIN
+        MANIFEST --> JOIN
+        JOIN --> PIPE
         PIPE --> CHUNK --> EMBED --> STORE --> CHROMA
         PIPE --> CATWRITE --> CATDB
     end
@@ -56,21 +59,24 @@ flowchart LR
     TRACE -.replayed by.-> EVAL
 ```
 
-**One paragraph:** documents are chunked and embedded once, offline, into a per-tenant Chroma
-collection, and their access rules are written once into a separate local SQLite catalog (§2). Every
-query runs through an 8-step pipeline (§3) that resolves identity, compiles a cheap pre-filter from
-the vector store's cached rule-copy, retrieves via one of six swappable strategies (§4), then
-re-checks access against the **fresh** catalog copy — the authoritative decision — grades whether it
-has enough to answer, generates, and verifies citations before returning. Every step emits a
-structured trace, and the evaluation harness replays golden questions to score retrieval,
-groundedness, and — the one metric that gates a release — leaked documents (must be zero).
+**One paragraph:** content and permissions are two separate feeds — markdown files hold document text
+and identity only, a separate ACL manifest holds every access-control field, and the ingest pipeline
+joins them by `doc_id` (§2). From that join, documents are chunked and embedded once, offline, into a
+per-tenant Chroma collection, and the joined access rules are written once into a separate local
+SQLite catalog. Every query runs through an 8-step pipeline (§3) that resolves identity, compiles a
+cheap pre-filter from the vector store's cached rule-copy, retrieves via one of six swappable
+strategies (§4), then re-checks access against the **fresh** catalog copy — the authoritative decision
+— grades whether it has enough to answer, generates, and verifies citations before returning. Every
+step emits a structured trace, and the evaluation harness replays golden questions to score
+retrieval, groundedness, and — the one metric that gates a release — leaked documents (must be zero).
 
 **One line per box:**
 
-- **Source documents** — the 21 documents this demo ingests, each carrying its own access rules.
-- **Read + validate** — parses a doc's access rules; anything unmappable is quarantined, not guessed at.
-- **Orchestrate the run** — drives two independent things per document: chunk/embed, and catalog the rules.
-- **Split into chunks** — breaks a document into retrieval-sized pieces, each tagged with a copy of its rules.
+- **Source documents** — the 22 documents this demo ingests; markdown holds only `doc_id`, `title`, and body text.
+- **ACL manifest** — one JSON record per `doc_id`; every access-control field lives here instead, authored independently of content.
+- **Join by doc_id + validate** — the actual connector logic; an unmatched or unmappable document is refused, not guessed at.
+- **Orchestrate the run** — drives two independent things per joined document: chunk/embed, and catalog the rules.
+- **Split into chunks** — breaks a document into retrieval-sized pieces, each tagged with a copy of its (joined) rules.
 - **Turn chunk text into vectors** — the embedding call; the expensive, content-dependent step.
 - **Write vectors + text + a copy of the access rules** — into the tenant's vector index.
 - **Vector database** — the queryable index; its rule-copy is a cache, only used for the cheap pre-filter.
@@ -86,40 +92,54 @@ groundedness, and — the one metric that gates a release — leaked documents (
 
 ```mermaid
 flowchart TB
-    A["Source document\nwith access-control fields:\nowner, sensitivity, region, allowed groups..."]
+    A1["Source document — CONTENT only\ndoc_id + title + body,\nno access-control fields at all"]
+    A2["ACL manifest — PERMISSIONS only\none record per doc_id: sensitivity,\nregion, allowed groups, etc."]
+    J["Join the two feeds by doc_id\na document with no matching\nmanifest entry is refused"]
     B["Validate access rules\nunmappable permissions -> quarantined,\nnever defaulted to a safe-looking guess"]
     D["Orchestrate the run\nper tenant"]
-    C["Split into chunks\neach chunk carries a COPY of the\ndocument's access rules, for the index"]
+    C["Split into chunks\neach chunk carries a COPY of the\njoined access rules, for the index"]
     E["Embed\nturn each chunk's text into a vector"]
     F["Write to the vector index\nvector + text + a denormalised\naccess-rule copy, scoped to that tenant"]
     H[("Vector database\none index per tenant\n(this copy is a CACHE)")]
     G["Write one ACL row\nseparate SQLite table, one row per\ndocument — the authoritative copy"]
     I[("ACL catalog\nSQLite — independent of the\nvector index and embeddings")]
 
-    A --> B --> D
+    A1 --> J
+    A2 --> J
+    J --> B --> D
     D --> C --> E --> F --> H
     D --> G --> I
 ```
 
 **One line per step:**
 
-- **A.** Raw markdown, one file per document, front-matter holds every field the policy engine needs.
-- **B.** Parse + validate front-matter into `ResourceAttributes`; unmappable ACL → document quarantined, not ingested.
+- **A1.** Raw markdown, one file per document — pure content: identity (`doc_id`, `title`) and body text, nothing access-control-related.
+- **A2.** A separate manifest file, one JSON record per `doc_id` — pure permissions, the stand-in for a real entitlements/admin system.
+- **J.** The connector's actual job: join content and permissions by `doc_id`; a content file with no matching manifest record is refused outright.
+- **B.** Validate the joined `ResourceAttributes` — unmappable/inconsistent ACL → document quarantined, not ingested.
 - **D.** Orchestrates the whole run, per tenant: hands validated documents down two independent paths.
-- **C.** Break the validated document into chunks; each chunk gets its own copy of the doc's access rules.
+- **C.** Break the validated document into chunks; each chunk gets its own copy of the joined access rules.
 - **E.** Calls the embedding model in batches to turn chunk text into vectors.
 - **F.** Upserts ids + vectors + text + a denormalised access-rule copy into that tenant's Chroma collection.
 - **H.** The resulting per-tenant Chroma collection — the physical isolation boundary (§6) and Layer 1's data source.
 - **G.** Writes the document's access rules once, into a separate local database — no vectors involved.
 - **I.** The ACL catalog — the single authoritative source Layer 2 reads fresh on every request.
 
-**The point of the two branches (§6 and `docs/04` §0):** F's copy is denormalised and allowed to go
-stale — it only feeds the cheap Layer-1 pre-filter. I is what the post-retrieval Layer-2 check
-actually reads, so an access-rule change only ever needs a write to **G**, never to E/F. No
-re-embedding, no touching the vector index.
+**Why split content and permissions into two files instead of one:** the same reason Layer 1 and
+Layer 2 are two different stores — they change for different reasons, on different schedules, owned
+by different people. A markdown edit (fixing a typo) should never touch an access rule, and a
+permission change (revoking a group) should never touch document text. One file conflates two
+different change histories; two files, joined by `doc_id`, keep them independent — closer to how a
+real connector reads content from one system and permissions from another.
 
-**Check A on ingest (§6 of doc 04):** `loader.py` is also the ACL-validation gate — a document with an
-unmappable permission model is refused outright, never silently defaulted to `internal`. This is
+**The point of the two branches after the join (§6 and `docs/04` §0):** F's copy is denormalised and
+allowed to go stale — it only feeds the cheap Layer-1 pre-filter. I is what the post-retrieval Layer-2
+check actually reads, so an access-rule change only ever needs an edit to the **manifest** (feeding a
+write to **G**), never to E/F. No re-embedding, no touching the vector index.
+
+**Check J/B on ingest (§6 of doc 04):** the loader/pipeline join is the ACL-validation gate — a
+document with an unmappable permission model is refused outright, never silently defaulted to
+`internal`. This is
 called out as *"the number one cause of enterprise RAG leaks"* in `docs/04-security-checks-reference.md`.
 
 ---
@@ -380,7 +400,8 @@ gates.
 | Authoritative re-check (Layer 2)                           | `authz/enforcement.py`    | `enforce()` — fetches fresh attrs via `store.get_doc_attrs()`                          |
 | PII redaction obligation                                   | `authz/enforcement.py`    | `redact_pii()`, `_apply_redaction()`                                                    |
 | Citation ACL re-check                                      | `authz/enforcement.py`    | `verify_citations()`                                                                      |
-| Reading source`.md` + front-matter                       | `ingest/loader.py`        | `load_corpus()`                                                                           |
+| Reading source`.md` content + joining with the ACL manifest | `ingest/loader.py`      | `load_corpus()`                                                                           |
+| Reading the ACL manifest (permissions, separate from content) | `ingest/acl_manifest.py` | `load_acl_manifest()`                                                                    |
 | Splitting a doc into chunks                                | `ingest/chunker.py`       | `chunk_document()`                                                                        |
 | Orchestrating the whole ingest run                         | `ingest/pipeline.py`      | `ingest()`                                                                                |
 | Chroma client / collections                                | `ingest/store.py`         | `get_client()`, `get_collection()`                                                      |

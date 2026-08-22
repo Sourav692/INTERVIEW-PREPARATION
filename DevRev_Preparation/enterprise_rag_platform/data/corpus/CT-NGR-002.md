@@ -1,13 +1,6 @@
 ---
 doc_id: CT-NGR-002
 title: Order Form - Northgate Retail
-source: contract
-sensitivity: confidential
-allowed_groups: sales, legal, account-management
-region: US
-product: platform
-owner: legal
-contains_pii: false
 ---
 
 # Order Form - Northgate Retail Inc

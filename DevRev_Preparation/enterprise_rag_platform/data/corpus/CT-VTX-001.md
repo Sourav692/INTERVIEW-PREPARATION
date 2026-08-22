@@ -1,13 +1,6 @@
 ---
 doc_id: CT-VTX-001
 title: Master Services Agreement - Vertex Financial
-source: contract
-sensitivity: confidential
-allowed_groups: sales, legal, account-management
-region: EU
-product: platform
-owner: legal
-contains_pii: false
 ---
 
 # Master Services Agreement - Vertex Financial Ltd

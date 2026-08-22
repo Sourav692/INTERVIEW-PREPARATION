@@ -1,13 +1,6 @@
 ---
 doc_id: CT-KST-003
 title: Order Form - Kestrel Media
-source: contract
-sensitivity: confidential
-allowed_groups: sales, legal, account-management
-region: GLOBAL
-product: platform
-owner: legal
-contains_pii: false
 ---
 
 # Order Form - Kestrel Media GmbH

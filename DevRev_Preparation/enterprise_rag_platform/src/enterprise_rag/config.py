@@ -34,6 +34,7 @@ class Settings:
 
     # --- paths -------------------------------------------------------------
     corpus_dir: Path = PROJECT_ROOT / "data" / "corpus"
+    acl_manifest_file: Path = PROJECT_ROOT / "data" / "acl_manifest.json"
     identity_file: Path = PROJECT_ROOT / "data" / "identities.json"
     golden_set_file: Path = PROJECT_ROOT / "data" / "golden_set.json"
     chroma_dir: Path = PROJECT_ROOT / "data" / "chroma"

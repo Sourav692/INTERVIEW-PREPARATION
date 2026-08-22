@@ -94,12 +94,16 @@ The authoritative, post-retrieval access check. Treats every vector-store hit as
 
 ## ingest/loader.py
 
-Loads corpus markdown files and parses their YAML-like frontmatter into ACL attributes. Represents the "connector" boundary where a source system's permission model would be translated into this platform's ABAC model.
+Loads corpus markdown files and joins them with the separate ACL manifest by `doc_id`. Represents the "connector" boundary where a source system's permission model would be translated into this platform's ABAC model — except content and permissions now arrive as two distinct feeds, matching how a real connector reads a document from Confluence/SharePoint/Zendesk and reads its permissions from a separate entitlements system. Markdown frontmatter carries only `doc_id` and `title` — no ACL fields live in the corpus files.
 
-- **`_parse_frontmatter(text)`**: Splits a markdown document into its `---`-delimited frontmatter block (parsed as `key: value` lines) and the remaining body text. Returns `({}, text)` unchanged if no frontmatter block is present.
-- **`_csv(value)`**: Splits a comma-separated string into a trimmed list of non-empty tokens, or `[]` if the value is falsy.
-- **`attrs_from_frontmatter(meta, tenant_id="meridian")`**: Builds a `ResourceAttributes` object from a parsed frontmatter dict, applying defaults (e.g. `region="GLOBAL"`, `product="platform"`) for optional fields.
-- **`load_corpus(corpus_dir=None, tenant_id="meridian")`**: Globs all `*.md` files in the corpus directory, parses each one's frontmatter and body, and returns a list of `Document` objects. Raises `ValueError` if a file has no `doc_id` in its frontmatter, refusing to index an unidentifiable document.
+- **`_parse_frontmatter(text)`**: Splits a markdown document into its `---`-delimited frontmatter block (parsed as `key: value` lines, now just `doc_id`/`title`) and the remaining body text. Returns `({}, text)` unchanged if no frontmatter block is present.
+- **`load_corpus(corpus_dir=None, tenant_id="meridian", acl_manifest_path=None)`**: Loads the ACL manifest (`acl_manifest.load_acl_manifest()`) into a `doc_id -> ResourceAttributes` map, then globs all `*.md` files, parses each one's `doc_id`/`title` and body, and joins it against that map. Raises `ValueError` if a file has no `doc_id` in its frontmatter, or if its `doc_id` has no matching entry in the ACL manifest — refusing to index a document with no usable access-control metadata either way. Returns a list of `Document` objects, each with its `attrs` populated from the manifest.
+
+## ingest/acl_manifest.py
+
+**New.** Reads `data/acl_manifest.json` — the file where access-control data is actually authored, separate from document content. One JSON record per `doc_id` (`source`, `sensitivity`, `allowed_groups`, `region`, `product`, `owner`, `contains_pii`, `need_to_know`, `valid_from`, `valid_until`). Stands in for whatever real system owns entitlements in production (an admin console, HR/entitlements system, a permissions export).
+
+- **`load_acl_manifest(path=None, tenant_id="meridian")`**: Parses the manifest JSON into a `doc_id -> ResourceAttributes` dict, applying the given `tenant_id` to every record (the manifest itself carries no tenant field — one manifest file is scoped to one tenant's ingest run, same as `load_corpus()`'s existing `tenant_id` parameter).
 
 ## ingest/chunker.py
 
