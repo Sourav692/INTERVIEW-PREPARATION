@@ -10,11 +10,11 @@
 
 > **Note on placement:** this problem lives in the `Graph` folder, but the notebook implements it purely as an array / hash-set problem — there is no explicit graph traversal here. The "graph" framing is implicit: consecutive integers form chains (`x → x+1 → x+2 → ...`), and a hash set lets you walk each chain in O(1) steps per hop, the same way you'd walk edges in an unweighted graph. The reference below stays faithful to the actual code.
 
-| Topic | Key idea |
-| ----- | -------- |
-| Hash set membership | `set` gives O(1) average "is `x` present?" checks, replacing the need to sort or scan |
-| Run-start detection | Only begin counting a run at a number `x` whose predecessor `x-1` is **absent** — this is what keeps the set approach linear |
-| Sort-and-scan | Simpler baseline: dedupe + sort, then walk once counting consecutive runs |
+| Topic               | Key idea                                                                                                                               |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Hash set membership | `set` gives O(1) average "is `x` present?" checks, replacing the need to sort or scan                                              |
+| Run-start detection | Only begin counting a run at a number`x` whose predecessor `x-1` is **absent** — this is what keeps the set approach linear |
+| Sort-and-scan       | Simpler baseline: dedupe + sort, then walk once counting consecutive runs                                                              |
 
 **Canonical example** (from notebook):
 
@@ -24,12 +24,12 @@
 
 Expected outputs (from notebook asserts):
 
-| Input | Expected | `longest_consec_sort` | `longest_consec_set` |
-| ----- | -------- | ---------------------- | --------------------- |
-| `[100, 4, 200, 1, 3, 2]` | `4` | ✓ matches | ✓ matches |
-| `[0, 3, 7, 2, 5, 8, 4, 6, 0, 1]` | `9` | ✓ matches | ✓ matches |
-| `[]` | `0` | ✓ matches | ✓ matches |
-| `[5, 5, 5]` | `1` | ✓ matches | ✓ matches |
+| Input                              | Expected | `longest_consec_sort` | `longest_consec_set` |
+| ---------------------------------- | -------- | ----------------------- | ---------------------- |
+| `[100, 4, 200, 1, 3, 2]`         | `4`    | ✓ matches              | ✓ matches             |
+| `[0, 3, 7, 2, 5, 8, 4, 6, 0, 1]` | `9`    | ✓ matches              | ✓ matches             |
+| `[]`                             | `0`    | ✓ matches              | ✓ matches             |
+| `[5, 5, 5]`                      | `1`    | ✓ matches              | ✓ matches             |
 
 ---
 
@@ -57,29 +57,29 @@ def longest_consec_sort(nums):
 
 ### Line by line
 
-| Line / code | What it does |
-| ----------- | ------------ |
-| `if not nums: return 0` | Empty input has no run |
-| `s = sorted(set(nums))` | Dedupe (so repeats like `5,5,5` don't inflate a run), then sort ascending |
-| `best = cur = 1` | A single value is always a run of length ≥ 1 |
-| `for i in range(1, len(s))` | Walk every adjacent pair in sorted order |
-| `if s[i] == s[i-1] + 1` | Consecutive values — streak continues |
-| `cur += 1; best = max(best, cur)` | Extend the streak and update the best-seen length |
-| `else: cur = 1` | Gap found — the streak resets, starting fresh at length 1 |
-| `return best` | Longest streak found across the whole scan |
+| Line / code                         | What it does                                                               |
+| ----------------------------------- | -------------------------------------------------------------------------- |
+| `if not nums: return 0`           | Empty input has no run                                                     |
+| `s = sorted(set(nums))`           | Dedupe (so repeats like`5,5,5` don't inflate a run), then sort ascending |
+| `best = cur = 1`                  | A single value is always a run of length ≥ 1                              |
+| `for i in range(1, len(s))`       | Walk every adjacent pair in sorted order                                   |
+| `if s[i] == s[i-1] + 1`           | Consecutive values — streak continues                                     |
+| `cur += 1; best = max(best, cur)` | Extend the streak and update the best-seen length                          |
+| `else: cur = 1`                   | Gap found — the streak resets, starting fresh at length 1                 |
+| `return best`                     | Longest streak found across the whole scan                                 |
 
 ### Step-by-step trace (canonical example `[100, 4, 200, 1, 3, 2]`)
 
 `s = sorted(set([100, 4, 200, 1, 3, 2])) = [1, 2, 3, 4, 100, 200]`
 
-| Step | `i` | `s[i]` | `s[i-1]` | Consecutive? | `cur` | `best` |
-| ---- | --- | ------ | -------- | ------------ | ----- | ------ |
-| init | — | — | — | — | `1` | `1` |
-| 1 | 1 | `2` | `1` | yes (`1+1=2`) | `2` | `2` |
-| 2 | 2 | `3` | `2` | yes (`2+1=3`) | `3` | `3` |
-| 3 | 3 | `4` | `3` | yes (`3+1=4`) | `4` | `4` |
-| 4 | 4 | `100` | `4` | no (gap) | `1` | `4` |
-| 5 | 5 | `200` | `100` | no (gap) | `1` | `4` |
+| Step | `i` | `s[i]` | `s[i-1]` | Consecutive?    | `cur` | `best` |
+| ---- | ----- | -------- | ---------- | --------------- | ------- | -------- |
+| init | —    | —       | —         | —              | `1`   | `1`    |
+| 1    | 1     | `2`    | `1`      | yes (`1+1=2`) | `2`   | `2`    |
+| 2    | 2     | `3`    | `2`      | yes (`2+1=3`) | `3`   | `3`    |
+| 3    | 3     | `4`    | `3`      | yes (`3+1=4`) | `4`   | `4`    |
+| 4    | 4     | `100`  | `4`      | no (gap)        | `1`   | `4`    |
+| 5    | 5     | `200`  | `100`    | no (gap)        | `1`   | `4`    |
 
 **Result:** `best = 4` ✓ (the run `1, 2, 3, 4`)
 
@@ -125,16 +125,16 @@ def longest_consec_set(nums):
 
 ### Line by line
 
-| Line / code | What it does |
-| ----------- | ------------ |
-| `numset = set(nums)` | Build the hash set once — dedupes and gives O(1) lookups |
-| `best = 0` | No run found yet (handles the empty-input case naturally) |
-| `for x in numset` | Consider every distinct value as a potential run start |
-| `if x - 1 not in numset` | Skip `x` unless it's a true run start — its predecessor is missing |
-| `length = 1` | The run starting at `x` includes at least `x` itself |
+| Line / code                                 | What it does                                                          |
+| ------------------------------------------- | --------------------------------------------------------------------- |
+| `numset = set(nums)`                      | Build the hash set once — dedupes and gives O(1) lookups             |
+| `best = 0`                                | No run found yet (handles the empty-input case naturally)             |
+| `for x in numset`                         | Consider every distinct value as a potential run start                |
+| `if x - 1 not in numset`                  | Skip`x` unless it's a true run start — its predecessor is missing  |
+| `length = 1`                              | The run starting at`x` includes at least `x` itself               |
 | `while x + length in numset: length += 1` | Extend the run forward one step at a time while the next value exists |
-| `best = max(best, length)` | Record the longest run found so far |
-| `return best` | Longest consecutive run length across the whole array |
+| `best = max(best, length)`                | Record the longest run found so far                                   |
+| `return best`                             | Longest consecutive run length across the whole array                 |
 
 ### Step-by-step trace (canonical example `[100, 4, 200, 1, 3, 2]`)
 
@@ -142,14 +142,14 @@ def longest_consec_set(nums):
 
 Iterating `x` over the set (order doesn't matter — the "is it a start" filter makes the result order-independent):
 
-| `x` | `x - 1 in numset`? | Is a start? | Walk (`x + length in numset`) | Final `length` | `best` after |
-| --- | ------------------- | ----------- | ------------------------------ | --------------- | ------------ |
-| `100` | `99` absent | yes | `101` absent → stop | `1` | `1` |
-| `4` | `3` present | no | — (skipped) | — | `1` |
-| `200` | `199` absent | yes | `201` absent → stop | `1` | `1` |
-| `1` | `0` absent | yes | `2`✓ `3`✓ `4`✓ `5` absent → stop | `4` | `4` |
-| `3` | `2` present | no | — (skipped) | — | `4` |
-| `2` | `1` present | no | — (skipped) | — | `4` |
+| `x`   | `x - 1 in numset`? | Is a start? | Walk (`x + length in numset`)              | Final`length` | `best` after |
+| ------- | -------------------- | ----------- | -------------------------------------------- | --------------- | -------------- |
+| `100` | `99` absent        | yes         | `101` absent → stop                       | `1`           | `1`          |
+| `4`   | `3` present        | no          | — (skipped)                                 | —              | `1`          |
+| `200` | `199` absent       | yes         | `201` absent → stop                       | `1`           | `1`          |
+| `1`   | `0` absent         | yes         | `2`✓ `3`✓ `4`✓ `5` absent → stop | `4`           | `4`          |
+| `3`   | `2` present        | no          | — (skipped)                                 | —              | `4`          |
+| `2`   | `1` present        | no          | — (skipped)                                 | —              | `4`          |
 
 Only `x = 1` is a true run start (its predecessor `0` is missing), and walking forward from it finds `1, 2, 3, 4` — a streak of length `4`, which becomes the answer. Every other candidate either isn't a start (skipped immediately) or produces a run of length `1`.
 
@@ -177,10 +177,10 @@ Only `x = 1` is a true run start (its predecessor `0` is missing), and walking f
 
 ## Quick reference
 
-| Function | Technique | Result on `[100,4,200,1,3,2]` | Time | Space |
-| -------- | --------- | ------------------------------- | ---- | ----- |
-| `longest_consec_sort` | Dedupe + sort, scan for streaks | `4` | `O(n log n)` | `O(n)` |
-| `longest_consec_set` | Hash set, walk forward from true starts | `4` | `O(n)` | `O(n)` |
+| Function                | Technique                               | Result on`[100,4,200,1,3,2]` | Time           | Space    |
+| ----------------------- | --------------------------------------- | ------------------------------ | -------------- | -------- |
+| `longest_consec_sort` | Dedupe + sort, scan for streaks         | `4`                          | `O(n log n)` | `O(n)` |
+| `longest_consec_set`  | Hash set, walk forward from true starts | `4`                          | `O(n)`       | `O(n)` |
 
 ## Patterns to remember
 

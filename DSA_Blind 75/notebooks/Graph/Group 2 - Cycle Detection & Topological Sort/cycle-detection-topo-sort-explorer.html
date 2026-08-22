@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cycle Detection &amp; Topological Sort — Course Schedule / Alien Dictionary</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 14px; cursor:pointer; color:var(--dim); font-size:0.88rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.82rem;}
+  .status{font-family:var(--mono); font-size:0.84rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .status.lose{border-left-color:var(--danger); color:var(--danger);}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 11px; min-width:110px;}
+  .tracker .lbl{color:var(--dim); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.02rem; font-weight:600;}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+
+  .queue-viz{display:flex; gap:6px; flex-wrap:wrap; min-height:44px; align-items:center; padding:10px; background:var(--panel2); border:1px dashed var(--line); border-radius:8px; margin:10px 0;}
+  .queue-item{font-family:var(--mono); font-size:0.9rem; background:rgba(163,148,217,0.2); border:1.5px solid var(--purple); color:var(--purple); border-radius:6px; padding:6px 12px; font-weight:600;}
+
+  .node-graph{display:flex; gap:14px; flex-wrap:wrap; margin:14px 0;}
+  .gnode{
+    width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:1rem; font-weight:700; border:2px solid var(--line);
+    background:var(--panel2); color:var(--dim); position:relative;
+  }
+  .gnode.unvisited{border-color:var(--line); color:var(--dim);}
+  .gnode.inprogress{border-color:var(--accent2); background:rgba(224,164,88,0.2); color:var(--accent2); box-shadow:0 0 0 3px rgba(224,164,88,0.2);}
+  .gnode.safe{border-color:var(--accent); background:rgba(95,179,163,0.2); color:var(--accent);}
+  .gnode.cycle{border-color:var(--danger); background:rgba(217,115,106,0.3); color:var(--danger); box-shadow:0 0 0 3px rgba(217,115,106,0.3);}
+  .gnode .indeg{position:absolute; top:-10px; right:-6px; background:var(--panel); border:1px solid var(--line); border-radius:50%; width:20px; height:20px; font-size:0.65rem; display:flex; align-items:center; justify-content:center; color:var(--purple);}
+
+  .order-output{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
+  .order-chip{font-family:var(--mono); font-size:1rem; background:rgba(95,179,163,0.2); border:1.5px solid var(--accent); color:var(--accent); border-radius:6px; padding:6px 12px; font-weight:700;}
+
+  .word-compare{display:flex; gap:24px; flex-wrap:wrap; margin:14px 0; align-items:center;}
+  .word-box{font-family:var(--mono); font-size:1.1rem; display:flex; gap:2px;}
+  .word-box .letter{padding:6px 10px; border:1.5px solid var(--line); border-radius:6px; background:var(--panel2);}
+  .word-box .letter.diff{border-color:var(--accent2); background:rgba(224,164,88,0.2); color:var(--accent2);}
+  .word-box .letter.same{opacity:0.5;}
+  .edge-list{display:flex; gap:6px; flex-wrap:wrap; margin:10px 0;}
+  .edge-chip{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--accent); color:var(--accent); border-radius:6px; padding:5px 10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Cycle Detection &amp; Topological Sort</h1>
+  <div class="sub">Course Schedule · Alien Dictionary — "A must come before B" rules become a directed graph; a cycle means no valid order exists</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="courses">Course Schedule</div>
+    <div class="tab" data-tab="alien">Alien Dictionary</div>
+  </div>
+
+  <!-- COURSE SCHEDULE -->
+  <div class="panel active" id="panel-courses">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Prerequisites form a <b>directed graph</b>. You can finish every course exactly when there's <b>no cycle</b> — no course indirectly requires itself. Two equivalent lenses: DFS coloring (unvisited / in-progress / safe) spots a <em>back-edge</em> into an in-progress node; Kahn's algorithm repeatedly peels off courses with zero remaining prerequisites — if any courses are left stuck, they're in a cycle.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">numCourses=4, prerequisites=[[1,0],[2,1],[3,2]] (valid chain)</span>
+        <button id="cs-reset">↺ Reset</button>
+        <button id="cs-step" class="primary">Step →</button>
+        <button id="cs-run">▶ Run all</button>
+      </div>
+
+      <div class="node-graph" id="cs-graph"></div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:16px;">Kahn's queue (courses with 0 remaining prerequisites)</div>
+      <div class="queue-viz" id="cs-queue"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">courses taken</span><span class="val" id="cs-taken" style="color:var(--accent);">0</span></div>
+      </div>
+
+      <div class="status" id="cs-status" style="margin-top:6px;">Press "Step" to begin. Initial in-degrees computed; course 0 has none, ready to take.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--panel2); border:1px solid var(--line)"></span> not yet takeable</span>
+        <span><span class="dot" style="background:rgba(224,164,88,0.2); border:1px solid var(--accent2)"></span> in the queue</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.2); border:1px solid var(--accent)"></span> taken</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why "courses taken == numCourses" is the whole check:</b> if a cycle exists, every course in that cycle permanently has in-degree ≥ 1 (each is waiting on another in the same cycle) — so the queue starves before reaching them. Counting how many courses got successfully taken and comparing to the total is a clean, complete cycle detector with zero extra logic.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Kahn's Topological Sort · O(V+E) time, O(V+E) space</h3>
+      <pre><code>from collections import defaultdict, deque
+
+def can_finish(numCourses, prerequisites):
+    graph = defaultdict(list)              # course -> courses it unlocks
+    indeg = [0] * numCourses               # remaining prerequisites per course
+    for a, b in prerequisites:
+        graph[b].append(a)                 # finishing b unlocks a
+        indeg[a] += 1
+
+    q = deque([c for c in range(numCourses) if indeg[c] == 0])   # ready to take now
+    done = 0
+    while q:
+        c = q.popleft(); done += 1
+        for nxt in graph[c]:
+            indeg[nxt] -= 1                # nxt no longer needs c
+            if indeg[nxt] == 0:
+                q.append(nxt)               # now nxt is ready too
+
+    return done == numCourses              # took everything -> no cycle</code></pre>
+      <p class="note" style="color:var(--dim);">Each node enqueued/dequeued once, each edge relaxed once → <b>O(V+E)</b> time. Adjacency list, in-degree array, queue → <b>O(V+E)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- ALIEN DICTIONARY -->
+  <div class="panel" id="panel-alien">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Words sorted in an unknown alphabet leak ordering clues: the <b>first differing letter</b> between two adjacent words tells you "this letter comes before that one" — exactly one directed edge per adjacent word pair. Topologically sort the letter graph; a valid order exists iff there's no cycle (no contradiction).</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">["wrt","wrf","er","ett","rftt"]</span>
+        <button id="al-reset">↺ Reset</button>
+        <button id="al-step" class="primary">Step →</button>
+        <button id="al-run">▶ Run all</button>
+      </div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:6px;">Comparing adjacent word pair</div>
+      <div class="word-compare" id="al-words"></div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:16px;">Edges discovered so far ("comes before")</div>
+      <div class="edge-list" id="al-edges"></div>
+
+      <div class="status" id="al-status" style="margin-top:6px;">Press "Step" to begin. Comparing "wrt" vs "wrf".</div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:16px; display:none;" id="al-order-label">Topological order (final alphabet)</div>
+      <div class="order-output" id="al-order"></div>
+    </div>
+
+    <div class="why">
+      <b>Why only the FIRST difference is a real clue:</b> once two words diverge, everything after that point is irrelevant to their relative order — like comparing "wrt" vs "wrf": the 't' vs 'f' at position 2 fully determines wrf &lt; wrt, so nothing later matters. Continuing to compare past the first difference would add false or redundant edges.
+    </div>
+
+    <div class="why" style="border-left-color:var(--danger);">
+      <b>The prefix trap:</b> if a <em>longer</em> word appears before a shorter word that's its own prefix — like <code>"abc"</code> before <code>"ab"</code> — no valid alphabet can explain that (a shorter prefix must always sort first). This case has to be checked explicitly; it produces no differing letter to build an edge from, so it would otherwise slip through undetected.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Build Graph From First Differences + Kahn's · O(total characters) time, O(unique letters + edges) space</h3>
+      <pre><code>from collections import defaultdict, deque
+
+def alien_order(words):
+    graph = defaultdict(set)
+    indeg = {c: 0 for w in words for c in w}
+    for a, b in zip(words, words[1:]):
+        minlen = min(len(a), len(b))
+        if len(a) > len(b) and a[:minlen] == b[:minlen]:
+            return ""                       # prefix contradiction -> impossible
+        for j in range(minlen):
+            if a[j] != b[j]:                # FIRST difference is the only real clue
+                if b[j] not in graph[a[j]]:
+                    graph[a[j]].add(b[j]); indeg[b[j]] += 1
+                break
+
+    q = deque([c for c in indeg if indeg[c] == 0])
+    order = []
+    while q:
+        c = q.popleft(); order.append(c)
+        for nxt in graph[c]:
+            indeg[nxt] -= 1
+            if indeg[nxt] == 0:
+                q.append(nxt)
+
+    return "".join(order) if len(order) == len(indeg) else ""   # leftover letters -> cycle</code></pre>
+      <p class="note" style="color:var(--dim);">Comparing adjacent words is proportional to total characters → <b>O(total characters)</b> time. Graph over unique letters → <b>O(unique letters + edges)</b> space.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ================= COURSE SCHEDULE (Kahn's) =================
+const csN = 4;
+const csPrereqs = [[1,0],[2,1],[3,2]]; // 1 needs 0, 2 needs 1, 3 needs 2 -> chain 0->1->2->3
+let csGraph = {}; // b -> [a...] (finishing b unlocks a)
+let csIndeg = [];
+let csQueue = [];
+let csTaken = [];
+let csDone = false;
+
+function csInit(){
+  csGraph = {};
+  csIndeg = new Array(csN).fill(0);
+  for (const [a,b] of csPrereqs){
+    if (!csGraph[b]) csGraph[b] = [];
+    csGraph[b].push(a);
+    csIndeg[a]++;
+  }
+  csQueue = [];
+  for (let c=0;c<csN;c++) if (csIndeg[c]===0) csQueue.push(c);
+  csTaken = [];
+}
+
+function renderCS(){
+  const graphEl = document.getElementById('cs-graph');
+  graphEl.innerHTML = '';
+  for (let c=0;c<csN;c++){
+    const node = document.createElement('div');
+    let cls = 'gnode ';
+    if (csTaken.includes(c)) cls += 'safe';
+    else if (csQueue.includes(c)) cls += 'inprogress';
+    else cls += 'unvisited';
+    node.className = cls;
+    node.innerHTML = `${c}<span class="indeg">${csIndeg[c]}</span>`;
+    graphEl.appendChild(node);
+  }
+
+  const queueEl = document.getElementById('cs-queue');
+  queueEl.innerHTML = '';
+  if (csQueue.length === 0){
+    queueEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(empty)</span>';
+  } else {
+    csQueue.forEach(c=>{
+      const item = document.createElement('div');
+      item.className = 'queue-item';
+      item.textContent = `course ${c}`;
+      queueEl.appendChild(item);
+    });
+  }
+
+  document.getElementById('cs-taken').textContent = csTaken.length;
+}
+
+function csStep(){
+  if (csDone) return;
+  const statusEl = document.getElementById('cs-status');
+  if (csQueue.length === 0){
+    const ok = csTaken.length === csN;
+    statusEl.textContent = ok
+      ? `Queue empty, all ${csN} courses taken → True, you CAN finish all courses.`
+      : `Queue empty but only ${csTaken.length}/${csN} courses taken → cycle detected! Return False.`;
+    statusEl.classList.add(ok ? 'win' : 'lose');
+    csDone = true;
+    document.getElementById('cs-step').disabled = true;
+    renderCS();
+    return;
+  }
+  const c = csQueue.shift();
+  csTaken.push(c);
+  let msg = `Take course ${c} (in-degree was 0). `;
+  const unlocked = csGraph[c] || [];
+  unlocked.forEach(nxt=>{
+    csIndeg[nxt]--;
+    msg += `Course ${nxt}'s in-degree → ${csIndeg[nxt]}. `;
+    if (csIndeg[nxt] === 0){
+      csQueue.push(nxt);
+      msg += `Now ready, add to queue. `;
+    }
+  });
+  statusEl.textContent = msg;
+  renderCS();
+}
+
+function csReset(){
+  csInit(); csDone=false;
+  document.getElementById('cs-step').disabled = false;
+  document.getElementById('cs-status').className = 'status';
+  document.getElementById('cs-status').textContent = 'Press "Step" to begin. Initial in-degrees computed; course 0 has none, ready to take.';
+  renderCS();
+}
+
+document.getElementById('cs-step').onclick = csStep;
+document.getElementById('cs-reset').onclick = csReset;
+document.getElementById('cs-run').onclick = ()=>{
+  csReset();
+  const iv = setInterval(()=>{ csStep(); if (csDone) clearInterval(iv); }, 700);
+};
+csInit();
+renderCS();
+
+// ================= ALIEN DICTIONARY =================
+const alWords = ["wrt","wrf","er","ett","rftt"];
+// Precompute the pairwise comparisons and resulting edges
+const alPairSteps = [];
+for (let i=0;i<alWords.length-1;i++){
+  const a = alWords[i], b = alWords[i+1];
+  const minlen = Math.min(a.length, b.length);
+  let diffIdx = -1;
+  for (let j=0;j<minlen;j++){
+    if (a[j] !== b[j]){ diffIdx = j; break; }
+  }
+  alPairSteps.push({a, b, diffIdx});
+}
+
+let alPairIdx = 0;
+let alEdges = []; // {from, to}
+let alIndeg = {};
+for (const w of alWords) for (const c of w) if (!(c in alIndeg)) alIndeg[c] = 0;
+let alPhase = 'comparing'; // comparing -> toposort -> done
+let alQueue = [];
+let alOrder = [];
+let alGraph = {};
+let alDone = false;
+
+function renderAL(){
+  const wordsEl = document.getElementById('al-words');
+  wordsEl.innerHTML = '';
+  if (alPhase === 'comparing' && alPairIdx < alPairSteps.length){
+    const {a,b,diffIdx} = alPairSteps[alPairIdx];
+    [a,b].forEach(word=>{
+      const box = document.createElement('div');
+      box.className = 'word-box';
+      [...word].forEach((ch,idx)=>{
+        const span = document.createElement('span');
+        span.className = 'letter' + (idx===diffIdx ? ' diff' : (diffIdx>=0 && idx<diffIdx ? ' same' : ''));
+        span.textContent = ch;
+        box.appendChild(span);
+      });
+      wordsEl.appendChild(box);
+    });
+  } else {
+    wordsEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(comparison phase complete)</span>';
+  }
+
+  const edgesEl = document.getElementById('al-edges');
+  edgesEl.innerHTML = '';
+  if (alEdges.length === 0){
+    edgesEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(none yet)</span>';
+  } else {
+    alEdges.forEach(e=>{
+      const chip = document.createElement('div');
+      chip.className = 'edge-chip';
+      chip.textContent = `${e.from} → ${e.to}`;
+      edgesEl.appendChild(chip);
+    });
+  }
+
+  const orderEl = document.getElementById('al-order');
+  const orderLabel = document.getElementById('al-order-label');
+  orderEl.innerHTML = '';
+  if (alOrder.length > 0){
+    orderLabel.style.display = 'block';
+    alOrder.forEach(c=>{
+      const chip = document.createElement('div');
+      chip.className = 'order-chip';
+      chip.textContent = c;
+      orderEl.appendChild(chip);
+    });
+  } else {
+    orderLabel.style.display = 'none';
+  }
+}
+
+function alStep(){
+  if (alDone) return;
+  const statusEl = document.getElementById('al-status');
+
+  if (alPhase === 'comparing'){
+    if (alPairIdx >= alPairSteps.length){
+      alPhase = 'toposort';
+      alQueue = Object.keys(alIndeg).filter(c => alIndeg[c] === 0);
+      statusEl.textContent = `All ${alPairSteps.length} adjacent word pairs compared. Now run Kahn's topological sort on the letter graph. Letters with 0 in-degree: [${alQueue.join(', ')}].`;
+      renderAL();
+      return;
+    }
+    const {a,b,diffIdx} = alPairSteps[alPairIdx];
+    if (diffIdx === -1 && a.length > b.length){
+      statusEl.textContent = `Comparing "${a}" vs "${b}": "${b}" is a prefix of "${a}" but comes AFTER it → contradiction! No valid alphabet. Return "".`;
+      statusEl.classList.add('lose');
+      alDone = true;
+      document.getElementById('al-step').disabled = true;
+      renderAL();
+      return;
+    }
+    if (diffIdx >= 0){
+      const from = a[diffIdx], to = b[diffIdx];
+      const exists = alEdges.some(e => e.from===from && e.to===to);
+      if (!exists){
+        alEdges.push({from, to});
+        if (!alGraph[from]) alGraph[from] = [];
+        alGraph[from].push(to);
+        alIndeg[to]++;
+        statusEl.textContent = `Comparing "${a}" vs "${b}": first difference at position ${diffIdx} ('${from}' vs '${to}') → new edge: '${from}' comes before '${to}'.`;
+      } else {
+        statusEl.textContent = `Comparing "${a}" vs "${b}": first difference at position ${diffIdx} ('${from}' vs '${to}') → edge already known.`;
+      }
+    } else {
+      statusEl.textContent = `Comparing "${a}" vs "${b}": one is a clean prefix of the other, no new clue.`;
+    }
+    alPairIdx++;
+    renderAL();
+    return;
+  }
+
+  // toposort phase
+  if (alQueue.length === 0){
+    const totalLetters = Object.keys(alIndeg).length;
+    const ok = alOrder.length === totalLetters;
+    statusEl.textContent = ok
+      ? `Queue empty, all ${totalLetters} letters ordered → "${alOrder.join('')}" is a valid alien alphabet!`
+      : `Queue empty but only ${alOrder.length}/${totalLetters} letters placed → cycle among letters! Return "".`;
+    statusEl.classList.add(ok ? 'win' : 'lose');
+    alDone = true;
+    document.getElementById('al-step').disabled = true;
+    renderAL();
+    return;
+  }
+  const c = alQueue.shift();
+  alOrder.push(c);
+  let msg = `Place letter '${c}' (in-degree was 0). `;
+  const nexts = alGraph[c] || [];
+  nexts.forEach(nxt=>{
+    alIndeg[nxt]--;
+    msg += `'${nxt}''s in-degree → ${alIndeg[nxt]}. `;
+    if (alIndeg[nxt] === 0){
+      alQueue.push(nxt);
+      msg += `Now ready. `;
+    }
+  });
+  statusEl.textContent = msg;
+  renderAL();
+}
+
+function alReset(){
+  alPairIdx=0; alEdges=[]; alIndeg={}; alPhase='comparing'; alQueue=[]; alOrder=[]; alGraph={}; alDone=false;
+  for (const w of alWords) for (const c of w) if (!(c in alIndeg)) alIndeg[c]=0;
+  document.getElementById('al-step').disabled = false;
+  document.getElementById('al-status').className = 'status';
+  document.getElementById('al-status').textContent = 'Press "Step" to begin. Comparing "wrt" vs "wrf".';
+  renderAL();
+}
+
+document.getElementById('al-step').onclick = alStep;
+document.getElementById('al-reset').onclick = alReset;
+document.getElementById('al-run').onclick = ()=>{
+  alReset();
+  const iv = setInterval(()=>{ alStep(); if (alDone) clearInterval(iv); }, 550);
+};
+renderAL();
+</script>
+</body>
+</html>

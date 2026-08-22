@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Grid Flood Fill &amp; Connectivity — Graph Patterns</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9; --blue:#6ba3d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:1020px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 14px; cursor:pointer; color:var(--dim); font-size:0.85rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.83rem;}
+  .status{font-family:var(--mono); font-size:0.84rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  .status.lose{border-left-color:var(--danger); color:var(--danger);}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 11px; min-width:100px;}
+  .tracker .lbl{color:var(--dim); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.02rem; font-weight:600;}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+
+  /* Grid visualization */
+  .grid-viz{display:inline-block; border:1px solid var(--line); border-radius:8px; padding:8px; background:var(--panel2); margin:16px 0;}
+  .grid-row{display:flex;}
+  .grid-cell{
+    width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:0.85rem; font-weight:700; border:1px solid var(--line);
+    transition: all 0.2s; position:relative;
+  }
+  .grid-cell.water{background:#141a1c; color:#3a464b;}
+  .grid-cell.land{background:rgba(224,164,88,0.15); color:var(--accent2); border-color:rgba(224,164,88,0.4);}
+  .grid-cell.current{background:rgba(224,164,88,0.5); color:#0f1416; box-shadow:0 0 0 2px var(--accent2) inset;}
+  .grid-cell.sunk{background:rgba(95,179,163,0.28); color:var(--accent); border-color:var(--accent);}
+  .grid-cell.pac{box-shadow: inset 3px 0 0 var(--blue);}
+  .grid-cell.atl{box-shadow: inset -3px 0 0 var(--purple);}
+  .grid-cell.both{background:rgba(95,179,163,0.4); color:var(--accent); font-weight:900;}
+
+  /* Union-find visualization */
+  .uf-nodes{display:flex; gap:10px; flex-wrap:wrap; margin:14px 0;}
+  .uf-node{
+    width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:0.95rem; font-weight:700; border:2px solid var(--line);
+    background:var(--panel2); color:var(--dim); position:relative; transition: all 0.3s;
+  }
+  .uf-node.root{border-color:var(--accent); color:var(--accent); background:rgba(95,179,163,0.15);}
+  .uf-node.checking{border-color:var(--accent2); box-shadow:0 0 0 3px rgba(224,164,88,0.25);}
+  .uf-node .grouplabel{position:absolute; bottom:-18px; font-size:0.65rem; color:var(--dim); white-space:nowrap;}
+  .edge-list{display:flex; gap:6px; flex-wrap:wrap; margin:10px 0;}
+  .edge-chip{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:6px; padding:5px 10px;}
+  .edge-chip.used{border-color:var(--accent); color:var(--accent);}
+  .edge-chip.current{border-color:var(--accent2); color:var(--accent2); background:rgba(224,164,88,0.15);}
+  .edge-chip.cycle{border-color:var(--danger); color:var(--danger); background:rgba(217,115,106,0.15);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Grid Flood Fill &amp; Connectivity</h1>
+  <div class="sub">Number of Islands · Pacific Atlantic Water Flow · Number of Connected Components · Graph Valid Tree — same traversal engine, different questions</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="islands">Number of Islands</div>
+    <div class="tab" data-tab="pacatl">Pacific Atlantic Water Flow</div>
+    <div class="tab" data-tab="components">Connected Components</div>
+    <div class="tab" data-tab="validtree">Graph Valid Tree</div>
+  </div>
+
+  <!-- NUMBER OF ISLANDS -->
+  <div class="panel active" id="panel-islands">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p><b>Flood fill</b> is the engine: scan every cell, and the moment you hit unvisited land, spread (DFS or BFS) across the <em>entire connected blob</em>, marking it visited ("sinking" it) so it's never recounted. Each fresh flood-fill start is exactly one island.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">grid: 4×5, land='1', water='0'</span>
+        <button id="ni-reset">↺ Reset</button>
+        <button id="ni-step" class="primary">Step →</button>
+        <button id="ni-run">▶ Run all</button>
+      </div>
+
+      <div class="grid-viz" id="ni-grid"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">islands found</span><span class="val" id="ni-count" style="color:var(--accent);">0</span></div>
+      </div>
+
+      <div class="status" id="ni-status">Press "Step" to begin. Scanning grid left-to-right, top-to-bottom.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:rgba(224,164,88,0.4); border:1px solid var(--accent2)"></span> unvisited land</span>
+        <span><span class="dot" style="background:rgba(224,164,88,0.7); border:1px solid var(--accent2)"></span> currently flooding</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.3); border:1px solid var(--accent)"></span> sunk (counted)</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why "sink as you go" beats a separate visited set:</b> overwriting a visited land cell to water directly in the grid means one array does double duty — no extra memory needed to track what's been seen, and checking "is this still land?" is the same check as "have I visited this?"
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — DFS Flood Fill · O(rows·cols) time, O(rows·cols) worst-case space</h3>
+      <pre><code>def num_islands(grid):
+    rows, cols = len(grid), len(grid[0])
+    def sink(r, c):
+        if r<0 or c<0 or r>=rows or c>=cols or grid[r][c] != "1":
+            return                        # off-grid or water/already-sunk -> stop
+        grid[r][c] = "0"                  # sink this land cell (mark visited)
+        sink(r+1,c); sink(r-1,c); sink(r,c+1); sink(r,c-1)   # spread to 4 neighbors
+
+    count = 0
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == "1":         # found a NEW, unvisited island
+                count += 1
+                sink(r, c)                # flood-fill (sink) the whole blob
+    return count</code></pre>
+      <p class="note" style="color:var(--dim);">Each cell visited once → <b>O(rows·cols)</b> time. Worst-case recursion depth (one giant island) → <b>O(rows·cols)</b> space (BFS with a queue caps this at O(min(rows,cols))).</p>
+    </div>
+  </div>
+
+  <!-- PACIFIC ATLANTIC -->
+  <div class="panel" id="panel-pacatl">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Checking "can water FROM this cell reach the ocean?" for every cell is O((rows·cols)²) — way too slow. Instead, flip the question: <b>climb inland from the ocean borders</b> to equal-or-<em>higher</em> cells (the reverse of water flowing downhill). A cell that's reachable by climbing from <em>both</em> oceans is exactly a cell whose water can flow to both.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">heights (5×5), climbing from both ocean borders</span>
+        <button id="pa-reset">↺ Reset</button>
+        <button id="pa-step" class="primary">Step →</button>
+        <button id="pa-run">▶ Run all</button>
+      </div>
+
+      <div class="grid-viz" id="pa-grid"></div>
+
+      <div class="status" id="pa-status">Press "Step" to begin. Seeding DFS from all Pacific border cells (top row + left column).</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:transparent; border:2px solid var(--blue)"></span> reaches Pacific</span>
+        <span><span class="dot" style="background:transparent; border:2px solid var(--purple)"></span> reaches Atlantic</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.4)"></span> reaches BOTH → answer!</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why this is "multi-source" flood fill:</b> instead of one starting cell, every Pacific-border cell is a starting point simultaneously — the DFS/BFS just explores from all of them at once (into a shared "reached" set). Doing this once per ocean, then intersecting the two reached sets, replaces (rows·cols) separate searches with exactly 2.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Climb From Borders · O(rows·cols) time, O(rows·cols) space</h3>
+      <pre><code>def pacific_atlantic(heights):
+    rows, cols = len(heights), len(heights[0])
+    pac, atl = set(), set()
+    def dfs(r, c, seen, prev):
+        if (r,c) in seen or r<0 or c<0 or r>=rows or c>=cols or heights[r][c] < prev:
+            return                        # can't climb UP into a lower cell
+        seen.add((r, c))
+        for dr, dc in ((1,0),(-1,0),(0,1),(0,-1)):
+            dfs(r+dr, c+dc, seen, heights[r][c])
+
+    for c in range(cols):                 # seed Pacific (top row) & Atlantic (bottom row)
+        dfs(0, c, pac, heights[0][c]); dfs(rows-1, c, atl, heights[rows-1][c])
+    for r in range(rows):                 # seed Pacific (left col) & Atlantic (right col)
+        dfs(r, 0, pac, heights[r][0]); dfs(r, cols-1, atl, heights[r][cols-1])
+
+    return [[r,c] for r in range(rows) for c in range(cols) if (r,c) in pac and (r,c) in atl]</code></pre>
+      <p class="note" style="color:var(--dim);">Each ocean's search visits each cell at most once → <b>O(rows·cols)</b> time for both combined. Two "reached" sets plus recursion → <b>O(rows·cols)</b> space.</p>
+    </div>
+  </div>
+
+  <!-- CONNECTED COMPONENTS -->
+  <div class="panel" id="panel-components">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Start with every node in its <b>own</b> group. Each edge that joins two <em>different</em> groups merges them, shrinking the group count by one. <b>Union-Find</b> (Disjoint Set) tracks this efficiently: <code>find(x)</code> returns x's group leader, <code>union(a,b)</code> merges two groups. Final component count = groups remaining.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">n=5, edges=[[0,1],[1,2],[3,4]]</span>
+        <button id="cc-reset">↺ Reset</button>
+        <button id="cc-step" class="primary">Step →</button>
+        <button id="cc-run">▶ Run all</button>
+      </div>
+
+      <div class="uf-nodes" id="cc-nodes"></div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:20px;">Edges to process</div>
+      <div class="edge-list" id="cc-edges"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">components</span><span class="val" id="cc-count" style="color:var(--accent);">5</span></div>
+      </div>
+
+      <div class="status" id="cc-status" style="margin-top:10px;">Press "Step" to begin. Start: 5 separate groups (one per node).</div>
+    </div>
+
+    <div class="why">
+      <b>Why the answer is just "count minus successful merges":</b> every node starts isolated (n groups). Each edge either joins two already-connected nodes (no-op, already counted together) or bridges two separate groups (one fewer group). No traversal needed — the arithmetic alone gives the answer.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Union-Find · O((n+E)·α(n)) ≈ O(n+E) time, O(n) space</h3>
+      <pre><code>def count_components(n, edges):
+    parent = list(range(n))          # each node starts as its own group leader
+    count = n
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]   # path compression
+            x = parent[x]
+        return x
+    for a, b in edges:
+        ra, rb = find(a), find(b)
+        if ra != rb:                  # different groups -> merging reduces the count
+            parent[ra] = rb
+            count -= 1
+    return count</code></pre>
+      <p class="note" style="color:var(--dim);">With path compression, near-constant amortized time per operation → <b>O(n+E)</b> effectively. Parent array → <b>O(n)</b> space. (Traversal counting fresh starts is an equally valid O(n+E) alternative.)</p>
+    </div>
+  </div>
+
+  <!-- GRAPH VALID TREE -->
+  <div class="panel" id="panel-validtree">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>A graph is a tree iff it is <b>fully connected</b> <em>and</em> has <b>no cycle</b>. The cheapest filter: a tree on n nodes has <b>exactly n−1 edges</b> — check that first. Then run Union-Find: if an edge's two endpoints are <em>already</em> in the same group, that edge creates a cycle → not a tree.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">n=5, edges=[[0,1],[1,2],[2,0],[3,4]]</span>
+        <button id="vt-reset">↺ Reset</button>
+        <button id="vt-step" class="primary">Step →</button>
+        <button id="vt-run">▶ Run all</button>
+      </div>
+
+      <div class="uf-nodes" id="vt-nodes"></div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:20px;">Edges to process</div>
+      <div class="edge-list" id="vt-edges"></div>
+
+      <div class="status" id="vt-status" style="margin-top:10px;">Press "Step" to begin. First check: edges.length == n-1?</div>
+    </div>
+
+    <div class="why">
+      <b>Why the edge-count check alone isn't sufficient:</b> exactly n−1 edges rules out cycles <em>if</em> the graph is also fully connected — but n−1 edges could still be split into a smaller cycle plus disconnected pieces. That's why Union-Find is still needed: it directly verifies no cycle forms as edges merge, which (combined with the correct edge count) guarantees full connectivity as a consequence.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Edge Count + Union-Find Cycle Check · O(n) time, O(n) space</h3>
+      <pre><code>def valid_tree(n, edges):
+    if len(edges) != n - 1:          # a tree on n nodes has EXACTLY n-1 edges
+        return False
+    parent = list(range(n))
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+    for a, b in edges:
+        ra, rb = find(a), find(b)
+        if ra == rb:                  # already in the same group -> this edge is a CYCLE
+            return False
+        parent[ra] = rb
+    return True                       # n-1 edges + no cycle => connected tree</code></pre>
+      <p class="note" style="color:var(--dim);">Edge check is O(1); Union-Find loop is near-linear → <b>O(n)</b> time overall. Parent array → <b>O(n)</b> space.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ================= NUMBER OF ISLANDS =================
+const niGridOriginal = [
+  ['1','1','1','1','0'],
+  ['1','1','0','1','0'],
+  ['1','1','0','0','0'],
+  ['0','0','0','0','0'],
+];
+let niGrid = niGridOriginal.map(row=>[...row]);
+let niCount = 0;
+let niCurrent = null;
+let niScanR = 0, niScanC = 0;
+let niFloodQueue = [];
+let niDone = false;
+
+function renderNI(){
+  const gridEl = document.getElementById('ni-grid');
+  gridEl.innerHTML = '';
+  niGrid.forEach((row, r)=>{
+    const rowEl = document.createElement('div');
+    rowEl.className = 'grid-row';
+    row.forEach((val, c)=>{
+      const cell = document.createElement('div');
+      let cls = 'grid-cell ';
+      if (val === '0'){
+        cls += (niGridOriginal[r][c]==='1') ? 'sunk' : 'water';
+      } else {
+        cls += 'land';
+      }
+      if (niCurrent && niCurrent[0]===r && niCurrent[1]===c) cls += ' current';
+      cell.className = cls;
+      cell.textContent = niGridOriginal[r][c]==='1' ? '' : '';
+      rowEl.appendChild(cell);
+    });
+    gridEl.appendChild(rowEl);
+  });
+  document.getElementById('ni-count').textContent = niCount;
+}
+
+function niStep(){
+  if (niDone) return;
+  const statusEl = document.getElementById('ni-status');
+  const rows = niGrid.length, cols = niGrid[0].length;
+
+  // If we're mid-flood, process the queue
+  if (niFloodQueue.length > 0){
+    const [r,c] = niFloodQueue.shift();
+    niCurrent = [r,c];
+    if (r<0||c<0||r>=rows||c>=cols||niGrid[r][c]!=='1'){
+      statusEl.textContent = `Cell (${r},${c}) is off-grid or not land → skip.`;
+      renderNI();
+      return;
+    }
+    niGrid[r][c] = '0';
+    statusEl.textContent = `Sink land cell (${r},${c}). Queue its 4 neighbors.`;
+    niFloodQueue.push([r+1,c],[r-1,c],[r,c+1],[r,c-1]);
+    renderNI();
+    return;
+  }
+
+  // Otherwise, scan forward for the next unvisited land cell
+  while (niScanR < rows){
+    if (niScanC >= cols){ niScanR++; niScanC = 0; continue; }
+    if (niGrid[niScanR][niScanC] === '1'){
+      niCount++;
+      statusEl.textContent = `Scan hits (${niScanR},${niScanC}): unvisited land! New island #${niCount}. Start flooding.`;
+      niFloodQueue.push([niScanR, niScanC]);
+      niCurrent = [niScanR, niScanC];
+      renderNI();
+      return;
+    }
+    niScanC++;
+  }
+
+  statusEl.textContent = `Scan complete. Total islands = ${niCount}.`;
+  statusEl.classList.add('win');
+  niDone = true;
+  niCurrent = null;
+  document.getElementById('ni-step').disabled = true;
+  renderNI();
+}
+
+function niReset(){
+  niGrid = niGridOriginal.map(row=>[...row]);
+  niCount=0; niCurrent=null; niScanR=0; niScanC=0; niFloodQueue=[]; niDone=false;
+  document.getElementById('ni-step').disabled = false;
+  document.getElementById('ni-status').className = 'status';
+  document.getElementById('ni-status').textContent = 'Press "Step" to begin. Scanning grid left-to-right, top-to-bottom.';
+  renderNI();
+}
+
+document.getElementById('ni-step').onclick = niStep;
+document.getElementById('ni-reset').onclick = niReset;
+document.getElementById('ni-run').onclick = ()=>{
+  niReset();
+  const iv = setInterval(()=>{ niStep(); if (niDone) clearInterval(iv); }, 90);
+};
+renderNI();
+
+// ================= PACIFIC ATLANTIC =================
+const paHeights = [
+  [1,2,2,3,5],
+  [3,2,3,4,4],
+  [2,4,5,3,1],
+  [6,7,1,4,5],
+  [5,1,1,2,4],
+];
+let paPac = new Set();
+let paAtl = new Set();
+let paPhase = 'pacific'; // pacific -> atlantic -> done
+let paQueue = [];
+let paSeeds = [];
+let paDone = false;
+let paCurrent = null;
+
+function paKey(r,c){ return r+','+c; }
+
+function paInitSeeds(){
+  const rows = paHeights.length, cols = paHeights[0].length;
+  const seeds = [];
+  for (let c=0;c<cols;c++){ seeds.push([0,c]); }
+  for (let r=0;r<rows;r++){ seeds.push([r,0]); }
+  return seeds;
+}
+function paInitAtlSeeds(){
+  const rows = paHeights.length, cols = paHeights[0].length;
+  const seeds = [];
+  for (let c=0;c<cols;c++){ seeds.push([rows-1,c]); }
+  for (let r=0;r<rows;r++){ seeds.push([r,cols-1]); }
+  return seeds;
+}
+
+function renderPA(){
+  const gridEl = document.getElementById('pa-grid');
+  gridEl.innerHTML = '';
+  const rows = paHeights.length, cols = paHeights[0].length;
+  for (let r=0;r<rows;r++){
+    const rowEl = document.createElement('div');
+    rowEl.className = 'grid-row';
+    for (let c=0;c<cols;c++){
+      const cell = document.createElement('div');
+      let cls = 'grid-cell water';
+      const inPac = paPac.has(paKey(r,c));
+      const inAtl = paAtl.has(paKey(r,c));
+      if (inPac && inAtl) cls = 'grid-cell both';
+      else if (inPac) cls = 'grid-cell land pac';
+      else if (inAtl) cls = 'grid-cell land atl';
+      if (paCurrent && paCurrent[0]===r && paCurrent[1]===c) cls += ' current';
+      cell.className = cls;
+      cell.textContent = paHeights[r][c];
+      rowEl.appendChild(cell);
+    }
+    gridEl.appendChild(rowEl);
+  }
+}
+
+function paStep(){
+  if (paDone) return;
+  const statusEl = document.getElementById('pa-status');
+  const rows = paHeights.length, cols = paHeights[0].length;
+
+  if (paQueue.length === 0 && paSeeds.length === 0){
+    if (paPhase === 'pacific'){
+      paPhase = 'atlantic';
+      paSeeds = paInitAtlSeeds();
+      statusEl.textContent = `Pacific search complete. Now seeding DFS from all Atlantic border cells (bottom row + right column).`;
+      renderPA();
+      return;
+    } else {
+      const answer = [];
+      for (let r=0;r<rows;r++) for (let c=0;c<cols;c++) if (paPac.has(paKey(r,c)) && paAtl.has(paKey(r,c))) answer.push([r,c]);
+      statusEl.textContent = `Both searches complete. Cells reaching BOTH oceans: ${JSON.stringify(answer)}.`;
+      statusEl.classList.add('win');
+      paDone = true;
+      paCurrent = null;
+      document.getElementById('pa-step').disabled = true;
+      renderPA();
+      return;
+    }
+  }
+
+  const targetSet = paPhase === 'pacific' ? paPac : paAtl;
+
+  if (paQueue.length === 0){
+    const [sr, sc] = paSeeds.shift();
+    paQueue.push([sr, sc, paHeights[sr][sc]]);
+    paCurrent = [sr,sc];
+    statusEl.textContent = `Seed ${paPhase} DFS from border cell (${sr},${sc}), height ${paHeights[sr][sc]}.`;
+    renderPA();
+    return;
+  }
+
+  const [r,c,prevHeight] = paQueue.shift();
+  paCurrent = [r,c];
+  if (targetSet.has(paKey(r,c)) || r<0||c<0||r>=rows||c>=cols || paHeights[r][c] < prevHeight){
+    statusEl.textContent = `(${r},${c}) already visited, off-grid, or too low to climb into → skip.`;
+    renderPA();
+    return;
+  }
+  targetSet.add(paKey(r,c));
+  const h = paHeights[r][c];
+  statusEl.textContent = `Climb into (${r},${c}), height ${h} (≥ ${prevHeight}) → mark reachable from ${paPhase}. Queue its neighbors.`;
+  paQueue.push([r+1,c,h],[r-1,c,h],[r,c+1,h],[r,c-1,h]);
+  renderPA();
+}
+
+function paReset(){
+  paPac = new Set(); paAtl = new Set(); paPhase='pacific'; paQueue=[]; paSeeds=paInitSeeds(); paDone=false; paCurrent=null;
+  document.getElementById('pa-step').disabled = false;
+  document.getElementById('pa-status').className = 'status';
+  document.getElementById('pa-status').textContent = 'Press "Step" to begin. Seeding DFS from all Pacific border cells (top row + left column).';
+  renderPA();
+}
+
+document.getElementById('pa-step').onclick = paStep;
+document.getElementById('pa-reset').onclick = paReset;
+document.getElementById('pa-run').onclick = ()=>{
+  paReset();
+  const iv = setInterval(()=>{ paStep(); if (paDone) clearInterval(iv); }, 70);
+};
+renderPA();
+
+// ================= CONNECTED COMPONENTS =================
+const ccN = 5;
+const ccEdges = [[0,1],[1,2],[3,4]];
+let ccParent = Array.from({length:ccN}, (_,i)=>i);
+let ccCount = ccN;
+let ccEdgeIdx = 0;
+let ccDone = false;
+
+function ccFind(x){
+  while (ccParent[x] !== x){
+    ccParent[x] = ccParent[ccParent[x]];
+    x = ccParent[x];
+  }
+  return x;
+}
+
+function renderCC(){
+  const nodesEl = document.getElementById('cc-nodes');
+  nodesEl.innerHTML = '';
+  for (let i=0;i<ccN;i++){
+    const root = ccFind(i);
+    const node = document.createElement('div');
+    node.className = 'uf-node' + (root===i ? ' root' : '');
+    node.innerHTML = `${i}<span class="grouplabel">root: ${root}</span>`;
+    nodesEl.appendChild(node);
+  }
+  const edgesEl = document.getElementById('cc-edges');
+  edgesEl.innerHTML = '';
+  ccEdges.forEach(([a,b],i)=>{
+    const chip = document.createElement('div');
+    chip.className = 'edge-chip' + (i < ccEdgeIdx ? ' used' : '') + (i===ccEdgeIdx && !ccDone ? ' current' : '');
+    chip.textContent = `(${a},${b})`;
+    edgesEl.appendChild(chip);
+  });
+  document.getElementById('cc-count').textContent = ccCount;
+}
+
+function ccStep(){
+  if (ccDone) return;
+  const statusEl = document.getElementById('cc-status');
+  if (ccEdgeIdx >= ccEdges.length){
+    statusEl.textContent = `All edges processed. Final component count = ${ccCount}.`;
+    statusEl.classList.add('win');
+    ccDone = true;
+    document.getElementById('cc-step').disabled = true;
+    renderCC();
+    return;
+  }
+  const [a,b] = ccEdges[ccEdgeIdx];
+  const ra = ccFind(a), rb = ccFind(b);
+  if (ra !== rb){
+    ccParent[ra] = rb;
+    ccCount--;
+    statusEl.textContent = `Edge (${a},${b}): roots differ (${ra} vs ${rb}) → merge groups. Component count: ${ccCount+1} → ${ccCount}.`;
+  } else {
+    statusEl.textContent = `Edge (${a},${b}): both already in group rooted at ${ra} → no change.`;
+  }
+  ccEdgeIdx++;
+  renderCC();
+}
+
+function ccReset(){
+  ccParent = Array.from({length:ccN}, (_,i)=>i);
+  ccCount = ccN; ccEdgeIdx=0; ccDone=false;
+  document.getElementById('cc-step').disabled = false;
+  document.getElementById('cc-status').className = 'status';
+  document.getElementById('cc-status').textContent = 'Press "Step" to begin. Start: 5 separate groups (one per node).';
+  renderCC();
+}
+
+document.getElementById('cc-step').onclick = ccStep;
+document.getElementById('cc-reset').onclick = ccReset;
+document.getElementById('cc-run').onclick = ()=>{
+  ccReset();
+  const iv = setInterval(()=>{ ccStep(); if (ccDone) clearInterval(iv); }, 700);
+};
+renderCC();
+
+// ================= GRAPH VALID TREE =================
+const vtN = 5;
+const vtEdges = [[0,1],[1,2],[2,0],[3,4]]; // 4 edges (matches n-1) but has a cycle: 0-1-2-0
+let vtParent = Array.from({length:vtN}, (_,i)=>i);
+let vtEdgeIdx = 0;
+let vtDone = false;
+let vtCycleFound = -1;
+let vtPhase = 'count-check';
+
+function vtFind(x){
+  while (vtParent[x] !== x){
+    vtParent[x] = vtParent[vtParent[x]];
+    x = vtParent[x];
+  }
+  return x;
+}
+
+function renderVT(){
+  const nodesEl = document.getElementById('vt-nodes');
+  nodesEl.innerHTML = '';
+  for (let i=0;i<vtN;i++){
+    const root = vtFind(i);
+    const node = document.createElement('div');
+    node.className = 'uf-node' + (root===i ? ' root' : '');
+    node.innerHTML = `${i}<span class="grouplabel">root: ${root}</span>`;
+    nodesEl.appendChild(node);
+  }
+  const edgesEl = document.getElementById('vt-edges');
+  edgesEl.innerHTML = '';
+  vtEdges.forEach(([a,b],i)=>{
+    const chip = document.createElement('div');
+    let cls = 'edge-chip';
+    if (i < vtEdgeIdx && i !== vtCycleFound) cls += ' used';
+    if (i === vtCycleFound) cls += ' cycle';
+    if (i===vtEdgeIdx && !vtDone && vtPhase==='union-find') cls += ' current';
+    chip.className = cls;
+    chip.textContent = `(${a},${b})`;
+    edgesEl.appendChild(chip);
+  });
+}
+
+function vtStep(){
+  if (vtDone) return;
+  const statusEl = document.getElementById('vt-status');
+
+  if (vtPhase === 'count-check'){
+    if (vtEdges.length !== vtN - 1){
+      statusEl.textContent = `Edge count check: ${vtEdges.length} edges, need exactly ${vtN-1} for a tree on ${vtN} nodes. MISMATCH → return False immediately.`;
+      statusEl.classList.add('lose');
+      vtDone = true;
+      document.getElementById('vt-step').disabled = true;
+      renderVT();
+      return;
+    }
+    statusEl.textContent = `Edge count check: ${vtEdges.length} edges == ${vtN}-1. Passes! Now run Union-Find to check for cycles.`;
+    vtPhase = 'union-find';
+    renderVT();
+    return;
+  }
+
+  if (vtEdgeIdx >= vtEdges.length){
+    statusEl.textContent = `All edges processed with no cycle found → True, this IS a valid tree.`;
+    statusEl.classList.add('win');
+    vtDone = true;
+    document.getElementById('vt-step').disabled = true;
+    renderVT();
+    return;
+  }
+
+  const [a,b] = vtEdges[vtEdgeIdx];
+  const ra = vtFind(a), rb = vtFind(b);
+  if (ra === rb){
+    statusEl.textContent = `Edge (${a},${b}): both ALREADY in the same group (root ${ra}) → this edge creates a CYCLE. Return False.`;
+    statusEl.classList.add('lose');
+    vtCycleFound = vtEdgeIdx;
+    vtDone = true;
+    document.getElementById('vt-step').disabled = true;
+    renderVT();
+    return;
+  }
+  vtParent[ra] = rb;
+  statusEl.textContent = `Edge (${a},${b}): roots differ (${ra} vs ${rb}) → merge, no cycle yet.`;
+  vtEdgeIdx++;
+  renderVT();
+}
+
+function vtReset(){
+  vtParent = Array.from({length:vtN}, (_,i)=>i);
+  vtEdgeIdx=0; vtDone=false; vtCycleFound=-1; vtPhase='count-check';
+  document.getElementById('vt-step').disabled = false;
+  document.getElementById('vt-status').className = 'status';
+  document.getElementById('vt-status').textContent = 'Press "Step" to begin. First check: edges.length == n-1?';
+  renderVT();
+}
+
+document.getElementById('vt-step').onclick = vtStep;
+document.getElementById('vt-reset').onclick = vtReset;
+document.getElementById('vt-run').onclick = ()=>{
+  vtReset();
+  const iv = setInterval(()=>{ vtStep(); if (vtDone) clearInterval(iv); }, 700);
+};
+renderVT();
+</script>
+</body>
+</html>

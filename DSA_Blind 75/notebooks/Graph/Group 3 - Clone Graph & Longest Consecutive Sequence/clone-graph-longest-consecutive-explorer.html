@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Clone Graph &amp; Longest Consecutive Sequence</title>
+<style>
+  :root{
+    --bg:#0f1416; --panel:#161d20; --panel2:#1c2528; --line:#2a3438;
+    --text:#e8edee; --dim:#8fa0a6; --accent:#5fb3a3; --accent2:#e0a458;
+    --danger:#d9736a; --purple:#a394d9;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, Menlo, monospace;
+    --sans: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family: var(--sans); padding:28px 20px 60px;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  h1{font-size:1.5rem; font-weight:600; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:0.92rem; margin-bottom:22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+  .tab{padding:10px 14px; cursor:pointer; color:var(--dim); font-size:0.88rem; border-bottom:2px solid transparent; user-select:none; font-weight:500;}
+  .tab.active{color:var(--accent); border-bottom:2px solid var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:16px;}
+  .code-card{border-color:rgba(95,179,163,0.35);}
+  .code-card h3{color:var(--accent);}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  button{background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:7px; cursor:pointer; font-size:0.88rem; font-family: var(--sans); transition: all 0.15s;}
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--text);}
+  .primary{background:var(--accent); color:#0f1416; border-color:var(--accent); font-weight:600;}
+  .primary:hover{color:#0f1416; opacity:0.9;}
+  .target-badge{font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); padding:6px 12px; border-radius:7px; font-size:0.83rem;}
+  .status{font-family:var(--mono); font-size:0.84rem; padding:12px 14px; border-radius:8px; background:var(--panel2); border-left:3px solid var(--accent2); min-height:22px; white-space:pre-wrap; line-height:1.5;}
+  .status.win{border-left-color:var(--accent); color:var(--accent);}
+  h3{font-size:1rem; margin:0 0 10px; color:var(--text); font-weight:600;}
+  p{color:var(--dim); font-size:0.9rem; line-height:1.55; margin:6px 0;}
+  code{font-family:var(--mono); background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:0.85em; color:var(--accent2);}
+  .why{background:var(--panel2); border-radius:8px; padding:12px 14px; margin-top:14px; font-size:0.85rem; color:var(--dim); border-left:3px solid var(--accent);}
+  pre{background:#0b0f11; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.55; margin:0;}
+  .note{margin-top:10px; font-size:0.83rem;}
+  .legend{display:flex; gap:16px; font-size:0.8rem; color:var(--dim); margin-top:14px; flex-wrap:wrap;}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px;height:10px;border-radius:3px; display:inline-block;}
+
+  /* Clone graph viz */
+  .clone-panes{display:flex; gap:30px; flex-wrap:wrap; justify-content:center; margin:16px 0;}
+  .pane{text-align:center;}
+  .pane-label{font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;}
+  .clone-svg{display:block;}
+
+  .map-viz{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;}
+  .map-entry{font-family:var(--mono); font-size:0.85rem; background:var(--panel2); border:1px solid var(--accent); color:var(--accent); border-radius:6px; padding:5px 10px;}
+
+  /* Longest consecutive viz */
+  .num-set{display:flex; gap:6px; flex-wrap:wrap; margin:14px 0;}
+  .num-chip{
+    width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:0.95rem; font-weight:700; border:1.5px solid var(--line);
+    background:var(--panel2); color:var(--dim); transition: all 0.25s;
+  }
+  .num-chip.checking{border-color:var(--accent2); background:rgba(224,164,88,0.2); color:var(--accent2); box-shadow:0 0 0 2px rgba(224,164,88,0.2);}
+  .num-chip.notstart{opacity:0.35;}
+  .num-chip.inrun{border-color:var(--purple); background:rgba(163,148,217,0.2); color:var(--purple);}
+  .num-chip.bestrun{border-color:var(--accent); background:rgba(95,179,163,0.32); color:var(--accent); font-weight:900;}
+  .trackers{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 4px;}
+  .tracker{font-family:var(--mono); font-size:0.82rem; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 11px; min-width:100px;}
+  .tracker .lbl{color:var(--dim); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:3px;}
+  .tracker .val{font-size:1.02rem; font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Clone Graph &amp; Longest Consecutive Sequence</h1>
+  <div class="sub">Two more graph-adjacent patterns: traversal with a memo map, and set-based chain building</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="clonegraph">Clone Graph</div>
+    <div class="tab" data-tab="longestconsec">Longest Consecutive Sequence</div>
+  </div>
+
+  <!-- CLONE GRAPH -->
+  <div class="panel active" id="panel-clonegraph">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>To deep-copy a graph, you must copy every node exactly once and rewire the <b>copies</b> to each other — never to the originals. A hash map <code>original → copy</code> makes this simple: the first time you meet a node, create its copy and store it immediately (<em>before</em> recursing into neighbors) — that's what lets the algorithm survive cycles without looping forever.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">4-node cycle: 1↔2↔3↔4↔1</span>
+        <button id="cg-reset">↺ Reset</button>
+        <button id="cg-step" class="primary">Step →</button>
+        <button id="cg-run">▶ Run all</button>
+      </div>
+
+      <div class="clone-panes">
+        <div class="pane">
+          <div class="pane-label">Original</div>
+          <svg id="cg-svg-orig" class="clone-svg" width="220" height="220" viewBox="0 0 220 220"></svg>
+        </div>
+        <div class="pane">
+          <div class="pane-label">Clone (being built)</div>
+          <svg id="cg-svg-clone" class="clone-svg" width="220" height="220" viewBox="0 0 220 220"></svg>
+        </div>
+      </div>
+
+      <div style="font-size:0.78rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.05em; margin-top:6px;">Clone map (original → copy)</div>
+      <div class="map-viz" id="cg-map"></div>
+
+      <div class="status" id="cg-status" style="margin-top:10px;">Press "Step" to begin. DFS from node 1.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> currently visiting</span>
+        <span><span class="dot" style="background:var(--accent)"></span> copy exists in map</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why the copy must be created BEFORE recursing into neighbors:</b> in a cycle (1→2→...→1), node 1's neighbor-copying recursion eventually reaches node 1 again. If node 1's copy weren't already in the map at that point, the DFS would recurse into it forever. Creating and storing the copy first means the second visit finds it already there and simply reuses it.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — DFS with a Clone Map · O(V+E) time, O(V) space</h3>
+      <pre><code>def clone_graph(node):
+    if not node:
+        return None
+    old_to_new = {}                    # original node -> its freshly-made copy
+    def dfs(n):
+        if n in old_to_new:
+            return old_to_new[n]       # already copied -> reuse (breaks cycles!)
+        copy = Node(n.val)
+        old_to_new[n] = copy           # store BEFORE recursing into neighbors
+        for nb in n.neighbors:
+            copy.neighbors.append(dfs(nb))   # link copy -> copy, never copy -> original
+        return copy
+    return dfs(node)</code></pre>
+      <p class="note" style="color:var(--dim);">Every node and edge visited once → <b>O(V+E)</b> time. Clone map holds one entry per node → <b>O(V)</b> space. (BFS with a queue is an equally valid O(V+E) alternative.)</p>
+    </div>
+  </div>
+
+  <!-- LONGEST CONSECUTIVE SEQUENCE -->
+  <div class="panel" id="panel-longestconsec">
+    <div class="card">
+      <h3>The core flip</h3>
+      <p>Numbers that follow each other form a chain. Put everything in a <b>hash set</b> for O(1) membership, then only <b>start counting a run at a true starting point</b> — a number whose predecessor (<code>x-1</code>) is <em>absent</em> from the set. From there, walk upward while the next number exists. Skipping non-starts is what keeps the whole thing linear instead of quadratic.</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="target-badge">nums = [100, 4, 200, 1, 3, 2]</span>
+        <button id="lc-reset">↺ Reset</button>
+        <button id="lc-step" class="primary">Step →</button>
+        <button id="lc-run">▶ Run all</button>
+      </div>
+
+      <div class="num-set" id="lc-set"></div>
+
+      <div class="trackers">
+        <div class="tracker"><span class="lbl">current run length</span><span class="val" id="lc-curlen" style="color:var(--purple);">−</span></div>
+        <div class="tracker"><span class="lbl">best so far</span><span class="val" id="lc-best" style="color:var(--accent);">0</span></div>
+      </div>
+
+      <div class="status" id="lc-status" style="margin-top:6px;">Press "Step" to begin. Set built: {100, 4, 200, 1, 3, 2}.</div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--accent2)"></span> checking if this is a run start</span>
+        <span><span class="dot" style="background:var(--panel2); border:1px solid var(--line); opacity:0.6"></span> skipped (not a start)</span>
+        <span><span class="dot" style="background:rgba(163,148,217,0.3); border:1px solid var(--purple)"></span> counted in current run</span>
+        <span><span class="dot" style="background:rgba(95,179,163,0.32); border:1px solid var(--accent)"></span> best run (final)</span>
+      </div>
+    </div>
+
+    <div class="why">
+      <b>Why this is still O(n) despite the nested while loop:</b> the outer loop only does real work (the inner <code>while</code>) when <code>x</code> is a true run start — every other number gets skipped in O(1). Across the <em>entire</em> run of the algorithm, each number is visited by the inner while loop at most once (as part of counting its one run), so total work stays linear.
+    </div>
+
+    <div class="card code-card">
+      <h3>Optimal Solution — Hash Set, Grow From True Starts · O(n) time, O(n) space</h3>
+      <pre><code>def longest_consecutive(nums):
+    numset = set(nums)          # O(1) membership tests
+    best = 0
+    for x in numset:
+        if x - 1 not in numset:      # x is the START of a run (nothing comes before it)
+            length = 1
+            while x + length in numset:   # walk forward while the chain continues
+                length += 1
+            best = max(best, length)
+    return best</code></pre>
+      <p class="note" style="color:var(--dim);">Each number is touched by the inner while loop at most once overall (only from its run's true start) → <b>O(n)</b> time despite the nested loop. Set storage → <b>O(n)</b> space.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  };
+});
+
+// ============ shared circular graph drawing ============
+function drawGraph(svgId, positions, edges, nodeStates){
+  const svg = document.getElementById(svgId);
+  let content = '';
+  edges.forEach(([a,b])=>{
+    if (positions[a] && positions[b]){
+      content += `<line x1="${positions[a].x}" y1="${positions[a].y}" x2="${positions[b].x}" y2="${positions[b].y}" stroke="#2a3438" stroke-width="2"/>`;
+    }
+  });
+  Object.entries(positions).forEach(([id,pos])=>{
+    const state = nodeStates[id] || 'hidden';
+    if (state === 'hidden') return;
+    let fill = '#1c2528', stroke = '#2a3438', textColor='#e8edee';
+    if (state==='current'){ fill='rgba(224,164,88,0.25)'; stroke='#e0a458'; }
+    if (state==='done'){ fill='rgba(95,179,163,0.22)'; stroke='#5fb3a3'; }
+    content += `<circle cx="${pos.x}" cy="${pos.y}" r="20" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+    content += `<text x="${pos.x}" y="${pos.y+5}" text-anchor="middle" font-family="SF Mono, monospace" font-size="14" fill="${textColor}" font-weight="600">${id}</text>`;
+  });
+  svg.innerHTML = content;
+}
+
+// ================= CLONE GRAPH =================
+// 4-node cycle: 1-2-3-4-1
+const cgPositions = {
+  1: {x:110, y:40}, 2: {x:190, y:110}, 3: {x:110, y:180}, 4: {x:30, y:110},
+};
+const cgEdges = [[1,2],[2,3],[3,4],[4,1]];
+const cgAdj = {1:[2,4], 2:[1,3], 3:[2,4], 4:[1,3]};
+
+// DFS order matching: dfs(1) -> copy 1, then neighbors [2,4]
+//   dfs(2) -> copy 2, then neighbors [1,3]: dfs(1) already copied (reuse), dfs(3)
+//     dfs(3) -> copy 3, then neighbors [2,4]: dfs(2) already copied (reuse), dfs(4)
+//       dfs(4) -> copy 4, then neighbors [1,3]: both already copied (reuse)
+const cgTrace = [
+  {node:1, action:'copy'},
+  {node:2, action:'copy'},
+  {node:1, action:'reuse', from:2},
+  {node:3, action:'copy'},
+  {node:2, action:'reuse', from:3},
+  {node:4, action:'copy'},
+  {node:1, action:'reuse', from:4},
+  {node:3, action:'reuse', from:4},
+  {node:4, action:'reuse', from:1},
+];
+let cgTraceIdx = 0;
+let cgCloned = new Set();
+let cgCurrent = null;
+let cgDone = false;
+
+function renderCG(){
+  const origStates = {};
+  const cloneStates = {};
+  [1,2,3,4].forEach(id=>{
+    origStates[id] = 'done';
+    if (cgCloned.has(id)){
+      cloneStates[id] = (id===cgCurrent && !cgDone) ? 'current' : 'done';
+    } else {
+      cloneStates[id] = 'hidden';
+    }
+  });
+  if (cgCurrent && !cgDone) origStates[cgCurrent] = 'current';
+
+  drawGraph('cg-svg-orig', cgPositions, cgEdges, origStates);
+  // clone edges: only show edges between two cloned nodes
+  const cloneEdges = cgEdges.filter(([a,b]) => cgCloned.has(a) && cgCloned.has(b));
+  drawGraph('cg-svg-clone', cgPositions, cloneEdges, cloneStates);
+
+  const mapEl = document.getElementById('cg-map');
+  mapEl.innerHTML = '';
+  if (cgCloned.size === 0){
+    mapEl.innerHTML = '<span style="color:var(--dim); font-size:0.85rem;">(empty)</span>';
+  } else {
+    [...cgCloned].sort().forEach(id=>{
+      const entry = document.createElement('div');
+      entry.className = 'map-entry';
+      entry.textContent = `${id} → copy(${id})`;
+      mapEl.appendChild(entry);
+    });
+  }
+}
+
+function cgStep(){
+  if (cgDone) return;
+  const statusEl = document.getElementById('cg-status');
+  if (cgTraceIdx >= cgTrace.length){
+    statusEl.textContent = `Done! All 4 nodes copied, all edges rewired between copies. Clone complete.`;
+    statusEl.classList.add('win');
+    cgDone = true;
+    cgCurrent = null;
+    document.getElementById('cg-step').disabled = true;
+    renderCG();
+    return;
+  }
+  const step = cgTrace[cgTraceIdx];
+  cgCurrent = step.node;
+  if (step.action === 'copy'){
+    cgCloned.add(step.node);
+    statusEl.textContent = `Visit node ${step.node}: not in map yet → create copy(${step.node}), store in map BEFORE recursing into its neighbors.`;
+  } else {
+    statusEl.textContent = `While copying node ${step.from}'s neighbors: node ${step.node} is already in the map → reuse copy(${step.node}) instead of recursing again (this is what stops the cycle from looping forever).`;
+  }
+  cgTraceIdx++;
+  renderCG();
+}
+
+function cgReset(){
+  cgTraceIdx=0; cgCloned=new Set(); cgCurrent=null; cgDone=false;
+  document.getElementById('cg-step').disabled = false;
+  document.getElementById('cg-status').className = 'status';
+  document.getElementById('cg-status').textContent = 'Press "Step" to begin. DFS from node 1.';
+  renderCG();
+}
+
+document.getElementById('cg-step').onclick = cgStep;
+document.getElementById('cg-reset').onclick = cgReset;
+document.getElementById('cg-run').onclick = ()=>{
+  cgReset();
+  const iv = setInterval(()=>{ cgStep(); if (cgDone) clearInterval(iv); }, 700);
+};
+renderCG();
+
+// ================= LONGEST CONSECUTIVE SEQUENCE =================
+const lcNums = [100, 4, 200, 1, 3, 2];
+const lcSet = new Set(lcNums);
+const lcSorted = [...lcSet].sort((a,b)=>a-b); // display order only
+let lcIterIdx = 0; // index into lcSorted for iteration order (deterministic for demo)
+let lcCurrent = null;
+let lcCurRun = [];
+let lcBest = 0;
+let lcBestRun = [];
+let lcDone = false;
+let lcInnerActive = false;
+let lcInnerX = null;
+let lcInnerLen = 0;
+
+function renderLC(){
+  const setEl = document.getElementById('lc-set');
+  setEl.innerHTML = '';
+  lcSorted.forEach(v=>{
+    const chip = document.createElement('div');
+    let cls = 'num-chip';
+    if (lcBestRun.includes(v) && lcDone) cls += ' bestrun';
+    else if (lcCurRun.includes(v)) cls += ' inrun';
+    else if (v === lcCurrent && !lcDone) cls += ' checking';
+    chip.className = cls;
+    chip.textContent = v;
+    setEl.appendChild(chip);
+  });
+  document.getElementById('lc-curlen').textContent = lcInnerActive ? lcInnerLen : '−';
+  document.getElementById('lc-best').textContent = lcBest;
+}
+
+function lcStep(){
+  if (lcDone) return;
+  const statusEl = document.getElementById('lc-status');
+
+  if (lcInnerActive){
+    // continue walking the current run
+    if (lcSet.has(lcInnerX + lcInnerLen)){
+      const nextVal = lcInnerX + lcInnerLen;
+      lcCurRun.push(nextVal);
+      lcInnerLen++;
+      statusEl.textContent = `Chain continues: ${nextVal} is in the set → run length now ${lcInnerLen}.`;
+      if (lcInnerLen > lcBest){
+        lcBest = lcInnerLen;
+        lcBestRun = [...lcCurRun];
+      }
+      renderLC();
+      return;
+    } else {
+      statusEl.textContent = `${lcInnerX + lcInnerLen} not in set → run ends at length ${lcInnerLen}. Best so far = ${lcBest}.`;
+      lcInnerActive = false;
+      lcCurrent = null;
+      lcCurRun = [];
+      renderLC();
+      return;
+    }
+  }
+
+  if (lcIterIdx >= lcSorted.length){
+    statusEl.textContent = `All numbers checked. Longest consecutive run = ${lcBest} (${lcBestRun.join(', ')}).`;
+    statusEl.classList.add('win');
+    lcDone = true;
+    document.getElementById('lc-step').disabled = true;
+    renderLC();
+    return;
+  }
+
+  const x = lcSorted[lcIterIdx];
+  lcCurrent = x;
+  if (!lcSet.has(x - 1)){
+    statusEl.textContent = `Check ${x}: ${x-1} is NOT in the set → ${x} is a TRUE run start. Begin counting upward.`;
+    lcInnerActive = true;
+    lcInnerX = x;
+    lcInnerLen = 1;
+    lcCurRun = [x];
+    if (lcInnerLen > lcBest){ lcBest = lcInnerLen; lcBestRun = [...lcCurRun]; }
+  } else {
+    statusEl.textContent = `Check ${x}: ${x-1} IS in the set → ${x} is NOT a run start (it'll be counted from its actual start). Skip.`;
+  }
+  lcIterIdx++;
+  renderLC();
+}
+
+function lcReset(){
+  lcIterIdx=0; lcCurrent=null; lcCurRun=[]; lcBest=0; lcBestRun=[]; lcDone=false;
+  lcInnerActive=false; lcInnerX=null; lcInnerLen=0;
+  document.getElementById('lc-step').disabled = false;
+  document.getElementById('lc-status').className = 'status';
+  document.getElementById('lc-status').textContent = 'Press "Step" to begin. Set built: {100, 4, 200, 1, 3, 2}.';
+  renderLC();
+}
+
+document.getElementById('lc-step').onclick = lcStep;
+document.getElementById('lc-reset').onclick = lcReset;
+document.getElementById('lc-run').onclick = ()=>{
+  lcReset();
+  const iv = setInterval(()=>{ lcStep(); if (lcDone) clearInterval(iv); }, 400);
+};
+renderLC();
+</script>
+</body>
+</html>
