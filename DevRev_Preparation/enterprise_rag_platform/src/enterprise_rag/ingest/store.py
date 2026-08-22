@@ -18,16 +18,27 @@ check - see get_doc_attrs() below.
 """
 from __future__ import annotations
 
+import os
 import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+# Must be set before chromadb is imported; the library reads it at import time.
+os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
+
 import chromadb
 from chromadb.config import Settings as ChromaSettings
+from chromadb.telemetry.product.posthog import Posthog as _ChromaPosthog
 
 from . import catalog
 from ..config import SETTINGS
 from ..models import Chunk, ResourceAttributes, ScoredChunk
+
+# Chroma 0.5 still calls posthog.capture(distinct_id, event, props) even when
+# anonymized_telemetry is False (it only sets posthog.disabled). PostHog SDK 6+
+# made those arguments keyword-only, so every collection open logs
+# ClientCreateCollectionEvent. Drop the send; retrieval is unaffected.
+_ChromaPosthog._direct_capture = lambda self, event: None
 
 _client: Optional[chromadb.ClientAPI] = None
 

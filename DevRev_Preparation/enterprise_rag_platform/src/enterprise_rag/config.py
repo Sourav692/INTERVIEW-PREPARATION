@@ -27,6 +27,10 @@ if os.environ.get("ENTERPRISE_RAG_LANGSMITH", "0") != "1":
     os.environ["LANGCHAIN_TRACING_V2"] = "false"
     os.environ["LANGSMITH_TRACING"] = "false"
 
+# Chroma reads this at import time. Keep product telemetry off even if a client is
+# constructed without Settings(anonymized_telemetry=False).
+os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
+
 
 @dataclass
 class Settings:
