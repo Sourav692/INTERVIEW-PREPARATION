@@ -39,6 +39,9 @@ class ResourceAttributes:
     need_to_know: List[str] = field(default_factory=list)
     valid_from: Optional[str] = None        # ISO date; embargo start
     valid_until: Optional[str] = None       # ISO date; expiry
+    source_updated_at: Optional[str] = None # ISO datetime; last change to the content itself
+    ingested_at: Optional[str] = None       # ISO datetime; when this pipeline run indexed it
+    authority_rank: int = 0                 # non-ACL: higher wins when passages disagree (§4.6)
 
     @property
     def sensitivity_level(self) -> int:
@@ -121,6 +124,9 @@ class Chunk:
             "need_to_know": ",".join(self.attrs.need_to_know),
             "valid_from": self.attrs.valid_from or "",
             "valid_until": self.attrs.valid_until or "",
+            "source_updated_at": self.attrs.source_updated_at or "",
+            "ingested_at": self.attrs.ingested_at or "",
+            "authority_rank": self.attrs.authority_rank,
         }
         for g in self.attrs.allowed_groups:
             md[f"grp__{g}"] = True
@@ -143,6 +149,9 @@ class Chunk:
             need_to_know=ntk,
             valid_from=md.get("valid_from") or None,
             valid_until=md.get("valid_until") or None,
+            source_updated_at=md.get("source_updated_at") or None,
+            ingested_at=md.get("ingested_at") or None,
+            authority_rank=int(md.get("authority_rank", 0) or 0),
         )
 
 

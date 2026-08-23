@@ -116,7 +116,7 @@ flowchart TB
 - **A1.** Raw markdown, one file per document — pure content: identity (`doc_id`, `title`) and body text, nothing access-control-related.
 - **A2.** A separate manifest file, one JSON record per `doc_id` — pure permissions, the stand-in for a real entitlements/admin system.
 - **J.** The connector's actual job: join content and permissions by `doc_id`; a content file with no matching manifest record is refused outright.
-- **B.** Validate the joined `ResourceAttributes` — unmappable/inconsistent ACL → document quarantined, not ingested.
+- **B.** Validate the joined `ResourceAttributes` — unmappable/inconsistent ACL → document quarantined, not ingested. Every rejection is persisted (`ingest/freshness.py::record_rejection()`), not just printed — a real dead-letter queue, queryable after the process exits. Every source with at least one accepted document also gets its "last successful sync" timestamp bumped (`record_sync()`) — a first-class, user-visible freshness signal, not something inferred from a log.
 - **D.** Orchestrates the whole run, per tenant: hands validated documents down two independent paths.
 - **C.** Break the validated document into chunks; each chunk gets its own copy of the joined access rules.
 - **E.** Calls the embedding model in batches to turn chunk text into vectors.
@@ -274,7 +274,7 @@ flowchart TB
 - **Rerank the survivors** — an LLM scores each surviving passage 0-10 on "does this actually answer the question" (not "is this well-written" or "is this important") — a genuinely different judgment from the vector/BM25 scores that got it retrieved in the first place.
 - **Keep only the top few** — only `rerank_k` (default 6) chunks make it into the model's context; everything else is discarded here.
 - **Grade** — a separate LLM call judges the *kept* context as sufficient / partial / insufficient before generation is even attempted.
-- **Generate** — writes the answer from only the top-k, already-authorized, already-reranked material.
+- **Generate** — first checks the run's spend against a cost ceiling and refuses rather than proceeding if already over it; then checks a response cache keyed on the question, filter, exact context, and coverage note — a hit skips the synthesis call entirely; a miss writes the answer from only the top-k, already-authorized, already-reranked material.
 - **Refuse** — the clean no-answer path when grading says there isn't enough.
 - **Verify** — drops hallucinated citations, re-checks the real ones against the catalog again, scores groundedness.
 
@@ -351,7 +351,7 @@ flowchart TB
     CASES["Golden question set\nfixed cases: question + expected docs\n+ forbidden docs + expected behaviour"]
     RUN["Run each case\nthrough the real pipeline,\nas the case's own principal"]
     SCORE{"Score three separate families"}
-    RET["RETRIEVAL\nrecall@k, MRR —\ndid the right doc reach the context?"]
+    RET["RETRIEVAL\nrecall@k, MRR, nDCG —\ndid the right doc reach the context?"]
     GEN["GENERATION\ngroundedness, refusal correctness —\ndid the answer use it honestly?"]
     SEC["SECURITY — a GATE, not a score\nleak rate — must be exactly 0"]
     REPORT["Aggregate report\npass rate, per-strategy comparison table"]
@@ -365,10 +365,10 @@ flowchart TB
 **One line per box:**
 - **Golden question set** — a fixed JSON file of cases, each tagged with expected docs, forbidden docs, and/or an expected refusal.
 - **Run each case** — calls the real `RAGPlatform.ask()` for that case's actual principal and strategy — no shortcuts, no mocked retrieval.
-- **RETRIEVAL family** — `recall@k` (did all expected docs show up?) and `MRR` (how high did the first one rank?) — a retrieval-quality signal.
+- **RETRIEVAL family** — `recall@k` (did all expected docs show up?), `MRR` (how high did the first one rank?), and `nDCG` (binary-relevance, rank-discounted — rewards the whole ranking, not just the first hit) — a retrieval-quality signal.
 - **GENERATION family** — `groundedness` (does the answer's content actually follow from the passages?) and refusal correctness (did it refuse exactly when it should have?).
 - **SECURITY — a gate, not a score** — any forbidden document reaching the context *or* being cited counts as a leak. Target is exactly **0**; a leak blocks the release outright rather than lowering a number.
-- **Aggregate report** — `EvalReport.summary_row()` — recall@k, MRR, groundedness, leak count, pass rate, latency, cost — one row per strategy, so different strategies (dense vs. hybrid vs. enterprise) can be compared on the same fixed question set.
+- **Aggregate report** — `EvalReport.summary_row()` — recall@k, MRR, nDCG, groundedness, leak count, pass rate, latency, cost — one row per strategy, so different strategies (dense vs. hybrid vs. enterprise) can be compared on the same fixed question set.
 
 **Why security is a gate and not a metric:** a retrieval regression is a bug — recall drops, someone
 notices, it gets fixed. A leak is an incident. Averaging a leak into a 0-1 quality score lets it hide
@@ -397,10 +397,15 @@ gates.
 | All tunables (k values, thresholds)                        | `config.py`               | `SETTINGS`                                                                                |
 | The 7 ABAC rules + deny/allow order                        | `authz/policy.py`         | `decide()`, `DENY_RULES`, `ALLOW_RULES`                                               |
 | Compiling the pre-filter (Layer 1)                         | `authz/policy.py`         | `compile_prefilter()`, `explain_prefilter()`                                            |
+| Optional non-ACL content filter (source/type/recency), AND-ed onto Layer 1  | `authz/policy.py`         | `merge_filters()`                                                                          |
 | Authoritative re-check (Layer 2)                           | `authz/enforcement.py`    | `enforce()` — fetches fresh attrs via `store.get_doc_attrs()`                          |
 | PII redaction obligation                                   | `authz/enforcement.py`    | `redact_pii()`, `_apply_redaction()`                                                    |
 | Citation ACL re-check                                      | `authz/enforcement.py`    | `verify_citations()`                                                                      |
 | Reading source`.md` content + joining with the ACL manifest | `ingest/loader.py`      | `load_corpus()`                                                                           |
+| **Second connector (new)** — a JSON export, no markdown at all | `ingest/loader.py`     | `load_ticket_export()`                                                                     |
+| Letting a different connector's Document list use the same pipeline | `ingest/pipeline.py` | `ingest(..., loader=...)`                                                              |
+| Content-hash incremental sync (skip unchanged docs)         | `ingest/pipeline.py`      | `ingest(..., incremental=True)`, `_content_hash()`                                       |
+| Content hash storage                                        | `ingest/freshness.py`     | `get_content_hash()`, `set_content_hash()`                                                |
 | Reading the ACL manifest (permissions, separate from content) | `ingest/acl_manifest.py` | `load_acl_manifest()`                                                                    |
 | Splitting a doc into chunks                                | `ingest/chunker.py`       | `chunk_document()`                                                                        |
 | Orchestrating the whole ingest run                         | `ingest/pipeline.py`      | `ingest()`                                                                                |
@@ -410,19 +415,30 @@ gates.
 | Full authorized pool (for BM25)                            | `ingest/store.py`         | `fetch_all_allowed()`                                                                     |
 | Doc attrs for citation re-check                            | `ingest/store.py`         | `get_doc_attrs()` — delegates to `catalog.get_doc_attrs()`                             |
 | **ACL catalog (new)** — the authoritative ACL store | `ingest/catalog.py`       | `get_doc_attrs()`, `upsert_doc_attrs()`, `upsert_many()`, `update_attr()`           |
+| ACL catalog schema migration (adds missing columns in place) | `ingest/catalog.py`     | `_migrate()`                                                                               |
+| Tenant-scoped reset (vs. global)                            | `ingest/store.py`, `ingest/catalog.py` | `reset_store(tenant_id=...)`, `reset_catalog(tenant_id=...)`                    |
+| **Per-source freshness + persisted rejected-docs (new)**   | `ingest/freshness.py`     | `record_sync()`, `record_rejection()`, `all_freshness()`, `recent_rejections()`             |
 | BM25 keyword index                                         | `retrieval/lexical.py`    | `BM25Index`                                                                               |
 | Query rewrites / decomposition / HyDE                      | `retrieval/expansion.py`  | `generate_multi_queries()`, `decompose()`, `generate_hyde_passage()`                  |
+| Conversation-history-aware rewriting (new)                  | `retrieval/expansion.py`  | `_format_history()`, `history=` param on the two functions above                          |
 | Merging ranked lists                                       | `retrieval/fusion.py`     | `reciprocal_rank_fusion()`                                                                |
 | Cross-encoder / LLM reranking                              | `retrieval/rerank.py`     | `LLMReranker.rerank()`, `CrossEncoderReranker.rerank()`                                    |
 | The 6 named strategies                                     | `retrieval/strategies.py` | `STRATEGIES`, `get_strategy()`, `enterprise()`                                        |
 | LLM calls (chat, chat_json, embed)                         | `llm/client.py`           | `LLMClient`, `LLMUnavailable`                                                           |
+| Embedding cache (in-process, `(model, text)` keyed)         | `llm/client.py`           | `_EMBED_CACHE`, `clear_embed_cache()`                                                      |
+| Response cache (question + filter + context + coverage)     | `graph/nodes.py`          | `_RESPONSE_CACHE`, `_response_cache_key()`, `clear_response_cache()`                       |
+| Circuit breaker around LLM calls                             | `llm/client.py`           | `_CircuitBreaker`, `circuit_breaker_state()`, `reset_circuit_breaker()`                    |
+| Per-tenant rate limiting                                     | `authz/rate_limit.py`     | `check()`, `reset()`                                                                        |
+| Source-authority / recency conflict resolution               | `models.py`, `graph/prompts.py`, `graph/nodes.py` | `ResourceAttributes.authority_rank`, `SYNTHESIS_SYSTEM` rule 7, `_format_context()` |
 | The 8 LangGraph nodes                                      | `graph/nodes.py`          | `authorize/plan/retrieve/enforce/grade/generate/verify/refuse`                            |
-| Graph wiring + public entry point                          | `graph/build.py`          | `build_graph()`, `RAGPlatform.ask()`                                                    |
+| Graph wiring + public entry point (rate-limit short-circuit, `history` param) | `graph/build.py` | `build_graph()`, `RAGPlatform.ask(..., filters=..., history=...)`                       |
 | Prompt templates                                           | `graph/prompts.py`        | `SYNTHESIS_SYSTEM`, `SUFFICIENCY_SYSTEM`, `GROUNDEDNESS_SYSTEM`, `REFUSAL_TEMPLATE` |
 | Request-scoped state shape                                 | `graph/state.py`          | `RAGState`                                                                                |
 | Per-run structured trace                                   | `observability/trace.py`  | `RunTrace`                                                                                |
 | Golden-set scoring (recall, MRR, leak)                     | `evaluation/harness.py`   | `run_eval()`, `_score_case()`, `CaseResult.passed`, `EvalReport`                            |
 | Comparing strategies on the same question set              | `evaluation/harness.py`   | `compare_strategies()`                                                                       |
+| Calibrating the LLM judge against hand-labeled cases (new)  | `scripts/calibrate_judge.py` | — (live: 100% agreement, MAE 0.033 on 6 hand-labeled cases)                             |
+| Second-connector + incremental-sync demos (new)              | `scripts/`                | `demo_second_connector.py`, `demo_incremental_sync.py`                                     |
 
 ---
 

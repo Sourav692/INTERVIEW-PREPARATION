@@ -51,6 +51,12 @@ python scripts/demo_access_control.py             # full demo
 python scripts/evaluate.py --kinds security       # the release gate
 python scripts/evaluate.py                        # the full golden set
 python scripts/evaluate.py --compare dense bm25 hybrid multi_query hyde enterprise
+python scripts/calibrate_judge.py                 # LLM-judge vs. hand-labeled cases
+
+# 5b. The moderate-effort additions from docs/07's punch list
+python scripts/demo_second_connector.py           # a JSON connector into its own tenant
+python scripts/demo_incremental_sync.py           # content-hash sync skips unchanged docs
+python scripts/demo_acl_catalog_update.py         # live ACL change, no reindex
 
 # 6. Tests
 python -m pytest -m "not llm"    # 62 fast tests, no API calls
@@ -202,7 +208,12 @@ enterprise_rag_platform/
 
 ## Verified results
 
-Everything below was produced by running this code against live OpenAI.
+Everything below was produced by running this code against live OpenAI. **The full-corpus table below
+predates the retrieval-pool sizing change** (`dense_k`/`bm25_k`/`fusion_k` were raised from 12/12/20
+to 40/40/50 per `docs/07`'s punch list, closer to the prep doc's "top 50-100 before reranking"
+reference) **and the nDCG metric** — a spot-check 10-case run after both changes still shows 100%
+pass rate, recall@k 1.00, nDCG 0.96, at a comparable per-case cost, but the full 22-case × 6-strategy
+comparison hasn't been re-run since (it's a real-money, multi-minute operation each time).
 
 **Golden set, `enterprise` strategy — 22/22 pass**
 
@@ -254,6 +265,19 @@ quietly fixed:
    engine with no model involved); the refusal expectation is recorded as a non-gating advisory.
    Security must never hinge on a coin flip.
 
+**Two more, caught while adding the moderate-effort items from `docs/07`'s punch list** — full
+detail there, short version here:
+
+4. **An unscoped reset cross-contaminated tenants.** Ingesting a brand-new `acme_helpdesk` tenant
+   with `reset=True` silently wiped the unrelated, already-indexed `meridian` corpus, because
+   `store.reset_store()`/`catalog.reset_catalog()` deleted the whole Chroma directory / whole SQLite
+   file regardless of which tenant was being ingested. Fixed: both now accept a `tenant_id` and scope
+   the reset to just that tenant; `pipeline.ingest()` passes its own through by default.
+5. **A stored content hash survived a reset it shouldn't have.** Combining `reset=True` with
+   `incremental=True` skipped re-embedding 21 of 22 documents into a *freshly-emptied* index, because
+   their hashes matched records from before the reset — a near-empty index reporting success. Fixed:
+   incremental skipping now only applies when `reset=False`.
+
 ---
 
 ## What this deliberately does *not* do
@@ -264,10 +288,21 @@ Named because an architect should know where the demo ends:
   production answer is a lexical store with native document-level security (Elasticsearch/OpenSearch
   DLS) or a cached per-group shard.
 - **Identity is a JSON file**, not a live OIDC/SCIM integration.
-- **Ingestion is batch and full-refresh**, not incremental CDC with per-document ACL sync.
+- **Ingestion is still batch, not streaming CDC** — but it's no longer full-refresh-only: content-hash
+  incremental sync (`ingest(incremental=True)`) skips re-embedding unchanged documents, and per-source
+  last-sync freshness plus a persisted rejected-docs record exist (`ingest/freshness.py`).
+- **Only two connectors exist** (markdown+frontmatter, and a JSON ticket export) — enough to prove the
+  pipeline is format-agnostic, not a real Confluence/Zendesk/SharePoint integration.
+- **Rate limiting and the circuit breaker are in-process, single-instance state** — correct logic, not
+  backed by anything shared across workers or that survives a restart; same caveat as the caches below.
 - **PII redaction is regex-based** — production wants Presidio or a cloud DLP service.
 - **Reranking uses an LLM.** A cross-encoder is cheaper and faster at scale; `CrossEncoderReranker`
   is implemented behind the same interface as a one-line swap.
-- **No caching layer.** Note that any cache in front of a permission-filtered read path must include a
-  permissions epoch in its key — see `SA-2026-05` in the corpus, which is a war story about exactly
-  that bug.
+- **Caching is in-process only.** An embedding cache (`llm/client.py`) and a response cache
+  (`graph/nodes.py::generate()`) now exist, both process-lifetime dicts — real infrastructure needs a
+  shared store (Redis, etc.) with an eviction policy, not a dict that resets on restart. The response
+  cache does respect the lesson from `SA-2026-05`'s war story about permission-epoch staleness: its
+  key is derived from the *already-enforced* context (the chunk ids that survived Layer 2 this
+  request), not from principal identity alone, so a revoked or newly-granted document changes the
+  context and therefore the key — a stale cache entry is structurally not reachable, not just avoided
+  by convention.

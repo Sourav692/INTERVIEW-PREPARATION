@@ -15,6 +15,8 @@ Defines the package's dataclasses: `ResourceAttributes` (document ACL attributes
 ##### `ResourceAttributes`
 
 - **`sensitivity_level` (property)**: Maps the string `sensitivity` field to its integer rank via `SENSITIVITY_RANK`, enabling numeric `<=` comparisons against a principal's clearance.
+- **`source_updated_at` / `ingested_at`**: Content-side timestamps, not ACL data — when the source content itself last changed (set from the corpus file's mtime in `loader.py`) and when this pipeline run indexed it (stamped in `pipeline.ingest()`). Carried through `Chunk.to_metadata()` onto every chunk and through the ACL catalog's schema, so both are recoverable from either store.
+- **`authority_rank`**: Also non-ACL — higher wins when two retrieved passages disagree on the same fact (§4.6). Defaults to 0 for every existing document, so adding this field changed nothing about the flagship corpus's behaviour until a document is explicitly given a higher rank. Surfaced in `_format_context()` and used by `SYNTHESIS_SYSTEM` rule 7.
 
 ##### `Principal`
 
@@ -50,6 +52,8 @@ Central `Settings` dataclass holding every tunable value (paths, model names, ch
 
 - **`has_api_key` (property)**: True if `api_key` is set and looks like an OpenAI key (starts with `sk-`).
 - **`collection_for(tenant_id)`**: Builds the per-tenant Chroma collection name as `f"{collection_prefix}__{tenant_id}"`.
+- **`dense_k`/`bm25_k`/`fusion_k`**: 40/40/50 — the pre-rerank candidate pool, sized close to the prep doc's "top 50-100 before reranking" reference architecture (not the corpus-scale-appropriate 12/12/20 this repo shipped with initially).
+- **`max_cost_per_run_usd`**: 0.10 — the ceiling `graph/nodes.py::generate()` checks before the synthesis call; well above a normal single-question run's actual cost (~$0.001-0.02), so it only trips on a genuine runaway.
 
 A module-level `SETTINGS = Settings()` singleton is imported by nearly every other module as the default configuration.
 
@@ -77,6 +81,7 @@ The ABAC policy engine — the single authority on who may read what. Rules are 
 - **`_attach_obligations(p, r, d)`**: Attaches post-allow obligations to a `Decision` — `redact_pii` if the resource contains PII and the principal cannot view it, and `audit_access` if sensitivity is `confidential`/`restricted`.
 - **`compile_prefilter(principal, ctx=None)`**: Translates the statically-decidable subset of the policy (tenant, sensitivity ceiling, region, group overlap, external-contractor source exclusion) into a Chroma `where` clause. Explicitly does not encode embargo, need-to-know, obligations, or live revocation, since those require fresh evaluation.
 - **`explain_prefilter(principal)`**: Returns a human-readable one-line summary of the compiled pre-filter's conditions, used in traces and demo output.
+- **`merge_filters(where, content_filters)`**: ANDs an optional, caller-supplied, non-ACL clause (source/doc type/recency) onto the compiled ACL pre-filter. Safe by construction, not validation — `$and` can only narrow a result set further, never loosen it, so this cannot be used to see past the ACL clause regardless of its contents. Returns `where` unchanged if `content_filters` is falsy.
 
 ## authz/enforcement.py
 
@@ -92,12 +97,20 @@ The authoritative, post-retrieval access check. Treats every vector-store hit as
 - **`denied_doc_ids` (property)**: Sorted, de-duplicated list of doc_ids that appear in `denied`.
 - **`summary()`**: Renders a short human-readable string like `"5 allowed, 1 denied, 2 redacted"`, flagging any filter disagreements.
 
+## authz/rate_limit.py
+
+**New.** Per-tenant rate limiting (§6 noisy-neighbour control) — a fixed-window counter checked before `RAGPlatform.ask()` does any other work, so a rate-limited request costs nothing beyond a dict lookup. Same `Decision` shape as `policy.py::decide()`.
+
+- **`check(tenant_id, settings=SETTINGS, now=None)`**: Prunes timestamps older than 60s from that tenant's window, then denies (without recording) if the window is already at `settings.rate_limit_per_minute`, else records this attempt and allows. In-process only — a real deployment needs a shared store (e.g. Redis) across workers, not a per-process dict.
+- **`reset(tenant_id=None)`**: Testing/demo hook — clears one tenant's window, or every tenant's if `tenant_id` is `None`.
+
 ## ingest/loader.py
 
 Loads corpus markdown files and joins them with the separate ACL manifest by `doc_id`. Represents the "connector" boundary where a source system's permission model would be translated into this platform's ABAC model — except content and permissions now arrive as two distinct feeds, matching how a real connector reads a document from Confluence/SharePoint/Zendesk and reads its permissions from a separate entitlements system. Markdown frontmatter carries only `doc_id` and `title` — no ACL fields live in the corpus files.
 
 - **`_parse_frontmatter(text)`**: Splits a markdown document into its `---`-delimited frontmatter block (parsed as `key: value` lines, now just `doc_id`/`title`) and the remaining body text. Returns `({}, text)` unchanged if no frontmatter block is present.
-- **`load_corpus(corpus_dir=None, tenant_id="meridian", acl_manifest_path=None)`**: Loads the ACL manifest (`acl_manifest.load_acl_manifest()`) into a `doc_id -> ResourceAttributes` map, then globs all `*.md` files, parses each one's `doc_id`/`title` and body, and joins it against that map. Raises `ValueError` if a file has no `doc_id` in its frontmatter, or if its `doc_id` has no matching entry in the ACL manifest — refusing to index a document with no usable access-control metadata either way. Returns a list of `Document` objects, each with its `attrs` populated from the manifest.
+- **`load_corpus(corpus_dir=None, tenant_id="meridian", acl_manifest_path=None)`**: Loads the ACL manifest (`acl_manifest.load_acl_manifest()`) into a `doc_id -> ResourceAttributes` map, then globs all `*.md` files, parses each one's `doc_id`/`title` and body, and joins it against that map. Stamps `attrs.source_updated_at` from the file's mtime — content-side metadata standing in for whatever "last modified" field a real source system would expose. Raises `ValueError` if a file has no `doc_id` in its frontmatter, or if its `doc_id` has no matching entry in the ACL manifest — refusing to index a document with no usable access-control metadata either way. Returns a list of `Document` objects, each with its `attrs` populated from the manifest.
+- **`load_ticket_export(path=None, tenant_id="acme_helpdesk", acl_manifest_path=None)`**: **New — the second connector.** Parses `data/ticket_export_acme.json`, a Zendesk-shaped JSON array with no frontmatter and a completely different structure (`subject`/`description` instead of a markdown body), and joins it against its own ACL manifest (`data/acl_manifest_acme.json`) by a `TKX-<ticket_id>` doc_id. Same refuse-on-no-match discipline as `load_corpus()`. Returns `Document` objects that flow through the exact same `pipeline.ingest()` path — the proof the pipeline is format-agnostic, not hardcoded to markdown.
 
 ## ingest/acl_manifest.py
 
@@ -118,19 +131,32 @@ Structure-aware chunking that splits on markdown headings before packing to a ta
 
 The end-to-end ingestion pipeline: load → validate ACLs → chunk → embed → index. Validation is loud by design — a document with unusable ACL metadata is rejected rather than silently defaulted.
 
+- **`_content_hash(doc)`**: SHA-256 of `doc.text` only — deliberately not attrs, since an ACL-only change never needs incremental sync's skip logic at all (the catalog is refreshed unconditionally regardless of this hash).
 - **`validate_acl(doc)`**: Checks a `Document`'s attributes for a known `sensitivity` value, a non-empty `allowed_groups` list, a known `region`, and consistency between `sensitivity == "public"` and membership in the `public` group. Returns an error string describing the first violation found, or `None` if valid.
-- **`ingest(tenant_id="meridian", reset=True, batch_size=64, settings=SETTINGS)`**: Orchestrates the full pipeline — optionally resets the store, loads the corpus, validates and filters documents (collecting rejections), chunks the accepted documents, embeds chunks in batches via `LLMClient.embed`, and upserts each batch into the tenant's Chroma collection. Returns an `IngestReport` with counts and cost.
+- **`ingest(tenant_id="meridian", reset=True, batch_size=64, settings=SETTINGS, loader=None, incremental=False)`**: Orchestrates the full pipeline. `loader` (new) is a zero-arg callable returning `List[Document]`, defaulting to `load_corpus()` — lets a different connector's output flow through the identical validate/chunk/embed/index path. On `reset=True`, calls `store.reset_store()`/`catalog.reset_catalog()` scoped to this run's `tenant_id` only. Validates and filters documents, persisting each rejection via `freshness.record_rejection()`; stamps every accepted document's `attrs.ingested_at`; bumps each source's `freshness.record_sync()` last-sync timestamp; upserts ACL rows to the catalog unconditionally. `incremental` (new), only when `reset=False`, skips chunking/embedding for any document whose `_content_hash()` matches what's stored — comparing against a hash from before a reset would skip re-embedding into a just-emptied index, which is why the flag is a no-op when combined with `reset=True` (a real bug caught building this — see `docs/07`'s punch list). Embeds chunks in batches via `LLMClient.embed`, upserts to Chroma. Returns an `IngestReport`.
 
 ##### `IngestReport`
 
-- **`render()`**: Formats the report as a multi-line human-readable summary: documents/chunks indexed, embedding cost, any rejected documents, and breakdowns by source and by sensitivity (ordered by the sensitivity ladder).
+- **`skipped_unchanged`**: Count of documents incremental sync decided not to re-embed this run.
+- **`render()`**: Formats the report as a multi-line human-readable summary: documents/chunks indexed, embedding cost, unchanged-skip count (if any), any rejected documents (noting they're also persisted), and breakdowns by source and by sensitivity (ordered by the sensitivity ladder).
+
+## ingest/freshness.py
+
+**New.** Per-source "last successful sync" tracking and a persisted rejected-docs record (§4.2) — extends the previously ephemeral, in-memory-only `IngestReport.rejected` list into something queryable after the ingest process exits. Shares the ACL catalog's SQLite file rather than opening a second database.
+
+- **`record_sync(source, synced_at, documents_seen, settings=SETTINGS)`**: Upserts one source's last-sync timestamp and document count.
+- **`record_rejection(doc_id, source, reason, rejected_at, settings=SETTINGS)`**: Appends one persisted rejected-document row — a real dead-letter queue entry, not just a printed line.
+- **`last_synced(source, settings=SETTINGS)`**: Returns one source's last-sync timestamp, or `None`.
+- **`all_freshness(settings=SETTINGS)`**: Every source's freshness row, ordered by source — the "is this stale?" dashboard query.
+- **`recent_rejections(limit=50, settings=SETTINGS)`**: The most recent rejected-doc rows, newest first.
+- **`get_content_hash(doc_id, settings=SETTINGS)`** / **`set_content_hash(doc_id, content_hash, hashed_at, settings=SETTINGS)`**: The content hash recorded the last time a doc_id was actually embedded — what incremental sync in `pipeline.ingest()` compares against.
 
 ## ingest/store.py
 
 The Chroma-backed vector store, with one collection per tenant as a physical isolation layer on top of the logical ABAC pre-filter. See package overview for the two-layer isolation rationale. Chunk metadata (including ACL fields) here is a **denormalised copy**, used only for the Layer-1 pre-filter pushdown — the authoritative ACL source is the separate SQLite catalog in `ingest/catalog.py`.
 
 - **`get_client(settings=SETTINGS)`**: Lazily creates and caches (module-level `_client`) a `chromadb.PersistentClient` rooted at `settings.chroma_dir`, with telemetry disabled.
-- **`reset_store(settings=SETTINGS)`**: Clears the cached client, then deletes the on-disk Chroma directory. Used only by the ingest script and tests.
+- **`reset_store(settings=SETTINGS, tenant_id=None)`**: With `tenant_id`, deletes only that tenant's Chroma collection via `delete_collection()`. Without it, clears the cached client and deletes the whole on-disk Chroma directory — every tenant's data. The unscoped form used to be the only form; `pipeline.ingest()` now always passes its own `tenant_id`, because the old default silently wiped an unrelated, already-indexed tenant when a second one was ingested with `reset=True` (a real bug — see `docs/07`).
 - **`get_collection(tenant_id, settings=SETTINGS)`**: Gets or creates the tenant's Chroma collection, named via `settings.collection_for(tenant_id)`, configured for cosine similarity.
 - **`get_doc_attrs(doc_id, settings=SETTINGS)`**: The Layer-2 authoritative lookup. Delegates to `catalog.get_doc_attrs()` (a fresh SQLite `SELECT`, independent of the vector index); falls back to a live Chroma metadata scan only if the doc was never catalogued (e.g. a hand-built test chunk).
 - **`upsert_chunks(tenant_id, chunks, embeddings, settings=SETTINGS)`**: Upserts a batch of chunks (ids, embeddings, text, flattened metadata) into the tenant's collection. Returns the count upserted.
@@ -143,9 +169,10 @@ The Chroma-backed vector store, with one collection per tenant as a physical iso
 
 **New.** The authoritative ACL catalog — a local SQLite database (`data/acl_catalog.db`), one row per document, separate from the vector index. This is what makes Layer 2 a genuinely independent source of truth instead of re-reading Layer 1's own cached copy.
 
-- **`get_connection(settings=SETTINGS)`**: Lazily creates and caches (module-level `_conn`) a `sqlite3.Connection`, creating the `documents` table if it doesn't exist.
-- **`reset_catalog(settings=SETTINGS)`**: Closes the cached connection and deletes the `.db` file, then recreates an empty table. Used by the ingest pipeline (on `reset=True`) and tests.
-- **`upsert_doc_attrs(attrs, settings=SETTINGS)`**: Inserts or overwrites one document's ACL row, JSON-encoding the `allowed_groups`/`need_to_know` list fields.
+- **`get_connection(settings=SETTINGS)`**: Lazily creates and caches (module-level `_conn`) a `sqlite3.Connection`, creating the `documents` table if it doesn't exist, then runs `_migrate()`.
+- **`_migrate(conn)`**: `CREATE TABLE IF NOT EXISTS` only creates a table that doesn't exist yet — it does not add new columns to one that already does. Adds any of `_COLUMN_DEFAULTS` (currently `source_updated_at`/`ingested_at`/`authority_rank`) missing from an on-disk database via `PRAGMA table_info` + `ALTER TABLE ADD COLUMN`, in place, without touching existing rows. A real bug hit adding `authority_rank` to an already-ingested demo database — every read of that column raised until this existed.
+- **`reset_catalog(settings=SETTINGS, tenant_id=None)`**: With `tenant_id`, deletes only that tenant's rows (`DELETE FROM documents WHERE tenant_id = ?`). Without it, closes the cached connection and deletes the whole `.db` file, wiping every tenant's ACL rows plus the freshness/rejection/hash tables. `pipeline.ingest()` always passes its own `tenant_id`, same reasoning as `store.reset_store()`.
+- **`upsert_doc_attrs(attrs, settings=SETTINGS)`**: Inserts or overwrites one document's ACL row, JSON-encoding the `allowed_groups`/`need_to_know` list fields (also carries `source_updated_at`/`ingested_at` through, so a full `ResourceAttributes` round-trips losslessly even though those two fields aren't ACL data).
 - **`upsert_many(attrs_list, settings=SETTINGS)`**: Calls `upsert_doc_attrs` for a batch of documents — used by `pipeline.ingest()` right after ACL validation.
 - **`get_doc_attrs(doc_id, settings=SETTINGS)`**: One indexed `SELECT` by `doc_id`, returning a reconstructed `ResourceAttributes` or `None`.
 - **`update_attr(doc_id, **fields)`**: Reads a document's current attrs, applies field changes (e.g. `sensitivity="internal"`), and writes them back. Demonstrates the whole point of the split: this touches only this SQLite row — no re-embedding, no Chroma write — and the next `enforce()` call for that `doc_id` sees the new value immediately.
@@ -166,9 +193,10 @@ BM25 keyword retrieval over the ACL-authorized candidate pool, used because embe
 
 Three distinct query-transformation techniques, each addressing a different retrieval failure mode: vocabulary mismatch (multi-query), question/answer register asymmetry (HyDE), and multi-hop questions (decomposition).
 
-- **`generate_multi_queries(llm, question, n=None, settings=SETTINGS)`**: Asks the LLM (via `chat_json`) for `n` alternative phrasings of the question, then returns the deduplicated list `[original] + variants` (case-insensitive dedup). Degrades to just `[original]` if the LLM call fails (`LLMUnavailable`), never failing the whole retrieval.
+- **`_format_history(history)`**: Renders the last `HISTORY_TURNS_INCLUDED` (3) conversation turns as a compact block, or `""` if `history` is empty/`None` — every call site below degrades to exactly today's single-turn behaviour when history isn't supplied.
+- **`generate_multi_queries(llm, question, n=None, settings=SETTINGS, history=None)`**: Asks the LLM (via `chat_json`) for `n` alternative phrasings of the question, then returns the deduplicated list `[original] + variants` (case-insensitive dedup). `history`, when given, lets rewrites resolve references to prior turns (verified live: "did that incident breach any SLA?" correctly rewrote into variants naming the specific March EU incident and even a workspace id only mentioned in the prior answer). Degrades to just `[original]` if the LLM call fails (`LLMUnavailable`), never failing the whole retrieval.
 - **`generate_hyde_passage(llm, question)`**: Asks the LLM to write a short, confident hypothetical passage that would answer the question, used only as a dense-search embedding probe (never shown to the user). Returns `None` on failure.
-- **`decompose(llm, question, settings=SETTINGS)`**: Asks the LLM whether the question needs splitting into sub-questions (only when facts must come from genuinely different sources), and returns up to `settings.max_subquestions` sub-questions, or `[]` if decomposition isn't needed or the call fails.
+- **`decompose(llm, question, settings=SETTINGS, history=None)`**: Asks the LLM whether the question needs splitting into sub-questions (only when facts must come from genuinely different sources), and returns up to `settings.max_subquestions` sub-questions, or `[]` if decomposition isn't needed or the call fails. Also history-aware, same reasoning as `generate_multi_queries()`.
 
 ## retrieval/rerank.py
 
@@ -196,7 +224,7 @@ Named, swappable retrieval strategies sharing one call signature, so the graph c
 
 ##### `RetrievalContext`
 
-Dataclass bundling everything a strategy needs — the principal, the compiled `where` filter, an `LLMClient`, settings, and mutable fields (`subquestions`, `notes`, `generated_queries`, `hyde_passage`) that strategies populate for tracing.
+Dataclass bundling everything a strategy needs — the principal, the compiled `where` filter, an `LLMClient`, settings, mutable fields (`subquestions`, `notes`, `generated_queries`, `hyde_passage`) that strategies populate for tracing, and `history` (new) — prior conversation turns, passed through from `nodes.py::retrieve()` into `generate_multi_queries()` calls below.
 
 - **`_embed_and_search(ctx, queries, k)`**: Embeds a batch of queries in a single API call, then runs one `store.dense_search` per query/embedding pair. Returns a list of ranked lists, one per query.
 - **`dense_only(question, ctx)`**: Embeds and searches only the original question; the baseline strategy.
@@ -216,13 +244,23 @@ Thin OpenAI wrapper centralizing chat/JSON/embedding calls, retries, timeouts, t
 - **`add(model, prompt, completion, purpose, embedding=False)`**: Accumulates token counts (routed to `embedding_tokens` or `prompt_tokens`/`completion_tokens` depending on the call type) and computes incremental USD cost from the `PRICING` table, also tallying tokens by `purpose` for per-stage cost breakdowns.
 - **`merge(other)`**: Adds another `Usage` instance's totals into this one, used to combine per-request usage into a running total.
 
+##### `_CircuitBreaker` (module-level singleton `_BREAKER`, new)
+
+Process-wide, not per-`LLMClient` — it represents whether the provider is currently down, a fact about the outside world.
+
+- **`is_open(settings)`**: `True` if the breaker tripped and `circuit_breaker_cooldown_s` hasn't elapsed since; `False` past cooldown (allowing one half-open trial call).
+- **`record_success()`**: Resets the failure counter and closes the breaker.
+- **`record_failure(settings)`**: Increments the consecutive-failure counter; trips the breaker open once it reaches `settings.circuit_breaker_failure_threshold` (3).
+- **`circuit_breaker_state()`** / **`reset_circuit_breaker()`**: Inspection and testing/demo hooks.
+
 ##### `LLMClient`
 
 - **`__init__(settings=SETTINGS, usage=None)`**: Validates an API key is configured (raising `RuntimeError` if not) and constructs the underlying `openai.OpenAI` client with the configured request timeout.
-- **`_with_retries(fn, attempts=3, purpose="unknown")`**: Runs `fn` with exponential backoff and full jitter on `RateLimitError`/`APITimeoutError`. For a generic `APIError`, retries only on 5xx status codes and immediately raises `LLMUnavailable` on 4xx (treated as a bug in the request, not transient). Raises `LLMUnavailable` after exhausting attempts.
+- **`_with_retries(fn, attempts=3, purpose="unknown")`**: If `_BREAKER.is_open()`, raises `LLMUnavailable` immediately with no network attempt at all. Otherwise runs `fn` with exponential backoff and full jitter on `RateLimitError`/`APITimeoutError`. For a generic `APIError`, retries only on 5xx status codes (which count toward the breaker) and immediately raises `LLMUnavailable` on 4xx (a bug in the request, not a provider outage — never trips the breaker). A successful call resets the breaker; exhausting all attempts records a breaker failure before raising `LLMUnavailable`. Live-verified: 3 consecutive forced timeouts trip the breaker, and the 4th call short-circuits with zero network attempts.
 - **`chat(system, user, purpose, model=None, temperature=0.0, max_tokens=900)`**: Sends a system/user chat completion request through `_with_retries`, records usage, and returns the stripped response text.
 - **`chat_json(system, user, purpose, model=None, max_tokens=900)`**: Same as `chat` but constrains the response to `{"type": "json_object"}` and parses it, returning `{}` on a JSON decode failure rather than raising.
-- **`embed(texts, purpose="embed")`**: Batches a list of texts into a single embeddings API call, records usage as embedding tokens, and returns the list of embedding vectors. Returns `[]` immediately for an empty input list.
+- **`embed(texts, purpose="embed")`**: Splits `texts` into already-cached and genuinely-new by `(model, text)` against the module-level `_EMBED_CACHE`; only the uncached portion is sent as a single embeddings API call and billed to `usage`. Newly fetched vectors are written back into the cache before returning. Returns `[]` immediately for an empty input list.
+- **`clear_embed_cache()`**: Testing/demo hook — empties the process-lifetime embedding cache.
 
 ##### Module-level
 
@@ -230,14 +268,14 @@ Thin OpenAI wrapper centralizing chat/JSON/embedding calls, retries, timeouts, t
 
 ## graph/state.py
 
-Defines `RAGState`, a single `TypedDict` that flows through every LangGraph node, covering the request, infrastructure handles (LLM client, usage, trace), authorization output, planning output, retrieval/enforcement results, and the final generation outcome. No functions — purely a typed data contract that lets any node be tested in isolation and lets the trace be reconstructed from state alone.
+Defines `RAGState`, a single `TypedDict` that flows through every LangGraph node, covering the request, infrastructure handles (LLM client, usage, trace), authorization output, planning output, retrieval/enforcement results, and the final generation outcome. No functions — purely a typed data contract that lets any node be tested in isolation and lets the trace be reconstructed from state alone. `content_filters` (optional non-ACL retrieval filter) and `conversation_history` (prior turns, new) are both additive — every existing caller that never sets them gets exactly the old behaviour.
 
 ## graph/prompts.py
 
 Versioned prompt templates as named constants (not inline string literals), each run recording which `PROMPT_VERSION` served it so prompt changes are reviewable, gated diffs.
 
 - **`PROMPT_VERSION`**: The current prompt version string, stamped onto every trace.
-- **`SYNTHESIS_SYSTEM` / `SYNTHESIS_USER`**: System and user templates for the final answer-generation call — enforce citation format, no-guessing rules, partial-answer behavior, and routing instructions found in source material.
+- **`SYNTHESIS_SYSTEM` / `SYNTHESIS_USER`**: System and user templates for the final answer-generation call — enforce citation format, no-guessing rules, partial-answer behavior, routing instructions found in source material, and (rule 7, new) preferring the higher-`authority`, then more-recently-updated passage when two disagree on the same fact, naming the conflicting doc id rather than silently picking one. Live-verified: the model reliably picks the correct higher-authority value; it only reliably *names* the conflict when the question itself hints one might exist — an honest, observed gap in disclosure compliance, not in value selection.
 - **`PARTIAL_COVERAGE_NOTE`**: Appended to the synthesis prompt when the grader found only partial coverage, telling the model to answer what it can and state plainly what it couldn't determine.
 - **`SUFFICIENCY_SYSTEM`**: System prompt for the context-sufficiency grader, defining the `sufficient`/`partial`/`insufficient` verdict rubric.
 - **`GROUNDEDNESS_SYSTEM`**: System prompt for the post-hoc groundedness check, asking whether each claim in the answer is actually supported by the cited passages.
@@ -247,14 +285,16 @@ Versioned prompt templates as named constants (not inline string literals), each
 
 The LangGraph node functions implementing the pipeline: `authorize → plan → retrieve → enforce → grade → (generate → verify | refuse)`. Each node takes the current `RAGState` and returns a partial state update.
 
-- **`authorize(state)`**: Compiles the principal's ABAC policy into a Chroma `where` pre-filter via `compile_prefilter` before any retrieval happens, and records the filter and its human-readable explanation on the trace.
-- **`plan(state)`**: Uses a cheap regex heuristic (looking for "and"/"also"/"as well as"/`;`) to decide if a question looks multi-hop; only if so (and only under the `enterprise` strategy) does it call `expansion.decompose` to actually generate sub-questions, saving latency on the common single-hop path.
-- **`retrieve(state)`**: Looks up and runs the selected strategy function from `STRATEGIES`. If query expansion fails with `LLMUnavailable`, degrades to the plain `dense` strategy and marks the state as `degraded` rather than failing the request.
+- **`authorize(state)`**: Compiles the principal's ABAC policy into a Chroma `where` pre-filter via `compile_prefilter`, then ANDs on any optional `state["content_filters"]` via `merge_filters()` before any retrieval happens, and records the final filter and its human-readable explanation on the trace.
+- **`plan(state)`**: Uses a cheap regex heuristic (looking for "and"/"also"/"as well as"/`;`) to decide if a question looks multi-hop; only if so (and only under the `enterprise` strategy) does it call `expansion.decompose` (passing `state["conversation_history"]`, new) to actually generate sub-questions, saving latency on the common single-hop path.
+- **`retrieve(state)`**: Looks up and runs the selected strategy function from `STRATEGIES`, building its `RetrievalContext` with `history=state.get("conversation_history")` (new). If query expansion fails with `LLMUnavailable`, degrades to the plain `dense` strategy and marks the state as `degraded` rather than failing the request.
 - **`enforce(state)`**: Runs `enforcement.enforce` (the authoritative ACL re-check) on all retrieved candidates, then reranks the *allowed* survivors with `LLMReranker` — ordering enforcement before reranking so the reranker's top-k reflects only what this principal may see. Populates trace fields for denied chunks, redactions, and audit/security events.
 - **`grade(state)`**: The context-sufficiency guardrail. Returns insufficient immediately if there's no context or the best rerank score is below `settings.min_rerank_score`; otherwise asks the LLM to grade sufficiency (`sufficient`/`partial`/`insufficient`) via `SUFFICIENCY_SYSTEM`. Treats `partial` as sufficient-to-proceed (with a coverage note attached) rather than refusing, since which part of a question a user can see is itself role-dependent. On grader failure, trusts the reranker score and proceeds.
 - **`route_after_grade(state)`**: Conditional-edge function returning `"generate"` or `"refuse"` based on `state["sufficient"]`.
-- **`_format_context(context)`**: Formats the retrieved chunks into the block of text passed to the synthesis prompt, labeling each with doc id, title, section, source, and sensitivity, and stopping once `settings.max_context_chars` would be exceeded.
-- **`generate(state)`**: Calls the synthesis LLM with the formatted context and question to produce a draft answer. On `LLMUnavailable`, returns state that routes to `refuse` instead of raising, marking the run degraded.
+- **`_format_context(context)`**: Formats the retrieved chunks into the block of text passed to the synthesis prompt, labeling each with doc id, title, section, source, sensitivity, `authority` rank, and `updated` recency (new — what `SYNTHESIS_SYSTEM` rule 7 reads to resolve conflicts), and stopping once `settings.max_context_chars` would be exceeded.
+- **`generate(state)`**: Before calling the LLM, checks `usage.cost_usd` against `SETTINGS.max_cost_per_run_usd` and routes straight to `refuse` (degraded) if the upstream fan-out already exceeded it — halt rather than spend more on the single most expensive call. Then checks `_RESPONSE_CACHE` on a key derived from the question, the compiled ACL filter, the exact set of context chunk ids, and the coverage note — a hit reuses the cached draft and skips the synthesis call entirely. On a miss, calls the synthesis LLM to produce a draft answer, caching the result before returning. On `LLMUnavailable`, returns state that routes to `refuse` instead of raising, marking the run degraded.
+- **`_response_cache_key(question, where, context, coverage_note)`**: Builds the cache key above — hashes the question, the JSON-serialized filter, the sorted chunk ids actually in context, and the coverage note, so a cache hit only ever reuses an answer for a genuinely identical, freshly-re-enforced situation.
+- **`clear_response_cache()`**: Testing/demo hook — empties the process-lifetime response cache.
 - **`verify(state)`**: Two checks before finalizing the answer: (1) extracts cited doc ids from the draft via `CITATION_RE`, drops any not actually present in the context (hallucinated) or that fail a live re-check via `enforcement.verify_citations`, stripping their bracket markers from the text; (2) asks the LLM to score groundedness of the cleaned answer against the context. Builds the final `Answer` with `Citation` objects for the surviving valid citations.
 - **`refuse(state)`**: Builds the clean no-answer `Answer`, deliberately never revealing that a restricted document exists (which would itself be a disclosure), and picks a role-appropriate next step (escalate to Tier 3, vs. ask the document owner/escalate to the responsible team).
 
@@ -267,7 +307,7 @@ Compiles the LangGraph state machine from the node functions in `nodes.py` and e
 ##### `RAGPlatform`
 
 - **`__init__(settings=SETTINGS)`**: Stores settings and builds (or reuses) the compiled graph.
-- **`ask(question, principal, strategy="enterprise", as_of=None, write_trace=True)`**: The single public method. Constructs a fresh `LLMClient`/`Usage`/`RunTrace` per call, seeds the initial `RAGState`, invokes the graph, finalizes the trace with usage totals, optionally writes the trace to disk, and returns `{"answer", "trace", "state"}`. Falls back to a generic "no answer was produced" `Answer` if the graph somehow ends without one.
+- **`ask(question, principal, strategy="enterprise", as_of=None, write_trace=True, filters=None, history=None)`**: The single public method. First checks `rate_limit.check(principal.tenant_id)` (new) — a denial returns a refused `Answer` immediately, before an `LLMClient` is even constructed, so it costs nothing (live-verified: `trace.cost_usd == 0.0`). Otherwise constructs a fresh `LLMClient`/`Usage`/`RunTrace`, seeds the initial `RAGState` (including the optional, non-ACL `filters` dict as `content_filters`, and `history` as `conversation_history`, new), invokes the graph, finalizes the trace with usage totals, optionally writes the trace to disk, and returns `{"answer", "trace", "state"}`. Falls back to a generic "no answer was produced" `Answer` if the graph somehow ends without one.
 
 ## observability/trace.py
 
@@ -284,10 +324,11 @@ Defines `RunTrace`, a complete, replayable, JSON-serializable record of one requ
 
 ## evaluation/harness.py
 
-The evaluation harness: runs a golden set of test cases through any retrieval strategy and scores two independently-owned metric families (retrieval quality: recall@k/MRR; generation quality: groundedness/refusal accuracy), plus a hard, non-negotiable security gate (ACL leak rate, which must be exactly zero).
+The evaluation harness: runs a golden set of test cases through any retrieval strategy and scores two independently-owned metric families (retrieval quality: recall@k/MRR/nDCG; generation quality: groundedness/refusal accuracy), plus a hard, non-negotiable security gate (ACL leak rate, which must be exactly zero).
 
 - **`load_cases(path=None)`**: Loads the golden-set JSON file and returns its `"cases"` list.
-- **`_score_case(case, result, strategy)`**: Scores one case's platform output against its expected/forbidden/distractor document lists — computes recall and MRR against `expected_docs`, flags any `forbidden_docs` that were retrieved or cited as a leak, flags `distractor_docs` retrieved as a (non-gating) precision miss, and checks `expect_refusal`/`must_contain` assertions if present. Returns a populated `CaseResult`.
+- **`_ndcg_binary(retrieved, expected)`**: Binary-relevance nDCG — each retrieved doc counts as relevant (1) or not (0) against `expected_docs`, discounted by `1/log2(rank+1)`, normalized against the ideal ordering's DCG. A legitimate, standard form of nDCG (not an approximation of a graded one) — graded relevance would require re-authoring every golden-set case with a per-doc relevance score, a content change rather than a metric change.
+- **`_score_case(case, result, strategy)`**: Scores one case's platform output against its expected/forbidden/distractor document lists — computes recall, MRR, and nDCG against `expected_docs`, flags any `forbidden_docs` that were retrieved or cited as a leak, flags `distractor_docs` retrieved as a (non-gating) precision miss, and checks `expect_refusal`/`must_contain` assertions if present. Returns a populated `CaseResult`.
 - **`run_eval(strategy="enterprise", cases=None, kinds=None, platform=None, verbose=True)`**: Runs every (filtered) case through `RAGPlatform.ask()` with the given strategy (without writing per-case traces), scores each with `_score_case`, and optionally prints a pass/fail line per case. Returns an `EvalReport`.
 - **`compare_strategies(strategies, kinds=None, verbose=False)`**: Runs the same golden set through multiple strategies against one shared `RAGPlatform` instance and returns a list of summary-row dicts, one per strategy — the artifact used to justify "strategy X is measurably better" claims.
 
@@ -299,7 +340,7 @@ The evaluation harness: runs a golden set of test cases through any retrieval st
 ##### `EvalReport`
 
 - **`_vals(attr, kinds=None)`**: Internal helper collecting non-`None` values of a given attribute across results, optionally filtered by case `kind`.
-- **`recall_at_k` / `mrr` / `groundedness` (properties)**: Mean of the corresponding per-case metric across all results with that metric set.
+- **`recall_at_k` / `mrr` / `ndcg` / `groundedness` (properties)**: Mean of the corresponding per-case metric across all results with that metric set.
 - **`leak_count` (property)**: Total number of leaked documents summed across all cases.
 - **`refusal_advisories` (property)**: List of case ids flagged as refusal advisories.
 - **`distraction_count` (property)**: Total number of distractor documents retrieved across all cases.

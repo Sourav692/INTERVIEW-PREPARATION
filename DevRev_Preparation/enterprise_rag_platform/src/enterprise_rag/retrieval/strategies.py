@@ -42,6 +42,7 @@ class RetrievalContext:
     notes: List[str] = field(default_factory=list)
     generated_queries: List[str] = field(default_factory=list)
     hyde_passage: Optional[str] = None
+    history: List[Dict[str, str]] = field(default_factory=list)   # prior turns, for reference resolution
 
 
 def _embed_and_search(ctx: RetrievalContext, queries: List[str], k: int) -> List[List[ScoredChunk]]:
@@ -78,7 +79,7 @@ def hybrid(question: str, ctx: RetrievalContext) -> List[ScoredChunk]:
 
 def multi_query(question: str, ctx: RetrievalContext) -> List[ScoredChunk]:
     """RAG-Fusion: N rewrites -> dense retrieve each -> RRF."""
-    queries = expansion.generate_multi_queries(ctx.llm, question, settings=ctx.settings)
+    queries = expansion.generate_multi_queries(ctx.llm, question, settings=ctx.settings, history=ctx.history)
     ctx.generated_queries = queries
     ctx.notes.append(f"multi-query: {len(queries)} variants")
     lists = _embed_and_search(ctx, queries, ctx.settings.dense_k)
@@ -104,7 +105,7 @@ def enterprise(question: str, ctx: RetrievalContext) -> List[ScoredChunk]:
     Fan-out is: original question + N rewrites + HyDE probe on the dense side, plus
     BM25 on the original question and each sub-question. All fused with RRF.
     """
-    queries = expansion.generate_multi_queries(ctx.llm, question, settings=ctx.settings)
+    queries = expansion.generate_multi_queries(ctx.llm, question, settings=ctx.settings, history=ctx.history)
     ctx.generated_queries = queries
 
     probe = expansion.generate_hyde_passage(ctx.llm, question)

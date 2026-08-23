@@ -11,7 +11,7 @@ import json
 import random
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from openai import OpenAI
 from openai import APIError, APITimeoutError, RateLimitError
@@ -59,11 +59,70 @@ class Usage:
             self.by_purpose[k] = self.by_purpose.get(k, 0) + v
 
 
+# Embedding cache: identical (model, text) never gets re-embedded. Shared across
+# every LLMClient instance/request in this process (unlike Usage, which is
+# per-request) - a repeated question, or the same chunk text seen by two
+# different retrieval strategies in the same demo session, only ever pays once.
+# Unbounded/process-lifetime; a production version needs an LRU cap and a real
+# cache store shared across workers, not an in-process dict - see docs/07.
+_EMBED_CACHE: Dict[Tuple[str, str], List[float]] = {}
+
+
+def clear_embed_cache():
+    """Testing/demo hook."""
+    _EMBED_CACHE.clear()
+
+
 class LLMUnavailable(RuntimeError):
     """Raised when the model provider cannot serve the request after retries.
 
     Callers catch this and degrade gracefully rather than failing the whole run.
     """
+
+
+class _CircuitBreaker:
+    """Process-wide, not per-LLMClient - it represents "is the provider
+    currently down", which is a fact about the outside world, not about any
+    one caller. After `failure_threshold` consecutive genuine-outage
+    exhaustions (not our own 4xx bugs - see `_with_retries`), the breaker
+    trips OPEN and every call fails immediately with no network attempt for
+    `cooldown_s`, instead of every request separately re-discovering the same
+    outage through a full retry loop. After cooldown, one trial call is
+    allowed (half-open); success closes the breaker, failure reopens it."""
+
+    def __init__(self):
+        self.consecutive_failures = 0
+        self.opened_at: Optional[float] = None
+
+    def is_open(self, settings) -> bool:
+        if self.opened_at is None:
+            return False
+        if time.time() - self.opened_at >= settings.circuit_breaker_cooldown_s:
+            return False   # cooldown elapsed - allow a half-open trial call
+        return True
+
+    def record_success(self):
+        self.consecutive_failures = 0
+        self.opened_at = None
+
+    def record_failure(self, settings):
+        self.consecutive_failures += 1
+        if self.consecutive_failures >= settings.circuit_breaker_failure_threshold:
+            self.opened_at = time.time()
+
+
+_BREAKER = _CircuitBreaker()
+
+
+def circuit_breaker_state() -> Dict[str, Any]:
+    return {"consecutive_failures": _BREAKER.consecutive_failures,
+            "open": _BREAKER.opened_at is not None}
+
+
+def reset_circuit_breaker():
+    """Testing/demo hook."""
+    global _BREAKER
+    _BREAKER = _CircuitBreaker()
 
 
 class LLMClient:
@@ -81,20 +140,28 @@ class LLMClient:
     # -- internals ---------------------------------------------------------
     def _with_retries(self, fn, *, attempts: int = 3, purpose: str = "unknown"):
         """Exponential backoff with full jitter on the retryable failures only."""
+        if _BREAKER.is_open(self.settings):
+            raise LLMUnavailable(f"{purpose}: circuit breaker open - provider considered down, "
+                                 f"no call attempted; retry after cooldown")
+
         last: Optional[Exception] = None
         for i in range(attempts):
             try:
-                return fn()
+                result = fn()
+                _BREAKER.record_success()
+                return result
             except (RateLimitError, APITimeoutError) as e:
                 last = e
                 sleep = min(8.0, (2 ** i)) * random.random()
                 time.sleep(sleep)
             except APIError as e:
-                # 5xx is retryable; 4xx is a bug in our request, so fail fast.
+                # 5xx is retryable and counts as a provider-outage signal; 4xx is a
+                # bug in OUR request, so it fails fast and never trips the breaker.
                 if getattr(e, "status_code", 500) < 500:
                     raise LLMUnavailable(f"{purpose}: non-retryable API error: {e}") from e
                 last = e
                 time.sleep(min(8.0, 2 ** i) * random.random())
+        _BREAKER.record_failure(self.settings)
         raise LLMUnavailable(f"{purpose}: exhausted {attempts} attempts: {last}")
 
     # -- public API --------------------------------------------------------
@@ -146,9 +213,27 @@ class LLMClient:
             return []
         model = self.settings.embedding_model
 
-        def _call():
-            return self._client.embeddings.create(model=model, input=texts)
+        # Split into what's already cached and what genuinely needs an API call -
+        # only the uncached portion is billed/counted against this request's usage.
+        out: List[Optional[List[float]]] = [None] * len(texts)
+        to_fetch: List[str] = []
+        fetch_positions: List[int] = []
+        for i, t in enumerate(texts):
+            cached = _EMBED_CACHE.get((model, t))
+            if cached is not None:
+                out[i] = cached
+            else:
+                to_fetch.append(t)
+                fetch_positions.append(i)
 
-        resp = self._with_retries(_call, purpose=purpose)
-        self.usage.add(model, resp.usage.total_tokens, 0, purpose, embedding=True)
-        return [d.embedding for d in resp.data]
+        if to_fetch:
+            def _call():
+                return self._client.embeddings.create(model=model, input=to_fetch)
+
+            resp = self._with_retries(_call, purpose=purpose)
+            self.usage.add(model, resp.usage.total_tokens, 0, purpose, embedding=True)
+            for pos, text, d in zip(fetch_positions, to_fetch, resp.data):
+                out[pos] = d.embedding
+                _EMBED_CACHE[(model, text)] = d.embedding
+
+        return out

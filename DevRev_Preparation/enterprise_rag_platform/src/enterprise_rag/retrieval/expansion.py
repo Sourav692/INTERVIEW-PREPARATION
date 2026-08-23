@@ -23,10 +23,28 @@ for is the actual skill; running all three on every query is expensive theatre.
 from __future__ import annotations
 
 import json
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from ..config import SETTINGS
 from ..llm.client import LLMClient, LLMUnavailable
+
+HISTORY_TURNS_INCLUDED = 3   # only the most recent turns - enough to resolve "it"/"that", not a transcript dump
+
+
+def _format_history(history: Optional[List[Dict[str, str]]]) -> str:
+    """Render the last few conversation turns as a compact block, or "" if none.
+    Multi-turn awareness is opt-in and additive - every call site here degrades
+    to exactly today's single-turn behaviour when `history` is empty/None."""
+    if not history:
+        return ""
+    recent = history[-HISTORY_TURNS_INCLUDED:]
+    lines = ["Conversation so far (most recent last):"]
+    for turn in recent:
+        q, a = turn.get("question", ""), turn.get("answer", "")
+        lines.append(f"  Q: {q}")
+        if a:
+            lines.append(f"  A: {a[:300]}")
+    return "\n".join(lines) + "\n\n"
 
 MULTI_QUERY_SYSTEM = """You rewrite a user's support question into alternative search queries \
 for an enterprise knowledge base covering help-centre docs, engineering runbooks, support tickets, \
@@ -38,6 +56,8 @@ Rules:
 - At least one variant must use the plain language a customer would use.
 - Preserve every identifier (error codes, ticket numbers, customer names, dates) exactly.
 - Never invent identifiers that are not in the original question.
+- If conversation history is given, use it only to resolve pronouns/references ("it", "that
+  incident") in the current question into concrete terms. Never answer or rewrite a prior turn.
 
 Return JSON: {"queries": ["...", "..."]}"""
 
@@ -62,13 +82,20 @@ Maximum 3 sub-questions. If no decomposition is needed, return an empty list."""
 
 
 def generate_multi_queries(llm: LLMClient, question: str,
-                           n: int = None, settings=SETTINGS) -> List[str]:
-    """Return [original] + generated variants. Always includes the original."""
+                           n: int = None, settings=SETTINGS,
+                           history: Optional[List[Dict[str, str]]] = None) -> List[str]:
+    """Return [original] + generated variants. Always includes the original.
+
+    `history`, if given, lets rewrites resolve references to prior turns (e.g.
+    "what about that incident?" -> "the March EU ingest incident") instead of
+    generating variants of a pronoun. Optional and additive - omitting it is
+    exactly today's single-turn behaviour.
+    """
     n = n or settings.multi_query_n
     try:
         data = llm.chat_json(
             MULTI_QUERY_SYSTEM,
-            f"Generate {n} alternative search queries for:\n\n{question}",
+            f"{_format_history(history)}Generate {n} alternative search queries for:\n\n{question}",
             purpose="multi_query",
         )
         variants = [q.strip() for q in (data.get("queries") or []) if isinstance(q, str) and q.strip()]
@@ -92,10 +119,12 @@ def generate_hyde_passage(llm: LLMClient, question: str) -> Optional[str]:
         return None
 
 
-def decompose(llm: LLMClient, question: str, settings=SETTINGS) -> List[str]:
+def decompose(llm: LLMClient, question: str, settings=SETTINGS,
+             history: Optional[List[Dict[str, str]]] = None) -> List[str]:
     """Return sub-questions, or [] when the question is single-hop."""
     try:
-        data = llm.chat_json(DECOMPOSE_SYSTEM, question, purpose="decompose")
+        data = llm.chat_json(DECOMPOSE_SYSTEM, f"{_format_history(history)}{question}",
+                             purpose="decompose")
     except LLMUnavailable:
         return []
     if not data.get("needs_decomposition"):

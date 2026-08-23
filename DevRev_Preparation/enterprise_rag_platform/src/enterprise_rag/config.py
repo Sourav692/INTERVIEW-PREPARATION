@@ -61,9 +61,14 @@ class Settings:
     chunk_overlap_chars: int = 150
 
     # --- retrieval ---------------------------------------------------------
-    dense_k: int = 12                      # per-query dense candidates
-    bm25_k: int = 12                       # per-query keyword candidates
-    fusion_k: int = 20                     # candidates surviving fusion
+    # dense_k/bm25_k/fusion_k set the pre-rerank candidate pool. The prep doc's
+    # reference architecture over-retrieves 50-100 before reranking; this repo's
+    # 22-document demo corpus doesn't have 50 distinct relevant chunks to find,
+    # so these are sized for a realistic pool without wastefully over-fetching
+    # against a corpus this small - see docs/07 §4.4 for the sizing rationale.
+    dense_k: int = 40                      # per-query dense candidates
+    bm25_k: int = 40                       # per-query keyword candidates
+    fusion_k: int = 50                     # candidates surviving fusion, pre-rerank
     rerank_k: int = 6                      # chunks actually shown to the synthesiser
     rrf_smoothing: int = 60                # the k constant in Reciprocal Rank Fusion
     multi_query_n: int = 4                 # number of generated query variants
@@ -73,6 +78,12 @@ class Settings:
     min_rerank_score: float = 3.0          # 0-10 scale; below this the context is too weak
     max_context_chars: int = 12000
     request_timeout_s: int = 60
+    max_cost_per_run_usd: float = 0.10     # a run this expensive is almost certainly a runaway loop
+
+    # --- rate limiting / resilience -----------------------------------------
+    rate_limit_per_minute: int = 30        # per-tenant; generous enough not to trip normal demo use
+    circuit_breaker_failure_threshold: int = 3   # consecutive LLMUnavailable before the breaker opens
+    circuit_breaker_cooldown_s: float = 30.0     # how long the breaker stays open before a trial call
 
     # --- observability -----------------------------------------------------
     trace_enabled: bool = True

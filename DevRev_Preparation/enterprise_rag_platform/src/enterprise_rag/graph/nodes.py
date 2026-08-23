@@ -12,11 +12,13 @@ graph topology rather than left to a code convention someone can forget.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from typing import Any, Dict, List
 
 from ..authz import enforcement
-from ..authz.policy import compile_prefilter, explain_prefilter
+from ..authz.policy import compile_prefilter, explain_prefilter, merge_filters
 from ..config import SETTINGS
 from ..llm.client import LLMUnavailable
 from ..models import Answer, Citation, ScoredChunk
@@ -29,6 +31,30 @@ from .prompts import (GROUNDEDNESS_SYSTEM, PARTIAL_COVERAGE_NOTE, PROMPT_VERSION
 from .state import RAGState
 
 CITATION_RE = re.compile(r"\[([A-Z]{2}-[A-Za-z0-9\-]+)\]")
+
+# Response cache: identical (question, ACL filter, exact context, coverage note)
+# -> reuse the drafted answer instead of paying for synthesis again. Keyed on the
+# CONTEXT actually assembled, not just the question, so a different retrieval
+# draw (e.g. multi-query variance) never serves a stale answer for stale
+# reasoning - only a genuinely identical situation is served from cache.
+# Unbounded/process-lifetime, same tradeoff as the embedding cache in
+# llm/client.py; see docs/07 for the production caveat (needs a real cache
+# store, TTL, and invalidation on an ACL change, none of which a local demo
+# needs to prove).
+_RESPONSE_CACHE: Dict[str, str] = {}
+
+
+def clear_response_cache():
+    """Testing/demo hook."""
+    _RESPONSE_CACHE.clear()
+
+
+def _response_cache_key(question: str, where: Any, context: List[ScoredChunk],
+                        coverage_note: str) -> str:
+    chunk_ids = sorted(sc.chunk.chunk_id for sc in context)
+    where_json = json.dumps(where or {}, sort_keys=True)
+    raw = f"{question}||{where_json}||{','.join(chunk_ids)}||{coverage_note}"
+    return hashlib.sha256(raw.encode()).hexdigest()
 
 
 # ---------------------------------------------------------------------------
@@ -45,6 +71,9 @@ def authorize(state: RAGState) -> Dict[str, Any]:
 
     ctx = {"as_of": state.get("as_of")}
     where = compile_prefilter(principal, ctx)
+    # Optional, caller-supplied, non-ACL narrowing (source/doc type/recency) -
+    # ANDed on afterward so it can only ever restrict further, never loosen.
+    where = merge_filters(where, state.get("content_filters"))
     explained = explain_prefilter(principal)
 
     trace.prefilter = where
@@ -76,7 +105,7 @@ def plan(state: RAGState) -> Dict[str, Any]:
 
     looks_multi_hop = bool(re.search(r"\band\b|\balso\b|\bas well as\b|;", question, re.I))
     if looks_multi_hop and state.get("strategy", "enterprise") == "enterprise":
-        subquestions = expansion.decompose(llm, question)
+        subquestions = expansion.decompose(llm, question, history=state.get("conversation_history"))
         notes.append(f"decomposition -> {len(subquestions)} sub-questions"
                      if subquestions else "decomposition considered, not needed")
     else:
@@ -102,6 +131,7 @@ def retrieve(state: RAGState) -> Dict[str, Any]:
         llm=llm,
         settings=SETTINGS,
         subquestions=state.get("subquestions") or [],
+        history=state.get("conversation_history") or [],
     )
 
     degraded, degraded_reason = False, None
@@ -239,9 +269,11 @@ def route_after_grade(state: RAGState) -> str:
 def _format_context(context: List[ScoredChunk]) -> str:
     parts, total = [], 0
     for sc in context:
+        recency = sc.chunk.attrs.source_updated_at or "unknown"
         block = (f"--- [{sc.chunk.doc_id}] {sc.chunk.title}"
                  f"{' - ' + sc.chunk.section if sc.chunk.section else ''}"
-                 f" (source: {sc.chunk.attrs.source}, sensitivity: {sc.chunk.attrs.sensitivity})\n"
+                 f" (source: {sc.chunk.attrs.source}, sensitivity: {sc.chunk.attrs.sensitivity}, "
+                 f"authority: {sc.chunk.attrs.authority_rank}, updated: {recency})\n"
                  f"{sc.chunk.text}")
         if total + len(block) > SETTINGS.max_context_chars:
             break
@@ -255,10 +287,31 @@ def generate(state: RAGState) -> Dict[str, Any]:
     context = state["context"]
     trace.start("generate")
 
+    # Halt-and-escalate, not loop: if the upstream fan-out (plan/retrieve/rerank)
+    # already burned through the run's cost budget, refuse rather than spend more
+    # on the single most expensive call (synthesis). The measurement already
+    # existed on every run via `usage`/`RunTrace`; this is the missing enforcement
+    # branch on top of it.
+    usage = state["usage"]
+    if usage.cost_usd >= SETTINGS.max_cost_per_run_usd:
+        trace.end("generate", error="cost_ceiling_exceeded", cost_so_far=usage.cost_usd)
+        return {"sufficient": False,
+                "insufficiency_reason": "This request exceeded its cost budget before an answer "
+                                        "could be generated.",
+                "degraded": True,
+                "degraded_reason": f"cost ceiling (${SETTINGS.max_cost_per_run_usd:.2f}) exceeded "
+                                   f"before generation (spent ${usage.cost_usd:.4f})"}
+
     coverage_note = ""
     if state.get("partial_coverage"):
         coverage_note = PARTIAL_COVERAGE_NOTE.format(
             missing=state.get("insufficiency_reason") or "part of the question")
+
+    cache_key = _response_cache_key(state["question"], state.get("where"), context, coverage_note)
+    cached_draft = _RESPONSE_CACHE.get(cache_key)
+    if cached_draft is not None:
+        trace.end("generate", chars=len(cached_draft), cache_hit=True)
+        return {"draft": cached_draft}
 
     try:
         draft = llm.chat(
@@ -273,7 +326,8 @@ def generate(state: RAGState) -> Dict[str, Any]:
                 "insufficiency_reason": "The answering model is currently unavailable.",
                 "degraded": True, "degraded_reason": str(e)}
 
-    trace.end("generate", chars=len(draft))
+    _RESPONSE_CACHE[cache_key] = draft
+    trace.end("generate", chars=len(draft), cache_hit=False)
     return {"draft": draft}
 
 

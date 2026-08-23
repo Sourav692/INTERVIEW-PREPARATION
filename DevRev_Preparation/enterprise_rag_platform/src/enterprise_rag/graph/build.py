@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 
 from langgraph.graph import END, START, StateGraph
 
+from ..authz import rate_limit
 from ..config import SETTINGS
 from ..llm.client import LLMClient, Usage
 from ..models import Answer, Principal
@@ -71,8 +72,36 @@ class RAGPlatform:
             principal: Principal,
             strategy: str = "enterprise",
             as_of: Optional[str] = None,
-            write_trace: bool = True) -> Dict[str, Any]:
-        """Answer one question as one principal. Returns the answer plus its trace."""
+            write_trace: bool = True,
+            filters: Optional[Dict[str, Any]] = None,
+            history: Optional[List[Dict[str, str]]] = None) -> Dict[str, Any]:
+        """Answer one question as one principal. Returns the answer plus its trace.
+
+        `filters` is optional, caller-supplied, non-ACL narrowing (e.g.
+        `{"source": {"$eq": "runbook"}}` or a recency range on `ingested_at`) -
+        it is ANDed onto the compiled ACL pre-filter in `authorize`, so it can
+        only narrow what's searched, never loosen access.
+
+        `history` is an optional list of prior `{"question": ..., "answer": ...}`
+        turns in the same conversation, used to resolve references ("that
+        incident", "it") in query rewriting - see retrieval/expansion.py.
+        """
+        # Cheapest possible short-circuit: a rate-limited tenant costs nothing
+        # beyond a dict lookup, before an LLMClient is even constructed.
+        limit_decision = rate_limit.check(principal.tenant_id, self.settings)
+        if limit_decision.denied:
+            trace = RunTrace(question=question, strategy=strategy)
+            trace.tenant_id, trace.user_id, trace.role = (
+                principal.tenant_id, principal.user_id, principal.role)
+            trace.refused, trace.refusal_reason = True, limit_decision.reason
+            trace.finish(Usage())
+            if write_trace:
+                trace.write(self.settings)
+            answer = Answer(text="This tenant has exceeded its request rate limit. Please retry "
+                                 "shortly.",
+                            refused=True, refusal_reason=limit_decision.reason, strategy=strategy)
+            return {"answer": answer, "trace": trace, "state": {}}
+
         usage = Usage()
         llm = LLMClient(self.settings, usage=usage)
         trace = RunTrace(question=question, strategy=strategy)
@@ -82,6 +111,8 @@ class RAGPlatform:
             "principal": principal,
             "strategy": strategy,
             "as_of": as_of,
+            "content_filters": filters,
+            "conversation_history": history or [],
             "llm": llm,
             "usage": usage,
             "trace": trace,

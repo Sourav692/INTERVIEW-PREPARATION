@@ -59,9 +59,26 @@ def get_client(settings=SETTINGS) -> chromadb.ClientAPI:
     return _client
 
 
-def reset_store(settings=SETTINGS):
-    """Wipe the local index. Only used by the ingest script and tests."""
+def reset_store(settings=SETTINGS, tenant_id: Optional[str] = None):
+    """Wipe the index - the WHOLE store by default, or just one tenant's
+    collection if `tenant_id` is given.
+
+    A bug caught while adding a second connector/tenant to this demo: the
+    unscoped version deletes `chroma_dir` wholesale, which is every tenant's
+    data, not just the one being re-ingested. Ingesting a brand-new
+    "acme_helpdesk" tenant with `reset=True` silently wiped the unrelated
+    22-document "meridian" corpus that was already indexed - `pipeline.ingest()`
+    now always passes its own `tenant_id` through so a normal reset only ever
+    touches the tenant actually being ingested.
+    """
     global _client
+    if tenant_id is not None:
+        client = get_client(settings)
+        try:
+            client.delete_collection(name=settings.collection_for(tenant_id))
+        except Exception:
+            pass   # collection didn't exist yet - nothing to delete
+        return
     _client = None
     if settings.chroma_dir.exists():
         shutil.rmtree(settings.chroma_dir, ignore_errors=True)

@@ -217,3 +217,20 @@ def explain_prefilter(principal: Principal) -> str:
             f"AND region in (GLOBAL,{principal.region}) "
             f"AND groups overlap ({', '.join(principal.groups) or 'none'})"
             + (" AND source NOT IN (contract,pricing,postmortem)" if principal.is_external else ""))
+
+
+def merge_filters(where: Dict[str, Any], content_filters: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """AND a caller-supplied, non-ACL content filter (source, doc type, a
+    recency range on `ingested_at`/`source_updated_at`, ...) onto the compiled
+    ACL pre-filter (§4.4 - "metadata filters as first-class").
+
+    Safe by construction, not by validation: combining two filters with `$and`
+    can only ever narrow the result set further, never loosen it, so a content
+    filter cannot be used to see past the ACL clause no matter what it contains.
+    This is additive to Layer 1 only - Layer 2's authoritative re-check in
+    enforcement.py never sees or needs to know about content_filters at all,
+    because by the time a chunk reaches enforce() it already passed both.
+    """
+    if not content_filters:
+        return where
+    return {"$and": [where, content_filters]}

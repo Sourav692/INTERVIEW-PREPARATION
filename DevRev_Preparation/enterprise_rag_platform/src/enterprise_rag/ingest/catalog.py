@@ -37,9 +37,33 @@ CREATE TABLE IF NOT EXISTS documents (
     allowed_groups  TEXT NOT NULL DEFAULT '[]',   -- JSON list
     need_to_know    TEXT NOT NULL DEFAULT '[]',   -- JSON list
     valid_from      TEXT,
-    valid_until     TEXT
+    valid_until     TEXT,
+    source_updated_at TEXT,
+    ingested_at     TEXT,
+    authority_rank  INTEGER NOT NULL DEFAULT 0
 );
 """
+
+
+_COLUMN_DEFAULTS = {
+    "source_updated_at": "TEXT",
+    "ingested_at": "TEXT",
+    "authority_rank": "INTEGER NOT NULL DEFAULT 0",
+}
+
+
+def _migrate(conn: sqlite3.Connection):
+    """`CREATE TABLE IF NOT EXISTS` only creates a table that doesn't exist yet -
+    it does NOT add new columns to one that already does, so an on-disk catalog
+    from before a schema change is missing them and every read of that column
+    raises. This adds whatever's missing, in place, without touching existing
+    rows or requiring a full reset - a real bug hit while adding
+    `authority_rank` to an already-ingested demo database."""
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(documents)")}
+    for column, decl in _COLUMN_DEFAULTS.items():
+        if column not in existing:
+            conn.execute(f"ALTER TABLE documents ADD COLUMN {column} {decl}")
+    conn.commit()
 
 
 def get_connection(settings=SETTINGS) -> sqlite3.Connection:
@@ -50,12 +74,21 @@ def get_connection(settings=SETTINGS) -> sqlite3.Connection:
         _conn = sqlite3.connect(str(settings.acl_catalog_path), check_same_thread=False)
         _conn.execute(_SCHEMA)
         _conn.commit()
+        _migrate(_conn)
     return _conn
 
 
-def reset_catalog(settings=SETTINGS):
-    """Drop and recreate the table. Only used by the ingest script and tests."""
+def reset_catalog(settings=SETTINGS, tenant_id: Optional[str] = None):
+    """Drop and recreate the table - the WHOLE catalog by default, or just one
+    tenant's rows if `tenant_id` is given. Same tenant-scoping fix as
+    `ingest/store.py::reset_store()`, for the same reason: an unscoped reset
+    while ingesting one tenant deletes every other tenant's ACL rows too."""
     global _conn
+    if tenant_id is not None:
+        conn = get_connection(settings)
+        conn.execute("DELETE FROM documents WHERE tenant_id = ?", (tenant_id,))
+        conn.commit()
+        return
     if _conn is not None:
         _conn.close()
         _conn = None
@@ -78,6 +111,9 @@ def _row_to_attrs(row: sqlite3.Row) -> ResourceAttributes:
         need_to_know=json.loads(row["need_to_know"]),
         valid_from=row["valid_from"],
         valid_until=row["valid_until"],
+        source_updated_at=row["source_updated_at"],
+        ingested_at=row["ingested_at"],
+        authority_rank=row["authority_rank"] or 0,
     )
 
 
@@ -88,20 +124,23 @@ def upsert_doc_attrs(attrs: ResourceAttributes, settings=SETTINGS):
         """
         INSERT INTO documents
             (doc_id, tenant_id, source, sensitivity, region, product, owner,
-             contains_pii, allowed_groups, need_to_know, valid_from, valid_until)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             contains_pii, allowed_groups, need_to_know, valid_from, valid_until,
+             source_updated_at, ingested_at, authority_rank)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(doc_id) DO UPDATE SET
             tenant_id=excluded.tenant_id, source=excluded.source,
             sensitivity=excluded.sensitivity, region=excluded.region,
             product=excluded.product, owner=excluded.owner,
             contains_pii=excluded.contains_pii, allowed_groups=excluded.allowed_groups,
             need_to_know=excluded.need_to_know, valid_from=excluded.valid_from,
-            valid_until=excluded.valid_until
+            valid_until=excluded.valid_until, source_updated_at=excluded.source_updated_at,
+            ingested_at=excluded.ingested_at, authority_rank=excluded.authority_rank
         """,
         (attrs.doc_id, attrs.tenant_id, attrs.source, attrs.sensitivity, attrs.region,
          attrs.product, attrs.owner, int(attrs.contains_pii),
          json.dumps(attrs.allowed_groups), json.dumps(attrs.need_to_know),
-         attrs.valid_from, attrs.valid_until),
+         attrs.valid_from, attrs.valid_until, attrs.source_updated_at, attrs.ingested_at,
+         attrs.authority_rank),
     )
     conn.commit()
 

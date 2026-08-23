@@ -20,6 +20,8 @@ class RAGState(TypedDict, total=False):
     principal: Principal
     strategy: str
     as_of: Optional[str]                 # lets tests pin "today" for embargo rules
+    content_filters: Optional[Dict[str, Any]]  # optional, non-ACL: source/doc type/recency
+    conversation_history: List[Dict[str, str]]  # prior {"question","answer"} turns, if any
 
     # --- infrastructure handles ------------------------------------------
     llm: LLMClient

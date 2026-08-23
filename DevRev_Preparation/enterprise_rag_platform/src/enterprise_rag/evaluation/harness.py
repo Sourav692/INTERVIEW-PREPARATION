@@ -20,6 +20,7 @@ helps" from an opinion into a number.
 from __future__ import annotations
 
 import json
+import math
 import statistics
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -46,6 +47,7 @@ class CaseResult:
 
     recall: Optional[float] = None
     mrr: Optional[float] = None
+    ndcg: Optional[float] = None
     leaked: List[str] = field(default_factory=list)
     distracted: List[str] = field(default_factory=list)
     refused: bool = False
@@ -118,6 +120,11 @@ class EvalReport:
         return statistics.mean(v) if v else 0.0
 
     @property
+    def ndcg(self) -> float:
+        v = self._vals("ndcg")
+        return statistics.mean(v) if v else 0.0
+
+    @property
     def groundedness(self) -> float:
         v = self._vals("groundedness")
         return statistics.mean(v) if v else 0.0
@@ -164,6 +171,7 @@ class EvalReport:
             "strategy": self.strategy,
             "recall@k": round(self.recall_at_k, 3),
             "mrr": round(self.mrr, 3),
+            "ndcg": round(self.ndcg, 3),
             "groundedness": round(self.groundedness, 3),
             "refusal_acc": round(self.refusal_accuracy, 3),
             "leaks": self.leak_count,
@@ -180,6 +188,7 @@ class EvalReport:
                  f"pass rate      : {self.pass_rate:.0%}",
                  f"recall@k       : {self.recall_at_k:.2f}",
                  f"MRR            : {self.mrr:.2f}",
+                 f"nDCG           : {self.ndcg:.2f}",
                  f"groundedness   : {self.groundedness:.2f}",
                  f"refusal acc.   : {self.refusal_accuracy:.0%}",
                  f"LEAKS          : {self.leak_count}  (gate: must be 0)",
@@ -212,6 +221,21 @@ def load_cases(path: Optional[Path] = None) -> List[Dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))["cases"]
 
 
+def _ndcg_binary(retrieved: List[str], expected: List[str]) -> float:
+    """Binary-relevance nDCG@|retrieved|: each retrieved doc is relevant (1) or
+    not (0) - no per-doc relevance grade, since the golden set doesn't carry one.
+    This is a legitimate, standard form of nDCG (it reduces to a rank-discounted
+    recall), not an approximation of a "real" graded version - adding graded
+    relevance would mean re-authoring every golden-set case with a 1-3 relevance
+    score per expected doc, which is a content change, not a metric change.
+    """
+    if not expected:
+        return 0.0
+    dcg = sum(1.0 / math.log2(i + 2) for i, d in enumerate(retrieved) if d in expected)
+    idcg = sum(1.0 / math.log2(i + 2) for i in range(len(expected)))
+    return dcg / idcg if idcg else 0.0
+
+
 def _score_case(case: Dict[str, Any], result: Dict[str, Any], strategy: str) -> CaseResult:
     answer, trace = result["answer"], result["trace"]
 
@@ -237,6 +261,7 @@ def _score_case(case: Dict[str, Any], result: Dict[str, Any], strategy: str) -> 
         cr.recall = len(hit) / len(expected)
         ranks = [retrieved.index(d) + 1 for d in expected if d in retrieved]
         cr.mrr = 1.0 / min(ranks) if ranks else 0.0
+        cr.ndcg = _ndcg_binary(retrieved, expected)
 
     # --- security ----------------------------------------------------------
     # A leak is a forbidden document reaching the context OR being cited. Both
