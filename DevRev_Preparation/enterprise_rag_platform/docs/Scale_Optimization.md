@@ -201,7 +201,56 @@ not the one-time ingest cost.
 
 ---
 
-## 7. Other scale/optimization points worth knowing cold for the interview
+## 7. Chunking strategy by document type
+
+**Current state (this repo):** `ingest/chunker.py` does one thing — split on markdown `#`/`##`/`###`
+headings, then pack paragraphs up to `chunk_target_chars` with a trailing-tail overlap, prefixing
+every chunk with `doc.title` + section heading. This is correct for the flagship corpus because
+every source doc is already markdown-normalized text. ✅ *proven, but single-format* — there is no
+format-specific parsing in this repo today; `Document.text` arrives already as clean text/markdown.
+At 20M real-world enterprise documents, the input is never uniformly clean markdown, so this is the
+first place ingestion has to grow. The chunking *policy* below still applies once each format is
+normalized to text — only the "how do I get from raw bytes to text + structure" step differs.
+
+The one idea that generalizes across every format: **chunk on the natural semantic/structural unit
+of that format, not on a fixed character count**, and carry structural context (heading, page,
+slide title, table caption) into the chunk text itself the same way this repo prefixes
+`doc.title - section`. Fixed-size sliding-window chunking is the fallback when a format has no
+usable structure, not the default.
+
+| Format | Natural unit to split on | Notes / gotchas |
+|---|---|---|
+| **Markdown / plain text** | Headings first (`#`/`##`/`###`), then pack paragraphs to target size with overlap | ✅ exactly what this repo does. Overlap should carry enough tail that a fact split across a chunk boundary is still recoverable from at least one side (`_pack()`'s `tail = current[-overlap:]`). |
+| **DOCX** | Paragraph + heading styles (Word's `Heading 1/2/3` styles map directly to the same heading-split logic), one chunk per section | Extract via `python-docx`; **do not just concatenate all paragraph text and re-run the markdown chunker on it** — you lose the heading-style signal that made the markdown case work. Convert heading-styled paragraphs to `#`/`##` markers first, then reuse `_split_by_heading()` as-is. Tables need separate handling (see Tables row below). Track-changes/comments should be stripped before chunking, not embedded as noise. |
+| **PDF** | Depends heavily on whether it's a *text* PDF or a *scanned/image* PDF | **Text PDFs:** extract with layout-aware tools (`pdfplumber`, `PyMuPDF`) that preserve reading order and font-size cues — font size / boldness is often the only heading signal available (no semantic markup like markdown/DOCX). Reconstruct a heading hierarchy from font-size deltas, then reuse the same heading-split-then-pack approach. **Scanned/image PDFs:** need OCR first (see Image row) before any of this applies — treat as an image-format document, not a text one, until OCR output exists. Multi-column layouts (common in reports/papers) need column-aware extraction or reading order breaks silently. |
+| **HTML** | DOM structure: `<h1>`–`<h6>`, `<section>`, `<article>`, `<table>`, `<li>` boundaries | Strip nav/footer/ads boilerplate before chunking (a `<nav>` block chunked as content pollutes retrieval) — use readability-style boilerplate removal, not raw `BeautifulSoup.get_text()`. Same heading-hierarchy-to-markdown-marker conversion as DOCX, then reuse the existing chunker. |
+| **Tables** (in DOCX/PDF/HTML/Excel) | One chunk per table, or per logical row-group if the table is large — **never split a table mid-row across chunks** | This is the exact failure mode called out in this file's own docstring (`chunker.py:4` — "cuts through the middle of a table of service-credit tiers"). For a large table, prefer: (a) keep the header row's column names attached to every chunk of that table (repeat it, like a CSV header), so a chunk of rows 40–60 still says what each column means; (b) if the table is small enough (a service-credit tier table, a pricing table), keep it as one atomic chunk rather than any splitting at all. |
+| **Excel / CSV / structured tabular data** | Chunk by logical row-group (e.g. per-account, per-time-window), not by raw row count | A pure row-count split (500 rows per chunk) produces chunks with no coherent "topic" for embedding to latch onto. Prefer semantic grouping if one exists (all rows for one customer, one quarter), and always carry column headers into every chunk's text, same as the Tables row. Very wide tables (100+ columns) may need per-row "flattened sentence" chunking instead (`"For account X, revenue Q1 was Y, churn was Z, ..."`) so the embedding captures relationships an embedding model can't infer from a raw grid. |
+| **Image** (scanned docs, screenshots, diagrams, photos of whiteboards) | Not chunkable as text until converted | Two paths: (1) **OCR** (Tesseract, cloud OCR, or a multimodal-model transcription pass) to get text, then chunk the OCR output like any text format — but OCR errors compound into retrieval errors, so a confidence-score gate (skip/flag low-confidence OCR rather than silently indexing garbled text) matters at scale. (2) **Multimodal embeddings** — embed the image directly (CLIP-style or a multimodal embedding model) alongside or instead of OCR text, useful for diagrams/charts where the *visual* structure carries meaning OCR would flatten and lose. For an enterprise RAG platform, path (1) is usually the pragmatic default; path (2) is worth mentioning if asked about diagrams/charts specifically. |
+| **Code files** (if the corpus includes runbooks/scripts/config) | Split on function/class boundaries (AST-aware, e.g. `ast` module for Python, tree-sitter for polyglot) — never split mid-function | A fixed-size split can sever a function signature from its body. If AST parsing isn't worth building, the fallback is splitting on blank-line-separated blocks plus a hard cap, closer to `_pack()`'s paragraph logic than to heading logic. |
+| **PowerPoint / slides** | One chunk per slide (or per few adjacent slides if individual slides are too sparse to embed meaningfully) | Slide title becomes the chunk's header prefix, exactly like `doc.title - section` in this repo's chunker. Speaker notes, if present, should be appended to the slide's chunk, not indexed separately and orphaned from the slide content that gives them meaning. |
+| **Email / chat transcripts / tickets** (support tickets, Slack threads — relevant given this platform's help-centre/support-ticket corpus) | One chunk per message-thread turn, or per coherent exchange (question + resolving answer), not per fixed character window | A fixed-size window over a chat log will cut a question away from its answer, which is close to the worst possible failure mode for a support-ticket RAG use case. Carry thread/ticket metadata (participants, timestamp, resolution status) the same way `attrs` is already carried per chunk in this repo — it feeds both retrieval filtering and citation quality. |
+
+**Chunk size still matters independent of format.** Regardless of source format, the same
+target-size/overlap tuning this repo already does (`chunk_target_chars`, `chunk_overlap_chars`)
+applies once text is extracted — the format determines *where the split points are allowed to be*,
+size/overlap determines *how big each piece is*. Too small and a chunk loses context (a table row
+without its header, a sentence without the paragraph that qualifies it); too large and retrieval
+precision drops because one chunk now answers many different possible questions equally badly, and
+reranking/generation cost per chunk goes up.
+
+**One extraction pipeline, format-specific parsers, one shared chunker.** The scalable architecture
+isn't "write six different chunkers" — it's a per-format **parser/normalizer** stage that converts
+raw bytes (docx/pdf/html/image/xlsx/pptx) into a common intermediate representation (text with a
+recovered heading hierarchy, or explicit table/slide/message boundaries), followed by the *same*
+heading-aware chunk-and-pack logic this repo already has. This is also exactly the shape
+`ai_parse_document` + `ai_prep_search` take in the Databricks AI Functions stack
+(`docs/03-theory-databricks.md`) — parse-to-structured-representation is a separate, swappable step
+from chunk-and-index.
+
+---
+
+## 8. Other scale/optimization points worth knowing cold for the interview
 
 - **Multi-tenancy at scale ≠ one big index with a tenant_id filter.** This repo already does the
   right thing (separate collection per tenant) — say *why*: a shared index with a metadata filter
