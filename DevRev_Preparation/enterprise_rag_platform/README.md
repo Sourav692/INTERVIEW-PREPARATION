@@ -78,6 +78,7 @@ python tests/verify_security_reference.py   # asserts docs/04 matches the runnin
 | **`notebooks/04-databricks-enterprise-rag.ipynb`** | **Runs in a Databricks notebook.** Builds the whole Lakehouse version and attacks it. |
 | **`INTERVIEW_SCRIPT_DATABRICKS.md`** | The Databricks-native whiteboard script (6 steps), for a Databricks-stack audience. |
 | **`databricks/`** | Standalone validation scripts (run locally against a workspace over REST). |
+| **`docs/Scale_Optimization.md`** | Scaling this platform to 20M documents, latency optimization, and cost — what breaks first, what the fix is, and interview-ready answers. |
 
 ### Which notebook do I run where?
 
