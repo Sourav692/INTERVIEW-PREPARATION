@@ -137,7 +137,40 @@ what each one actually means, without the jargon:
 
 ---
 
-## A.7 If the interviewer asks you to restate the problem in one breath
+## A.7 Why four stages, specifically? (not three, not five)
+
+Simple version: **each stage exists to answer exactly one question, and removing any of them
+leaves that question unanswered until real customers find out the hard way.**
+
+| Stage | The one question it answers | What breaks if you skipped it |
+|---|---|---|
+| `DRAFT` | "Is this even wired correctly?" — right trigger, right condition, right tool, no typos. | You'd test your first idea against real customer messages. |
+| `TESTING` | "Does it behave correctly on realistic input?" — run it against sample/historical data, off to the side, nothing customer-facing. | You'd find out it's wrong only after it's already watching (or worse, acting on) live traffic. |
+| `SHADOW` | "Does it behave correctly on *live, real-time* traffic?" — watches real events as they happen and decides what it *would* do, but every write is mocked, so nothing customer-facing ever fires. | You'd only discover it makes bad *decisions* on live traffic after it had already refunded someone. |
+| `LIVE` | "Is a human still willing to vouch for each individual action?" — it acts for real, but every destructive step needs a person to approve it before it fires. | You'd go straight from "looks fine in shadow" to "acts on its own," with no one ever watching a single real action happen before trusting it fully. |
+| *(`AUTONOMOUS`)* | "Has this earned the right to act without asking every time?" — same guardrails (spend cap, approval allow-list) still apply; only the *default* changes, from ask-first to act-first. | Not skippable in the same sense — it's the destination, not a gate — but the point is it's a stage in its own right, never the starting point. |
+
+Why not fewer? Collapse `TESTING` into `SHADOW` and you lose the difference between "replaying old
+data" (cheap, repeatable, no real-time pressure) and "watching live traffic" (the first time it
+sees today's actual weirdness). Collapse `SHADOW` into `LIVE` and you lose the ability to ever
+watch a workflow's *decisions* without also exposing customers to its *mistakes* — you'd be
+debugging in production. Skip `LIVE`'s human-approval step and jump `SHADOW` straight to
+`AUTONOMOUS`, and the very first time a human ever sees this workflow's real-world behavior is
+also the first time nobody is watching it.
+
+Why not more? Each extra stage is a stage someone has to remember to promote through — more stages
+without a distinct question behind them is just process for its own sake, and the guardrail policy
+(spend caps, approval allow-lists) already scales the risk *within* a stage, so there's no need to
+carve out extra stages to express "a little more trusted."
+
+The same idea, restated as one line for a whiteboard: **each stage removes exactly one kind of
+"we don't actually know yet" — first "is it wired right," then "does it decide right on realistic
+data," then "does it decide right on live data," then "will a human still catch a bad individual
+action" — and only once all four are answered does it earn the right to act alone.**
+
+---
+
+## A.8 If the interviewer asks you to restate the problem in one breath
 
 Say this:
 
