@@ -5,6 +5,122 @@
 > *"Design a delivery framework that takes a customer from scoping doc to deployed AI agent in under
 > 2 weeks."*
 
+This doc has two parts: **Part A** explains the problem in plain English first — read this if the
+prompt itself feels fuzzy. **Part B** is the technical reference, mapped line-by-line to the prep
+guide's §5 and to what's actually built in this repo — read this once the problem itself is clear.
+
+---
+
+# Part A — What is this problem actually asking? (plain English)
+
+## A.1 The one-sentence problem
+
+Translated into normal words:
+
+> A new customer signs up wanting an AI agent. Today, day 0, all you have is a rough scoping
+> document — a page of "here's roughly what we want it to do." Design the *process* your company
+> runs, end to end, so that by day 14 there is a real agent live in production for that customer,
+> and it got there the same reliable way every time — not through a different set of heroics for
+> each customer.
+
+That's it. You're not being asked to design the agent. You're being asked to design **the assembly
+line that produces the agent**, reliably, in two weeks, for any customer.
+
+## A.2 Why this problem feels different from the other two
+
+The other two problems in this series (the agent platform, the RAG system) are software
+architecture questions — "design a system that does X." This one is explicitly called out in the
+prep guide as a different *kind* of question: a **process / operating-model design problem**. There
+is no single running program that "is" the answer the way a search index is the answer to a RAG
+question.
+
+That trips people up, because their instinct is "there's nothing to build here, it's just a
+process diagram." Wrong instinct. The prep guide is explicit: answer it *as a system* — inputs,
+stages, artefacts, gates, and metrics — and a system with stages and gates **is a state machine**.
+A state machine is code. So this project builds a real, gate-enforcing pipeline that a customer
+engagement actually moves through, the same discipline as the other two projects, just applied to
+an operating model instead of a search index.
+
+## A.3 Why is two weeks actually hard? (the part people get wrong)
+
+The naive answer to "how do we go live in 2 weeks" is "work faster" or "hire more people." That's
+wrong, and it's the trap the question is testing for.
+
+**Two weeks is only possible if most of the work already existed before the customer showed up.**
+If every engagement starts from a blank page — writing connectors from scratch, inventing prompt
+templates from scratch, discovering the right guardrail policy from scratch — two weeks is not a
+schedule, it's a wish. The only way to hit two weeks *repeatably, for different customers*, is if
+most of a stage is **pulled from a reusable library**, and only the small remainder is actually
+built or configured for this specific customer.
+
+So the real question the interviewer is testing is:
+
+> **Can you design a process where speed is a *side effect* of reuse and hard gates, rather than a
+> target you chase by cutting corners under deadline pressure?**
+
+That reframes the whole problem. It's not a scheduling question. It's an asset-reuse and
+risk-containment question wearing a "delivery timeline" costume.
+
+## A.4 The two things every good answer must cover
+
+Think of the problem as two questions stacked on top of each other:
+
+```
+ QUESTION 2   "How do we know each stage is actually safe to leave, not just that time passed?"
+                 -> gates: a named, checkable condition, signed off by the *right* role — never
+                    the person closest to the work rubber-stamping their own progress
+
+ QUESTION 1   "How do we make 2 weeks achievable for a different customer every time?"
+                 -> a library of reusable assets (connectors, prompt templates, tool defs,
+                    guardrail policies) that most of each stage is assembled from, not written
+```
+
+A weak answer draws seven boxes in a row labeled "scoping → data → build → test → launch" and stops
+there — that's a checklist, not a framework, and checklists get skipped under deadline pressure. A
+strong answer spends most of its time on: what's reusable vs. bespoke at each stage, and what
+specific, checkable fact has to be true before the next stage is allowed to start.
+
+## A.5 A concrete mental example (keep this one in your head)
+
+**What actually happens, day by day, if the framework is doing its job:**
+
+1. **Day 1–2:** The customer's scoping doc gets turned into a written, *measurable* success metric
+   (not "make support better" — something you can put a number on) and a named customer SME is
+   assigned. If nobody can commit to a measurable metric or an SME, the engagement **does not
+   start** — a 2-week clock against an unmeasurable goal is worse than no clock at all.
+2. **Day 3–4:** Their data sources get connected and access is verified live — not just "access was
+   requested."
+3. **Day 5–7:** The agent gets *assembled*, not coded — connectors, prompt templates, tool
+   definitions, and guardrail policies are pulled from the accelerator library and configured for
+   this customer. This is the stage where "reuse vs. bespoke" is decided in practice.
+4. **Day 8–9:** A golden set of test cases is built, the customer's own SME signs off that it's
+   representative, and the measured baseline against it has to clear a bar before moving on.
+5. **Day 10–11:** The agent runs against real traffic in shadow mode — it sees everything, decides
+   what it would do, but takes no real action — while humans compare its answers to what they'd
+   have done themselves.
+6. **Day 12–13:** The agent finally acts for real, but with a human approving actions in the loop,
+   and — critically — a rollback path that has actually been *tested*, not just documented.
+7. **Day 14:** A go/no-go decision, made against the metric written down on day 1 — and only if it
+   passes does a runbook, dashboards, and a named owner get handed over.
+
+Every one of those isn't a date on a calendar — it's a **gate**: a specific, checkable fact, signed
+off by a specific role, that has to be true before the next stage is allowed to start. That's the
+mechanism that keeps "two weeks" honest instead of becoming "we shipped something in two weeks and
+quietly hoped it works."
+
+## A.6 If the interviewer asks you to restate the problem in one breath
+
+Say this:
+
+> "We're designing a repeatable delivery pipeline — not a one-off project plan — where speed comes
+> from a reusable accelerator library, and safety comes from hard, role-gated checkpoints between
+> stages, so that two weeks is an achievable outcome of the process, not a deadline we hope to hit
+> by cutting corners."
+
+---
+
+# Part B — Technical reference
+
 This is the odd one out among the three named problem types. The other two (agent platform, RAG
 with access control) are software architecture problems. This one is explicitly named in the prep
 guide as different: *"DevRev may hand you a process/operating-model design problem, not only a
@@ -21,7 +137,7 @@ Type B.
 
 ---
 
-## 1. The core insight
+## B.1 The core insight
 
 **The correct answer is a productised delivery process backed by reusable assets — not heroics and
 not bespoke code per customer** (§5.1). Two weeks is only achievable if most of what a stage needs
@@ -34,7 +150,7 @@ ratio between those two is the actual measure of whether the framework works.
 
 ---
 
-## 2. The seven stages (§5.2)
+## B.2 The seven stages (§5.2)
 
 | Days | Stage | What has to be true to leave it |
 |---|---|---|
@@ -49,11 +165,11 @@ ratio between those two is the actual measure of whether the framework works.
 **The order is not optional.** You cannot configure against data you haven't connected; you cannot
 evaluate against a golden set nobody signed off; you cannot go to limited production without a
 tested way to undo it. This is exactly why the codebase models stage transitions as a state machine
-with hard gates rather than a checklist someone might skip under deadline pressure — see §3.
+with hard gates rather than a checklist someone might skip under deadline pressure — see §B.3.
 
 ---
 
-## 3. Gates are the whole point
+## B.3 Gates are the whole point
 
 **"Configure, do not code"** and **"a definition of done that includes observability and a
 runbook"** are both, underneath, the same idea: a stage isn't done because time passed, it's done
@@ -78,7 +194,7 @@ the person authorized to certify it's safe.
 
 ---
 
-## 4. Risk mitigations are checks, not reminders (§5.4)
+## B.4 Risk mitigations are checks, not reminders (§5.4)
 
 Four named risks, and the framework's answer to each:
 
@@ -97,7 +213,7 @@ Four named risks, and the framework's answer to each:
 
 ---
 
-## 5. Metrics (§5.4)
+## B.5 Metrics (§5.4)
 
 | Metric | What it actually tells you |
 |---|---|
@@ -105,7 +221,7 @@ Four named risks, and the framework's answer to each:
 | Eval score at handover | The number that was actually true when responsibility transferred |
 | Human-approval override rate | Falling over time = trust being earned; flat = the agent isn't ready for less supervision |
 | Week-4 retention | Whether the thing that got deployed is still the thing being used a month later |
-| *(added here)* Accelerator reuse rate | The direct measure of "productised process" vs. "bespoke heroics" — the governing question from §1, made numeric |
+| *(added here)* Accelerator reuse rate | The direct measure of "productised process" vs. "bespoke heroics" — the governing question from §B.1, made numeric |
 
 **The honest limit, stated out loud (§5.4):** *"Some engagements should not be two weeks, and
 knowing which ones to reject is part of the framework."* Intake refusal is that instinct made
@@ -113,7 +229,7 @@ literal — not every request should get a clock started against it.
 
 ---
 
-## 6. Why this mirrors the RAG project's shape on purpose
+## B.6 Why this mirrors the RAG project's shape on purpose
 
 | RAG project (`enterprise_rag_platform`) | Delivery framework (`delivery_framework_platform`) |
 |---|---|
