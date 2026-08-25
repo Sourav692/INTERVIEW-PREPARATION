@@ -165,6 +165,12 @@ Draw the pipeline. **Label the two independent decisions in routing.**
 > ceiling itself - a destructive tool not explicitly allow-listed still needs a human even on a fully
 > autonomous workflow, and the spend cap applies at every single status including autonomous."**
 
+**In plain terms, rules 1 and 2 are not two severities of the same check - they count different
+things.** The step budget counts *how many steps* a run has taken, so it catches a run that loops
+forever no matter how cheap each step is. The spend cap counts *actual dollars* one step is about to
+spend, so it catches one expensive action no matter how few steps came before it. A run can blow past
+one without ever touching the other.
+
 ### ⭐ A real bug worth telling as a story
 
 > *"While building this, a $500 refund on a workflow with a $5 spend cap passed authorization. I'd

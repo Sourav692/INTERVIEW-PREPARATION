@@ -168,6 +168,31 @@ The same idea, restated as one line for a whiteboard: **each stage removes exact
 data," then "does it decide right on live data," then "will a human still catch a bad individual
 action" — and only once all four are answered does it earn the right to act alone.**
 
+### How a non-technical user actually moves through these stages
+
+None of this happens by editing code — it's a status a business user clicks through in a UI, one
+stage at a time:
+
+1. They build the workflow (or clone a template) — it starts life in `DRAFT`.
+2. They click something like "run against sample data" — that's `TESTING`. Results show up off to
+   the side; nothing customer-facing happens yet.
+3. Once that looks right, they promote it to `SHADOW` — it now watches real, live traffic and logs
+   what it *would* have done, but every write is faked, so no real customer is ever touched. This is
+   where a non-technical user builds trust by comparing the workflow's decisions against what a human
+   would have done, at zero risk.
+4. Once shadow results look good, it's promoted to `LIVE` — it acts for real now, but every
+   destructive step pauses and waits for a human to click "approve" before it fires. The business
+   user (or their team) is still in the loop for every single action.
+5. Only after a track record in `LIVE` does it get promoted to `AUTONOMOUS` — it now acts on its own
+   by default, for the specific actions that were pre-approved for that.
+
+**One detail worth stating explicitly if asked:** the person who *built* the workflow can never
+promote it themselves — promotion is role-gated to an admin or approver, never the workflow's own
+author, and a stage can never be skipped (no jumping `DRAFT` straight to `LIVE`). The person iterating
+on the workflow and the person who says "this has earned the next level of trust" are always two
+different people — the same separation-of-duties instinct as requiring a second reviewer, just
+applied to rollout instead of code review.
+
 ---
 
 ## A.8 If the interviewer asks you to restate the problem in one breath

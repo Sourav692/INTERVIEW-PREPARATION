@@ -167,6 +167,13 @@ evaluate against a golden set nobody signed off; you cannot go to limited produc
 tested way to undo it. This is exactly why the codebase models stage transitions as a state machine
 with hard gates rather than a checklist someone might skip under deadline pressure — see §B.3.
 
+**Shadow mode here is the same idea as `agent_platform`'s `SHADOW` status, and Limited production is
+the same idea as its `LIVE` status** — worth stating explicitly if the parallel is asked about. Shadow
+mode watches real traffic and decides what it *would* do, but takes no real action, exactly like the
+agent platform's SHADOW stage. Limited production acts for real but with a human approving each
+action, exactly like the agent platform's LIVE stage. Same two-step trust ladder, same reason: don't
+let a system's first real action also be the first time nobody's watching it.
+
 ---
 
 ## B.3 Gates are the whole point
@@ -191,6 +198,24 @@ they are.** The Forward Deployed Architect cannot pass the security gate; only a
 can. That isn't bureaucracy for its own sake — it's the same "no LLM is ever the enforcement point"
 instinct applied to people instead of models: the person closest to the work is not automatically
 the person authorized to certify it's safe.
+
+**Two pairs of gates that sound similar but check different things — worth being precise about:**
+
+- **`security_review_passed` vs. `data_access_granted`.** Both sit early and both sound like "access"
+  checks, but they answer different questions. `security_review_passed` asks *"is it safe to even
+  start touching this customer's systems"* — a security clearance on the engagement itself, signed by
+  a security reviewer, before any data connection is made. `data_access_granted` asks *"are the agreed
+  data sources actually connected and live"* — an operational fact, signed by the customer's own SME,
+  after the security clearance already passed. One is a go-ahead to proceed; the other confirms the
+  thing you proceeded to do actually worked.
+- **`golden_set_signed_off` vs. `eval_baseline_met`.** Both are about the same test set, one stage
+  apart, and it's easy to conflate them. `golden_set_signed_off` asks *"is this test set actually
+  representative of what this customer needs"* — a judgment call about the *test itself*, signed by
+  the customer's SME, who knows their own business. `eval_baseline_met` asks *"did the assembled agent
+  actually clear the bar against that test"* — a judgment call about the *score*, signed by the FDA,
+  after the agent has been configured. One certifies the exam is fair; the other certifies you passed
+  it. A representative test set with a failing score, or a rigorous score against a bad test set, both
+  correctly fail to satisfy "ready for shadow mode" — the two checks are independent on purpose.
 
 ---
 
