@@ -21,14 +21,14 @@ Everything below has been built and run. Numbers are from real executions — se
 
 **Time budget** — write it in the corner of the board:
 
-| Minutes | Phase |
-|---|---|
-| 0–8 | Clarify + scope |
-| 8–15 | High-level architecture |
-| 15–35 | Deep dive: determinism, control, and durability |
-| 35–45 | Cross-cutting: multi-tenancy, security, observability |
-| 45–55 | Failure modes + scale |
-| 55–60 | Close: trade-offs + what I'd build first |
+| Minutes | Phase                                                 |
+| ------- | ----------------------------------------------------- |
+| 0–8    | Clarify + scope                                       |
+| 8–15   | High-level architecture                               |
+| 15–35  | Deep dive: determinism, control, and durability       |
+| 35–45  | Cross-cutting: multi-tenancy, security, observability |
+| 45–55  | Failure modes + scale                                 |
+| 55–60  | Close: trade-offs + what I'd build first              |
 
 ---
 
@@ -113,6 +113,7 @@ Draw the pipeline. **Label the two independent decisions in routing.**
 ```
 
 **Two things to call out here:**
+
 - *"Routing is two independent checks on purpose. Priority answers a configuration question - which
   workflow is supposed to win. The entity lock answers a safety question - can two workflows ever be
   mutating the same ticket at once, and it holds even if priority was misconfigured."*
@@ -175,6 +176,15 @@ Draw the pipeline. **Label the two independent decisions in routing.**
 > in the RAG project - a metric that looks like it's protecting something but is actually measuring
 > the wrong quantity."*
 
+**In plain terms:** every tool used one cost function, and for simplicity that function charged a
+flat, tiny fee — fine for something like drafting a reply, which doesn't spend real money. But the
+refund tool used that same flat fee too, so a $500 refund only ever registered as a few cents, and a
+$5 cap approved it every time no matter how big the refund actually was. Two different things got
+mixed up: "how much work does this step take to run" vs. "how much money does this step actually hand
+out." Fix: for a financial tool, its cost *is* the real dollar amount it's about to spend, not a flat
+fee. Same root mistake as the false-alarm bug in the RAG project — a safety check that looks like it's
+measuring something, but is quietly measuring the wrong thing.
+
 **A second, subtler one, worth telling if the first lands well:**
 
 > *"After fixing that, a legitimately-approved run whose refund step got retried - simulating a
@@ -186,6 +196,18 @@ Draw the pipeline. **Label the two independent decisions in routing.**
 > already-applied action is a free, pre-authorized no-op, full stop, never touching the budget or the
 > approval logic again. The general lesson: idempotency has to cover every observable effect of a
 > step, not just the most obvious one."*
+
+**In plain terms:** after fixing the first bug, the test was: what happens if the same refund event
+gets delivered twice, simulating a network retry. The system correctly refused to issue the refund a
+second time — good. But it still ran that retry through the spend-cap check and added its cost to the
+running total *again*, even though no real money moved the second time. So a completely safe,
+already-blocked retry could still push a run over budget and fail it for no reason. The mistake: it
+was made sure the *action* couldn't happen twice, but forgot that *counting its cost* is also
+something that shouldn't happen twice. Fix: check "have we already done this exact thing" *before*
+even reaching the budget/approval logic — if yes, stop right there and treat it as a free no-op,
+never touching the budget at all. Lesson: making something "safe to retry" means protecting *every*
+effect of that action, not just the obvious one (the money moving) — cost tracking is an effect too,
+and it's easy to forget.
 
 ## 4B. Durability and idempotency (10 min)
 
@@ -234,13 +256,13 @@ same "replayable record" property as the other two projects in this series.
 
 ## Failure modes → what a workflow does, not what breaks
 
-| Fails | Behaviour |
-|---|---|
-| A step's arguments don't validate | Rejected before execution; run halts with a named reason |
-| A destructive step needs approval that never comes | Run stays `PAUSED_FOR_APPROVAL` indefinitely - it does not silently expire into either action |
-| A workflow runs away (misconfigured self-trigger) | Halts at the step budget, does not loop until someone notices |
-| The process crashes mid-run | Resumes from the last checkpoint; the step that already ran never re-runs |
-| An event is redelivered (at-least-once channel semantics) | The idempotency key on any destructive step it retries makes the redelivery a no-op |
+| Fails                                                     | Behaviour                                                                                      |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| A step's arguments don't validate                         | Rejected before execution; run halts with a named reason                                       |
+| A destructive step needs approval that never comes        | Run stays`PAUSED_FOR_APPROVAL` indefinitely - it does not silently expire into either action |
+| A workflow runs away (misconfigured self-trigger)         | Halts at the step budget, does not loop until someone notices                                  |
+| The process crashes mid-run                               | Resumes from the last checkpoint; the step that already ran never re-runs                      |
+| An event is redelivered (at-least-once channel semantics) | The idempotency key on any destructive step it retries makes the redelivery a no-op            |
 
 ## Scale — what breaks first
 
@@ -265,11 +287,11 @@ same "replayable record" property as the other two projects in this series.
 
 ### Your top three trade-offs — and what would change your mind
 
-| Decision | Chose | Would revisit if |
-|---|---|---|
-| A fixed step-list "planner" over a real LLM reasoning loop | deterministic, testable, free | the task space is genuinely open-ended enough that a fixed plan can't cover it - then a real model choosing the next tool, still inside the same guardrail |
-| Priority + entity lock over a single ranking mechanism | two independent checks | conflicts became rare enough that the lock's overhead isn't worth it - unlikely, since the lock is what makes a misconfigured priority merely wrong instead of dangerous |
-| In-process locks/idempotency store over real infrastructure | simple, fast for a demo | any real deployment on day one - this was never meant to survive contact with more than one process |
+| Decision                                                    | Chose                         | Would revisit if                                                                                                                                                         |
+| ----------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| A fixed step-list "planner" over a real LLM reasoning loop  | deterministic, testable, free | the task space is genuinely open-ended enough that a fixed plan can't cover it - then a real model choosing the next tool, still inside the same guardrail               |
+| Priority + entity lock over a single ranking mechanism      | two independent checks        | conflicts became rare enough that the lock's overhead isn't worth it - unlikely, since the lock is what makes a misconfigured priority merely wrong instead of dangerous |
+| In-process locks/idempotency store over real infrastructure | simple, fast for a demo       | any real deployment on day one - this was never meant to survive contact with more than one process                                                                      |
 
 ### The forward-deployed close — do not skip this
 

@@ -1,0 +1,517 @@
+<title>The Study Path</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+
+<style>
+  :root {
+    --paper: #f6f3ed;
+    --paper-raised: #efeadf;
+    --ink: #1c2128;
+    --muted: #6b6558;
+    --line: #d8d2c2;
+    --accent: #bd5b28;
+    --accent-ink: #ffffff;
+    --accent-2: #2f5d62;
+    --accent-2-soft: #e4ece9;
+    --accent-soft: #f4e2d3;
+    --good: #3f7d52;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #15181b;
+      --paper-raised: #1b1f23;
+      --ink: #e9e5da;
+      --muted: #9a9486;
+      --line: #2c3136;
+      --accent: #e08a52;
+      --accent-ink: #17130e;
+      --accent-2: #7fb4b9;
+      --accent-2-soft: #1d2b2c;
+      --accent-soft: #2c2119;
+      --good: #74b788;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #15181b;
+    --paper-raised: #1b1f23;
+    --ink: #e9e5da;
+    --muted: #9a9486;
+    --line: #2c3136;
+    --accent: #e08a52;
+    --accent-ink: #17130e;
+    --accent-2: #7fb4b9;
+    --accent-2-soft: #1d2b2c;
+    --accent-soft: #2c2119;
+    --good: #74b788;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Public Sans", -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+  a { color: var(--accent-2); }
+  a:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.25rem, 4vw, 2rem) 6rem;
+  }
+
+  .kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    margin-bottom: 1.1rem;
+  }
+  .kicker::before { content: ""; width: 26px; height: 1px; background: var(--accent-2); display: inline-block; }
+
+  header.masthead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1.5rem;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 1.6rem;
+  }
+
+  h1 {
+    font-family: "Zilla Slab", Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(2.1rem, 5vw, 3rem);
+    line-height: 1.03;
+    margin: 0 0 0.6rem;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .dek { max-width: 50ch; color: var(--muted); font-size: 1.02rem; }
+
+  .progress-badge {
+    flex: none;
+    text-align: right;
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .progress-num { font-size: 1.9rem; font-weight: 600; color: var(--accent); line-height: 1; }
+  .progress-label { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+  .progress-track {
+    margin-top: 1.4rem;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.25s ease;
+  }
+
+  .lede {
+    font-size: 1.02rem;
+    max-width: 66ch;
+    margin: 2rem 0 0;
+  }
+  .lede strong { color: var(--ink); }
+
+  .excl {
+    margin: 1.1rem 0 2.6rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--accent-2-soft);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    font-size: 0.9rem;
+    max-width: 66ch;
+  }
+  .excl b {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  .phase {
+    margin-top: 2.6rem;
+    border-top: 2px solid var(--ink);
+    padding-top: 1.3rem;
+  }
+
+  .phase-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+  }
+  .phase-num {
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--accent);
+  }
+  .phase-title {
+    font-family: "Zilla Slab", Georgia, serif;
+    font-weight: 600;
+    font-size: 1.35rem;
+  }
+  .phase-why {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0.2rem 0 1.2rem;
+    max-width: 68ch;
+  }
+
+  ol.reading {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1px;
+    background: var(--line);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .item {
+    background: var(--paper);
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    gap: 0.9rem;
+    align-items: start;
+    padding: 0.85rem 0.9rem;
+  }
+
+  .item input[type="checkbox"] {
+    appearance: none;
+    width: 19px;
+    height: 19px;
+    margin-top: 0.15rem;
+    border: 1.5px solid var(--muted);
+    border-radius: 3px;
+    background: var(--paper);
+    cursor: pointer;
+    position: relative;
+    flex: none;
+  }
+  .item input[type="checkbox"]:checked {
+    background: var(--good);
+    border-color: var(--good);
+  }
+  .item input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(40deg);
+  }
+
+  .item-num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.82rem;
+    color: var(--muted);
+    padding-top: 0.15rem;
+    font-variant-numeric: tabular-nums;
+    min-width: 1.4em;
+  }
+
+  .item-body.done .item-doc,
+  .item-body.done .item-covers { opacity: 0.5; text-decoration: line-through; text-decoration-color: var(--muted); }
+
+  .item-doc {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.86rem;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .item-covers {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+
+  .optional-note {
+    margin-top: 0.9rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-style: italic;
+    max-width: 68ch;
+  }
+  .optional-note b { font-style: normal; color: var(--accent-2); }
+
+  table.lookup {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 3px; margin-top: 1rem; }
+  table.lookup th, table.lookup td {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.lookup th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    background: var(--paper-raised);
+  }
+  table.lookup tr:last-child td { border-bottom: none; }
+  table.lookup td:first-child { white-space: nowrap; font-weight: 600; }
+  table.lookup code { font-family: "IBM Plex Mono", monospace; font-size: 0.85em; }
+
+  footer.foot {
+    margin-top: 3.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 1rem;
+  }
+  .reset-btn {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+  }
+  .reset-btn:hover { border-color: var(--accent-2); color: var(--accent-2); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progress-fill { transition: none; }
+  }
+</style>
+
+<div class="page">
+
+  <div class="kicker">DevRev &middot; System Design Round</div>
+
+  <header class="masthead">
+    <div>
+      <h1>The Study Path</h1>
+      <p class="dek">Six phases, in reading order, across three projects and the cross-cutting material &mdash; each item mapped back to its section of the prep document.</p>
+    </div>
+    <div class="progress-badge">
+      <div class="progress-num" id="progress-num">0/0</div>
+      <div class="progress-label">read</div>
+    </div>
+  </header>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+
+  <p class="lede">Check items off as you go &mdash; progress is saved in this browser only. <strong>Read phases in order</strong>: cross-cutting material in Phase 3 assumes the vocabulary built in Phases 1&ndash;2.</p>
+
+  <div class="excl">
+    <b>Deliberately skipped</b>
+    Every notebook in every project &mdash; this is the system design round, not the coding round, and notebooks are execution artifacts, not architecture reading. Each project's file-by-file code reference and the Databricks-twin docs are marked optional below: useful for a "show me the code" follow-up, not for building the mental model.
+  </div>
+
+  <!-- Phase 0 -->
+  <section class="phase" data-phase="0">
+    <div class="phase-head"><span class="phase-num">Phase 0</span><span class="phase-title">Orientation</span></div>
+    <p class="phase-why">~30 minutes. Do this first &mdash; sets the frame for everything after.</p>
+    <ol class="reading">
+      <li class="item"><input type="checkbox" data-id="p0-1"><span class="item-num">1</span><div class="item-body"><div class="item-doc">Interview_prep_guide_-_Forward_Deployed_Architect__DevRev.pdf <em>(parent folder)</em></div><div class="item-covers">The whole hiring process &mdash; all rounds, not just system design.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p0-2"><span class="item-num">2</span><div class="item-body"><div class="item-doc">DevRev-SystemDesign-Prep.docx &sect;1&ndash;&sect;2</div><div class="item-covers">Format, the five assessed signals, the time budget, and the repeatable 6-step whiteboard structure. Read directly &mdash; no project doc maps to process.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p0-3"><span class="item-num">3</span><div class="item-body"><div class="item-doc">cross_cutting_prep/00-first-ten-minutes.html</div><div class="item-covers">Clarifying questions to ask before touching a diagram &mdash; operationalizes &sect;2 Step 1. Generic across all three problem types.</div></div></li>
+    </ol>
+  </section>
+
+  <!-- Phase 1 -->
+  <section class="phase" data-phase="1">
+    <div class="phase-head"><span class="phase-num">Phase 1</span><span class="phase-title">Enterprise RAG with Access Control &mdash; &sect;4</span></div>
+    <p class="phase-why">Ranked #2 in the prep doc's own priority order, and the most deeply proven project in the series.</p>
+    <ol class="reading">
+      <li class="item"><input type="checkbox" data-id="p1-1"><span class="item-num">1</span><div class="item-body"><div class="item-doc">enterprise_rag_platform/README.md</div><div class="item-covers">The business case &mdash; why access control is the whole problem, framed as one running example.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p1-2"><span class="item-num">2</span><div class="item-body"><div class="item-doc">docs/01-theory.md</div><div class="item-covers">ABAC vs. ACL, the two-layer pre-filter/post-check trick, hybrid search, evaluation design, guardrails. Covers &sect;4.1&ndash;&sect;4.6 almost entirely, plus half of &sect;6.2.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p1-3"><span class="item-num">3</span><div class="item-body"><div class="item-doc">docs/04-security-checks-reference.md</div><div class="item-covers">Every access-control rule worked through with real examples per persona &mdash; the concrete companion to &sect;4.3.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p1-4"><span class="item-num">4</span><div class="item-body"><div class="item-doc">docs/06-architecture-end-to-end.md</div><div class="item-covers">The actual pipeline, diagrammed end to end &mdash; what you draw for &sect;4's reference architecture.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p1-5"><span class="item-num">5</span><div class="item-body"><div class="item-doc">docs/07-system-design-coverage-map.md</div><div class="item-covers">Proven-vs-verbal checked directly against &sect;4 &mdash; know what you can demo vs. only speak from the doc.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p1-6"><span class="item-num">6</span><div class="item-body"><div class="item-doc">docs/Scale_Optimization.md</div><div class="item-covers">&sect;4.6's follow-ups in depth: cost at 10M+ chunks, chunking by format, the vector-store row of &sect;8.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p1-7"><span class="item-num">7</span><div class="item-body"><div class="item-doc">docs/08-structured-data-and-connectors.md</div><div class="item-covers">Extends &sect;4.2 to structured CRM/ticketing data and connector orchestration at scale &mdash; the sharpest DevRev-specific angle in the series.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p1-8"><span class="item-num">8</span><div class="item-body"><div class="item-doc">INTERVIEW_SCRIPT.md</div><div class="item-covers">The rehearsed whiteboard script tying all of the above into one telling.</div></div></li>
+    </ol>
+    <p class="optional-note"><b>Optional, only with time to spare:</b> docs/03-theory-databricks.md + INTERVIEW_SCRIPT_DATABRICKS.md (the Databricks/Lakehouse twin), docs/05-src-modules-reference.md (code reference), docs/QA.md (your own running Q&amp;A log &mdash; good for a last skim).</p>
+  </section>
+
+  <!-- Phase 2 -->
+  <section class="phase" data-phase="2">
+    <div class="phase-head"><span class="phase-num">Phase 2</span><span class="phase-title">AI Agent Platform &mdash; &sect;3</span></div>
+    <p class="phase-why">Ranked #3 &mdash; closest to DevRev's own product surface, so expect depth follow-ups here specifically.</p>
+    <ol class="reading">
+      <li class="item"><input type="checkbox" data-id="p2-1"><span class="item-num">1</span><div class="item-body"><div class="item-doc">agent_platform/README.md</div><div class="item-covers">The business case &mdash; three checkable safety properties instead of a slide.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p2-2"><span class="item-num">2</span><div class="item-body"><div class="item-doc">docs/01-theory.md</div><div class="item-covers">The project's thesis: deterministic control flow around probabilistic reasoning. Covers &sect;3.4 directly.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p2-3"><span class="item-num">3</span><div class="item-body"><div class="item-doc">docs/02-architecture-end-to-end.md</div><div class="item-covers">The reference architecture, diagrammed &mdash; covers &sect;3.2 layer by layer.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p2-4"><span class="item-num">4</span><div class="item-body"><div class="item-doc">docs/04-system-design-coverage-map.md</div><div class="item-covers">Proven-vs-verbal against &sect;3.1, &sect;3.2, &sect;3.3, &sect;3.5.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p2-5"><span class="item-num">5</span><div class="item-body"><div class="item-doc">docs/05-security-tenancy-and-observability-gaps.md</div><div class="item-covers">&sect;6/&sect;8 for agent platforms: prompt injection for tool-calling, egress control, tenant isolation, drift alerting, cost attribution, and the "default to one agent" trade-off.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p2-6"><span class="item-num">6</span><div class="item-body"><div class="item-doc">INTERVIEW_SCRIPT.md</div><div class="item-covers">The rehearsed whiteboard script &mdash; also where the two real-bug stories live.</div></div></li>
+    </ol>
+    <p class="optional-note"><b>Optional:</b> docs/03-src-modules-reference.md (code reference).</p>
+  </section>
+
+  <!-- Phase 3 -->
+  <section class="phase" data-phase="3">
+    <div class="phase-head"><span class="phase-num">Phase 3</span><span class="phase-title">Cross-Cutting Concerns &amp; Agent CI/CD &mdash; &sect;6, &sect;7</span></div>
+    <p class="phase-why">Applies across all three projects &mdash; read after Phases 1&ndash;2, since it assumes that vocabulary.</p>
+    <ol class="reading">
+      <li class="item"><input type="checkbox" data-id="p3-1"><span class="item-num">1</span><div class="item-body"><div class="item-doc">cross_cutting_prep/01-identity-secrets-and-tenant-fairness.md</div><div class="item-covers">&sect;6.1 (multi-tenancy, encryption, queue fairness) and the identity/secrets half of &sect;6.2.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p3-2"><span class="item-num">2</span><div class="item-body"><div class="item-doc">cross_cutting_prep/02-observability-standards-and-failure-patterns.md</div><div class="item-covers">&sect;6.3 (standard tracing, dashboards, cost attribution) and &sect;6.4 (failure handling, bulkheads, a real kill switch).</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p3-3"><span class="item-num">3</span><div class="item-body"><div class="item-doc">enterprise_rag_platform/docs/10-agent-ops-and-channels.md</div><div class="item-covers">&sect;7 (Agent CI/CD: prompt versioning, canary/shadow, A/B) and the multi-channel half of &sect;6.5, plus real escalation.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p3-4"><span class="item-num">4</span><div class="item-body"><div class="item-doc">cross_cutting_prep/03-cost-latency-cicd-rigor-and-build-vs-buy.md</div><div class="item-covers">Remaining &sect;6.5/&sect;7/&sect;8: semantic caching, streaming, nightly regression, statistical rigor, unit-level testing, build-vs-buy.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p3-5"><span class="item-num">5</span><div class="item-body"><div class="item-doc">enterprise_rag_platform/docs/09-multi-agent-orchestration.md</div><div class="item-covers">Directly answers "architect a multi-agent system integrating with CRM, ticketing, and knowledge base" &mdash; bridges Phases 1&ndash;3.</div></div></li>
+    </ol>
+  </section>
+
+  <!-- Phase 4 -->
+  <section class="phase" data-phase="4">
+    <div class="phase-head"><span class="phase-num">Phase 4</span><span class="phase-title">Delivery Framework &mdash; &sect;5</span></div>
+    <p class="phase-why">Ranked #7 &mdash; lower likelihood as a full whiteboard question, more likely as a follow-up or founder's-mentality story.</p>
+    <ol class="reading">
+      <li class="item"><input type="checkbox" data-id="p4-1"><span class="item-num">1</span><div class="item-body"><div class="item-doc">delivery_framework_platform/README.md</div><div class="item-covers">The business case &mdash; a productised delivery process, not heroics.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p4-2"><span class="item-num">2</span><div class="item-body"><div class="item-doc">docs/01-theory.md</div><div class="item-covers">The theory behind the seven-stage, gated pipeline.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p4-3"><span class="item-num">3</span><div class="item-body"><div class="item-doc">docs/02-architecture-end-to-end.md</div><div class="item-covers">The pipeline diagram &mdash; what you draw for &sect;5.2.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p4-4"><span class="item-num">4</span><div class="item-body"><div class="item-doc">docs/04-system-design-coverage-map.md</div><div class="item-covers">Proven-vs-verbal against &sect;5 in full, plus &sect;7's rollback/canary material applied here.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p4-5"><span class="item-num">5</span><div class="item-body"><div class="item-doc">docs/05-security-gate-depth-and-tenant-scale.md</div><div class="item-covers">What a gate's evidence should require, credential handling, data residency for engagement artifacts, portfolio scale as a tenancy decision.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p4-6"><span class="item-num">6</span><div class="item-body"><div class="item-doc">INTERVIEW_SCRIPT.md</div><div class="item-covers">The rehearsed whiteboard script.</div></div></li>
+    </ol>
+    <p class="optional-note"><b>Optional:</b> docs/03-src-modules-reference.md (code reference).</p>
+  </section>
+
+  <!-- Phase 5 -->
+  <section class="phase" data-phase="5">
+    <div class="phase-head"><span class="phase-num">Phase 5</span><span class="phase-title">Final Consolidation</span></div>
+    <p class="phase-why">Day before / morning of.</p>
+    <ol class="reading">
+      <li class="item"><input type="checkbox" data-id="p5-1"><span class="item-num">1</span><div class="item-body"><div class="item-doc">DevRev-SystemDesign-Prep.docx &sect;8</div><div class="item-covers">Every row now has a &ldquo;&rarr; Read:&rdquo; pointer &mdash; go row by row, say the default + when-you'd-switch from memory before checking it.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p5-2"><span class="item-num">2</span><div class="item-body"><div class="item-doc">The three coverage maps' punch lists</div><div class="item-covers">enterprise_rag_platform/docs/07, agent_platform/docs/04, delivery_framework_platform/docs/04 &mdash; know exactly what's built vs. partial vs. verbal-only in each.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p5-3"><span class="item-num">3</span><div class="item-body"><div class="item-doc">DevRev-SystemDesign-Prep.docx &sect;9&ndash;&sect;10</div><div class="item-covers">Suggested Preparation Order + Quick-Reference Checklist &mdash; the final self-check.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p5-4"><span class="item-num">4</span><div class="item-body"><div class="item-doc">cross_cutting_prep/00-first-ten-minutes.html</div><div class="item-covers">One more time, right before the round.</div></div></li>
+    </ol>
+  </section>
+
+  <!-- Lookup table -->
+  <section class="phase">
+    <div class="phase-head"><span class="phase-num">Reference</span><span class="phase-title">Section-to-document map</span></div>
+    <p class="phase-why">Quick lookup &mdash; which document covers which part of the prep doc.</p>
+    <div class="table-wrap">
+      <table class="lookup">
+        <thead><tr><th>Prep doc section</th><th>Primary document(s)</th></tr></thead>
+        <tbody>
+          <tr><td>&sect;1 The Round</td><td>Read directly from the prep doc &mdash; process/format, no project doc maps to it</td></tr>
+          <tr><td>&sect;2 The Answer Framework</td><td>Read directly from the prep doc; operationalized by <code>cross_cutting_prep/00-first-ten-minutes.html</code></td></tr>
+          <tr><td>&sect;3 Problem Type A (Agent Platform)</td><td><code>agent_platform/docs/01, 02, 04</code></td></tr>
+          <tr><td>&sect;4 Problem Type B (Enterprise RAG)</td><td><code>enterprise_rag_platform/docs/01, 04-security-checks-reference, 06, 07, Scale_Optimization, 08</code></td></tr>
+          <tr><td>&sect;5 Problem Type C (Delivery Framework)</td><td><code>delivery_framework_platform/docs/01, 02, 04, 05</code></td></tr>
+          <tr><td>&sect;6.1 Multi-Tenancy</td><td><code>cross_cutting_prep/01</code></td></tr>
+          <tr><td>&sect;6.2 Security</td><td><code>enterprise_rag_platform/docs/01</code> (retrieval side) + <code>agent_platform/docs/05</code> (tool-calling side) + <code>cross_cutting_prep/01</code> (identity/secrets)</td></tr>
+          <tr><td>&sect;6.3 Observability</td><td><code>cross_cutting_prep/02</code></td></tr>
+          <tr><td>&sect;6.4 Failure Handling</td><td><code>cross_cutting_prep/02</code></td></tr>
+          <tr><td>&sect;6.5 Cost and Latency</td><td><code>enterprise_rag_platform/docs/10</code> (channels) + <code>cross_cutting_prep/03</code> (caching, streaming)</td></tr>
+          <tr><td>&sect;7 Agent CI/CD</td><td><code>enterprise_rag_platform/docs/10</code> + <code>cross_cutting_prep/03</code></td></tr>
+          <tr><td>&sect;8 Trade-Off Cheat Sheet</td><td>Every row pointed to inline in the prep doc itself &mdash; see Phase 5</td></tr>
+          <tr><td>&sect;9 Suggested Preparation Order</td><td>Read directly from the prep doc &mdash; this guide's phase order already follows it</td></tr>
+          <tr><td>&sect;10 Quick-Reference Checklist</td><td>Read directly from the prep doc</td></tr>
+          <tr><td><em>(bridging all three)</em> Multi-agent + CRM/ticketing/KB</td><td><code>enterprise_rag_platform/docs/09-multi-agent-orchestration.md</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Interview prep &middot; DevRev System Design</span>
+    <button class="reset-btn" id="reset-btn" type="button">Reset progress</button>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY = "study-path-progress-v1";
+  var boxes = Array.prototype.slice.call(document.querySelectorAll(".item input[type=checkbox]"));
+  var progressNum = document.getElementById("progress-num");
+  var progressFill = document.getElementById("progress-fill");
+  var resetBtn = document.getElementById("reset-btn");
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+
+  function saveState(state) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function updateProgress() {
+    var done = boxes.filter(function (b) { return b.checked; }).length;
+    var total = boxes.length;
+    progressNum.textContent = done + "/" + total;
+    progressFill.style.width = (total ? (done / total * 100) : 0) + "%";
+  }
+
+  function applyRowStyle(box) {
+    var body = box.parentElement.querySelector(".item-body");
+    if (body) body.classList.toggle("done", box.checked);
+  }
+
+  var state = loadState();
+  boxes.forEach(function (box) {
+    var id = box.getAttribute("data-id");
+    if (state[id]) box.checked = true;
+    applyRowStyle(box);
+    box.addEventListener("change", function () {
+      var s = loadState();
+      s[id] = box.checked;
+      saveState(s);
+      applyRowStyle(box);
+      updateProgress();
+    });
+  });
+  updateProgress();
+
+  resetBtn.addEventListener("click", function () {
+    saveState({});
+    boxes.forEach(function (box) { box.checked = false; applyRowStyle(box); });
+    updateProgress();
+  });
+})();
+</script>

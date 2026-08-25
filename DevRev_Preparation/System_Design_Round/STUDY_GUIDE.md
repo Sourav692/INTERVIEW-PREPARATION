@@ -24,7 +24,7 @@ itself to jump straight to the right document for any one line.
 | --- | --- | --- |
 | 1 | `Interview_prep_guide_-_Forward_Deployed_Architect__DevRev.pdf` (parent folder) | The whole hiring process — all rounds, not just system design. Sets overall expectations. |
 | 2 | `DevRev-SystemDesign-Prep.docx` §1 (The Round) and §2 (The Answer Framework) | Format, the five assessed signals, the 60-minute time budget, and the repeatable 6-step whiteboard structure. This is process, not a project — no doc maps to it, internalize it directly from the source. |
-| 3 | `enterprise_rag_platform/docs/fde-first-ten-minutes.html` (open in a browser) | A field-ready checklist of clarifying questions to ask in the first ten minutes — operationalizes §2 Step 1 (Clarify and Scope). |
+| 3 | `cross_cutting_prep/00-first-ten-minutes.html` (open in a browser) | A field-ready checklist of clarifying questions to ask in the first ten minutes — operationalizes §2 Step 1 (Clarify and Scope). Generic across all three problem types, not RAG-specific. |
 
 **Goal of this phase:** walk in knowing the 6-step structure cold, and have 3–4 clarifying questions
 ready before you touch a diagram.
@@ -116,7 +116,7 @@ more likely as a follow-up or a founder's-mentality story.
 | 1 | Read `DevRev-SystemDesign-Prep.docx` §8 (Trade-Off Cheat Sheet) top to bottom | Every row now has a "→ Read:" pointer to where it's argued in depth — go row by row and say the default + when-you'd-switch from memory before checking the pointer |
 | 2 | Re-skim the three coverage maps' punch lists (`enterprise_rag_platform/docs/07`, `agent_platform/docs/04`, `delivery_framework_platform/docs/04`) | Know exactly what's ✅ built, 🟡 partial, or ❌ verbal-only in each project, so you never overclaim what a demo proves |
 | 3 | Read `DevRev-SystemDesign-Prep.docx` §9 (Suggested Preparation Order) and §10 (Quick-Reference Checklist) | The final self-check against the guide's own priorities |
-| 4 | Re-open `enterprise_rag_platform/docs/fde-first-ten-minutes.html` | The clarifying-questions cheat sheet, one more time, right before the round |
+| 4 | Re-open `cross_cutting_prep/00-first-ten-minutes.html` | The clarifying-questions cheat sheet, one more time, right before the round |
 
 ---
 
@@ -125,7 +125,7 @@ more likely as a follow-up or a founder's-mentality story.
 | Prep doc section | Primary document(s) |
 | --- | --- |
 | §1 The Round | Read directly from the prep doc — no project document maps to process/format |
-| §2 The Answer Framework | Read directly from the prep doc; operationalized by `fde-first-ten-minutes.html` |
+| §2 The Answer Framework | Read directly from the prep doc; operationalized by `cross_cutting_prep/00-first-ten-minutes.html` |
 | §3 Problem Type A (Agent Platform) | `agent_platform/docs/01, 02, 04` |
 | §4 Problem Type B (Enterprise RAG) | `enterprise_rag_platform/docs/01, 04-security-checks-reference, 06, 07, Scale_Optimization, 08` |
 | §5 Problem Type C (Delivery Framework) | `delivery_framework_platform/docs/01, 02, 04, 05` |
