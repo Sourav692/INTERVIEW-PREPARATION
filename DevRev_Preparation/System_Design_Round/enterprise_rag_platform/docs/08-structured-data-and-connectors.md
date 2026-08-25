@@ -1,37 +1,28 @@
-# Structured data, query routing, and connector orchestration at scale
+# Structured data, query routing, and connecting many sources at scale
 
-**What this is:** the gap this repo doesn't close. `enterprise_rag_platform` proves ABAC-secured
-retrieval over *documents*. It does not prove anything about DevRev's actual data shape — issues,
-tickets, parts, accounts — which are **structured records**, not chunks of prose. This doc is
-concept-prep for that gap: no code here to point at, only the architecture to describe out loud.
-
-**Why this is the sharpest DevRev-specific angle:** DevRev's own interview guide names the RAG
-problem as *"a RAG-based system that pulls from multiple enterprise data sources"* and, separately,
-asks candidates to architect *"a multi-agent system integrating with CRM, ticketing, and knowledge
-base."* Both sentences point at the same seam: a real deployment is never pure document RAG. It's
-document RAG **plus** a system of record.
+A real enterprise RAG deployment is never pure document search. It's document search **plus**
+structured records — tickets, accounts, orders — and a real interviewer will expect both. None of this
+needs a codebase — it's architecture to describe on a whiteboard.
 
 ---
 
-## 1. Why plain vector search fails on this data
+## 1. Why plain search fails on structured questions
 
-> *"How many P1 tickets did Acme file last week?"*
+> *"How many high-priority tickets did this customer file last week?"*
 
-Embed that question, search a vector index of ticket text, and you get **the most semantically
-similar tickets** — not a count. Vector search answers *"which things are like this,"* never *"how
-many,"* *"which is most recent,"* or *"sum this field."* Those are aggregate/filter operations, and no
-amount of better embeddings fixes that — it's a category mismatch, not a retrieval-quality problem.
+Embed that question and search a document index, and you get **the most similar-sounding tickets** —
+not a count. Semantic search answers "which things are like this," never "how many," "which is most
+recent," or "sum this field." Those are aggregate/filter operations, and no amount of better search
+quality fixes that — it's a category mismatch, not a search-quality problem.
 
-| Question shape | Right tool | Wrong tool (and why it fails) |
+| Question shape | Right tool | Why plain search fails here |
 | --- | --- | --- |
-| "Why did Acme's ingestion break in March?" | Semantic RAG over docs/postmortems | — |
-| "How many P1 tickets did Acme file last week?" | Structured query (SQL / API) | Vector search returns *similar* tickets, not a count |
-| "What's the status of ticket TKX-4821?" | Direct record lookup by ID | RAG treats an ID like any other token — wasteful and imprecise |
-| "Summarize the resolution pattern across all P1 billing tickets this quarter" | **Both** — structured filter, then semantic summarization over the filtered set | Either alone is wrong: pure SQL can't summarize prose; pure RAG can't reliably scope to "this quarter's P1 billing tickets" |
+| "Why did this customer's system break in March?" | Semantic search over documents/postmortems | — |
+| "How many high-priority tickets did they file last week?" | A structured query (count/filter) | Search returns *similar* records, not a count |
+| "What's the status of ticket #4821?" | Direct lookup by ID | Treating an ID like ordinary text is wasteful and imprecise |
+| "Summarize the pattern across all high-priority billing tickets this quarter" | **Both** — filter first, then summarize the filtered set | A filter alone can't summarize prose; search alone can't reliably scope to "this quarter's high-priority billing tickets" |
 
----
-
-## 2. Reference architecture: a router in front of retrieval
+## 2. A router in front of retrieval
 
 ```
                          ┌──────────────────────┐
@@ -42,91 +33,89 @@ amount of better embeddings fixes that — it's a category mismatch, not a retri
               v                     v                     v
      ┌────────────────┐   ┌─────────────────┐   ┌────────────────────┐
      │  STRUCTURED     │   │  SEMANTIC        │   │  HYBRID             │
-     │  (SQL / tool     │   │  (existing RAG)  │   │  filter, then RAG   │
-     │  call on CRM/    │   │                  │   │  over the filtered  │
-     │  ticketing API)  │   │                  │   │  set                │
+     │  (a query or     │   │  (document       │   │  filter first, then │
+     │  tool call on    │   │  search)         │   │  search the         │
+     │  the record      │   │                  │   │  filtered set       │
+     │  system)         │   │                  │   │                     │
      └────────────────┘   └─────────────────┘   └────────────────────┘
               |                     |                     |
               └─────────────────────┴─────────────────────┘
                                     v
-                          same ABAC layer, same as this repo
+                       the same permission checks, every path
 ```
 
-**The router is the new component.** Two honest ways to build it:
+**The router is the new piece.** Two honest ways to build one:
 
-1. **Rule-based / heuristic first pass** — cheap, deterministic, catches the obvious cases: a
-   question containing "how many," "count," "list all," or a ticket-ID pattern (`TKX-\d+`) routes
-   structured. Fast and free, but brittle on phrasing it hasn't seen.
-2. **LLM intent classifier** — a small, cheap model call (same tier as this repo's `fast_model` for
-   rewrite/decompose) that outputs one of `{structured, semantic, hybrid}` plus, for structured/hybrid,
-   the extracted filters (tenant, date range, priority, product). More robust to phrasing, costs one
-   small LLM call per query — the same "route by difficulty" lever already used for rewrite/rerank in
-   `Scale_Optimization.md` §5.
+1. **Rule-based first pass** — cheap and deterministic: a question containing "how many," "count,"
+   "list all," or an ID pattern routes structured. Fast and free, but brittle on phrasing it hasn't
+   seen before.
+2. **A small model as intent classifier** — a cheap, fast model call that outputs one of
+   {structured, semantic, hybrid} plus any extracted filters (customer, date range, priority). More
+   robust to varied phrasing, at the cost of one extra small model call per question — the same
+   "route by difficulty" idea used elsewhere (cheap model for easy decisions, expensive model only for
+   the final answer).
 
-**Structured path, in turn, is a choice between two mechanisms:**
+**The structured path itself is a choice between two mechanisms:**
+- **Generating a query from natural language**, run against a small, fixed, well-documented view of
+  the data — fast, but generating a correct query reliably is its own hard problem: the model can
+  invent fields that don't exist, so the query needs to be validated (or its result sanity-checked)
+  before it's trusted.
+- **Calling a small set of fixed, well-defined operations** against the record system directly (get
+  tickets by status, get ticket by ID) — safer than an open query language, because the surface of
+  what can happen is a fixed, reviewed set of operations, not an open-ended language the model could
+  misuse. This is usually the better default in an enterprise setting, where "the model generated a
+  query that touched every row" is a real incident, not a hypothetical.
 
-- **Text-to-SQL** over a read-only, schema-constrained view — fast, but generating correct SQL
-  reliably is its own hard problem (needs a fixed, small, well-documented schema; guardrails against
-  the model inventing columns; execute-and-validate before trusting the result).
-- **Tool-calling against the CRM/ticketing API directly** (`list_tickets(status=, priority=, since=)`)
-  — this is exactly the tool-calling loop already practiced for the coding round
-  (`Coding_Round/tutorials/03_Agent_Tool_Calling_Loop.md`). Safer than free-form SQL because the tool
-  surface is a fixed, reviewed set of operations, not an open query language — usually the better
-  default in an enterprise setting where "the model wrote a query that touched every row" is a real
-  incident, not a hypothetical.
+## 3. Permission checks don't get to skip the structured path
 
-## 3. Security doesn't get to skip the structured path
+It's tempting to think access control only applies to document search. It doesn't — it's a **data
+access** concern, and structured queries need the exact same discipline as document chunks:
 
-The instinct is to think ABAC is "a RAG thing." It isn't — it's a **data access** thing, and
-structured queries need the identical discipline this repo already proves for chunks:
+- **Row-level permission checks on the structured side** — the same rule chain (which company, what
+  clearance level, which region, which specific compartment of information) has to gate structured
+  results too, not just retrieved document passages. A count query still needs the tenant/company
+  scope forced in before it runs, never trusted to a filter added after the fact.
+- **The same two-layer discipline still applies.** Push whatever the structured store can express
+  (company, region, clearance level) into the query itself; re-verify anything it can't express
+  (a narrower compartment of access, a permission that just changed) before the result reaches the
+  model or the user.
+- **A structured leak is still a leak.** A count that includes records the user isn't allowed to see,
+  or a lookup that returns a restricted record's details, is exactly as serious an incident as a
+  forbidden document surfacing in search results — the same zero-tolerance bar applies.
 
-- **Row-level security on the structured side** — the exact same rule chain (tenant isolation,
-  clearance, region, need-to-know) has to gate SQL rows or API results, not just retrieved chunks. A
-  `SELECT COUNT(*) FROM tickets WHERE tenant_id = ?` still needs the tenant clause forced in, the same
-  way `dense_search()` forces the ACL `where` clause into every Chroma query in this repo.
-- **The pre-filter/post-check split still applies.** Push what the structured store can express (tenant,
-  region, clearance level) into the query itself; re-verify anything it can't (need-to-know
-  compartments, live revocation) before the result reaches the model or the user.
-- **A structured "leak" is still a leak.** A COUNT that includes rows the user can't see, or a
-  tool-call result that returns a restricted ticket's subject line, is exactly as much of a security
-  incident as a forbidden document surfacing in RAG context — same `leak_rate == 0` gate applies.
+## 4. Connecting many live sources at scale
 
-## 4. Connector orchestration at scale (the Airdrop problem)
+Proving the *pattern* for a second data source (a differently-shaped source feeding the same common
+pipeline, into its own tenant) generalizes cleanly in principle — but "generalizes" does a lot of work
+once the real requirement is dozens of live external systems instead of two files.
 
-This repo proves the *pattern* for one extra connector: `ingest/loader.py::load_ticket_export()` is a
-second, differently-shaped source (`ticket_export_acme.json`, no frontmatter) feeding the same
-`pipeline.ingest()` path, into its own tenant. That generalizes cleanly, but "generalizes" is doing a
-lot of work once you're talking about dozens of live SaaS sources (Confluence, Zendesk, Salesforce,
-Slack, Jira, ServiceNow...) instead of two files.
-
-| What this repo proves at n=2 | What changes at n≈dozens, live |
+| At small scale (proving the pattern) | At real scale (dozens of live sources) |
 | --- | --- |
-| One `loader.py` function per source, same `Document`/`ResourceAttributes` target schema | A **connector registry** — config-driven, not one bespoke function per source added by hand |
-| A single `python scripts/ingest.py` run | Independent per-connector schedules; one connector's outage can't block others |
-| Content-hash incremental sync (`freshness.py`) | Same idea, but per-connector **cursors/delta tokens** — most SaaS APIs give you a "changed since X" token; content-hash is the fallback when they don't |
-| Dead-letter table for rejected docs (`freshness.py::record_rejection()`) | Same mechanism, **plus connector health** as a first-class signal: is Confluence's OAuth token expired, is Zendesk rate-limiting us, is Salesforce schema drift breaking the mapper |
-| One tenant per demo run | **Backfill vs. incremental** as an explicit mode per connector — a newly connected source needs a bounded, resumable backfill job, not "run the sync loop and hope" |
+| One custom mapping function per source, all landing in the same common schema | A **connector registry** — config-driven, not a bespoke function hand-written per source |
+| One combined sync run | Independent schedules per source; one source's outage can't block the others |
+| Simple content-comparison to skip unchanged records | Same idea, but per-source **change tokens** where the source API supports them — content comparison is the fallback when it doesn't |
+| A place to record rejected/failed records | Same idea, plus **connector health** as its own signal — is a credential expired, is a source rate-limiting us, did the source's structure change and break the mapping |
+| One tenant, one demo run | **Backfill vs. incremental** as an explicit mode per source — a newly connected source needs a bounded, resumable initial load, not "run the regular sync loop and hope" |
 
-**Concrete things to be ready to say:**
+**Concrete things worth being ready to say:**
 
-- *"Each connector maps its source's native shape into our common `Document`/`ResourceAttributes`
-  schema — a Confluence page and a Zendesk ticket both become the same shape downstream, the same way
-  this repo's markdown loader and ticket-export loader both feed the same `pipeline.ingest()`."*
-- *"A connector's failure is quarantined per-connector, not global — Zendesk rate-limiting us shouldn't
-  stall the Confluence sync."*
-- *"Permission data usually comes from the same connector as the content, or from a separate
-  entitlements feed (an admin console, an HR system) — this repo already models that split:
-  `acl_manifest.py` is explicitly the stand-in for whatever system actually owns entitlements in
-  production."*
+- *"Each source maps its own native shape into one common internal schema — a wiki page and a support
+  ticket both end up looking the same downstream, so the rest of the pipeline never has to know which
+  source something came from."*
+- *"One source failing is quarantined to that source — one system rate-limiting us shouldn't stall
+  ingestion from every other connected source."*
+- *"Permission data usually comes either from the same connector as the content, or from a separate
+  entitlements feed — whatever system actually owns access decisions in production, like an admin
+  console or an HR system — and that split should be modeled explicitly rather than assumed to always
+  travel with the content."*
 
 ---
 
 ## What to say if asked directly
 
-*"My RAG project proves ABAC-secured retrieval over unstructured documents end to end. The gap I
-haven't built — and want to be upfront about — is a router in front of it that recognizes when a
-question needs structured data (counts, filters, a specific ticket by ID) instead of semantic search,
-and dispatches to a tool call or a constrained text-to-SQL path instead. The same ABAC discipline this
-repo proves for chunks — pre-filter what the store can express, post-check what it can't — has to
-extend to that structured path too, because a leaked row is exactly as much of an incident as a leaked
-document."*
+*"Document search proves permission-checked retrieval end to end. The real gap is a router in front
+of it that recognizes when a question needs structured data — counts, filters, a specific record by
+ID — instead of semantic search, and dispatches to a fixed set of operations or a carefully
+constrained query instead. The same permission discipline that applies to document chunks — check
+what the store can express, re-verify what it can't — has to extend to that structured path too,
+because a leaked row is exactly as much of an incident as a leaked document."*

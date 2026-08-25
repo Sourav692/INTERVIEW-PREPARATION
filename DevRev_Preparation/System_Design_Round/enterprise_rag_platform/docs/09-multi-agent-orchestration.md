@@ -1,39 +1,34 @@
-# Multi-agent orchestration — CRM, ticketing, and knowledge base together
+# Multi-agent orchestration — search, records, and ticketing together
 
-**What this is:** concept-prep, not a proven build. DevRev's hiring-manager round asks this almost
-verbatim: *"Think about how you'd architect a multi-agent system integrating with CRM, ticketing, and
-knowledge base."* This doc is the answer to have ready — including where the line is between "this is
-multi-agent" and "this is just one pipeline with several steps," because interviewers will notice if
-you blur it.
-
-**Related:** `enterprise_rag_platform` (the knowledge-base leg) · `agent_platform` (deterministic
-workflow automation — approvals, idempotency, crash-resume; the discipline this doc borrows for
-failure isolation) · [structured data & connectors](08-structured-data-and-connectors.md) (the
-CRM/ticketing data-access leg)
+A common interview ask: architect a system where multiple specialized agents work together across a
+knowledge base, a ticketing system, and a records system. None of this needs a codebase — it's
+architecture to describe on a whiteboard, including where the line is between "this is multi-agent"
+and "this is one pipeline with several steps," because interviewers will notice if that line gets
+blurred.
 
 ---
 
 ## 1. What actually makes something "multi-agent"
 
-A single LangGraph pipeline with several nodes — rewrite → retrieve → grade → generate — is **not**
-multi-agent. It's one agent with several *steps*. This repo's whole graph (`docs/06`) is that shape,
-and it's honest to call it that in an interview rather than overclaim.
+A single pipeline with several steps — rewrite the question, retrieve, check quality, generate an
+answer — is **not** multi-agent. It's one agent with several *steps*. That's a perfectly good design,
+and it's honest to describe it as such rather than overclaim.
 
-**Multi-agent** means multiple **independently-scoped** agents, each with its own responsibility,
-its own tools, and its own failure mode — coordinated by something above them, and handing off a
-well-defined artifact rather than raw conversation history.
+**Multi-agent** means multiple **independently-scoped** agents, each with its own responsibility, its
+own tools, and its own failure mode — coordinated by something above them, handing off a well-defined
+package of information rather than a raw conversation transcript.
 
-| | Single agent, multi-step (this repo) | Multi-agent |
+| | Single agent, multi-step | True multi-agent |
 | --- | --- | --- |
-| Who decides what happens next | One fixed graph | A supervisor/orchestrator, or the agents themselves via handoff |
-| Tool access | One shared tool surface | Each agent scoped to only what its job needs |
-| Failure blast radius | One bad node can fail the whole run | One agent's failure should degrade, not crash, the others |
-| State passed forward | Full context accumulates | A defined **handoff contract** — the next agent gets what it needs, not everything |
+| Who decides what happens next | One fixed sequence | A coordinator, or the agents themselves via handoff |
+| Tool access | One shared set of tools | Each agent scoped to only what its job needs |
+| Failure blast radius | One bad step can fail the whole run | One agent's failure should degrade, not crash, the others |
+| What gets passed forward | Everything accumulates | A defined handoff — the next agent gets what it needs, not everything |
 
-## 2. A reference architecture for DevRev's world
+## 2. A reference architecture
 
 ```
-                     customer / support-agent message
+                     customer / support message
                                    |
                                    v
                         ┌────────────────────┐
@@ -44,10 +39,11 @@ well-defined artifact rather than raw conversation history.
         ┌──────────────────────────┼──────────────────────────┐
         v                          v                          v
 ┌───────────────┐        ┌──────────────────┐        ┌──────────────────┐
-│ ANSWER AGENT    │        │ TICKET AGENT      │        │ ESCALATION AGENT  │
-│ (this repo's    │        │ creates/updates   │        │ hands off to a    │
-│ RAG graph)      │        │ CRM/ticketing     │        │ human queue with  │
-│                 │        │ record via tools  │        │ full context       │
+│ ANSWER AGENT    │        │ RECORD AGENT      │        │ ESCALATION AGENT  │
+│ retrieves,      │        │ creates/updates   │        │ hands off to a    │
+│ grounds, cites,  │        │ a ticket/record   │        │ human queue with  │
+│ or refuses       │        │ via a fixed set   │        │ full context      │
+│                 │        │ of operations     │        │                    │
 └───────┬─────────┘        └──────────┬────────┘        └──────────┬────────┘
         |                             |                             |
         └──────────────────────────────┴──────────────────────────────┘
@@ -58,89 +54,72 @@ well-defined artifact rather than raw conversation history.
                         └────────────────────┘
 ```
 
-- **Triage agent** — the router from [doc 08](08-structured-data-and-connectors.md), generalized: not
-  just "structured vs. semantic," but "which specialist owns this at all."
-- **Answer agent** — this repo, unchanged. Its job is exactly what it already does: retrieve, ground,
-  cite, refuse cleanly.
-- **Ticket agent** — owns CRM/ticketing **writes** via a fixed tool surface (`create_ticket`,
-  `update_status`, `attach_note`) — never free-form SQL, for the same reason argued in doc 08.
-- **Escalation agent** — turns "the answer agent couldn't ground this" into an actual workflow action:
-  create a ticket, route to the right queue, attach the retrieved-but-insufficient context so the
-  human doesn't start from zero. (See [doc 10](10-agent-ops-and-channels.md) §3 for what "escalate"
-  has to mean concretely.)
-- **Drafting agent** — separate from the answer agent on purpose: the answer agent's job is *being
-  right*; the drafting agent's job is *saying it well for this channel* (a Slack reply, a ticket
-  comment, a customer-facing email have different tone/length constraints). Splitting these means a
-  tone change never risks touching the grounding logic.
+- **Triage agent** — decides which specialist owns this question at all, generalizing the same idea
+  as routing between structured and semantic search, one level up.
+- **Answer agent** — its job is exactly retrieve, ground, cite, and refuse cleanly when it can't.
+- **Record agent** — owns writes to the ticketing/CRM system through a **fixed, reviewed set of
+  operations**, never an open-ended query — same reasoning as keeping the structured-data path
+  constrained rather than free-form.
+- **Escalation agent** — turns "the answer agent couldn't ground this" into a real workflow action:
+  create or update a ticket, route it to the right queue, attach whatever context was gathered so the
+  human doesn't start from zero.
+- **Drafting agent** — kept separate from the answer agent on purpose: the answer agent's job is
+  *being right*; the drafting agent's job is *saying it well for this specific channel* (a chat reply,
+  a ticket comment, and a formal email have very different tone and length needs). Splitting these
+  means a tone change never risks touching the underlying correctness logic.
 
-## 3. The handoff contract — the actual hard part
+## 3. The handoff between agents is the actual hard part
 
-The naive version passes the whole conversation transcript to every agent. That's expensive, leaks
-scope (the drafting agent doesn't need the ticket agent's internal tool-call log), and makes it
-impossible to reason about what any one agent is allowed to depend on.
+The naive version passes the entire conversation history to every agent. That's expensive, leaks
+information one agent doesn't need to see, and makes it hard to reason about what any single agent is
+actually allowed to depend on.
 
-The better version: each handoff is a **small, typed object**, not a chat log.
+The better version: each handoff is a **small, well-defined package**, not a full transcript —
+something like: which case this is, what was asked, what was attempted, why it wasn't sufficient, and
+what was already gathered so the next agent doesn't repeat work.
 
-```
-TicketAgent → EscalationAgent handoff:
-{
-  "case_id": "...",
-  "question": "...",
-  "attempted_answer": {...} | null,
-  "why_insufficient": "no passage covered the March 14 EU incident specifically",
-  "retrieved_context": [doc_id, ...],   # so the human doesn't start from zero
-  "principal": {...}                     # so escalation inherits the SAME ABAC scope, not more
-}
-```
+Two things worth stating explicitly if asked:
 
-Two things worth saying explicitly if asked:
-
-1. **ABAC has to travel with the handoff, not get re-derived.** If the ticket agent hands off to
-   escalation, escalation must not implicitly gain broader access than the original principal had —
-   the same tenant/clearance/region scope rides along, the same way `ResourceAttributes` already rides
-   attribute inheritance from document to chunk in this repo.
-2. **A handoff is a state transition someone should be able to replay.** This is precisely the
-   discipline `agent_platform` already proves for workflow automation — idempotent actions, crash
-   mid-run resumes without repeating a completed step. The same properties apply to agent handoffs:
-   a retried handoff shouldn't create two tickets; a crash between triage and escalation shouldn't
-   silently drop the case.
+1. **Permission scope has to travel with the handoff, not get re-derived.** If one agent hands a case
+   to another, the receiving agent must never end up with broader access than the original request
+   had — the same tenant/clearance/region scope carries forward, exactly.
+2. **A handoff should be a state transition someone can replay safely.** The same discipline that
+   makes a workflow system trustworthy — an action can't accidentally happen twice, a crash midway
+   doesn't silently lose the case — applies here too: a retried handoff shouldn't create two tickets,
+   and a crash between two agents shouldn't drop the case on the floor.
 
 ## 4. Failure isolation
 
-- **Per-agent circuit breaker**, same shape as this repo's LLM `_CircuitBreaker` (3 failures, 30s
-  cooldown, half-open trial) — but scoped per agent, so the ticket agent being down doesn't trip the
-  answer agent's breaker too.
-- **Bounded handoff depth.** Two agents that can hand off to each other risk ping-ponging forever
-  ("triage → escalation → triage → ..."). Cap total hops per case and force a terminal state (answered,
-  escalated, or failed-safe) past the cap — the multi-agent equivalent of this repo's per-run cost
-  budget (`max_cost_per_run_usd`) as a hard stop, not a suggestion.
-- **Partial degradation, not full failure.** If the ticket agent's API is down, the answer agent
-  should still be able to answer a pure knowledge question — the outage of one specialist shouldn't
-  take down specialists that don't depend on it.
+- **A failure limiter scoped per agent**, not shared globally — one specialist being down shouldn't
+  trip a safeguard that then blocks a completely unrelated specialist too.
+- **A bounded number of handoffs per case.** Two agents that can hand a case back and forth risk an
+  infinite loop (triage → escalate → triage → ...). Cap the total number of hops and force a final
+  outcome — answered, escalated, or failed safely — once that cap is hit, the same instinct as any
+  hard budget: halt and report, don't let it run forever.
+- **Partial degradation, not total failure.** If the record system is down, the answer agent should
+  still be able to answer a pure knowledge question — one specialist's outage shouldn't take down
+  specialists that don't depend on it.
 
 ## 5. Evaluating a multi-agent system
 
-Same instinct as this repo's evaluation section, extended:
-
-- **Per-agent eval**, not only end-to-end: did triage route correctly? did the ticket agent's tool
-  call use the right parameters? did escalation actually attach the retrieved context? A wrong
-  end-to-end answer could be any one of these — same reason this repo keeps retrieval and generation
-  metrics separate (`docs/01-theory.md` §9), just with more agents to separate.
-- **Handoff correctness as its own metric** — did the receiving agent get everything it needed, or did
-  it have to re-derive context (a sign the contract is under-specified)?
-- **The security gate still applies uniformly.** A leak caused by the escalation agent forwarding
-  restricted context to the wrong queue is exactly as much of an incident as a leak in the RAG answer
-  — `leak_rate == 0` doesn't get a carve-out because the leak happened between agents instead of inside
-  one.
+- **Evaluate each agent, not only the end result.** Did triage route correctly? Did the record agent
+  use the right parameters? Did escalation actually attach useful context? A wrong final answer could
+  trace back to any one of these — the same reason it's useful to separate "was the right information
+  found" from "was the final answer good," just with more stages to separate here.
+- **Handoff correctness as its own thing to measure** — did the receiving agent get everything it
+  needed, or did it have to guess/re-derive context (a sign the handoff design is under-specified)?
+- **The security bar applies the same way everywhere.** A leak caused by one agent forwarding
+  restricted information to the wrong place is exactly as serious as a leak in the main answer — it
+  doesn't get a pass just because it happened between two agents instead of inside one.
 
 ---
 
 ## What to say if asked directly
 
-*"I'd keep the answer-generation agent exactly as scoped as my RAG project already proves — retrieval,
-grounding, citation, refusal. Multi-agent means putting a triage layer in front that routes to
-specialists — a ticket-writing agent, an escalation agent, a drafting agent — each with its own fixed
-tool surface, not a shared do-everything toolset. The part I'd be most careful about is the handoff
-contract: a small typed object, not the full transcript, and critically, the same ABAC scope has to
-travel with the handoff rather than get re-derived — an escalation shouldn't accidentally see more
+*"I'd keep the answer-generation agent scoped exactly the way a good single-agent RAG design already
+proves — retrieve, ground, cite, refuse. Multi-agent means putting a triage layer in front that routes
+to specialists — a record-writing agent, an escalation agent, a drafting agent — each with its own
+fixed, narrow toolset, not one shared do-everything toolbox. The part I'd be most careful about is the
+handoff: a small, defined package, not the full conversation — and critically, permission scope has to
+travel with that handoff rather than get re-derived, so an escalation never accidentally sees more
 than the original question was allowed to."*

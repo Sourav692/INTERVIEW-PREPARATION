@@ -1,124 +1,105 @@
-# Operating agents in production — CI/CD, multi-channel delivery, and real escalation
+# Operating an AI system in production — versioning, channels, and real escalation
 
-**What this is:** concept-prep for the "after it works once" questions — DevRev's guide asks directly
-about *"CI/CD of AI agents (prompt versioning, A/B testing, rollback)"* and *"workflow automations
-across multiple channels."* Nothing in `enterprise_rag_platform` builds this; it's single-channel
-(`scripts/ask.py`) and has no versioning/rollback story at all. This doc is the answer to have ready,
-built from mechanisms this repo *does* already prove, generalized outward.
+The "after it works once" questions: how do you change a prompt safely, how does the same system
+serve multiple channels, and what does "escalate to a human" actually mean as a mechanism. None of
+this needs a codebase — it's architecture to describe on a whiteboard.
 
 ---
 
-## 1. CI/CD for AI agents
+## 1. Treating prompt/config changes like real deployments
 
-The uncomfortable truth interviewers are checking for: most teams ship a prompt change the way they'd
-ship a config tweak — edit, deploy, hope. That's the failure mode to name explicitly, then describe
-the fix.
+The failure mode to name explicitly: most teams ship a prompt change the way they'd ship a quick
+config tweak — edit it, deploy it, hope. The fix is to treat every prompt (and the surrounding
+configuration — tool definitions, safety rules) as a **versioned, deployable artifact**, not a mutable
+string that gets silently overwritten.
 
-### Prompt versioning
+### The gate before promoting a new version
 
-Treat every prompt (`SYNTHESIS_SYSTEM`, a routing prompt, an agent's system prompt) as an **immutable,
-hashed artifact**, not a mutable string in source:
+Reuse the same evaluation bar a full release would have to pass:
 
-```
-prompt_id: synthesis_system
-version: v14
-content_hash: 8f2a1c...
-created_at: ...
-eval_report: { groundedness: 0.94, leak_rate: 0.0, refusal_acc: 0.88 }
-status: canary(10%) | promoted | rolled_back
-```
+- **A safety/security gate that must hit zero** — no acceptable rate of leaked information, no
+  acceptable rate of unsafe output. This is a hard block, not a review comment, for the same reason a
+  security incident is never "averaged into" an overall quality score.
+- **A quality gate** — accuracy/groundedness must not regress past a set threshold versus the current
+  live version, measured on the same fixed test set.
+- **A version that fails either gate never reaches even a small slice of real traffic**, let alone
+  full rollout.
 
-This is the same instinct as this repo's content-hash incremental sync (`ingest/freshness.py`) —
-change detection by hash, not by trusting a timestamp or a human's memory of what changed.
+### Staged rollout
 
-### The gate before promotion
-
-Reuse the exact eval harness this repo already has, unchanged in shape:
-
-- **Security gate**: `leak_rate` must still be exactly 0 against the new prompt version — this is a
-  hard block, not a review comment, for the same reason it's a hard block in this repo's evaluation
-  design (`docs/01-theory.md` §9: *"a leak is an incident."*)
-- **Quality gate**: groundedness / refusal-accuracy must not regress past a threshold vs. the current
-  production version, on the same golden set.
-- **A new prompt version that fails either gate never reaches canary**, let alone full promotion.
-
-### Canary / shadow rollout
-
-- **Shadow first**: run the new prompt version alongside production on live traffic, log both outputs,
-  compare offline — zero user-facing risk.
-- **Canary next**: a small percentage of traffic (or a small set of low-risk tenants) actually sees the
-  new version; watch the same metrics live, not just at gate time.
-- **Promote or roll back** based on that — and rollback has to be **instant and cheap**: swap which
-  version a request routes to, not a redeploy. The version that was live five minutes ago is still
-  sitting there, untouched, ready to take traffic again.
+- **Shadow first** — run the new version alongside the live one on real traffic, log both outputs,
+  compare them offline. Zero risk to any real user.
+- **Small-scale release next** — a small percentage of traffic (or a small set of low-risk customers)
+  actually sees the new version; watch the same metrics live, not only at the initial gate.
+- **Promote or roll back** based on that — and rollback has to be **instant and cheap**: switch which
+  version handles new requests, not a full redeploy. The version that was live five minutes ago should
+  still be sitting there, ready to take traffic again immediately.
 
 ### A/B testing
 
-Two prompt versions serve concurrently, split by a stable key (user id or tenant id, not random per
-request — so a given user always experiences one consistent behavior). The metrics that matter here
-are the same three families this repo already separates: retrieval-side (unaffected by a prompt
-change), generation-side (groundedness, refusal accuracy), and the security gate (which must be
-identical — zero — across both arms, not something you're "testing" a difference on).
+Two versions serve concurrently, split by something stable per user (not randomly on every single
+request) so one person's experience doesn't flicker between versions mid-conversation. What to compare
+on: real outcome metrics (did the answer resolve the issue, did it need escalation), not only an
+internal quality score — and the safety gate has to be identical (zero) across both versions, never
+something you're "testing" a difference on.
 
 ## 2. Multi-channel delivery
 
-The same core agent (this repo's RAG graph, or the multi-agent system in
-[doc 09](09-multi-agent-orchestration.md)) has to serve a chat widget, Slack, email, and an API — and
-those are not the same problem wearing different clothes.
+The same core system — retrieve, ground, answer — has to serve a live chat widget, a messaging
+platform, email, and a raw API, and those are not the same problem wearing different clothes.
 
-| Channel | Latency expectation | Output shape | Consequence for design |
+| Channel | Latency expectation | Output shape | What this means for the design |
 | --- | --- | --- | --- |
-| **Live chat widget** | Sub-second first token | Short, conversational, streamed | Needs token streaming; synthesis can't wait for the full answer before showing anything |
-| **Slack** | A few seconds is fine | Slightly more structured (can use blocks/links) | Can afford one extra retrieval pass (e.g. `enterprise` strategy) that a live-typing UI can't |
-| **Email / async ticket reply** | Minutes is fine | Longer-form, more formal tone, no streaming needed | This is where the **drafting agent** ([doc 09](09-multi-agent-orchestration.md) §2) earns its keep — same underlying answer, very different prose |
-| **API** | Caller-defined | Structured JSON, not prose | No "drafting" step at all — the raw grounded answer plus citations, machine-readable |
+| **Live chat** | Sub-second first response | Short, conversational, streamed | Needs token streaming; can't wait for the full answer before showing anything |
+| **Team messaging (e.g. Slack)** | A few seconds is fine | Slightly more structured | Can afford one extra retrieval pass that a live-typing interface can't |
+| **Email / async reply** | Minutes is fine | Longer, more formal | This is where a separate drafting step earns its keep — same underlying answer, very different prose |
+| **Raw API** | Caller-defined | Structured data, not prose | No "drafting" step at all — the raw grounded answer plus its sources, in a machine-readable shape |
 
-**The architecture implication:** don't fork the agent per channel. One core (retrieve → ground →
-cite → refuse) behind a **channel adapter layer** that only touches two things: (1) how much latency
-budget it has — which retrieval strategy and how much fan-out is affordable — and (2) how the same
-grounded answer gets formatted for that channel's expectations. The ABAC/security layer is identical
-across every channel, on purpose — a channel is a UI decision, never a permissions decision.
+**The architecture implication:** don't build a separate agent per channel. Keep one core pipeline
+(retrieve → ground → cite → refuse) behind a **thin channel-adapter layer** that only changes two
+things: how much latency budget is available (which affects how much extra retrieval work is
+affordable), and how the same grounded answer gets formatted for that channel's expectations. The
+permission/security layer stays identical across every channel, on purpose — which channel someone
+used is a presentation decision, never a permissions decision.
 
-## 3. Human-in-the-loop escalation as a real workflow
+## 3. Human-in-the-loop escalation as a real workflow, not a phrase
 
-This repo's guardrail rule (`docs/01-theory.md` §8) is: *"refuse cleanly and escalate to a human. Never
-hint that withheld material exists."* That's the right *policy*. It says nothing yet about the
-*mechanism* — and DevRev's product is literally a ticketing system, so "escalate" needs to cash out
-into something concrete, not a refusal string.
+"Refuse cleanly and escalate to a human" is the right policy. It says nothing yet about the
+*mechanism* — and in a support/ticketing context, "escalate" has to become something concrete, not
+just a message shown to the user.
 
 **What escalation has to actually do:**
 
-1. **Create or update a ticket**, not just return a message — the case needs to exist somewhere a
-   human will see it, in the queue that owns this kind of question.
-2. **Attach the working context** — the original question, what was retrieved (even if insufficient),
-   why it was judged insufficient or why access was denied, and the principal's scope. The human
-   should not have to start from zero, and should not have to re-ask the user what they already said.
-3. **Route to the right owner** — a security-denied question and a "no document covers this" question
-   go to different queues (security/compliance vs. content-gap backlog) — conflating them either
-   spams a security queue with content gaps, or under-reports actual denials that need review.
-4. **Never leak the reason for a security refusal into the ticket's visible fields** if that ticket is
-   later visible to a broader audience than the original request was — the escalation record itself
-   is subject to the same ABAC as the original question. An internal note explaining *why* access was
-   denied can itself be a disclosure if it's visible to the wrong audience.
-5. **Feed back into eval.** Every escalation is a labeled example: either "the system should have been
-   able to answer this" (a retrieval/content gap — becomes a backlog item for whoever owns that source)
-   or "the system correctly refused" (a true negative, evidence the security gate is working, not a
-   failure to fix). This is the online-signal gap this repo's own coverage map already names as ❌
-   (`docs/07` §4.5, "online signals... no production feedback loop") — escalation volume and its
-   resolution outcome is exactly that missing signal, sourced for free from a mechanism the product
-   already has.
+1. **Create or update a real record somewhere a human will see it** — not just return a message and
+   move on. The case needs to land in whichever queue actually owns this kind of question.
+2. **Attach the working context** — the original question, whatever was found (even if it wasn't
+   enough), why it was judged insufficient or why access was denied. The human shouldn't have to start
+   from zero, and the person asking shouldn't have to repeat themselves.
+3. **Route to the right owner.** A question denied for permission reasons and a question with no
+   available information at all are different problems — they belong in different queues. Mixing them
+   either floods a security queue with routine content gaps, or buries real access-denial cases that
+   need review among unrelated ones.
+4. **Never leak the reason for a permission-based refusal into a record visible to a broader
+   audience** than the original request was. An internal note explaining *why* something was denied can
+   itself be a disclosure if the wrong audience can see it — the escalation record is subject to the
+   same permission rules as the original question.
+5. **Feed the outcome back into evaluation.** Every escalation is a free, labeled example: either "the
+   system should have been able to answer this" (a genuine content or capability gap, worth fixing) or
+   "the system correctly refused" (evidence the safety behavior is working as intended, not something
+   to fix). This closes a common gap in most systems — there's usually no loop from live usage back
+   into the evaluation process, and escalation outcomes are exactly the signal that closes it, using a
+   mechanism the product already needs anyway.
 
 ---
 
 ## What to say if asked directly
 
-*"None of my RAG project's demos show CI/CD or multi-channel delivery — it's a single-shot CLI. But
-the mechanisms generalize cleanly: the same golden-set eval harness that gates a release in my project
-becomes the gate a new prompt version has to pass before canary, and the same 'leak_rate must be zero'
-rule that blocks a release there blocks a prompt promotion here too — it doesn't get softer just
-because it's now an A/B test. For channels, I'd keep one core agent and put a thin adapter layer in
-front that only changes latency budget and output formatting — never the security layer, because a
-channel is a UI decision, not a permissions decision. And for escalation, 'refuse and escalate' has to
-mean something concrete: create a ticket, attach the context, route it to the right queue, and — this
-is the part people usually skip — feed the outcome back into eval, because every escalation is a free
-labeled example of either a content gap or a correctly-working refusal."*
+*"Versioning and channels aren't built in a first pass, but the mechanisms generalize cleanly: the same
+evaluation gate that would block a full release also has to gate a new prompt version before it can
+even reach a small slice of traffic — the safety bar doesn't get softer just because it's framed as an
+A/B test. For channels, I'd keep one core pipeline and put a thin adapter in front that only changes
+latency budget and output formatting — never the security layer, because which channel someone used is
+a presentation decision, not a permissions decision. And for escalation: 'refuse and escalate' has to
+mean something concrete — create a record, attach the context, route it to the right queue, and feed
+the outcome back into evaluation, because every escalation is a free labeled example of either a real
+gap or a correctly-working refusal."*
