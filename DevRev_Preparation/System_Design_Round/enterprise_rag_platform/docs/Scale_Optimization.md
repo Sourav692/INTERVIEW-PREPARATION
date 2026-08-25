@@ -35,7 +35,8 @@ laptop demo cannot honestly show them.
 5. [Latency](#5-latency-optimization)
 6. [Cost](#6-cost-at-20m-documents)
 7. [Chunking by document type](#7-chunking-strategy-by-document-type)
-8. [Other interview points](#8-other-scale-points-worth-knowing-cold)
+8. [Parent-child (small-to-big) chunking](#8-parent-child-small-to-big-chunking)
+9. [Other interview points](#9-other-scale-points-worth-knowing-cold)
 
 ---
 
@@ -242,7 +243,71 @@ shared.
 
 ---
 
-## 8. Other scale points worth knowing cold
+## 8. Parent-child (small-to-big) chunking
+
+**Today:** this repo's retrieval unit *is* the generation unit. `ingest/chunker.py` produces one flat
+chunk size (`chunk_target_chars`), that chunk is what gets embedded, what BM25 tokenizes, and what
+`_format_context()` (`graph/nodes.py`) hands to the LLM verbatim. Fine at 86 chunks, single format.
+**Gap at 20M docs, many formats.**
+
+### The conflict this solves
+
+Dense retrieval wants **small** chunks — a chunk that talks about one thing embeds sharply; a chunk
+that drifts across three topics embeds as a blur and loses precision. Generation wants **enough
+context** — a small chunk handed to the LLM in isolation is often missing the sentence that
+disambiguates it (which plan, which region, which effective date). Flat chunking forces one size to
+serve both jobs. Parent-child breaks that coupling: **retrieve on the child, generate on the parent.**
+
+### Mechanism
+
+1. **Child chunk** — small (sentence/paragraph-ish, or per §7's natural unit: a table row-group, one
+   slide, one email turn). This is what gets embedded and what BM25 tokenizes. Retrieval precision
+   lives here.
+2. **Parent chunk** — the container the child came from (its section, its full table, its whole
+   slide + notes, the full email thread). Never embedded or searched directly.
+3. **At query time:** dense/BM25/hybrid search returns child hits as usual (unchanged retrieval
+   code path — `strategies.py`, `fusion.py`). Before `_format_context()` builds the LLM prompt,
+   resolve each surviving child to its parent and substitute the parent's text. The LLM sees full
+   context; the ranking that got it there was scored on the sharp, narrow child.
+4. **Dedup parents.** Multiple child hits from RRF/fusion often resolve to the same parent (e.g. two
+   sentences from the same section both matched) — collapse to one parent block before building
+   context, or `_format_context()`'s char budget silently double-pays for the same text.
+
+### Why this repo's model already has the seam for it
+
+`ResourceAttributes`' own docstring says it: *"The ABAC attributes of a document (and, inherited, of
+each of its chunks)."* ACL/ABAC already flows parent → children conceptually — this is the same
+inheritance pattern, just for chunk text instead of security attributes. Concretely:
+
+- Add `parent_id` (and, for the parent's own record, `parent_text`) to `Chunk` in `models.py`.
+- `attrs: ResourceAttributes` stays on the **parent** and is inherited by every child — no per-child
+  duplication, and a policy change on the parent still needs zero reindex (same mechanism as
+  `demo_acl_catalog_update.py`, §4).
+- `ingest/store.py::dense_search()` and `retrieval/lexical.py::BM25Index` keep operating on child
+  text unchanged; only `_format_context()` gains a parent-resolution step.
+
+### Why multi-format makes this matter more, not less
+
+Flat, uniform `chunk_target_chars` packing already fights §7's per-format table (a PPTX slide, a
+table row-group, and an email turn are not the same natural size). Parent-child removes the pressure
+to compromise on one global char target across formats: each format's **child** granularity can stay
+true to its natural unit (one slide, one row-group, one turn) while the **parent** — section, full
+table, full thread — is what supplies context, uniformly, regardless of format.
+
+| | Flat chunking (today) | Parent-child |
+| --- | --- | --- |
+| Retrieval unit | = generation unit | Child (small, sharp) |
+| Generation unit | = retrieval unit | Parent (section/table/slide/thread) |
+| Cross-format tuning | One char target must serve every format | Child size follows each format's natural unit (§7); parent expansion is format-agnostic |
+| ACL/ABAC | Per-chunk (already works) | Per-parent, inherited — fewer places policy can drift |
+| Cost | N chunks embedded and searched | Same embed/search cost (children are still what's indexed); extra cost is only a parent lookup + dedup at context-build time |
+
+**Status: verbal.** No parent/child relationship exists in this repo's schema today — this is the
+next concrete extension, not a claimed capability.
+
+---
+
+## 9. Other scale points worth knowing cold
 
 **Multi-tenancy ≠ one big index + `tenant_id` filter.** This repo already does separate collections
 per tenant. Say *why*: a shared index means noisy-neighbor (one huge tenant’s rebuild/query load

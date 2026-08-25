@@ -267,6 +267,7 @@ flowchart TB
 ```
 
 **One line per box:**
+
 - **Candidates from retrieve** — the raw output of step ③; nothing here has been access-checked yet.
 - **Access re-check (Layer 2)** — the authoritative decision, re-run per candidate against the fresh catalog (§6).
 - **Denied candidates** — dropped before reranking ever runs; a denied chunk never gets scored, ranked, or shown to anything.
@@ -292,6 +293,7 @@ discarded anyway — a restricted user's top-6 is the best of *their own* author
 diluted mix that includes stuff they'll never see.
 
 **Two reranker implementations, same interface** (`retrieval/rerank.py`):
+
 - **`LLMReranker`** (the default) — one batched LLM call scores every candidate 0-10 with a one-line
   reason each; degrades gracefully to plain fusion order (skips scoring) if the model is unavailable,
   rather than failing the request.
@@ -363,6 +365,7 @@ flowchart TB
 ```
 
 **One line per box:**
+
 - **Golden question set** — a fixed JSON file of cases, each tagged with expected docs, forbidden docs, and/or an expected refusal.
 - **Run each case** — calls the real `RAGPlatform.ask()` for that case's actual principal and strategy — no shortcuts, no mocked retrieval.
 - **RETRIEVAL family** — `recall@k` (did all expected docs show up?), `MRR` (how high did the first one rank?), and `nDCG` (binary-relevance, rank-discounted — rewards the whole ranking, not just the first hit) — a retrieval-quality signal.
@@ -378,67 +381,72 @@ inside "pretty good this week"; gating on it means one leaked document fails the
 document's text — naming a forbidden document is itself confirmation that it exists and is relevant,
 which is a disclosure on its own (same principle as `verify_citations()` in §6).
 
-**What is deliberately NOT gated:** `distracted` (retrieving a document the user *is* allowed to read,
-but which doesn't answer the question) is tracked as a precision signal only — it's a quality miss,
-not a security one, and gating on it would train people to ignore the alarm. Similarly, refusal
-correctness on *security* cases specifically is recorded as an advisory, not a hard gate — whether the
-model refuses vs. thinly answers from public material is a probabilistic LLM judgment, while the leak
-check itself is deterministic (decided by the policy engine, no model involved) and is what actually
-gates.
+**What is deliberately NOT gated:**
+
+- **`distracted`** — the retrieved document was one the user *is* allowed to read, it just didn't
+  answer the question. That's a quality miss, not a security miss, so it's tracked but doesn't fail
+  the run. If it gated the run too, people would start treating every gate failure as "eh, probably
+  just noise" and stop trusting the alarm.
+- **Refusal correctness on security cases** — whether the model's *wording* was the ideal refusal
+  (vs. a thinner but still-safe answer using only public material) is judged by an LLM, so it's
+  recorded as advisory, not a hard gate. The thing that *does* hard-gate is the leak check itself:
+  did a forbidden document actually get cited or quoted. That check is decided by the policy engine
+  directly — no model judgment involved — so it's deterministic and trustworthy enough to block a
+  run on.
 
 ---
 
 ## 8. Pointer table — "where is X implemented?"
 
-| Ask about...                                               | File                        | Function / class                                                                            |
-| ---------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------- |
-| Principal / Chunk / Answer data shapes                     | `models.py`               | `Principal`, `Chunk`, `Answer`, `ScoredChunk`, `ResourceAttributes`               |
-| How identity is resolved                                   | `identity.py`             | (resolves fresh per request — never cached)                                                |
-| All tunables (k values, thresholds)                        | `config.py`               | `SETTINGS`                                                                                |
-| The 7 ABAC rules + deny/allow order                        | `authz/policy.py`         | `decide()`, `DENY_RULES`, `ALLOW_RULES`                                               |
-| Compiling the pre-filter (Layer 1)                         | `authz/policy.py`         | `compile_prefilter()`, `explain_prefilter()`                                            |
-| Optional non-ACL content filter (source/type/recency), AND-ed onto Layer 1  | `authz/policy.py`         | `merge_filters()`                                                                          |
-| Authoritative re-check (Layer 2)                           | `authz/enforcement.py`    | `enforce()` — fetches fresh attrs via `store.get_doc_attrs()`                          |
-| PII redaction obligation                                   | `authz/enforcement.py`    | `redact_pii()`, `_apply_redaction()`                                                    |
-| Citation ACL re-check                                      | `authz/enforcement.py`    | `verify_citations()`                                                                      |
-| Reading source`.md` content + joining with the ACL manifest | `ingest/loader.py`      | `load_corpus()`                                                                           |
-| **Second connector (new)** — a JSON export, no markdown at all | `ingest/loader.py`     | `load_ticket_export()`                                                                     |
-| Letting a different connector's Document list use the same pipeline | `ingest/pipeline.py` | `ingest(..., loader=...)`                                                              |
-| Content-hash incremental sync (skip unchanged docs)         | `ingest/pipeline.py`      | `ingest(..., incremental=True)`, `_content_hash()`                                       |
-| Content hash storage                                        | `ingest/freshness.py`     | `get_content_hash()`, `set_content_hash()`                                                |
-| Reading the ACL manifest (permissions, separate from content) | `ingest/acl_manifest.py` | `load_acl_manifest()`                                                                    |
-| Splitting a doc into chunks                                | `ingest/chunker.py`       | `chunk_document()`                                                                        |
-| Orchestrating the whole ingest run                         | `ingest/pipeline.py`      | `ingest()`                                                                                |
-| Chroma client / collections                                | `ingest/store.py`         | `get_client()`, `get_collection()`                                                      |
-| Writing chunks + embeddings to Chroma                      | `ingest/store.py`         | `upsert_chunks()`                                                                         |
-| Vector search with ACL filter                              | `ingest/store.py`         | `dense_search()`                                                                          |
-| Full authorized pool (for BM25)                            | `ingest/store.py`         | `fetch_all_allowed()`                                                                     |
-| Doc attrs for citation re-check                            | `ingest/store.py`         | `get_doc_attrs()` — delegates to `catalog.get_doc_attrs()`                             |
-| **ACL catalog (new)** — the authoritative ACL store | `ingest/catalog.py`       | `get_doc_attrs()`, `upsert_doc_attrs()`, `upsert_many()`, `update_attr()`           |
-| ACL catalog schema migration (adds missing columns in place) | `ingest/catalog.py`     | `_migrate()`                                                                               |
-| Tenant-scoped reset (vs. global)                            | `ingest/store.py`, `ingest/catalog.py` | `reset_store(tenant_id=...)`, `reset_catalog(tenant_id=...)`                    |
-| **Per-source freshness + persisted rejected-docs (new)**   | `ingest/freshness.py`     | `record_sync()`, `record_rejection()`, `all_freshness()`, `recent_rejections()`             |
-| BM25 keyword index                                         | `retrieval/lexical.py`    | `BM25Index`                                                                               |
-| Query rewrites / decomposition / HyDE                      | `retrieval/expansion.py`  | `generate_multi_queries()`, `decompose()`, `generate_hyde_passage()`                  |
-| Conversation-history-aware rewriting (new)                  | `retrieval/expansion.py`  | `_format_history()`, `history=` param on the two functions above                          |
-| Merging ranked lists                                       | `retrieval/fusion.py`     | `reciprocal_rank_fusion()`                                                                |
-| Cross-encoder / LLM reranking                              | `retrieval/rerank.py`     | `LLMReranker.rerank()`, `CrossEncoderReranker.rerank()`                                    |
-| The 6 named strategies                                     | `retrieval/strategies.py` | `STRATEGIES`, `get_strategy()`, `enterprise()`                                        |
-| LLM calls (chat, chat_json, embed)                         | `llm/client.py`           | `LLMClient`, `LLMUnavailable`                                                           |
-| Embedding cache (in-process, `(model, text)` keyed)         | `llm/client.py`           | `_EMBED_CACHE`, `clear_embed_cache()`                                                      |
-| Response cache (question + filter + context + coverage)     | `graph/nodes.py`          | `_RESPONSE_CACHE`, `_response_cache_key()`, `clear_response_cache()`                       |
-| Circuit breaker around LLM calls                             | `llm/client.py`           | `_CircuitBreaker`, `circuit_breaker_state()`, `reset_circuit_breaker()`                    |
-| Per-tenant rate limiting                                     | `authz/rate_limit.py`     | `check()`, `reset()`                                                                        |
-| Source-authority / recency conflict resolution               | `models.py`, `graph/prompts.py`, `graph/nodes.py` | `ResourceAttributes.authority_rank`, `SYNTHESIS_SYSTEM` rule 7, `_format_context()` |
-| The 8 LangGraph nodes                                      | `graph/nodes.py`          | `authorize/plan/retrieve/enforce/grade/generate/verify/refuse`                            |
-| Graph wiring + public entry point (rate-limit short-circuit, `history` param) | `graph/build.py` | `build_graph()`, `RAGPlatform.ask(..., filters=..., history=...)`                       |
-| Prompt templates                                           | `graph/prompts.py`        | `SYNTHESIS_SYSTEM`, `SUFFICIENCY_SYSTEM`, `GROUNDEDNESS_SYSTEM`, `REFUSAL_TEMPLATE` |
-| Request-scoped state shape                                 | `graph/state.py`          | `RAGState`                                                                                |
-| Per-run structured trace                                   | `observability/trace.py`  | `RunTrace`                                                                                |
-| Golden-set scoring (recall, MRR, leak)                     | `evaluation/harness.py`   | `run_eval()`, `_score_case()`, `CaseResult.passed`, `EvalReport`                            |
-| Comparing strategies on the same question set              | `evaluation/harness.py`   | `compare_strategies()`                                                                       |
-| Calibrating the LLM judge against hand-labeled cases (new)  | `scripts/calibrate_judge.py` | — (live: 100% agreement, MAE 0.033 on 6 hand-labeled cases)                             |
-| Second-connector + incremental-sync demos (new)              | `scripts/`                | `demo_second_connector.py`, `demo_incremental_sync.py`                                     |
+| Ask about...                                                                   | File                                                    | Function / class                                                                            |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Principal / Chunk / Answer data shapes                                         | `models.py`                                           | `Principal`, `Chunk`, `Answer`, `ScoredChunk`, `ResourceAttributes`               |
+| How identity is resolved                                                       | `identity.py`                                         | (resolves fresh per request — never cached)                                                |
+| All tunables (k values, thresholds)                                            | `config.py`                                           | `SETTINGS`                                                                                |
+| The 7 ABAC rules + deny/allow order                                            | `authz/policy.py`                                     | `decide()`, `DENY_RULES`, `ALLOW_RULES`                                               |
+| Compiling the pre-filter (Layer 1)                                             | `authz/policy.py`                                     | `compile_prefilter()`, `explain_prefilter()`                                            |
+| Optional non-ACL content filter (source/type/recency), AND-ed onto Layer 1     | `authz/policy.py`                                     | `merge_filters()`                                                                         |
+| Authoritative re-check (Layer 2)                                               | `authz/enforcement.py`                                | `enforce()` — fetches fresh attrs via `store.get_doc_attrs()`                          |
+| PII redaction obligation                                                       | `authz/enforcement.py`                                | `redact_pii()`, `_apply_redaction()`                                                    |
+| Citation ACL re-check                                                          | `authz/enforcement.py`                                | `verify_citations()`                                                                      |
+| Reading source`.md` content + joining with the ACL manifest                  | `ingest/loader.py`                                    | `load_corpus()`                                                                           |
+| **Second connector (new)** — a JSON export, no markdown at all          | `ingest/loader.py`                                    | `load_ticket_export()`                                                                    |
+| Letting a different connector's Document list use the same pipeline            | `ingest/pipeline.py`                                  | `ingest(..., loader=...)`                                                                 |
+| Content-hash incremental sync (skip unchanged docs)                            | `ingest/pipeline.py`                                  | `ingest(..., incremental=True)`, `_content_hash()`                                      |
+| Content hash storage                                                           | `ingest/freshness.py`                                 | `get_content_hash()`, `set_content_hash()`                                              |
+| Reading the ACL manifest (permissions, separate from content)                  | `ingest/acl_manifest.py`                              | `load_acl_manifest()`                                                                     |
+| Splitting a doc into chunks                                                    | `ingest/chunker.py`                                   | `chunk_document()`                                                                        |
+| Orchestrating the whole ingest run                                             | `ingest/pipeline.py`                                  | `ingest()`                                                                                |
+| Chroma client / collections                                                    | `ingest/store.py`                                     | `get_client()`, `get_collection()`                                                      |
+| Writing chunks + embeddings to Chroma                                          | `ingest/store.py`                                     | `upsert_chunks()`                                                                         |
+| Vector search with ACL filter                                                  | `ingest/store.py`                                     | `dense_search()`                                                                          |
+| Full authorized pool (for BM25)                                                | `ingest/store.py`                                     | `fetch_all_allowed()`                                                                     |
+| Doc attrs for citation re-check                                                | `ingest/store.py`                                     | `get_doc_attrs()` — delegates to `catalog.get_doc_attrs()`                             |
+| **ACL catalog (new)** — the authoritative ACL store                     | `ingest/catalog.py`                                   | `get_doc_attrs()`, `upsert_doc_attrs()`, `upsert_many()`, `update_attr()`           |
+| ACL catalog schema migration (adds missing columns in place)                   | `ingest/catalog.py`                                   | `_migrate()`                                                                              |
+| Tenant-scoped reset (vs. global)                                               | `ingest/store.py`, `ingest/catalog.py`              | `reset_store(tenant_id=...)`, `reset_catalog(tenant_id=...)`                            |
+| **Per-source freshness + persisted rejected-docs (new)**                 | `ingest/freshness.py`                                 | `record_sync()`, `record_rejection()`, `all_freshness()`, `recent_rejections()`     |
+| BM25 keyword index                                                             | `retrieval/lexical.py`                                | `BM25Index`                                                                               |
+| Query rewrites / decomposition / HyDE                                          | `retrieval/expansion.py`                              | `generate_multi_queries()`, `decompose()`, `generate_hyde_passage()`                  |
+| Conversation-history-aware rewriting (new)                                     | `retrieval/expansion.py`                              | `_format_history()`, `history=` param on the two functions above                        |
+| Merging ranked lists                                                           | `retrieval/fusion.py`                                 | `reciprocal_rank_fusion()`                                                                |
+| Cross-encoder / LLM reranking                                                  | `retrieval/rerank.py`                                 | `LLMReranker.rerank()`, `CrossEncoderReranker.rerank()`                                 |
+| The 6 named strategies                                                         | `retrieval/strategies.py`                             | `STRATEGIES`, `get_strategy()`, `enterprise()`                                        |
+| LLM calls (chat, chat_json, embed)                                             | `llm/client.py`                                       | `LLMClient`, `LLMUnavailable`                                                           |
+| Embedding cache (in-process,`(model, text)` keyed)                           | `llm/client.py`                                       | `_EMBED_CACHE`, `clear_embed_cache()`                                                   |
+| Response cache (question + filter + context + coverage)                        | `graph/nodes.py`                                      | `_RESPONSE_CACHE`, `_response_cache_key()`, `clear_response_cache()`                  |
+| Circuit breaker around LLM calls                                               | `llm/client.py`                                       | `_CircuitBreaker`, `circuit_breaker_state()`, `reset_circuit_breaker()`               |
+| Per-tenant rate limiting                                                       | `authz/rate_limit.py`                                 | `check()`, `reset()`                                                                    |
+| Source-authority / recency conflict resolution                                 | `models.py`, `graph/prompts.py`, `graph/nodes.py` | `ResourceAttributes.authority_rank`, `SYNTHESIS_SYSTEM` rule 7, `_format_context()`   |
+| The 8 LangGraph nodes                                                          | `graph/nodes.py`                                      | `authorize/plan/retrieve/enforce/grade/generate/verify/refuse`                            |
+| Graph wiring + public entry point (rate-limit short-circuit,`history` param) | `graph/build.py`                                      | `build_graph()`, `RAGPlatform.ask(..., filters=..., history=...)`                       |
+| Prompt templates                                                               | `graph/prompts.py`                                    | `SYNTHESIS_SYSTEM`, `SUFFICIENCY_SYSTEM`, `GROUNDEDNESS_SYSTEM`, `REFUSAL_TEMPLATE` |
+| Request-scoped state shape                                                     | `graph/state.py`                                      | `RAGState`                                                                                |
+| Per-run structured trace                                                       | `observability/trace.py`                              | `RunTrace`                                                                                |
+| Golden-set scoring (recall, MRR, leak)                                         | `evaluation/harness.py`                               | `run_eval()`, `_score_case()`, `CaseResult.passed`, `EvalReport`                    |
+| Comparing strategies on the same question set                                  | `evaluation/harness.py`                               | `compare_strategies()`                                                                    |
+| Calibrating the LLM judge against hand-labeled cases (new)                     | `scripts/calibrate_judge.py`                          | — (live: 100% agreement, MAE 0.033 on 6 hand-labeled cases)                                |
+| Second-connector + incremental-sync demos (new)                                | `scripts/`                                            | `demo_second_connector.py`, `demo_incremental_sync.py`                                  |
 
 ---
 
