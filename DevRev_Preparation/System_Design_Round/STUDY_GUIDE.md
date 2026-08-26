@@ -68,6 +68,7 @@ follow-ups here specifically.
 | 4 | `agent_platform/docs/04-system-design-coverage-map.md` | Proven-vs-verbal checked against §3.1, §3.2, §3.3, §3.5 — the non-technical-user problem, the determinism/control split, and likely follow-ups |
 | 5 | `agent_platform/docs/05-security-tenancy-and-observability-gaps.md` | The §6/§8 material specific to agent platforms: prompt injection for tool-calling agents (the defining new threat), egress control, tenant isolation as an architecture decision, drift alerting, cost attribution, and the "default to one agent" trade-off |
 | 6 | `agent_platform/INTERVIEW_SCRIPT.md` | The rehearsed whiteboard script |
+| 7 | `cross_cutting_prep/05-guarding-tool-calls.md` | Extends the guardrail trio above (destructive gate, step budget, spend cap) with five more tool-call-level checks: argument validation, retry-with-fallback, memoization, disambiguation, and per-call telemetry — grounded in the `Coding_Round/agent_tool_calling_demo` notebook |
 
 **Optional:** `docs/03-src-modules-reference.md` (code reference).
 
@@ -85,9 +86,11 @@ and agent-platform vocabulary in your head — read them after Phases 1–2, not
 | 3 | `enterprise_rag_platform/docs/10-agent-ops-and-channels.md` | §7 (Agent CI/CD: prompt versioning, canary/shadow rollout, A/B testing) and the multi-channel-delivery half of §6.5, plus escalation-as-a-real-workflow |
 | 4 | `cross_cutting_prep/03-cost-latency-cicd-rigor-and-build-vs-buy.md` | The remaining §6.5/§7/§8 items: semantic caching, token streaming, nightly regression runs, statistical rigor in A/B testing, unit-level prompt testing, and build-vs-buy as its own decision |
 | 5 | `enterprise_rag_platform/docs/09-multi-agent-orchestration.md` | Directly answers the hiring-manager round's "architect a multi-agent system integrating with CRM, ticketing, and knowledge base" — bridges Phases 1, 2, and 3 into one architecture |
+| 6 | `cross_cutting_prep/04-agentops-on-databricks.md` | Maps every AgentOps concept above (prompt versioning, canary rollout, rollback, tracing, drift, audit) onto real Databricks mechanisms — read this specifically to back the generic architecture answer with "I've actually done this, on Databricks, in a customer engagement" |
 
 **Goal of this phase:** by the end of it, every §6/§7/§8 bullet in the prep doc has a home — this is
-where "raise it unprompted" material lives.
+where "raise it unprompted" material lives. Item 6 is what turns that into a credible real-world story
+if asked whether you've actually built any of it.
 
 ---
 
@@ -134,7 +137,7 @@ more likely as a follow-up or a founder's-mentality story.
 | §6.3 Observability | `cross_cutting_prep/02` |
 | §6.4 Failure Handling | `cross_cutting_prep/02` |
 | §6.5 Cost and Latency | `enterprise_rag_platform/docs/10` (channels) + `cross_cutting_prep/03` (caching, streaming) |
-| §7 Agent CI/CD | `enterprise_rag_platform/docs/10` + `cross_cutting_prep/03` |
+| §7 Agent CI/CD | `enterprise_rag_platform/docs/10` + `cross_cutting_prep/03`; real-tool grounding in `cross_cutting_prep/04-agentops-on-databricks.md` |
 | §8 Trade-Off Cheat Sheet | Every row individually pointed to inline in the prep doc itself; see Phase 5 |
 | §9 Suggested Preparation Order | Read directly from the prep doc — this guide's phase order already follows it |
 | §10 Quick-Reference Checklist | Read directly from the prep doc |

@@ -383,6 +383,7 @@
       <li class="item"><input type="checkbox" data-id="p2-4"><span class="item-num">4</span><div class="item-body"><div class="item-doc">docs/04-system-design-coverage-map.md</div><div class="item-covers">Proven-vs-verbal against &sect;3.1, &sect;3.2, &sect;3.3, &sect;3.5.</div></div></li>
       <li class="item"><input type="checkbox" data-id="p2-5"><span class="item-num">5</span><div class="item-body"><div class="item-doc">docs/05-security-tenancy-and-observability-gaps.md</div><div class="item-covers">&sect;6/&sect;8 for agent platforms: prompt injection for tool-calling, egress control, tenant isolation, drift alerting, cost attribution, and the "default to one agent" trade-off.</div></div></li>
       <li class="item"><input type="checkbox" data-id="p2-6"><span class="item-num">6</span><div class="item-body"><div class="item-doc">INTERVIEW_SCRIPT.md</div><div class="item-covers">The rehearsed whiteboard script &mdash; also where the two real-bug stories live.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p2-7"><span class="item-num">7</span><div class="item-body"><div class="item-doc">cross_cutting_prep/05-guarding-tool-calls.md</div><div class="item-covers">Extends the guardrail trio (destructive gate, step budget, spend cap) with five more tool-call checks: validation, retry-with-fallback, memoization, disambiguation, per-call telemetry.</div></div></li>
     </ol>
     <p class="optional-note"><b>Optional:</b> docs/03-src-modules-reference.md (code reference).</p>
   </section>
@@ -397,6 +398,7 @@
       <li class="item"><input type="checkbox" data-id="p3-3"><span class="item-num">3</span><div class="item-body"><div class="item-doc">enterprise_rag_platform/docs/10-agent-ops-and-channels.md</div><div class="item-covers">&sect;7 (Agent CI/CD: prompt versioning, canary/shadow, A/B) and the multi-channel half of &sect;6.5, plus real escalation.</div></div></li>
       <li class="item"><input type="checkbox" data-id="p3-4"><span class="item-num">4</span><div class="item-body"><div class="item-doc">cross_cutting_prep/03-cost-latency-cicd-rigor-and-build-vs-buy.md</div><div class="item-covers">Remaining &sect;6.5/&sect;7/&sect;8: semantic caching, streaming, nightly regression, statistical rigor, unit-level testing, build-vs-buy.</div></div></li>
       <li class="item"><input type="checkbox" data-id="p3-5"><span class="item-num">5</span><div class="item-body"><div class="item-doc">enterprise_rag_platform/docs/09-multi-agent-orchestration.md</div><div class="item-covers">Directly answers "architect a multi-agent system integrating with CRM, ticketing, and knowledge base" &mdash; bridges Phases 1&ndash;3.</div></div></li>
+      <li class="item"><input type="checkbox" data-id="p3-6"><span class="item-num">6</span><div class="item-body"><div class="item-doc">cross_cutting_prep/04-agentops-on-databricks.md</div><div class="item-covers">Maps every AgentOps concept above onto real Databricks mechanisms &mdash; read this to back the generic architecture answer with an actual customer-engagement story.</div></div></li>
     </ol>
   </section>
 
@@ -445,7 +447,7 @@
           <tr><td>&sect;6.3 Observability</td><td><code>cross_cutting_prep/02</code></td></tr>
           <tr><td>&sect;6.4 Failure Handling</td><td><code>cross_cutting_prep/02</code></td></tr>
           <tr><td>&sect;6.5 Cost and Latency</td><td><code>enterprise_rag_platform/docs/10</code> (channels) + <code>cross_cutting_prep/03</code> (caching, streaming)</td></tr>
-          <tr><td>&sect;7 Agent CI/CD</td><td><code>enterprise_rag_platform/docs/10</code> + <code>cross_cutting_prep/03</code></td></tr>
+          <tr><td>&sect;7 Agent CI/CD</td><td><code>enterprise_rag_platform/docs/10</code> + <code>cross_cutting_prep/03</code>; real-tool grounding in <code>cross_cutting_prep/04-agentops-on-databricks.md</code></td></tr>
           <tr><td>&sect;8 Trade-Off Cheat Sheet</td><td>Every row pointed to inline in the prep doc itself &mdash; see Phase 5</td></tr>
           <tr><td>&sect;9 Suggested Preparation Order</td><td>Read directly from the prep doc &mdash; this guide's phase order already follows it</td></tr>
           <tr><td>&sect;10 Quick-Reference Checklist</td><td>Read directly from the prep doc</td></tr>
