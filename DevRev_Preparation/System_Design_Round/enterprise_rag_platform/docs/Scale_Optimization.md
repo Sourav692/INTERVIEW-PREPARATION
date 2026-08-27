@@ -14,11 +14,11 @@ laptop demo cannot honestly show them.
 2. Query-time retrieval latency
 3. Per-tenant isolation overhead
 
-| Status | Meaning |
-| --- | --- |
+| Status           | Meaning                                          |
+| ---------------- | ------------------------------------------------ |
 | **Proven** | Same mechanism exists in this repo (small scale) |
-| **Verbal** | Correct architecture; not an honest local demo |
-| **N/A** | Does not apply here |
+| **Verbal** | Correct architecture; not an honest local demo   |
+| **N/A**    | Does not apply here                              |
 
 **Related:** [pipeline](06-architecture-end-to-end.md) · [coverage map §4.6](07-system-design-coverage-map.md)
 (short 10M-chunk cost answer this file expands) · [Databricks / Lakehouse twin](03-theory-databricks.md)
@@ -44,15 +44,15 @@ laptop demo cannot honestly show them.
 
 Assume ~4 chunks/doc → **~80M chunks**. Walk the pipeline and ask *what falls over here first*.
 
-| Stage | Why it breaks | First symptom |
-| --- | --- | --- |
-| **Ingestion** | Single-process embed loop; no volume-scale incremental sync | Days-long ingest; re-embedding unchanged docs |
-| **Vector index** | In-process Chroma has no answer for 80M vectors | OOM, or an unusable index build |
-| **ACL / ABAC** | Per-tenant scan + per-chunk attribute check do not shard | Latency grows with *corpus* size, not *result* size |
-| **BM25** | Built fresh over `fetch_all_allowed()` per query (`retrieval/lexical.py`) | Rebuilding a keyword index per request is O(allowed pool) — fine at 86 chunks, fatal at 80M |
-| **Reranking** | `LLMReranker.rerank()` calls an LLM per candidate | 50 candidates × 20M-doc traffic = cost and latency |
-| **Audit** | In-memory `RunTrace` / audit events | Trail is not queryable; compliance risk |
-| **Cost** | Uncached embed/generate billed per token | Linear growth with corpus size *and* query volume |
+| Stage                  | Why it breaks                                                                | First symptom                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **Ingestion**    | Single-process embed loop; no volume-scale incremental sync                  | Days-long ingest; re-embedding unchanged docs                                                |
+| **Vector index** | In-process Chroma has no answer for 80M vectors                              | OOM, or an unusable index build                                                              |
+| **ACL / ABAC**   | Per-tenant scan + per-chunk attribute check do not shard                     | Latency grows with*corpus* size, not *result* size                                       |
+| **BM25**         | Built fresh over`fetch_all_allowed()` per query (`retrieval/lexical.py`) | Rebuilding a keyword index per request is O(allowed pool) — fine at 86 chunks, fatal at 80M |
+| **Reranking**    | `LLMReranker.rerank()` calls an LLM per candidate                          | 50 candidates × 20M-doc traffic = cost and latency                                          |
+| **Audit**        | In-memory`RunTrace` / audit events                                         | Trail is not queryable; compliance risk                                                      |
+| **Cost**         | Uncached embed/generate billed per token                                     | Linear growth with corpus size*and* query volume                                           |
 
 ---
 
@@ -97,11 +97,11 @@ vectors.
 
 **At ~80M vectors, this Chroma setup is the wrong tool.** Pick a real index:
 
-| Option | When to pick it |
-| --- | --- |
-| **Databricks Vector Search** | UC-governed, Delta sync, hundreds of millions of vectors, ACL via UC row filters. This is what `docs/03` and `notebooks/04` build. Natural fit because this repo already has a Databricks twin. |
-| **Managed vector DB** (Pinecone, Weaviate, Milvus/Zilliz, Qdrant, sharded pgvector) | Not on Databricks. Need native sharding, replica reads, metadata-filtered ANN. |
-| **Self-hosted sharded ANN** (FAISS/HNSW + a router) | Only if you need full control *and* have the ops capacity. Rarely the right tradeoff for a 20M-doc *enterprise* deploy. |
+| Option                                                                                    | When to pick it                                                                                                                                                                                    |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Databricks Vector Search**                                                        | UC-governed, Delta sync, hundreds of millions of vectors, ACL via UC row filters. This is what`docs/03` and `notebooks/04` build. Natural fit because this repo already has a Databricks twin. |
+| **Managed vector DB** (Pinecone, Weaviate, Milvus/Zilliz, Qdrant, sharded pgvector) | Not on Databricks. Need native sharding, replica reads, metadata-filtered ANN.                                                                                                                     |
+| **Self-hosted sharded ANN** (FAISS/HNSW + a router)                                 | Only if you need full control*and* have the ops capacity. Rarely the right tradeoff for a 20M-doc *enterprise* deploy.                                                                         |
 
 ### Mechanisms any of those need
 
@@ -123,12 +123,12 @@ vectors.
 
 This is where the repo is actually strong. Be precise about what is free vs what is new work.
 
-| | What | Why |
-| --- | --- | --- |
-| **Proven — free at scale** | Tenant isolation via separate collections / indexes | A query is always one tenant’s shard. More tenants → more shards, not more per-query work. |
-| **Proven — free at scale** | Post-retrieval re-check (`nodes.enforce()`) | **O(candidates)**, not O(corpus). Candidates are already bounded by top-K. |
-| **Verbal — new work if the vendor cannot help** | ACL/ABAC *inside* ANN | If the index cannot filter in the search: (a) over-fetch top-K·N and filter (wasteful, can still under-fill) or (b) materialized per-principal / per-attribute indexes (fast, expensive to maintain). Databricks Vector Search and serious vector DBs support filtered search. Ask the vendor; do not build it. |
-| **Proven mechanism, still holds at 20M** | Live ACL without reindex | `demo_acl_catalog_update.py`: policy-table update takes effect with **zero reindex** because enforcement reads the catalog at **query** time. Cost still tracks candidate count, not corpus size. One of the few things that scales without new engineering. |
+|                                                        | What                                                | Why                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------ | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Proven — free at scale**                      | Tenant isolation via separate collections / indexes | A query is always one tenant’s shard. More tenants → more shards, not more per-query work.                                                                                                                                                                                                                     |
+| **Proven — free at scale**                      | Post-retrieval re-check (`nodes.enforce()`)       | **O(candidates)**, not O(corpus). Candidates are already bounded by top-K.                                                                                                                                                                                                                                 |
+| **Verbal — new work if the vendor cannot help** | ACL/ABAC *inside* ANN                            | If the index cannot filter in the search: (a) over-fetch top-K·N and filter (wasteful, can still under-fill) or (b) materialized per-principal / per-attribute indexes (fast, expensive to maintain). Databricks Vector Search and serious vector DBs support filtered search. Ask the vendor; do not build it. |
+| **Proven mechanism, still holds at 20M**         | Live ACL without reindex                            | `demo_acl_catalog_update.py`: policy-table update takes effect with **zero reindex** because enforcement reads the catalog at **query** time. Cost still tracks candidate count, not corpus size. One of the few things that scales without new engineering.                                       |
 
 ---
 
@@ -136,16 +136,16 @@ This is where the repo is actually strong. Be precise about what is free vs what
 
 The customer-facing number. Attack each LangGraph stage ([docs/06](06-architecture-end-to-end.md) §3).
 
-| Stage | Lever | Here |
-| --- | --- | --- |
-| **Rewrite / decompose / multi-query / HyDE** | Small `fast_model`, never the large model except final synthesis (`config.py`) | **Proven** |
-| **Retrieval (dense / BM25 / hybrid)** | ANN is sub-linear; keep top-K small into rerank | **Proven** (Chroma HNSW at small scale; same principle at large) |
-| **Rerank** | Cheap reranker or cross-encoder — relevance, not reasoning | **Gap** — `LLMReranker` is a full LLM call |
-| **Synthesis** | This stage *should* use the strong model | Do not cheapen it |
-| **Repeat / near-dup questions** | Cache embeddings *and* full responses | **Proven** — `llm/client.py::embed()`; `graph/nodes.py::generate()` keyed on `(question, ACL filter, exact context, coverage note)` |
-| **LLM outage** | Circuit breaker / timeout; fail fast | **Proven** — `_CircuitBreaker`, 3 failures, 30s cooldown, half-open trial |
-| **Round-trips** | Batch embeds; parallelize independent LLM calls (multi-query rephrases) | **Partial** — check whether `generate_multi_queries()` actually fans out concurrently |
-| **Cold start per tenant** | Warm hot indexes; do not lazy-load a tenant only on first request | **Verbal** — warmup / pooling is a real prod concern |
+| Stage                                              | Lever                                                                             | Here                                                                                                                                             |
+| -------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Rewrite / decompose / multi-query / HyDE** | Small`fast_model`, never the large model except final synthesis (`config.py`) | **Proven**                                                                                                                                 |
+| **Retrieval (dense / BM25 / hybrid)**        | ANN is sub-linear; keep top-K small into rerank                                   | **Proven** (Chroma HNSW at small scale; same principle at large)                                                                           |
+| **Rerank**                                   | Cheap reranker or cross-encoder — relevance, not reasoning                       | **Gap** — `LLMReranker` is a full LLM call                                                                                              |
+| **Synthesis**                                | This stage*should* use the strong model                                         | Do not cheapen it                                                                                                                                |
+| **Repeat / near-dup questions**              | Cache embeddings*and* full responses                                            | **Proven** — `llm/client.py::embed()`; `graph/nodes.py::generate()` keyed on `(question, ACL filter, exact context, coverage note)` |
+| **LLM outage**                               | Circuit breaker / timeout; fail fast                                              | **Proven** — `_CircuitBreaker`, 3 failures, 30s cooldown, half-open trial                                                               |
+| **Round-trips**                              | Batch embeds; parallelize independent LLM calls (multi-query rephrases)           | **Partial** — check whether `generate_multi_queries()` actually fans out concurrently                                                   |
+| **Cold start per tenant**                    | Warm hot indexes; do not lazy-load a tenant only on first request                 | **Verbal** — warmup / pooling is a real prod concern                                                                                      |
 
 ### Five levers for p95 (interview-ready)
 
@@ -164,11 +164,11 @@ The customer-facing number. Attack each LangGraph stage ([docs/06](06-architectu
 
 Interviewers want **tail**, not average.
 
-| Percentile | What dominates it |
-| --- | --- |
-| **p50** | Happy path: cache hit, or fast dense retrieve + small-model rewrite + synthesis |
-| **p95 / p99** | Cache miss on a cold query; multi-hop (extra LLM hops); rerank over a wide match set before ACL narrows it |
-| **Circuit breaker** | A **p99** tool. It bounds a dead dependency. It does not improve the typical case. |
+| Percentile                | What dominates it                                                                                          |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **p50**             | Happy path: cache hit, or fast dense retrieve + small-model rewrite + synthesis                            |
+| **p95 / p99**       | Cache miss on a cold query; multi-hop (extra LLM hops); rerank over a wide match set before ACL narrows it |
+| **Circuit breaker** | A**p99** tool. It bounds a dead dependency. It does not improve the typical case.                    |
 
 If asked “does caching fix tail latency?”: **no.** Caching moves the **median**. Timeouts, circuit
 breakers, and fallback to a smaller model move the **tail**.
@@ -209,18 +209,18 @@ count. Carry structure (heading, page, slide title, table caption) into the chun
 repo prefixes `doc.title - section`. Fixed-size sliding windows are the **fallback** when there is
 no usable structure — not the default.
 
-| Format | Natural split | Notes |
-| --- | --- | --- |
-| **Markdown / plain text** | Headings, then pack paragraphs with overlap | **Exactly this repo.** Overlap must keep a fact that straddles a boundary recoverable (`_pack()` `tail = current[-overlap:]`). |
-| **DOCX** | Paragraph + Word Heading 1/2/3 | `python-docx`. Do **not** concatenate paragraphs and re-run the markdown chunker — you throw away heading styles. Map heading-styled paragraphs to `#` / `##`, then reuse `_split_by_heading()`. Tables: see Tables. Strip track-changes/comments first. |
-| **PDF** | Text PDF vs scanned PDF | **Text:** layout-aware extract (`pdfplumber`, `PyMuPDF`) — reading order + font-size as heading signal. Rebuild hierarchy from font-size deltas, then heading-split-and-pack. **Scanned:** OCR first (Images). Multi-column reports need column-aware extract or reading order silently breaks. |
-| **HTML** | `<h1>`–`<h6>`, `<section>`, `<article>`, `<table>`, `<li>` | Strip nav/footer/ads (readability-style, not raw `get_text()`). Same heading-to-marker conversion as DOCX, then the existing chunker. |
-| **Tables** (DOCX / PDF / HTML / Excel) | One chunk per table, or per row-group if huge. **Never split mid-row.** | Same failure `chunker.py` warns about (service-credit tiers). Large tables: (a) repeat header column names on every chunk; (b) small pricing/tier tables stay **one atomic chunk**. |
-| **Excel / CSV** | Logical row-groups (account, time window), not raw row count | 500-row slices have no topic for embedding. Prefer semantic groups. Always carry headers. Very wide tables (100+ cols): flatten to sentences (`For account X, revenue Q1 was Y…`) so the model sees relationships a raw grid hides. |
-| **Images** (scans, screenshots, diagrams, whiteboards) | Not text until converted | (1) **OCR** then chunk like text — gate on confidence; do not silently index garbage. (2) **Multimodal embeddings** (CLIP-style) when visual structure *is* the meaning (charts). Enterprise default is usually (1); mention (2) for diagrams. |
-| **Code** | Function/class boundaries (AST / tree-sitter). Never mid-function. | Fallback: blank-line blocks + a hard cap — closer to `_pack()` than to headings. |
-| **PowerPoint** | One chunk per slide (or a few adjacent sparse slides) | Slide title = header prefix, like `doc.title - section`. Append speaker notes to that slide’s chunk; do not orphan them. |
-| **Email / chat / tickets** | One turn, or question + resolving answer — not a character window | A window that cuts a question from its answer is close to the worst failure for support RAG. Carry thread metadata (participants, time, resolution) the way `attrs` already rides on chunks — filtering *and* citations. |
+| Format                                                       | Natural split                                                                | Notes                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Markdown / plain text**                              | Headings, then pack paragraphs with overlap                                  | **Exactly this repo.** Overlap must keep a fact that straddles a boundary recoverable (`_pack()` `tail = current[-overlap:]`).                                                                                                                                                                         |
+| **DOCX**                                               | Paragraph + Word Heading 1/2/3                                               | `python-docx`. Do **not** concatenate paragraphs and re-run the markdown chunker — you throw away heading styles. Map heading-styled paragraphs to `#` / `##`, then reuse `_split_by_heading()`. Tables: see Tables. Strip track-changes/comments first.                                          |
+| **PDF**                                                | Text PDF vs scanned PDF                                                      | **Text:** layout-aware extract (`pdfplumber`, `PyMuPDF`) — reading order + font-size as heading signal. Rebuild hierarchy from font-size deltas, then heading-split-and-pack. **Scanned:** OCR first (Images). Multi-column reports need column-aware extract or reading order silently breaks. |
+| **HTML**                                               | `<h1>`–`<h6>`, `<section>`, `<article>`, `<table>`, `<li>`      | Strip nav/footer/ads (readability-style, not raw`get_text()`). Same heading-to-marker conversion as DOCX, then the existing chunker.                                                                                                                                                                           |
+| **Tables** (DOCX / PDF / HTML / Excel)                 | One chunk per table, or per row-group if huge.**Never split mid-row.** | Same failure`chunker.py` warns about (service-credit tiers). Large tables: (a) repeat header column names on every chunk; (b) small pricing/tier tables stay **one atomic chunk**.                                                                                                                       |
+| **Excel / CSV**                                        | Logical row-groups (account, time window), not raw row count                 | 500-row slices have no topic for embedding. Prefer semantic groups. Always carry headers. Very wide tables (100+ cols): flatten to sentences (`For account X, revenue Q1 was Y…`) so the model sees relationships a raw grid hides.                                                                           |
+| **Images** (scans, screenshots, diagrams, whiteboards) | Not text until converted                                                     | (1)**OCR** then chunk like text — gate on confidence; do not silently index garbage. (2) **Multimodal embeddings** (CLIP-style) when visual structure *is* the meaning (charts). Enterprise default is usually (1); mention (2) for diagrams.                                                     |
+| **Code**                                               | Function/class boundaries (AST / tree-sitter). Never mid-function.           | Fallback: blank-line blocks + a hard cap — closer to`_pack()` than to headings.                                                                                                                                                                                                                               |
+| **PowerPoint**                                         | One chunk per slide (or a few adjacent sparse slides)                        | Slide title = header prefix, like`doc.title - section`. Append speaker notes to that slide’s chunk; do not orphan them.                                                                                                                                                                                       |
+| **Email / chat / tickets**                             | One turn, or question + resolving answer — not a character window           | A window that cuts a question from its answer is close to the worst failure for support RAG. Carry thread metadata (participants, time, resolution) the way`attrs` already rides on chunks — filtering *and* citations.                                                                                     |
 
 ### Size still matters, independent of format
 
@@ -294,13 +294,13 @@ to compromise on one global char target across formats: each format's **child** 
 true to its natural unit (one slide, one row-group, one turn) while the **parent** — section, full
 table, full thread — is what supplies context, uniformly, regardless of format.
 
-| | Flat chunking (today) | Parent-child |
-| --- | --- | --- |
-| Retrieval unit | = generation unit | Child (small, sharp) |
-| Generation unit | = retrieval unit | Parent (section/table/slide/thread) |
-| Cross-format tuning | One char target must serve every format | Child size follows each format's natural unit (§7); parent expansion is format-agnostic |
-| ACL/ABAC | Per-chunk (already works) | Per-parent, inherited — fewer places policy can drift |
-| Cost | N chunks embedded and searched | Same embed/search cost (children are still what's indexed); extra cost is only a parent lookup + dedup at context-build time |
+|                     | Flat chunking (today)                   | Parent-child                                                                                                                 |
+| ------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Retrieval unit      | = generation unit                       | Child (small, sharp)                                                                                                         |
+| Generation unit     | = retrieval unit                        | Parent (section/table/slide/thread)                                                                                          |
+| Cross-format tuning | One char target must serve every format | Child size follows each format's natural unit (§7); parent expansion is format-agnostic                                     |
+| ACL/ABAC            | Per-chunk (already works)               | Per-parent, inherited — fewer places policy can drift                                                                       |
+| Cost                | N chunks embedded and searched          | Same embed/search cost (children are still what's indexed); extra cost is only a parent lookup + dedup at context-build time |
 
 **Status: verbal.** No parent/child relationship exists in this repo's schema today — this is the
 next concrete extension, not a claimed capability.

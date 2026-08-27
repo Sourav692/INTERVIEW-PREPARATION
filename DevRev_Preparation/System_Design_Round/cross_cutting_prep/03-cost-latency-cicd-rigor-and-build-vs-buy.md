@@ -57,20 +57,40 @@ already exists for any project with a real eval suite — worth naming precisely
 suite itself doesn't need to be rebuilt, it needs a second trigger — a schedule, not only a
 code-change hook — because the thing that can regress isn't only your own work.
 
-## 4. Statistical rigor in A/B testing
+## 4. What A/B testing actually means for a RAG/agent system
 
-LLM outputs vary from run to run even with an identical prompt and identical inputs. A naive A/B test
-comparing two prompt or model variants on a small sample can easily be looking at noise, not a real
-difference — and this matters *more* for LLM outputs than for a typical product metric, because the
-natural variance is higher to begin with.
+In a normal product, A/B testing usually means "show half the users button A, half button B, see
+which one gets clicked more." In a RAG or agent system, the two "versions" being compared aren't
+buttons — they're things like:
 
-**The practical answer:** decide up front what size of improvement you actually care about detecting,
-size the sample to reliably detect an effect that large (ordinary statistics, nothing LLM-specific),
-and don't declare a winner before reaching that sample size — easy to state, easy to skip under
-deadline pressure, which is exactly why it's worth having as a rehearsed answer rather than winging it
-live.
+- **Two different prompts** for the same step (e.g. two ways of asking the model to answer with
+  citations).
+- **Two different retrieval strategies** (e.g. plain search vs. search-plus-reranking).
+- **Two different models** doing the same job (e.g. a cheaper model vs. a more expensive one for the
+  final answer).
 
-## 5. Unit-level testing for prompts
+Real users (or real tenants) get split between the two versions, and instead of "which one got
+clicked," you compare things like: did the answer actually resolve the question, did it need to be
+escalated to a human, did the user thumbs-up or thumbs-down it, was it accurate against the test set.
+The mechanics are the same as any A/B test — split traffic, measure an outcome, compare — just applied
+to "which prompt/retrieval/model answered better" instead of "which button got more clicks."
+
+## 5. Statistical rigor in A/B testing
+
+LLM outputs aren't perfectly consistent — ask the same question with the exact same prompt twice, and
+you can get two slightly different answers. Because of that, if you only test two prompt versions on a
+handful of examples, "version B scored a bit higher" might just be random noise, not a real
+improvement — and this risk is bigger for LLMs than for a typical product metric, because LLM answers
+naturally vary more than something like a click.
+
+**The simple fix:** before running the test, decide how big an improvement would actually matter to
+you. Then make sure you're testing on *enough* examples to reliably tell a real improvement of that
+size apart from random noise — this is just ordinary statistics, nothing LLM-specific. And don't
+declare a winner early, before you've reached that number of examples. It's an easy rule to state and
+an easy one to skip when you're in a hurry — which is exactly why it's worth having a rehearsed answer
+ready instead of winging it in the room.
+
+## 6. Unit-level testing for prompts
 
 A full evaluation suite (does the answer sound right, is it grounded, is it safe) is expensive and
 slow to run on every single change. A cheaper, faster layer sits in front of it: **does this prompt, in
@@ -82,7 +102,7 @@ a whole class of failure (a broken template, a missing variable) that the expens
 would also eventually catch, just far more slowly. It runs on every prompt change, before the real
 evaluation suite even starts — a cheap first gate, not a replacement for the real one.
 
-## 6. Build vs. buy — a decision worth arguing explicitly
+## 7. Build vs. buy — a decision worth arguing explicitly
 
 The general principle: **buy the undifferentiated layers, build the customer-specific logic.**
 Applied across a typical AI platform stack:

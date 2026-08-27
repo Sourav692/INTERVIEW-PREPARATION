@@ -63,17 +63,24 @@ python -m pytest -q     # 17 tests, deterministic, no API calls, well under a se
 
 ## Architecture
 
-```
-SCOPING -> gate:security_review -> DATA_READINESS -> gate:data_access -> CONFIGURE
-  (1-2)                              (3-4)                                 (5-7)
-                                        |
-                               day 3, still pending? AUTO-ESCALATE
+Stages in order, each blocked by the gate in front of it. If data access is still pending on day 3, the engagement auto-escalates — nobody has to notice.
 
-  -> gate:golden_set -> EVALUATE -> gate:eval_baseline -> SHADOW -> gate:rollback_tested
-                          (8-9)                            (10-11)
-
-  -> LIMITED_PROD -> gate:success_metrics -> GO_NO_GO -> DEPLOYED
-       (12-13)                                 (14)
+```mermaid
+flowchart TD
+    S["SCOPING days 1-2"] --> G1["gate: security_review"]
+    G1 --> DR["DATA_READINESS days 3-4"]
+    DR --> G2["gate: data_access"]
+    G2 --> ESC["AUTO-ESCALATE if still pending on day 3"]
+    G2 --> CFG["CONFIGURE days 5-7"]
+    CFG --> G3["gate: golden_set"]
+    G3 --> EV["EVALUATE days 8-9"]
+    EV --> G4["gate: eval_baseline"]
+    G4 --> SH["SHADOW days 10-11"]
+    SH --> G5["gate: rollback_tested"]
+    G5 --> LP["LIMITED_PROD days 12-13"]
+    LP --> G6["gate: success_metrics"]
+    G6 --> GN["GO_NO_GO day 14"]
+    GN --> DEP["DEPLOYED"]
 ```
 
 `advance_stage()` only ever moves to the immediate next stage — there is no code path that skips

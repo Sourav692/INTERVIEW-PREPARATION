@@ -34,19 +34,22 @@ vendor's own team.
 
 ## 3. Multi-provider failover
 
-A circuit breaker (stop calling a dependency for a while after it fails repeatedly, then cautiously
-retry) handles one specific case: **the same provider, temporarily unavailable.** It does not handle a
-different, common case: **that provider being down for an extended outage**, where the right move is
-to fail over to a second provider or a smaller fallback model, not just wait it out.
+A circuit breaker is good at one thing: "this provider is glitching right now, stop hammering it, try
+again soon." It's not built for a longer outage — if the provider is down for 20 minutes, the circuit
+breaker just keeps waiting and retrying, over and over, with nothing coming back.
 
-**The mechanism this needs, on top of a circuit breaker:**
-- A **provider abstraction** with a primary and at least one registered fallback — not one hardcoded
-  client with nowhere to go when it fails.
-- **Explicit user-facing degradation.** A fallback model or vendor may answer measurably worse —
-  say so, rather than silently serving a worse answer with the same confidence as normal.
-- **Make the cost/quality tradeoff a tenant-level choice**, not a silent default — some customers on
-  a strict quality bar might prefer to wait and retry the primary rather than get an automatic
-  downgrade.
+For that longer outage, you need something extra — a **backup provider** to switch to, not just a
+pause-and-retry loop. Three simple pieces:
+
+1. **Have a backup ready.** Don't build the system so it only knows how to talk to one AI provider.
+   Set it up so it can call a second one (or a smaller/cheaper model) if the first one's really down —
+   not scrambling to figure that out mid-outage.
+2. **Tell the user when you've switched.** If the answer now came from the backup, it might not be as
+   good as usual — say so ("this answer used a backup system and may be less accurate") instead of
+   pretending everything's normal.
+3. **Let the customer choose what they'd prefer.** Some customers care more about accuracy than speed
+   — they'd rather wait for the main provider to come back than get an instant but weaker answer. So
+   this shouldn't be one fixed rule for everyone — it should be a setting each customer can pick.
 
 ## 4. "Search index down → degrade gracefully, and say so"
 
