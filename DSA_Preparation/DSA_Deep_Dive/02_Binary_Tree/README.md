@@ -4,7 +4,7 @@
 > That tiny restriction — "at most two, and they're ordered" — is what makes binary trees the workhorse of algorithms:
 > it unlocks in-order traversal, clean recursion, array packing, and (with one more rule) the binary *search* tree.
 
-Prerequisite: the vocabulary from [Generic Trees](01_Generic_Tree.md) — root, leaf, depth, height, subtree.
+Prerequisite: the vocabulary from [Generic Trees](../01_Generic_Tree/README.md) — root, leaf, depth, height, subtree.
 
 ---
 
@@ -215,7 +215,7 @@ Because children are ordered as left/right, a binary tree supports **three** DFS
 - **Post-order** — Left, Right, Node → delete/free, or compute bottom-up (heights, sums).
 - **Level-order (BFS)** — row by row → shortest paths, level grouping.
 
-These deserve their own deep dive: **[Tree Traversal →](04_Tree_Traversal.md)**.
+These deserve their own deep dive: **[Tree Traversal →](../04_Tree_Traversal/README.md)**.
 
 ---
 
@@ -230,4 +230,4 @@ These deserve their own deep dive: **[Tree Traversal →](04_Tree_Traversal.md)*
 | Recursion shape?          | Solve`left`, solve `right`, **combine**.                                          |
 | "Report vs answer" trick? | Return one value up (height); track the real answer in a side variable (diameter).          |
 
-**Next:** [Binary Search Trees →](03_Binary_Search_Tree.md) — add one ordering rule and searching becomes `O(log n)`.
+**Next:** [Binary Search Trees →](../03_Binary_Search_Tree/README.md) — add one ordering rule and searching becomes `O(log n)`.

@@ -4,7 +4,7 @@
 > vertex can reach every other** (following the arrows). Finding SCCs reveals the "mutually-dependent clusters" in a
 > system — cyclic module dependencies, deadlock groups, 2-SAT solutions, tightly-linked web pages.
 
-Prerequisite: [Graph Traversal](07_Graph_Traversal.md) and [Cycle Detection](11_Cycle_Detection.md) — directed DFS.
+Prerequisite: [Graph Traversal](../07_Graph_Traversal/README.md) and [Cycle Detection](../11_Cycle_Detection/README.md) — directed DFS.
 
 ---
 

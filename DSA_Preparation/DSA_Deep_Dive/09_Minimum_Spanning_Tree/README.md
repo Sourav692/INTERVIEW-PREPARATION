@@ -4,7 +4,7 @@
 > **cheapest total set of edges** — with **no cycles**. Think "wire up every house to the network for the least cable",
 > or "connect all data centres with minimum total latency". Two greedy algorithms find it: **Kruskal** and **Prim**.
 
-Prerequisite: [Weighted Shortest Paths](08_Weighted_Shortest_Paths.md) — weighted graphs and edge lists.
+Prerequisite: [Weighted Shortest Paths](../08_Weighted_Shortest_Paths/README.md) — weighted graphs and edge lists.
 
 ---
 
@@ -194,4 +194,4 @@ graph LR
 | Union-Find ops? | `find` (with path compression) + `union` (by rank) ≈ **O(α(n))**. |
 | Cycle check = ? | `find(u) == find(v)` → adding `u–v` would form a cycle. |
 
-**Next:** [Topological Sort →](10_Topological_Sort.md) — ordering a DAG so every dependency comes first.
+**Next:** [Topological Sort →](../10_Topological_Sort/README.md) — ordering a DAG so every dependency comes first.

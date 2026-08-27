@@ -4,7 +4,7 @@
 > extra rules; a linked list is a graph in a line. Once you can *see* a problem as vertices and edges, a huge family
 > of problems — maps, networks, dependencies, recommendations — becomes one toolkit.
 
-Prerequisite: the tree series ([Generic](01_Generic_Tree.md) → [Traversal](04_Tree_Traversal.md)). A tree is a
+Prerequisite: the tree series ([Generic](../01_Generic_Tree/README.md) → [Traversal](../04_Tree_Traversal/README.md)). A tree is a
 **connected, acyclic graph**, so everything you learned there is a special case of what follows.
 
 ---
@@ -172,5 +172,5 @@ graph LR
 | Sparse vs dense? | `E ≈ V` vs `E ≈ V²` — picks your representation. |
 | Degree? | edges touching a vertex (in/out for directed). |
 
-**Next:** [Graph Representation →](06_Graph_Representation.md) — how to actually store a graph (adjacency **matrix**
+**Next:** [Graph Representation →](../06_Graph_Representation/README.md) — how to actually store a graph (adjacency **matrix**
 vs **list**), and the space/time trade-off that decides which to use.

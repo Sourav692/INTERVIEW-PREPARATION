@@ -4,7 +4,7 @@
 > largest) — no matter the insertion order. A **heap** is the clever tree that makes both "add" and "remove the
 > best" cost only `O(log n)`. It's the engine behind Dijkstra, Prim, top-K, streaming medians, and schedulers.
 
-Prerequisite: [Binary Trees](02_Binary_Tree.md) — complete trees and the `2i+1 / 2i+2` array packing.
+Prerequisite: [Binary Trees](../02_Binary_Tree/README.md) — complete trees and the `2i+1 / 2i+2` array packing.
 
 ---
 
@@ -49,7 +49,7 @@ graph TD
 
 ### Stored as an array — no pointers
 
-Because a heap is a **complete** tree, it packs perfectly into an array (see [Binary Trees §4b](02_Binary_Tree.md)):
+Because a heap is a **complete** tree, it packs perfectly into an array (see [Binary Trees §4b](../02_Binary_Tree/README.md)):
 
 ```
 index:   0   1   2   3   4   5
@@ -203,4 +203,4 @@ flowchart TD
 | Max-heap in Python? | negate values (`heapq` is min-only). |
 | Classic uses? | Dijkstra/Prim, top-K, two-heap median, merge-K, schedulers. |
 
-**Next:** [Tries →](13_Tries.md) — a tree keyed by characters for lightning-fast prefix queries.
+**Next:** [Tries →](../13_Tries/README.md) — a tree keyed by characters for lightning-fast prefix queries.

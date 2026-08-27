@@ -1,10 +1,10 @@
 # 🧭 A\* & Floyd-Warshall — Smarter & All-Pairs Shortest Paths
 
-> [Dijkstra](08_Weighted_Shortest_Paths.md) finds the cheapest path from one source. Two important relatives extend
+> [Dijkstra](../08_Weighted_Shortest_Paths/README.md) finds the cheapest path from one source. Two important relatives extend
 > it: **A\*** adds a *heuristic* to reach a **specific goal** faster, and **Floyd-Warshall** computes the shortest path
 > between **every pair** of vertices at once. Same core idea (relaxation), two different goals.
 
-Prerequisite: [Weighted Shortest Paths](08_Weighted_Shortest_Paths.md) — Dijkstra and relaxation.
+Prerequisite: [Weighted Shortest Paths](../08_Weighted_Shortest_Paths/README.md) — Dijkstra and relaxation.
 
 ---
 
@@ -137,4 +137,4 @@ flowchart TD
 | Detect neg cycle (FW)? | some **`dist[i][i] < 0`**. |
 | All-pairs cost? | `O(V³)` time, `O(V²)` space. |
 
-**Next:** [Strongly Connected Components →](15_Strongly_Connected_Components.md) — Tarjan & Kosaraju.
+**Next:** [Strongly Connected Components →](../15_Strongly_Connected_Components/README.md) — Tarjan & Kosaraju.

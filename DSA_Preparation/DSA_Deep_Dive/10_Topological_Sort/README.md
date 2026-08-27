@@ -4,7 +4,7 @@
 > forward** — every task comes *before* the tasks that depend on it. It's the algorithm behind build systems, course
 > prerequisites, package installers, spreadsheet recalculation, and task pipelines.
 
-Prerequisite: [Graph Traversal](07_Graph_Traversal.md) — directed graphs, in-degree, BFS/DFS.
+Prerequisite: [Graph Traversal](../07_Graph_Traversal/README.md) — directed graphs, in-degree, BFS/DFS.
 
 ---
 
@@ -118,7 +118,7 @@ graph LR
 
 - **Complexity:** `O(V + E)`.
 - **The 3 colours** (unseen / in-progress / done) also detect cycles: an edge to an **in-progress** vertex is a "back
-  edge" → a cycle. (This is exactly the [directed cycle detection](11_Cycle_Detection.md) trick.)
+  edge" → a cycle. (This is exactly the [directed cycle detection](../11_Cycle_Detection/README.md) trick.)
 
 ---
 
@@ -151,5 +151,5 @@ other, either can go first) — all algorithms just produce *one* of them.
 | Unique order? | usually **no** — many valid orders exist. |
 | Cost? | `O(V + E)`. |
 
-**Next:** [Cycle Detection →](11_Cycle_Detection.md) — the flip side: proving a graph has (or hasn't) a cycle, in both
+**Next:** [Cycle Detection →](../11_Cycle_Detection/README.md) — the flip side: proving a graph has (or hasn't) a cycle, in both
 undirected and directed graphs.

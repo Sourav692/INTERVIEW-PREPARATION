@@ -4,8 +4,8 @@
 > dependency graph schedulable?", "does this set of constraints contradict itself?", "did adding this edge close a
 > loop?". The technique differs in one crucial way between **undirected** and **directed** graphs.
 
-Prerequisite: [Graph Traversal](07_Graph_Traversal.md). This chapter also ties together
-[Union-Find](09_Minimum_Spanning_Tree.md) and [Topological Sort](10_Topological_Sort.md).
+Prerequisite: [Graph Traversal](../07_Graph_Traversal/README.md). This chapter also ties together
+[Union-Find](../09_Minimum_Spanning_Tree/README.md) and [Topological Sort](../10_Topological_Sort/README.md).
 
 ---
 
@@ -61,7 +61,7 @@ graph LR
 ### Alternative: Union-Find (for undirected)
 
 Process each edge `u–v`: if `u` and `v` are **already in the same group**, this edge closes a cycle. Otherwise
-`union` them. (This is the cycle check inside [Kruskal's MST](09_Minimum_Spanning_Tree.md).)
+`union` them. (This is the cycle check inside [Kruskal's MST](../09_Minimum_Spanning_Tree/README.md).)
 
 ```python
 def has_cycle_uf(n, edges):
@@ -121,7 +121,7 @@ graph LR
 
 ### Alternative: Kahn's algorithm
 
-Run [topological sort](10_Topological_Sort.md); if it can't place all `V` vertices (output size `< V`), the leftover
+Run [topological sort](../10_Topological_Sort/README.md); if it can't place all `V` vertices (output size `< V`), the leftover
 vertices are trapped in a cycle. Same `O(V + E)`, no recursion.
 
 ---
@@ -154,5 +154,5 @@ flowchart TD
 | Directed without DFS? | **Kahn's** topo sort — if it places `< V` vertices, there's a cycle. |
 | Cost? | `O(V + E)` either way. |
 
-**Back to the map:** [README](README.md) · or revisit [Topological Sort](10_Topological_Sort.md) and
-[MST / Union-Find](09_Minimum_Spanning_Tree.md), which both lean on cycle reasoning.
+**Back to the map:** [README](README.md) · or revisit [Topological Sort](../10_Topological_Sort/README.md) and
+[MST / Union-Find](../09_Minimum_Spanning_Tree/README.md), which both lean on cycle reasoning.

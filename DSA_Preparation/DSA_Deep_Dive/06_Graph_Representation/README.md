@@ -4,7 +4,7 @@
 > matrix** and the **adjacency list** — and choosing between them is one of the most practical decisions in all of
 > algorithms. This chapter builds both for the *same* graph and compares them head-to-head.
 
-Prerequisite: [Graph Fundamentals](05_Graph_Fundamentals.md) — vertices, edges, degree, sparse vs dense.
+Prerequisite: [Graph Fundamentals](../05_Graph_Fundamentals/README.md) — vertices, edges, degree, sparse vs dense.
 
 We'll represent this one undirected graph throughout:
 
@@ -162,5 +162,5 @@ edges = [(0,1), (0,3), (1,2), (1,4), (2,5), (3,4), (4,5)]
 | Why traversal is O(V+E)? | list visits each vertex + each edge once. |
 | Edge list good for? | edge-centric algorithms (Kruskal, Union-Find). |
 
-**Next:** [Graph Traversal →](07_Graph_Traversal.md) — BFS and DFS over an adjacency list, the all-important
+**Next:** [Graph Traversal →](../07_Graph_Traversal/README.md) — BFS and DFS over an adjacency list, the all-important
 **visited set**, and what each traversal is good for.

@@ -4,7 +4,7 @@
 > structure: for every node, **everything on its left is smaller, everything on its right is larger.** That single
 > invariant is what gives you `O(log n)` search, insert, and delete — as long as the tree stays balanced.
 
-Prerequisite: [Binary Trees](02_Binary_Tree.md) — nodes, left/right, height, and why height drives cost.
+Prerequisite: [Binary Trees](../02_Binary_Tree/README.md) — nodes, left/right, height, and why height drives cost.
 
 ---
 
@@ -239,5 +239,5 @@ graph TD
 | Validate correctly?     | carry a**(low, high) range** down — not just child comparisons.     |
 | Biggest risk?           | **skew** on sorted input → `O(n)`; fix with a self-balancing BST. |
 
-**Next:** [Tree Traversal →](04_Tree_Traversal.md) — the four orders (pre / in / post / level), recursive *and*
+**Next:** [Tree Traversal →](../04_Tree_Traversal/README.md) — the four orders (pre / in / post / level), recursive *and*
 iterative, and exactly when to reach for each.

@@ -4,7 +4,7 @@
 > (BFS) — but DFS splits into three orders (**pre / in / post**) and each one is the *right* tool for a different job.
 > Get this chapter cold and most tree problems become "pick the order, then do the obvious thing."
 
-Prerequisite: [Binary Trees](02_Binary_Tree.md). We'll use this one tree throughout:
+Prerequisite: [Binary Trees](../02_Binary_Tree/README.md). We'll use this one tree throughout:
 
 ```mermaid
 graph TD
@@ -218,5 +218,5 @@ It's rarely needed but a strong thing to *name* when asked "can you do better th
 | Rebuild a tree from traversals?       | need**in-order + (pre or post)**.                |
 | Better than O(h) space?               | **Morris** in-order, `O(1)`.                   |
 
-**Back to the start:** [Generic Trees](01_Generic_Tree.md) · [Binary Trees](02_Binary_Tree.md) ·
-[Binary Search Trees](03_Binary_Search_Tree.md)
+**Back to the start:** [Generic Trees](../01_Generic_Tree/README.md) · [Binary Trees](../02_Binary_Tree/README.md) ·
+[Binary Search Trees](../03_Binary_Search_Tree/README.md)

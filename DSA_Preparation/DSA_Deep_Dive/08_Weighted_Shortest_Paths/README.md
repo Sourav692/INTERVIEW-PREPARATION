@@ -5,7 +5,7 @@
 > this: **Dijkstra** (fast, needs non-negative weights) and **Bellman-Ford** (slower, but handles negative edges and
 > detects negative cycles).
 
-Prerequisite: [Graph Traversal](07_Graph_Traversal.md) — BFS, adjacency lists, the visited set.
+Prerequisite: [Graph Traversal](../07_Graph_Traversal/README.md) — BFS, adjacency lists, the visited set.
 
 ---
 
@@ -151,5 +151,5 @@ flowchart TD
 | Bellman-Ford idea? | relax **all edges `V−1` times**; a further improvement ⇒ **negative cycle**. |
 | All-pairs? | **Floyd-Warshall**, `O(V³)`. |
 
-**Next:** [Minimum Spanning Tree →](09_Minimum_Spanning_Tree.md) — connect everything for the least total weight,
+**Next:** [Minimum Spanning Tree →](../09_Minimum_Spanning_Tree/README.md) — connect everything for the least total weight,
 with Kruskal, Prim, and Union-Find.

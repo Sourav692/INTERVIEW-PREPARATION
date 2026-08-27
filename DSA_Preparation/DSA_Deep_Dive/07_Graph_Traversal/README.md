@@ -4,7 +4,7 @@
 > **BFS** (breadth-first, a queue) and **DFS** (depth-first, a stack/recursion). They look almost identical in code —
 > the *only* real difference is the data structure — but they answer different questions.
 
-Prerequisite: [Graph Representation](06_Graph_Representation.md). We'll traverse this graph, stored as an
+Prerequisite: [Graph Representation](../06_Graph_Representation/README.md). We'll traverse this graph, stored as an
 **adjacency list**:
 
 ```mermaid
@@ -194,5 +194,5 @@ def count_components(adj, vertices):
 | Disconnected graph? | traverse from **every unvisited vertex** → counts components. |
 | Weighted shortest path? | **not** plain BFS — use **Dijkstra** (a later topic). |
 
-**Back to the start:** [Graph Fundamentals](05_Graph_Fundamentals.md) ·
-[Graph Representation](06_Graph_Representation.md) · or revisit the [Tree series](01_Generic_Tree.md).
+**Back to the start:** [Graph Fundamentals](../05_Graph_Fundamentals/README.md) ·
+[Graph Representation](../06_Graph_Representation/README.md) · or revisit the [Tree series](../01_Generic_Tree/README.md).

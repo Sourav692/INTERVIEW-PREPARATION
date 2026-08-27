@@ -248,5 +248,5 @@ height (worst case `O(n)` for a long skinny tree).
 | Typical cost?        | `O(n)` time, `O(h)` extra space (recursion depth).                                   |
 | Interview reflex     | *"I'll traverse once and combine each subtree's result."*                              |
 
-**Next:** [Binary Trees →](02_Binary_Tree.md) — the special case where every node has at most two children, which
+**Next:** [Binary Trees →](../02_Binary_Tree/README.md) — the special case where every node has at most two children, which
 unlocks a whole extra traversal (in-order) and neat array tricks.

@@ -5,7 +5,7 @@
 > autocomplete, "does any word start with…", spell-check — cost only `O(length)`, independent of how many words you
 > stored.
 
-Prerequisite: [Generic Trees](01_Generic_Tree.md) — a trie is an N-ary tree (one child per possible next character).
+Prerequisite: [Generic Trees](../01_Generic_Tree/README.md) — a trie is an N-ary tree (one child per possible next character).
 
 ---
 
@@ -156,4 +156,4 @@ graph LR
 | The classic trap? | a node existing ≠ a word ending there — check **`is_word`**. |
 | Save space? | **compressed trie / radix tree** merges single-child chains. |
 
-**Next:** [A\* & Floyd-Warshall →](14_AStar_Floyd_Warshall.md) — heuristic-guided and all-pairs shortest paths.
+**Next:** [A\* & Floyd-Warshall →](../14_AStar_Floyd_Warshall/README.md) — heuristic-guided and all-pairs shortest paths.
