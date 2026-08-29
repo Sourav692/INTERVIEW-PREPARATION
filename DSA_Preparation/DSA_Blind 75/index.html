@@ -25,84 +25,283 @@
   .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
   a{color:var(--accent)}
   .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
-  .back{font-size:14px;text-decoration:none}
   h1{font-size:26px;margin:.2em 0}
   h2{font-size:20px;margin:1.5em 0 .4em}
-  .tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
-  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#eab308}
   .lead{color:var(--muted);font-size:15px}
   .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
     padding:18px;margin:14px 0;box-shadow:var(--shadow)}
-  .idea{background:var(--accent-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:10px 0}
-  .big{font-size:17px}
   code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;font-size:.9em}
-  .viz{overflow-x:auto;padding:8px 2px 4px}
-  .rowlabel{font-size:12px;color:var(--muted);margin:8px 0 2px}
-  .row{display:flex;gap:10px;min-width:min-content;justify-content:center}
-  .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
-  .ptr{height:22px;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
-  .box{width:52px;height:52px;border-radius:10px;border:2px solid var(--border);background:var(--card);
-    display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;transition:.15s}
-  .idxlabel{font-size:11px;color:var(--muted)}
-  .box.hi{background:var(--hi);border-color:var(--hi-bd)}
-  .box.good{background:var(--good);border-color:var(--good-bd)}
-  .box.bad{background:var(--bad);border-color:var(--bad-bd)}
-  .box.seen{background:var(--seen);border-color:var(--seen-bd)}
-  .box.dim{opacity:.35}
-  .bars{display:flex;gap:8px;align-items:flex-end;min-width:min-content;justify-content:center;padding-top:22px}
-  .barcell{display:flex;flex-direction:column;align-items:center;gap:4px}
-  .bar{width:34px;border-radius:8px 8px 0 0;background:var(--accent-soft);border:2px solid var(--border);
-    display:flex;align-items:flex-start;justify-content:center;font-size:12px;font-weight:700;padding-top:3px;color:var(--fg);transition:.15s}
-  .bar.hi{background:var(--hi);border-color:var(--hi-bd)} .bar.good{background:var(--good);border-color:var(--good-bd)}
-  .bar.dim{opacity:.35}
-  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-  .badge{background:var(--accent-soft);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:14px}
-  .badge.good{background:var(--good);border-color:var(--good-bd)}
-  .badge.bad{background:var(--bad);border-color:var(--bad-bd)}
-  .mem{margin-top:14px}
-  .mem h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
-  .chips{display:flex;flex-wrap:wrap;gap:8px;min-height:34px}
-  .chip{background:var(--seen);border:1px solid var(--seen-bd);border-radius:8px;padding:4px 10px;font-size:14px;font-weight:600}
-  .chip.look{background:var(--good);border-color:var(--good-bd)}
-  .empty{color:var(--muted);font-size:13px;font-style:italic}
-  .caption{margin:12px 0 6px;min-height:44px;font-size:15px}
-  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px}
-  button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--card);
-    color:var(--fg);border-radius:9px;padding:7px 12px;transition:.12s}
-  button:hover{border-color:var(--accent);color:var(--accent)}
-  button:disabled{opacity:.4;cursor:not-allowed}
-  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .counter{margin-left:auto;font-size:13px;color:var(--muted)}
-  .speed{font-size:14px;color:var(--muted);margin-top:10px}
-  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:6px 0 2px}
-  .legend span{display:inline-flex;align-items:center;gap:5px}
-  .sw{width:13px;height:13px;border-radius:4px;border:2px solid}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
-  .pcard{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);
-    border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.12s}
-  .pcard:hover{border-color:var(--accent);transform:translateY(-2px)}
-  .pcard .n{font-size:12px;color:var(--muted)}
-  .pcard .t{font-size:17px;font-weight:700;margin:2px 0 6px}
-  .pcard .b{font-size:13px;color:var(--muted)}
 
   .hero{background:var(--accent-soft);border:1px solid var(--border);border-radius:16px;padding:22px;margin:14px 0;box-shadow:var(--shadow)}
   .bar{height:14px;border-radius:8px;background:var(--border);overflow:hidden;margin:10px 0 6px}
   .bar > span{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#3563e9)}
   .stat{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:6px}
   .stat b{color:var(--fg)}
-  .pcard .cnt{font-size:12px;color:var(--muted);margin:2px 0 6px}
-  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
   .pill{font-size:11px;font-weight:700;border-radius:20px;padding:2px 9px}
-  .sub{margin-top:10px;font-size:13px}
-  .grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+  button{font:inherit;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--card);
+    color:var(--fg);border-radius:9px;padding:6px 12px;transition:.12s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:1.5em 0 .6em}
+
+  /* ---- Accordion topic cards ---- */
+  .acc{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    margin:10px 0;box-shadow:var(--shadow);overflow:hidden}
+  .acc > summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:center;gap:12px}
+  .acc > summary::-webkit-details-marker{display:none}
+  .acc > summary::before{content:"▸";display:inline-block;color:var(--accent);font-size:14px;
+    transition:transform .15s;flex:0 0 auto;width:14px}
+  .acc[open] > summary::before{transform:rotate(90deg)}
+  .acc > summary:hover{background:var(--accent-soft)}
+  .acc .head-main{flex:1 1 auto;min-width:0}
+  .acc .t{font-size:17px;font-weight:700}
+  .acc .cnt{font-size:12px;color:var(--muted);margin-top:1px}
+  .acc .b{font-size:13px;color:var(--muted);margin-top:4px}
+  .acc .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .acc .panel{padding:0 16px 16px 42px;border-top:1px solid var(--border)}
+  .acc .quicklinks{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin:12px 0 10px;padding-top:2px}
+  .acc .group{margin-top:14px}
+  .acc .group h4{margin:0 0 6px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  .acc .problist{display:flex;flex-wrap:wrap;gap:8px}
+  .acc .problist a{display:inline-block;background:var(--accent-soft);border:1px solid var(--border);
+    border-radius:8px;padding:5px 11px;font-size:13.5px;text-decoration:none;color:var(--fg);transition:.12s}
+  .acc .problist a:hover{border-color:var(--accent);color:var(--accent)}
 </style>
 </head>
 <body><div class="wrap">
 <h1>🎯 Blind 75 — Visual Study Hub</h1>
 <p class="lead">Every Blind 75 problem, explained with interactive step-by-step diagrams in plain language — plus a per-topic interview cheat sheet.</p>
 <div class="hero"><h2 style="margin:.1em 0">All 75 complete — 100%</h2><div class="bar"><span style="width:100%"></span></div><div class="stat"><span><b>75</b> problems</span><span>🟢 <b>19</b> Easy</span><span>🟡 <b>49</b> Medium</span><span>🔴 <b>7</b> Hard</span><span>📒 <b>10</b> topics</span></div><p style="margin:.8em 0 0;font-size:14px"><a href="README.md"><b>📚 Concept tutorials</b></a> (with diagrams) &nbsp;·&nbsp; <a href="Blind75_Tracker.md"><b>📝 Progress tracker</b></a></p></div>
-<h2>Browse by topic</h2>
-<div class="grid"><a class="pcard" href="Array/index.html"><div class="t">Array</div><div class="cnt">10 problems</div><div class="b">Two pointers, hash maps, running values.</div><div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">3 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">7 Med</span></div></a><a class="pcard" href="String/index.html"><div class="t">String</div><div class="cnt">10 problems</div><div class="b">Sliding windows, counts, palindromes.</div><div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">3 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">6 Med</span><span class="pill" style="background:#fee2e2;color:#991b1b">1 Hard</span></div></a><a class="pcard" href="Tree/index.html"><div class="t">Tree</div><div class="cnt">14 problems</div><div class="b">DFS/BFS, BST tricks, tries.</div><div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">4 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">7 Med</span><span class="pill" style="background:#fee2e2;color:#991b1b">3 Hard</span></div></a><a class="pcard" href="Graph/index.html"><div class="t">Graph</div><div class="cnt">8 problems</div><div class="b">Traversal, flood fill, topo sort, union-find.</div><div class="pills"><span class="pill" style="background:#fef9c3;color:#854d0e">7 Med</span><span class="pill" style="background:#fee2e2;color:#991b1b">1 Hard</span></div></a><a class="pcard" href="Dynamic%20Programming/index.html"><div class="t">Dynamic Programming</div><div class="cnt">11 problems</div><div class="b">Tables, recurrences, greedy, backtracking.</div><div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">1 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">10 Med</span></div></a><a class="pcard" href="Linked%20List/index.html"><div class="t">Linked List</div><div class="cnt">6 problems</div><div class="b">Pointer juggling, fast/slow, heap merge.</div><div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">3 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">2 Med</span><span class="pill" style="background:#fee2e2;color:#991b1b">1 Hard</span></div></a><a class="pcard" href="Binary/index.html"><div class="t">Binary / Bit</div><div class="cnt">5 problems</div><div class="b">XOR, masks, bit tricks.</div><div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">4 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">1 Med</span></div></a><a class="pcard" href="Interval/index.html"><div class="t">Interval</div><div class="cnt">5 problems</div><div class="b">Sort then sweep, overlap counting.</div><div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">1 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">4 Med</span></div></a><a class="pcard" href="Matrix/index.html"><div class="t">Matrix</div><div class="cnt">4 problems</div><div class="b">In-place tricks, boundaries, backtracking.</div><div class="pills"><span class="pill" style="background:#fef9c3;color:#854d0e">4 Med</span></div></a><a class="pcard" href="Heap/index.html"><div class="t">Heap</div><div class="cnt">3 problems</div><div class="b">Top-k and two-heap median.</div><div class="pills"><span class="pill" style="background:#fef9c3;color:#854d0e">2 Med</span><span class="pill" style="background:#fee2e2;color:#991b1b">1 Hard</span></div></a></div>
-<div class="card" style="margin-top:20px"><h2 style="margin-top:.2em">How to use this</h2><p><b>Each problem page</b> has the idea in plain words and an interactive diagram — press <b>▶ Play</b> or step with <b>Prev / Next</b>.</p><p><b>Each topic’s cheat sheet</b> (🧩) lists the handful of patterns behind its problems, how to spot each one, and a sentence to say in an interview.</p><p><b>Each topic's <code>README.md</code></b> (📚) teaches the ideas behind that topic in plain language with mermaid diagrams — read it before starting a topic.</p><p><b>Each problem's notebook</b> (in the same topic folder) holds the full Python solutions (worst → optimal), correctness tests, and empirical Big-O benchmarks.</p><p style="color:var(--muted);font-size:13px">Tip: everything works offline — just double-click any <code>index.html</code>.</p></div>
+
+<div class="toolbar">
+  <h2 style="margin:0">Browse by topic</h2>
+  <span><button id="expandAll">Expand all</button> <button id="collapseAll">Collapse all</button></span>
+</div>
+
+<details class="acc" id="topic-array">
+  <summary><div class="head-main"><div class="t">Array</div><div class="cnt">10 problems</div><div class="b">Two pointers, hash maps, running values.</div>
+    <div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">3 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">7 Med</span></div>
+  </div></summary>
+  <div class="panel">
+    <div class="quicklinks"><a href="Array/README.md">📚 Tutorial</a><a href="Array/patterns.html">🧩 Cheat sheet</a><a href="Array/index.html">🖼️ Visual sub-hub</a></div>
+    <div class="group"><h4>1 · Hashing Pattern</h4><div class="problist">
+      <a href="Array/Group%201_%20hashing-pattern/two_sum.html">Two Sum</a>
+      <a href="Array/Group%201_%20hashing-pattern/contains_duplicate.html">Contains Duplicate</a>
+    </div></div>
+    <div class="group"><h4>2 · Two Pointers</h4><div class="problist">
+      <a href="Array/Group%202_two-pointers/three_sum.html">3Sum</a>
+      <a href="Array/Group%202_two-pointers/container_with_most_water.html">Container With Most Water</a>
+    </div></div>
+    <div class="group"><h4>3 · Kadane / Running Aggregates</h4><div class="problist">
+      <a href="Array/Group%203_kadane-running-aggregates/maximum_subarray.html">Maximum Subarray</a>
+      <a href="Array/Group%203_kadane-running-aggregates/maximum_product_subarray.html">Maximum Product Subarray</a>
+      <a href="Array/Group%203_kadane-running-aggregates/best_time_to_buy_and_sell_stock.html">Best Time to Buy and Sell Stock</a>
+    </div></div>
+    <div class="group"><h4>4 · Rotated Binary Search</h4><div class="problist">
+      <a href="Array/Group%204_rotated-binary-search/find_minimum_in_rotated_sorted_array.html">Find Minimum in Rotated Sorted Array</a>
+      <a href="Array/Group%204_rotated-binary-search/search_in_rotated_sorted_array.html">Search in Rotated Sorted Array</a>
+    </div></div>
+    <div class="group"><h4>5 · Prefix/Suffix Products</h4><div class="problist">
+      <a href="Array/Group%205_prefix-suffix-products/product_of_array_except_self.html">Product of Array Except Self</a>
+    </div></div>
+  </div>
+</details>
+
+<details class="acc" id="topic-string">
+  <summary><div class="head-main"><div class="t">String</div><div class="cnt">10 problems</div><div class="b">Sliding windows, counts, palindromes.</div>
+    <div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">3 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">6 Med</span><span class="pill" style="background:#fee2e2;color:#991b1b">1 Hard</span></div>
+  </div></summary>
+  <div class="panel">
+    <div class="quicklinks"><a href="String/README.md">📚 Tutorial</a><a href="String/patterns.html">🧩 Cheat sheet</a><a href="String/index.html">🖼️ Visual sub-hub</a></div>
+    <div class="group"><h4>1 · Sliding Window</h4><div class="problist">
+      <a href="String/Group%201_sliding-window/longest_substring_without_repeating.html">Longest Substring Without Repeating Characters</a>
+      <a href="String/Group%201_sliding-window/longest_repeating_character_replacement.html">Longest Repeating Character Replacement</a>
+      <a href="String/Group%201_sliding-window/minimum_window_substring.html">Minimum Window Substring</a>
+    </div></div>
+    <div class="group"><h4>2 · Expand Around Center</h4><div class="problist">
+      <a href="String/Group%202_expand-around-center/longest_palindromic_substring.html">Longest Palindromic Substring</a>
+      <a href="String/Group%202_expand-around-center/palindromic_substrings.html">Palindromic Substrings</a>
+    </div></div>
+    <div class="group"><h4>3 · Other Patterns</h4><div class="problist">
+      <a href="String/Group%203_Other%20Patterns/valid_anagram.html">Valid Anagram</a>
+      <a href="String/Group%203_Other%20Patterns/group_anagrams.html">Group Anagrams</a>
+      <a href="String/Group%203_Other%20Patterns/valid_parentheses.html">Valid Parentheses</a>
+      <a href="String/Group%203_Other%20Patterns/valid_palindrome.html">Valid Palindrome</a>
+      <a href="String/Group%203_Other%20Patterns/encode_and_decode_strings.html">Encode and Decode Strings</a>
+    </div></div>
+  </div>
+</details>
+
+<details class="acc" id="topic-tree">
+  <summary><div class="head-main"><div class="t">Tree</div><div class="cnt">14 problems</div><div class="b">DFS/BFS, BST tricks, tries.</div>
+    <div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">4 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">7 Med</span><span class="pill" style="background:#fee2e2;color:#991b1b">3 Hard</span></div>
+  </div></summary>
+  <div class="panel">
+    <div class="quicklinks"><a href="Tree/README.md">📚 Tutorial</a><a href="Tree/patterns.html">🧩 Cheat sheet</a><a href="Tree/index.html">🖼️ Visual sub-hub</a></div>
+    <div class="group"><h4>0 · Traversal Primer</h4><div class="problist">
+      <a href="Tree/0.%20tree_traversals_dfs_and_bfs.ipynb">Tree Traversals — DFS &amp; BFS (notebook)</a>
+    </div></div>
+    <div class="group"><h4>1 · Basic Tree DFS</h4><div class="problist">
+      <a href="Tree/Group%201_Basic%20Tree%20DFS/maximum_depth_of_binary_tree.html">Maximum Depth of Binary Tree</a>
+      <a href="Tree/Group%201_Basic%20Tree%20DFS/same_tree.html">Same Tree</a>
+      <a href="Tree/Group%201_Basic%20Tree%20DFS/invert_binary_tree.html">Invert Binary Tree</a>
+      <a href="Tree/Group%201_Basic%20Tree%20DFS/subtree_of_another_tree.html">Subtree of Another Tree</a>
+    </div></div>
+    <div class="group"><h4>2 · BST Order Rule</h4><div class="problist">
+      <a href="Tree/Group%202_bst-order-rule/validate_binary_search_tree.html">Validate Binary Search Tree</a>
+      <a href="Tree/Group%202_bst-order-rule/kth_smallest_element_in_a_bst.html">Kth Smallest Element in a BST</a>
+      <a href="Tree/Group%202_bst-order-rule/lowest_common_ancestor_of_a_bst.html">Lowest Common Ancestor of a BST</a>
+    </div></div>
+    <div class="group"><h4>3 · BFS Level Order</h4><div class="problist">
+      <a href="Tree/Group%203_bfs-level-order/binary_tree_level_order_traversal.html">Binary Tree Level Order Traversal</a>
+    </div></div>
+    <div class="group"><h4>4 · Advanced DFS (Max Path Sum)</h4><div class="problist">
+      <a href="Tree/Group%204_advanced-dfs-max-path-sum/binary_tree_maximum_path_sum.html">Binary Tree Maximum Path Sum</a>
+    </div></div>
+    <div class="group"><h4>5 · Tree Reconstruction &amp; Serialization</h4><div class="problist">
+      <a href="Tree/Group%205_tree-reconstruction-serialization/construct_binary_tree_preorder_inorder.html">Construct Binary Tree from Preorder and Inorder Traversal</a>
+      <a href="Tree/Group%205_tree-reconstruction-serialization/serialize_and_deserialize_binary_tree.html">Serialize and Deserialize Binary Tree</a>
+    </div></div>
+    <div class="group"><h4>6 · Trie</h4><div class="problist">
+      <a href="Tree/Group%206_Trie/implement_trie_prefix_tree.html">Implement Trie (Prefix Tree)</a>
+      <a href="Tree/Group%206_Trie/add_and_search_word.html">Add and Search Word</a>
+      <a href="Tree/Group%206_Trie/word_search_ii.html">Word Search II</a>
+    </div></div>
+  </div>
+</details>
+
+<details class="acc" id="topic-graph">
+  <summary><div class="head-main"><div class="t">Graph</div><div class="cnt">8 problems</div><div class="b">Traversal, flood fill, topo sort, union-find.</div>
+    <div class="pills"><span class="pill" style="background:#fef9c3;color:#854d0e">7 Med</span><span class="pill" style="background:#fee2e2;color:#991b1b">1 Hard</span></div>
+  </div></summary>
+  <div class="panel">
+    <div class="quicklinks"><a href="Graph/README.md">📚 Tutorial</a><a href="Graph/patterns.html">🧩 Cheat sheet</a><a href="Graph/index.html">🖼️ Visual sub-hub</a></div>
+    <div class="group"><h4>1 · Grid Flood Fill &amp; Connectivity</h4><div class="problist">
+      <a href="Graph/Group%201%20-%20Grid%20Flood%20Field%20&%20Connectivity/number_of_islands.html">Number of Islands</a>
+      <a href="Graph/Group%201%20-%20Grid%20Flood%20Field%20&%20Connectivity/pacific_atlantic_water_flow.html">Pacific Atlantic Water Flow</a>
+      <a href="Graph/Group%201%20-%20Grid%20Flood%20Field%20&%20Connectivity/number_of_connected_components.html">Number of Connected Components in an Undirected Graph</a>
+      <a href="Graph/Group%201%20-%20Grid%20Flood%20Field%20&%20Connectivity/graph_valid_tree.html">Graph Valid Tree</a>
+    </div></div>
+    <div class="group"><h4>2 · Cycle Detection &amp; Topological Sort</h4><div class="problist">
+      <a href="Graph/Group%202%20-%20Cycle%20Detection%20&%20Topological%20Sort/course_schedule.html">Course Schedule</a>
+      <a href="Graph/Group%202%20-%20Cycle%20Detection%20&%20Topological%20Sort/alien_dictionary.html">Alien Dictionary</a>
+    </div></div>
+    <div class="group"><h4>3 · Clone Graph &amp; Longest Consecutive Sequence</h4><div class="problist">
+      <a href="Graph/Group%203%20-%20Clone%20Graph%20&%20Longest%20Consecutive%20Sequence/clone_graph.html">Clone Graph</a>
+      <a href="Graph/Group%203%20-%20Clone%20Graph%20&%20Longest%20Consecutive%20Sequence/longest_consecutive_sequence.html">Longest Consecutive Sequence</a>
+    </div></div>
+  </div>
+</details>
+
+<details class="acc" id="topic-dp">
+  <summary><div class="head-main"><div class="t">Dynamic Programming</div><div class="cnt">11 problems</div><div class="b">Tables, recurrences, greedy, backtracking.</div>
+    <div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">1 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">10 Med</span></div>
+  </div></summary>
+  <div class="panel">
+    <div class="quicklinks"><a href="Dynamic%20Programming/README.md">📚 Tutorial</a><a href="Dynamic%20Programming/patterns.html">🧩 Cheat sheet</a><a href="Dynamic%20Programming/index.html">🖼️ Visual sub-hub</a></div>
+    <div class="group"><div class="problist">
+      <a href="Dynamic%20Programming/climbing_stairs.html">Climbing Stairs</a>
+      <a href="Dynamic%20Programming/coin_change.html">Coin Change</a>
+      <a href="Dynamic%20Programming/combination_sum.html">Combination Sum</a>
+      <a href="Dynamic%20Programming/decode_ways.html">Decode Ways</a>
+      <a href="Dynamic%20Programming/house_robber.html">House Robber</a>
+      <a href="Dynamic%20Programming/house_robber_ii.html">House Robber II</a>
+      <a href="Dynamic%20Programming/jump_game.html">Jump Game</a>
+      <a href="Dynamic%20Programming/longest_common_subsequence.html">Longest Common Subsequence</a>
+      <a href="Dynamic%20Programming/longest_increasing_subsequence.html">Longest Increasing Subsequence</a>
+      <a href="Dynamic%20Programming/unique_paths.html">Unique Paths</a>
+      <a href="Dynamic%20Programming/word_break.html">Word Break</a>
+    </div></div>
+  </div>
+</details>
+
+<details class="acc" id="topic-linkedlist">
+  <summary><div class="head-main"><div class="t">Linked List</div><div class="cnt">6 problems</div><div class="b">Pointer juggling, fast/slow, heap merge.</div>
+    <div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">3 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">2 Med</span><span class="pill" style="background:#fee2e2;color:#991b1b">1 Hard</span></div>
+  </div></summary>
+  <div class="panel">
+    <div class="quicklinks"><a href="Linked%20List/README.md">📚 Tutorial</a><a href="Linked%20List/patterns.html">🧩 Cheat sheet</a><a href="Linked%20List/index.html">🖼️ Visual sub-hub</a></div>
+    <div class="group"><div class="problist">
+      <a href="Linked%20List/reverse_linked_list.html">Reverse Linked List</a>
+      <a href="Linked%20List/detect_cycle_linked_list.html">Linked List Cycle</a>
+      <a href="Linked%20List/merge_two_sorted_lists.html">Merge Two Sorted Lists</a>
+      <a href="Linked%20List/merge_k_sorted_lists.html">Merge K Sorted Lists</a>
+      <a href="Linked%20List/remove_nth_node_from_end.html">Remove Nth Node From End of List</a>
+      <a href="Linked%20List/reorder_list.html">Reorder List</a>
+    </div></div>
+  </div>
+</details>
+
+<details class="acc" id="topic-binary">
+  <summary><div class="head-main"><div class="t">Binary / Bit</div><div class="cnt">5 problems</div><div class="b">XOR, masks, bit tricks.</div>
+    <div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">4 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">1 Med</span></div>
+  </div></summary>
+  <div class="panel">
+    <div class="quicklinks"><a href="Binary/README.md">📚 Tutorial</a><a href="Binary/patterns.html">🧩 Cheat sheet</a><a href="Binary/index.html">🖼️ Visual sub-hub</a></div>
+    <div class="group"><div class="problist">
+      <a href="Binary/sum_of_two_integers.html">Sum of Two Integers</a>
+      <a href="Binary/number_of_1_bits.html">Number of 1 Bits</a>
+      <a href="Binary/counting_bits.html">Counting Bits</a>
+      <a href="Binary/missing_number.html">Missing Number</a>
+      <a href="Binary/reverse_bits.html">Reverse Bits</a>
+    </div></div>
+  </div>
+</details>
+
+<details class="acc" id="topic-interval">
+  <summary><div class="head-main"><div class="t">Interval</div><div class="cnt">5 problems</div><div class="b">Sort then sweep, overlap counting.</div>
+    <div class="pills"><span class="pill" style="background:#dcfce7;color:#166534">1 Easy</span><span class="pill" style="background:#fef9c3;color:#854d0e">4 Med</span></div>
+  </div></summary>
+  <div class="panel">
+    <div class="quicklinks"><a href="Interval/README.md">📚 Tutorial</a><a href="Interval/patterns.html">🧩 Cheat sheet</a><a href="Interval/index.html">🖼️ Visual sub-hub</a></div>
+    <div class="group"><div class="problist">
+      <a href="Interval/insert_interval.html">Insert Interval</a>
+      <a href="Interval/merge_intervals.html">Merge Intervals</a>
+      <a href="Interval/non_overlapping_intervals.html">Non-overlapping Intervals</a>
+      <a href="Interval/meeting_rooms.html">Meeting Rooms</a>
+      <a href="Interval/meeting_rooms_ii.html">Meeting Rooms II</a>
+    </div></div>
+  </div>
+</details>
+
+<details class="acc" id="topic-matrix">
+  <summary><div class="head-main"><div class="t">Matrix</div><div class="cnt">4 problems</div><div class="b">In-place tricks, boundaries, backtracking.</div>
+    <div class="pills"><span class="pill" style="background:#fef9c3;color:#854d0e">4 Med</span></div>
+  </div></summary>
+  <div class="panel">
+    <div class="quicklinks"><a href="Matrix/README.md">📚 Tutorial</a><a href="Matrix/patterns.html">🧩 Cheat sheet</a><a href="Matrix/index.html">🖼️ Visual sub-hub</a></div>
+    <div class="group"><div class="problist">
+      <a href="Matrix/set_matrix_zeroes.html">Set Matrix Zeroes</a>
+      <a href="Matrix/spiral_matrix.html">Spiral Matrix</a>
+      <a href="Matrix/rotate_image.html">Rotate Image</a>
+      <a href="Matrix/word_search.html">Word Search</a>
+    </div></div>
+  </div>
+</details>
+
+<details class="acc" id="topic-heap">
+  <summary><div class="head-main"><div class="t">Heap</div><div class="cnt">2 problems</div><div class="b">Top-k and two-heap median.</div>
+    <div class="pills"><span class="pill" style="background:#fef9c3;color:#854d0e">1 Med</span><span class="pill" style="background:#fee2e2;color:#991b1b">1 Hard</span></div>
+  </div></summary>
+  <div class="panel">
+    <div class="quicklinks"><a href="Heap/README.md">📚 Tutorial</a><a href="Heap/patterns.html">🧩 Cheat sheet</a><a href="Heap/index.html">🖼️ Visual sub-hub</a></div>
+    <div class="group"><div class="problist">
+      <a href="Heap/top_k_frequent_elements.html">Top K Frequent Elements</a>
+      <a href="Heap/find_median_from_data_stream.html">Find Median from Data Stream</a>
+    </div></div>
+  </div>
+</details>
+
+<div class="card" style="margin-top:20px"><h2 style="margin-top:.2em">How to use this</h2><p><b>Click a topic</b> to expand it and see every problem, grouped by pattern — click again to collapse.</p><p><b>Each problem page</b> has the idea in plain words and an interactive diagram — press <b>▶ Play</b> or step with <b>Prev / Next</b>.</p><p><b>Each topic's cheat sheet</b> (🧩) lists the handful of patterns behind its problems, how to spot each one, and a sentence to say in an interview.</p><p><b>Each topic's <code>README.md</code></b> (📚) teaches the ideas behind that topic in plain language with mermaid diagrams — read it before starting a topic.</p><p><b>Each problem's notebook</b> (in the same topic folder) holds the full Python solutions (worst → optimal), correctness tests, and empirical Big-O benchmarks.</p><p style="color:var(--muted);font-size:13px">Tip: everything works offline — just double-click any <code>index.html</code>.</p></div>
+
+<script>
+  var accs = document.querySelectorAll('.acc');
+  document.getElementById('expandAll').addEventListener('click', function(){
+    accs.forEach(function(d){ d.open = true; });
+  });
+  document.getElementById('collapseAll').addEventListener('click', function(){
+    accs.forEach(function(d){ d.open = false; });
+  });
+</script>
 </div>
 </body></html>

@@ -1,5 +1,7 @@
 # ⛰️ Heaps & Priority Queues
 
+> 🎯 **Prepping for `Atlassian_Prep/`?** Read [`PRIMARY.md`](PRIMARY.md) instead — it's this tutorial trimmed to only what those problems need.
+
 > A **priority queue** is a collection where you always pull out the **most important** item next — the smallest (or
 > largest) — no matter the insertion order. A **heap** is the clever tree that makes both "add" and "remove the
 > best" cost only `O(log n)`. It's the engine behind Dijkstra, Prim, top-K, streaming medians, and schedulers.

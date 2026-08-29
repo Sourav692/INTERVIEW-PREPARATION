@@ -1,5 +1,7 @@
 # 🌱 Greedy Algorithms & Amortized Analysis
 
+> 🎯 **Prepping for `Atlassian_Prep/`?** Read [`PRIMARY.md`](PRIMARY.md) instead — it's this tutorial trimmed to only what those problems need.
+
 > A **greedy** algorithm makes the locally-best choice at every step and never looks back — no backtracking, no
 > reconsidering. Sometimes that's provably optimal; sometimes it's provably wrong. This chapter covers how to
 > *prove* greedy works when it does, and pairs it with **amortized analysis** — the tool for showing an operation

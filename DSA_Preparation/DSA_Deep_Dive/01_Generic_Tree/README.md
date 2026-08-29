@@ -1,5 +1,7 @@
 # 🌳 Generic (N-ary) Trees — A Deep Dive
 
+> 🎯 **Prepping for `Atlassian_Prep/`?** Read [`PRIMARY.md`](PRIMARY.md) instead — it's this tutorial trimmed to only what those problems need.
+
 > **Start here.** A *generic tree* (also called an **N-ary tree**) is the most general kind of tree: every node can
 > have **any number of children**. Binary trees, BSTs, tries, and heaps are all just *special cases* of this idea, so
 > understanding the generic tree first makes everything after it click.

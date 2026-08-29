@@ -1,5 +1,7 @@
 # 🔗 Strongly Connected Components — Tarjan & Kosaraju
 
+> 🎯 **Prepping for `Atlassian_Prep/`?** Read [`PRIMARY.md`](PRIMARY.md) instead — it's this tutorial trimmed to only what that problem needs.
+
 > In a **directed** graph, a **Strongly Connected Component (SCC)** is a maximal group of vertices where **every
 > vertex can reach every other** (following the arrows). Finding SCCs reveals the "mutually-dependent clusters" in a
 > system — cyclic module dependencies, deadlock groups, 2-SAT solutions, tightly-linked web pages.

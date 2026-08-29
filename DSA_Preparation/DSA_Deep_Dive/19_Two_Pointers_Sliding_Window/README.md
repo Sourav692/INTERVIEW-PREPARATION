@@ -1,5 +1,7 @@
 # 👉👈 Two Pointers & Sliding Window
 
+> 🎯 **Prepping for `Atlassian_Prep/`?** Read [`PRIMARY.md`](PRIMARY.md) instead — it's this tutorial trimmed to only what those problems need.
+
 > A whole family of `O(n)` techniques replace a naive `O(n²)` nested loop with **two indices that only ever move
 > forward**. Whether they start at opposite ends and converge, or both crawl left-to-right defining a shrinking
 > and growing window, the key idea is the same: never re-examine the same pair of elements twice.

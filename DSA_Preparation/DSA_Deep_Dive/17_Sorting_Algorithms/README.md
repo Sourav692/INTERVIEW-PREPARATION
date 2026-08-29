@@ -1,5 +1,7 @@
 # 🔀 Sorting Algorithms
 
+> 🎯 **Prepping for `Atlassian_Prep/`?** Read [`PRIMARY.md`](PRIMARY.md) instead — it's this tutorial trimmed to only what those problems need.
+
 > Sorting is the most-used subroutine in all of computer science — and the one property people forget to ask about
 > is **stability**: does the sort preserve the relative order of equal elements? That single property is what
 > makes multi-column sorting ("sort by status, then by assignee") possible without writing a custom comparator.

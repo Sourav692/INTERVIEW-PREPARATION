@@ -1,5 +1,7 @@
 # 🗂️ Hash Tables
 
+> 🎯 **Prepping for `Atlassian_Prep/`?** Read [`PRIMARY.md`](PRIMARY.md) instead — it's this tutorial trimmed to only what those problems need.
+
 > A **hash table** turns "where is this key stored?" into a single arithmetic calculation instead of a search. That
 > one idea — compute an index directly from the key — is what makes lookup, insert, and delete all **O(1) on
 > average**, and it's the single most-used data structure in real interview solutions.

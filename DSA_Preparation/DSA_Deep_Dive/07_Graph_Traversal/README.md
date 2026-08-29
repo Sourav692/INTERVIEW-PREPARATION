@@ -1,5 +1,7 @@
 # 🧭 Graph Traversal — BFS & DFS
 
+> 🎯 **Prepping for `Atlassian_Prep/`?** Read [`PRIMARY.md`](PRIMARY.md) instead — it's this tutorial trimmed to only what that problem needs.
+
 > Traversing a graph means **visiting every vertex you can reach**, without going in circles. The two workhorses are
 > **BFS** (breadth-first, a queue) and **DFS** (depth-first, a stack/recursion). They look almost identical in code —
 > the *only* real difference is the data structure — but they answer different questions.

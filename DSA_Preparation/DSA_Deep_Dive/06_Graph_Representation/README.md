@@ -1,5 +1,7 @@
 # 🗺️ Graph Representation — Matrix vs List
 
+> 🎯 **Prepping for `Atlassian_Prep/`?** Read [`PRIMARY.md`](PRIMARY.md) instead — it's this tutorial trimmed to only what that problem needs.
+
 > A graph is an abstract idea; to compute with it you must **store** it. There are two main ways — the **adjacency
 > matrix** and the **adjacency list** — and choosing between them is one of the most practical decisions in all of
 > algorithms. This chapter builds both for the *same* graph and compares them head-to-head.

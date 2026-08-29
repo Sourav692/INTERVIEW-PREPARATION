@@ -1,5 +1,7 @@
 # 🔤 Tries (Prefix Trees)
 
+> 🎯 **Prepping for `Atlassian_Prep/`?** Read [`PRIMARY.md`](PRIMARY.md) instead — it's this tutorial trimmed to only what that problem needs.
+
 > A **trie** (pronounced "try", from re**trie**val) is a tree keyed by **characters**: each path from the root spells
 > out a string, and words that share a prefix **share the same nodes**. That structure makes prefix questions —
 > autocomplete, "does any word start with…", spell-check — cost only `O(length)`, independent of how many words you

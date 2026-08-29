@@ -1,15 +1,11 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>STAR Stories — Technical Build Projects</title>
 <style>
-:root{color-scheme:light}
-body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}
-img{max-width:100%}
-
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 :root {
   --bg: #f4f6f4;
@@ -191,7 +187,6 @@ footer.note {
 </style>
 </head>
 <body>
-
 <div class="wrap">
 
   <header class="masthead">
@@ -245,7 +240,7 @@ footer.note {
 
           <p>To prove a crash never loses or repeats work, I built the system so it always remembers exactly which step it was on. I tested this literally — I killed the process mid-run on purpose, restarted it, and watched it pick up exactly where it left off, never redoing a step that had already happened.</p>
 
-          <div class="pivot"><strong>A design decision I'm proud of:</strong> I kept two safety checks separate on purpose instead of merging them into one. One check asks "which automation is the right one to respond to this event?" — a business decision. The other asks "is anything else already touching this same customer record right now?" — a safety rule that has to hold no matter what. Same logic for spending limits: "has this run taken too many steps overall?" is a different question from "is this one action about to spend too much money?" A $500 refund against a $50 limit gets stopped immediately, on dollars alone — it can't sneak through by looking cheap on step count.</p>
+          <div class="pivot"><strong>A design decision I'm proud of:</strong> I kept two safety checks separate on purpose instead of merging them into one. One check asks "which automation is the right one to respond to this event?" — a business decision. The other asks "is anything else already touching this same customer record right now?" — a safety rule that has to hold no matter what. Same logic for spending limits: "has this run taken too many steps overall?" is a different question from "is this one action about to spend too much money?" A $500 refund against a $50 limit gets stopped immediately, on dollars alone — it can't sneak through by looking cheap on step count.</div>
 
           <p>Finally, I built a five-stage rollout path — draft, test on sample data, watch real traffic without touching it, go live with human approval on every risky action, then finally fully autonomous — and made sure only a second person, never the person who built the automation, can move it forward a stage. Same idea as requiring a second reviewer before code ships, applied to automation instead.</p>
 
@@ -335,9 +330,9 @@ footer.note {
 
           <p>I also tried six different ways of searching the documents — from simple keyword and similarity search up to a more elaborate approach that breaks a complex question into sub-questions and re-ranks the results — and measured all of them against the same test set, so the choice of search method was based on evidence, not a guess.</p>
 
-          <div class="pivot"><strong>Three real mistakes my own testing caught before they became real problems:</strong> First, a false alarm — the system flagged itself for "leaking" a document to an account manager, but she was actually allowed to read it; I'd mislabeled "not relevant to this question" as "not allowed to see it" in my own test data. I fixed the test data and added a check that keeps those two ideas from ever being confused again — a false security alarm is worse than no alarm, because people learn to ignore it. Second, I found a rule that was never actually being tested — one permission check kept getting shadowed by an earlier, stricter check firing first, so I added a specific test person whose only path to being blocked was that exact rule, to confirm it worked on its own. Third, I found one test that passed or failed almost at random, because I'd made the AI's own judgment part of the pass/fail decision. I fixed that by separating "did we leak data" — decided by hard rules, never by the AI — from "did we phrase the refusal well" — which can be a judgment call. Security can never come down to a coin flip.</p>
+          <div class="pivot"><strong>Three real mistakes my own testing caught before they became real problems:</strong> First, a false alarm — the system flagged itself for "leaking" a document to an account manager, but she was actually allowed to read it; I'd mislabeled "not relevant to this question" as "not allowed to see it" in my own test data. I fixed the test data and added a check that keeps those two ideas from ever being confused again — a false security alarm is worse than no alarm, because people learn to ignore it. Second, I found a rule that was never actually being tested — one permission check kept getting shadowed by an earlier, stricter check firing first, so I added a specific test person whose only path to being blocked was that exact rule, to confirm it worked on its own. Third, I found one test that passed or failed almost at random, because I'd made the AI's own judgment part of the pass/fail decision. I fixed that by separating "did we leak data" — decided by hard rules, never by the AI — from "did we phrase the refusal well" — which can be a judgment call. Security can never come down to a coin flip.</div>
 
-          <div class="pivot"><strong>Rebuilding it on a second platform (Databricks) surfaced a real gap, not just a copy-paste port:</strong> that platform's own search index doesn't automatically inherit the company's central permission rules — it's a separate copy of the data, so a permission change doesn't travel with it on its own. I designed around that the same way — fast filter for speed, then a second, authoritative check against the real, live-governed source before answering. Being able to show both versions, and explain exactly why that second check is non-negotiable on that platform, was the whole point of building it twice.</p>
+          <div class="pivot"><strong>Rebuilding it on a second platform (Databricks) surfaced a real gap, not just a copy-paste port:</strong> that platform's own search index doesn't automatically inherit the company's central permission rules — it's a separate copy of the data, so a permission change doesn't travel with it on its own. I designed around that the same way — fast filter for speed, then a second, authoritative check against the real, live-governed source before answering. Being able to show both versions, and explain exactly why that second check is non-negotiable on that platform, was the whole point of building it twice.</div>
 
           <div class="stack-pills">
             <span class="pill">LangGraph (8-node graph)</span>

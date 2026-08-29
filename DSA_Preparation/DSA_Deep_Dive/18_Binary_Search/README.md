@@ -1,5 +1,7 @@
 # 🔍 Binary Search
 
+> 🎯 **Prepping for `Atlassian_Prep/`?** Read [`PRIMARY.md`](PRIMARY.md) instead — it's this tutorial trimmed to only what that problem needs.
+
 > Binary search finds a target in a **sorted** sequence by repeatedly cutting the remaining search space in half.
 > The bigger idea it generalizes to — **binary search on the answer** — turns "find the smallest/largest value
 > satisfying some condition" into a search too, even when there's no literal array to search.
