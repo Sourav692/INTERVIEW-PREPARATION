@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeetCode 150 — Tracker</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#161923; --panel2:#1c2030; --border:#2a2f42;
+    --text:#e6e8ef; --muted:#9aa1b5; --accent:#7c9dff;
+    --easy:#3ecf8e; --medium:#f5a623; --hard:#ef5a6f;
+    --todo:#3a3f52; --progress:#c98a2c; --done:#2f9e64;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  header{padding:24px 28px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:5}
+  h1{margin:0 0 4px;font-size:1.5rem}
+  .sub{color:var(--muted);font-size:.9rem;margin-bottom:16px}
+  .stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 14px;min-width:90px}
+  .stat .v{font-size:1.2rem;font-weight:700}
+  .stat .k{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  input[type=text]{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:.9rem;min-width:220px}
+  select{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:.85rem}
+  .pillbtn{background:var(--panel2);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:6px 12px;font-size:.8rem;cursor:pointer}
+  .pillbtn.active{color:var(--text);border-color:var(--accent)}
+  main{padding:20px 28px 60px}
+  .category{margin-bottom:22px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--panel)}
+  .cat-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;background:var(--panel2)}
+  .cat-head h2{font-size:1.02rem;margin:0;display:flex;align-items:center;gap:8px}
+  .cat-head .count{color:var(--muted);font-size:.82rem}
+  .cat-head .chev{transition:transform .15s;color:var(--muted)}
+  .category.collapsed .chev{transform:rotate(-90deg)}
+  .category.collapsed .cat-body{display:none}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;padding:8px 14px;border-bottom:1px solid var(--border)}
+  td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr.row-hidden{display:none}
+  .prob-name{font-weight:500}
+  .links a{color:var(--accent);text-decoration:none;font-size:.78rem;margin-right:10px;white-space:nowrap}
+  .links a:hover{text-decoration:underline}
+  .diff{padding:3px 9px;border-radius:12px;font-size:.74rem;font-weight:600;display:inline-block}
+  .diff.Easy{background:rgba(62,207,142,.15);color:var(--easy)}
+  .diff.Medium{background:rgba(245,166,35,.15);color:var(--medium)}
+  .diff.Hard{background:rgba(239,90,111,.15);color:var(--hard)}
+  .blind-tag{font-size:.62rem;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:.03em;display:inline-block;background:rgba(124,157,255,.16);color:var(--accent);vertical-align:middle;margin-left:4px}
+  .status-group{display:flex;gap:4px}
+  .status-btn{border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.68rem;font-weight:700;letter-spacing:.02em;padding:4px 8px;border-radius:6px;cursor:pointer;text-transform:uppercase}
+  .status-btn:hover{border-color:var(--accent)}
+  .status-btn.sel-TODO.selected{background:var(--todo);color:#fff;border-color:var(--todo)}
+  .status-btn.sel-PROGRESS.selected{background:var(--progress);color:#20130a;border-color:var(--progress)}
+  .status-btn.sel-DONE.selected{background:var(--done);color:#06231a;border-color:var(--done)}
+  footer{padding:20px 28px;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border)}
+  .reset{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 12px;font-size:.78rem;cursor:pointer}
+  .reset:hover{border-color:var(--hard);color:var(--hard)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>NeetCode 150 — Question Tracker</h1>
+  <div class="sub">150 problems grouped by DSA topic, with difficulty, Blind&nbsp;75 overlap, and a per-problem study status saved locally in your browser.</div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search problem name…">
+    <select id="diffFilter">
+      <option value="">All difficulties</option>
+      <option value="Easy">Easy</option>
+      <option value="Medium">Medium</option>
+      <option value="Hard">Hard</option>
+    </select>
+    <select id="blindFilter">
+      <option value="">All</option>
+      <option value="yes">In Blind 75</option>
+    </select>
+    <select id="statusFilter">
+      <option value="">Status: all</option>
+      <option value="TODO">TODO</option>
+      <option value="PROGRESS">In Progress</option>
+      <option value="DONE">Done</option>
+    </select>
+    <button class="pillbtn" id="expandAll">Expand all</button>
+    <button class="pillbtn" id="collapseAll">Collapse all</button>
+    <button class="reset" id="resetAll">Reset all statuses</button>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<footer>
+  Source: <a href="https://neetcode.io/practice/practice/neetcode150" style="color:var(--accent)">neetcode.io/practice/neetcode150</a> ·
+  Blind 75 cross-reference: <a href="https://neetcode.io/practice/practice/blind75" style="color:var(--accent)">neetcode.io/practice/blind75</a> ·
+  Status is stored only in this browser (localStorage) — it is not synced anywhere.
+</footer>
+
+<script>
+// Each entry: [title, leetcode-slug, neetcode-solutions-slug, difficulty, inBlind75]
+const DATA = {
+  "Arrays & Hashing": [
+    ["Contains Duplicate","contains-duplicate","contains-duplicate","Easy",true],
+    ["Valid Anagram","valid-anagram","valid-anagram","Easy",true],
+    ["Two Sum","two-sum","two-sum","Easy",true],
+    ["Group Anagrams","group-anagrams","group-anagrams","Medium",true],
+    ["Top K Frequent Elements","top-k-frequent-elements","top-k-frequent-elements","Medium",true],
+    ["Encode and Decode Strings","encode-and-decode-strings","encode-and-decode-strings","Medium",true],
+    ["Product of Array Except Self","product-of-array-except-self","product-of-array-except-self","Medium",true],
+    ["Valid Sudoku","valid-sudoku","valid-sudoku","Medium",false],
+    ["Longest Consecutive Sequence","longest-consecutive-sequence","longest-consecutive-sequence","Medium",true]
+  ],
+  "Two Pointers": [
+    ["Valid Palindrome","valid-palindrome","valid-palindrome","Easy",true],
+    ["Two Sum II - Input Array Is Sorted","two-sum-ii-input-array-is-sorted","two-sum-ii-input-array-is-sorted","Medium",false],
+    ["3Sum","3sum","3sum","Medium",true],
+    ["Container With Most Water","container-with-most-water","container-with-most-water","Medium",true],
+    ["Trapping Rain Water","trapping-rain-water","trapping-rain-water","Hard",false]
+  ],
+  "Sliding Window": [
+    ["Best Time to Buy And Sell Stock","best-time-to-buy-and-sell-stock","best-time-to-buy-and-sell-stock","Easy",true],
+    ["Longest Substring Without Repeating Characters","longest-substring-without-repeating-characters","longest-substring-without-repeating-characters","Medium",true],
+    ["Longest Repeating Character Replacement","longest-repeating-character-replacement","longest-repeating-character-replacement","Medium",true],
+    ["Permutation In String","permutation-in-string","permutation-in-string","Medium",false],
+    ["Minimum Window Substring","minimum-window-substring","minimum-window-substring","Hard",true],
+    ["Sliding Window Maximum","sliding-window-maximum","sliding-window-maximum","Hard",false]
+  ],
+  "Stack": [
+    ["Valid Parentheses","valid-parentheses","valid-parentheses","Easy",true],
+    ["Min Stack","min-stack","min-stack","Medium",false],
+    ["Evaluate Reverse Polish Notation","evaluate-reverse-polish-notation","evaluate-reverse-polish-notation","Medium",false],
+    ["Daily Temperatures","daily-temperatures","daily-temperatures","Medium",false],
+    ["Car Fleet","car-fleet","car-fleet","Medium",false],
+    ["Largest Rectangle In Histogram","largest-rectangle-in-histogram","largest-rectangle-in-histogram","Hard",false]
+  ],
+  "Binary Search": [
+    ["Binary Search","binary-search","binary-search","Easy",false],
+    ["Search a 2D Matrix","search-a-2d-matrix","search-a-2d-matrix","Medium",false],
+    ["Koko Eating Bananas","koko-eating-bananas","koko-eating-bananas","Medium",false],
+    ["Find Minimum In Rotated Sorted Array","find-minimum-in-rotated-sorted-array","find-minimum-in-rotated-sorted-array","Medium",true],
+    ["Search In Rotated Sorted Array","search-in-rotated-sorted-array","search-in-rotated-sorted-array","Medium",true],
+    ["Time Based Key Value Store","time-based-key-value-store","time-based-key-value-store","Medium",false],
+    ["Median of Two Sorted Arrays","median-of-two-sorted-arrays","median-of-two-sorted-arrays","Hard",false]
+  ],
+  "Linked List": [
+    ["Reverse Linked List","reverse-linked-list","reverse-linked-list","Easy",true],
+    ["Merge Two Sorted Lists","merge-two-sorted-lists","merge-two-sorted-lists","Easy",true],
+    ["Linked List Cycle","linked-list-cycle","linked-list-cycle","Easy",true],
+    ["Reorder List","reorder-list","reorder-list","Medium",true],
+    ["Remove Nth Node From End of List","remove-nth-node-from-end-of-list","remove-nth-node-from-end-of-list","Medium",true],
+    ["Copy List With Random Pointer","copy-list-with-random-pointer","copy-list-with-random-pointer","Medium",false],
+    ["Add Two Numbers","add-two-numbers","add-two-numbers","Medium",false],
+    ["Find The Duplicate Number","find-the-duplicate-number","find-the-duplicate-number","Medium",false],
+    ["LRU Cache","lru-cache","lru-cache","Medium",false],
+    ["Merge K Sorted Lists","merge-k-sorted-lists","merge-k-sorted-lists","Hard",true],
+    ["Reverse Nodes In K Group","reverse-nodes-in-k-group","reverse-nodes-in-k-group","Hard",false]
+  ],
+  "Trees": [
+    ["Invert Binary Tree","invert-binary-tree","invert-binary-tree","Easy",true],
+    ["Maximum Depth of Binary Tree","maximum-depth-of-binary-tree","maximum-depth-of-binary-tree","Easy",true],
+    ["Diameter of Binary Tree","diameter-of-binary-tree","diameter-of-binary-tree","Easy",false],
+    ["Balanced Binary Tree","balanced-binary-tree","balanced-binary-tree","Easy",false],
+    ["Same Tree","same-tree","same-tree","Easy",true],
+    ["Subtree of Another Tree","subtree-of-another-tree","subtree-of-another-tree","Easy",true],
+    ["Lowest Common Ancestor of a Binary Search Tree","lowest-common-ancestor-of-a-binary-search-tree","lowest-common-ancestor-of-a-binary-search-tree","Medium",true],
+    ["Binary Tree Level Order Traversal","binary-tree-level-order-traversal","binary-tree-level-order-traversal","Medium",true],
+    ["Binary Tree Right Side View","binary-tree-right-side-view","binary-tree-right-side-view","Medium",false],
+    ["Count Good Nodes In Binary Tree","count-good-nodes-in-binary-tree","count-good-nodes-in-binary-tree","Medium",false],
+    ["Validate Binary Search Tree","validate-binary-search-tree","validate-binary-search-tree","Medium",true],
+    ["Kth Smallest Element In a BST","kth-smallest-element-in-a-bst","kth-smallest-element-in-a-bst","Medium",true],
+    ["Construct Binary Tree From Preorder And Inorder Traversal","construct-binary-tree-from-preorder-and-inorder-traversal","construct-binary-tree-from-preorder-and-inorder-traversal","Medium",true],
+    ["Binary Tree Maximum Path Sum","binary-tree-maximum-path-sum","binary-tree-maximum-path-sum","Hard",true],
+    ["Serialize And Deserialize Binary Tree","serialize-and-deserialize-binary-tree","serialize-and-deserialize-binary-tree","Hard",true]
+  ],
+  "Heap / Priority Queue": [
+    ["Kth Largest Element In a Stream","kth-largest-element-in-a-stream","kth-largest-element-in-a-stream","Easy",false],
+    ["Last Stone Weight","last-stone-weight","last-stone-weight","Easy",false],
+    ["K Closest Points to Origin","k-closest-points-to-origin","k-closest-points-to-origin","Medium",false],
+    ["Kth Largest Element In An Array","kth-largest-element-in-an-array","kth-largest-element-in-an-array","Medium",false],
+    ["Task Scheduler","task-scheduler","task-scheduler","Medium",false],
+    ["Design Twitter","design-twitter","design-twitter","Medium",false],
+    ["Find Median From Data Stream","find-median-from-data-stream","find-median-from-data-stream","Hard",true]
+  ],
+  "Backtracking": [
+    ["Subsets","subsets","subsets","Medium",false],
+    ["Combination Sum","combination-sum","combination-sum","Medium",true],
+    ["Combination Sum II","combination-sum-ii","combination-sum-ii","Medium",false],
+    ["Permutations","permutations","permutations","Medium",false],
+    ["Subsets II","subsets-ii","subsets-ii","Medium",false],
+    ["Generate Parentheses","generate-parentheses","generate-parentheses","Medium",false],
+    ["Word Search","word-search","word-search","Medium",true],
+    ["Palindrome Partitioning","palindrome-partitioning","palindrome-partitioning","Medium",false],
+    ["Letter Combinations of a Phone Number","letter-combinations-of-a-phone-number","letter-combinations-of-a-phone-number","Medium",false],
+    ["N Queens","n-queens","n-queens","Hard",false]
+  ],
+  "Tries": [
+    ["Implement Trie (Prefix Tree)","implement-trie-prefix-tree","implement-trie-prefix-tree","Medium",true],
+    ["Design Add And Search Words Data Structure","design-add-and-search-words-data-structure","design-add-and-search-words-data-structure","Medium",true],
+    ["Word Search II","word-search-ii","word-search-ii","Hard",true]
+  ],
+  "Graphs": [
+    ["Number of Islands","number-of-islands","number-of-islands","Medium",true],
+    ["Max Area of Island","max-area-of-island","max-area-of-island","Medium",false],
+    ["Clone Graph","clone-graph","clone-graph","Medium",true],
+    ["Walls And Gates","walls-and-gates","walls-and-gates","Medium",false],
+    ["Rotting Oranges","rotting-oranges","rotting-oranges","Medium",false],
+    ["Pacific Atlantic Water Flow","pacific-atlantic-water-flow","pacific-atlantic-water-flow","Medium",true],
+    ["Surrounded Regions","surrounded-regions","surrounded-regions","Medium",false],
+    ["Course Schedule","course-schedule","course-schedule","Medium",true],
+    ["Course Schedule II","course-schedule-ii","course-schedule-ii","Medium",false],
+    ["Graph Valid Tree","graph-valid-tree","graph-valid-tree","Medium",true],
+    ["Number of Connected Components In An Undirected Graph","number-of-connected-components-in-an-undirected-graph","number-of-connected-components-in-an-undirected-graph","Medium",true],
+    ["Redundant Connection","redundant-connection","redundant-connection","Medium",false],
+    ["Word Ladder","word-ladder","word-ladder","Hard",false]
+  ],
+  "Advanced Graphs": [
+    ["Network Delay Time","network-delay-time","network-delay-time","Medium",false],
+    ["Reconstruct Itinerary","reconstruct-itinerary","reconstruct-itinerary","Hard",false],
+    ["Min Cost to Connect All Points","min-cost-to-connect-all-points","min-cost-to-connect-all-points","Medium",false],
+    ["Swim In Rising Water","swim-in-rising-water","swim-in-rising-water","Hard",false],
+    ["Alien Dictionary","alien-dictionary","alien-dictionary","Hard",true],
+    ["Cheapest Flights Within K Stops","cheapest-flights-within-k-stops","cheapest-flights-within-k-stops","Medium",false]
+  ],
+  "1-D Dynamic Programming": [
+    ["Climbing Stairs","climbing-stairs","climbing-stairs","Easy",true],
+    ["Min Cost Climbing Stairs","min-cost-climbing-stairs","min-cost-climbing-stairs","Easy",false],
+    ["House Robber","house-robber","house-robber","Medium",true],
+    ["House Robber II","house-robber-ii","house-robber-ii","Medium",true],
+    ["Longest Palindromic Substring","longest-palindromic-substring","longest-palindromic-substring","Medium",true],
+    ["Palindromic Substrings","palindromic-substrings","palindromic-substrings","Medium",true],
+    ["Decode Ways","decode-ways","decode-ways","Medium",true],
+    ["Coin Change","coin-change","coin-change","Medium",true],
+    ["Maximum Product Subarray","maximum-product-subarray","maximum-product-subarray","Medium",true],
+    ["Word Break","word-break","word-break","Medium",true],
+    ["Longest Increasing Subsequence","longest-increasing-subsequence","longest-increasing-subsequence","Medium",true],
+    ["Partition Equal Subset Sum","partition-equal-subset-sum","partition-equal-subset-sum","Medium",false]
+  ],
+  "2-D Dynamic Programming": [
+    ["Unique Paths","unique-paths","unique-paths","Medium",true],
+    ["Longest Common Subsequence","longest-common-subsequence","longest-common-subsequence","Medium",true],
+    ["Best Time to Buy And Sell Stock With Cooldown","best-time-to-buy-and-sell-stock-with-cooldown","best-time-to-buy-and-sell-stock-with-cooldown","Medium",false],
+    ["Coin Change II","coin-change-ii","coin-change-ii","Medium",false],
+    ["Target Sum","target-sum","target-sum","Medium",false],
+    ["Interleaving String","interleaving-string","interleaving-string","Medium",false],
+    ["Longest Increasing Path In a Matrix","longest-increasing-path-in-a-matrix","longest-increasing-path-in-a-matrix","Hard",false],
+    ["Distinct Subsequences","distinct-subsequences","distinct-subsequences","Hard",false],
+    ["Edit Distance","edit-distance","edit-distance","Medium",false],
+    ["Burst Balloons","burst-balloons","burst-balloons","Hard",false],
+    ["Regular Expression Matching","regular-expression-matching","regular-expression-matching","Hard",false]
+  ],
+  "Greedy": [
+    ["Maximum Subarray","maximum-subarray","maximum-subarray","Medium",true],
+    ["Jump Game","jump-game","jump-game","Medium",true],
+    ["Jump Game II","jump-game-ii","jump-game-ii","Medium",false],
+    ["Gas Station","gas-station","gas-station","Medium",false],
+    ["Hand of Straights","hand-of-straights","hand-of-straights","Medium",false],
+    ["Merge Triplets to Form Target Triplet","merge-triplets-to-form-target-triplet","merge-triplets-to-form-target-triplet","Medium",false],
+    ["Partition Labels","partition-labels","partition-labels","Medium",false],
+    ["Valid Parenthesis String","valid-parenthesis-string","valid-parenthesis-string","Medium",false]
+  ],
+  "Intervals": [
+    ["Insert Interval","insert-interval","insert-interval","Medium",true],
+    ["Merge Intervals","merge-intervals","merge-intervals","Medium",true],
+    ["Non Overlapping Intervals","non-overlapping-intervals","non-overlapping-intervals","Medium",true],
+    ["Meeting Rooms","meeting-rooms","meeting-rooms","Easy",true],
+    ["Meeting Rooms II","meeting-rooms-ii","meeting-rooms-ii","Medium",true],
+    ["Minimum Interval to Include Each Query","minimum-interval-to-include-each-query","minimum-interval-to-include-each-query","Hard",false]
+  ],
+  "Math & Geometry": [
+    ["Rotate Image","rotate-image","rotate-image","Medium",true],
+    ["Spiral Matrix","spiral-matrix","spiral-matrix","Medium",true],
+    ["Set Matrix Zeroes","set-matrix-zeroes","set-matrix-zeroes","Medium",true],
+    ["Happy Number","happy-number","happy-number","Easy",false],
+    ["Plus One","plus-one","plus-one","Easy",false],
+    ["Pow(x, n)","powx-n","pow-x-n","Medium",false],
+    ["Multiply Strings","multiply-strings","multiply-strings","Medium",false],
+    ["Detect Squares","detect-squares","detect-squares","Medium",false]
+  ],
+  "Bit Manipulation": [
+    ["Single Number","single-number","single-number","Easy",false],
+    ["Number of 1 Bits","number-of-1-bits","number-of-1-bits","Easy",true],
+    ["Counting Bits","counting-bits","counting-bits","Easy",true],
+    ["Reverse Bits","reverse-bits","reverse-bits","Easy",true],
+    ["Missing Number","missing-number","missing-number","Easy",true],
+    ["Sum of Two Integers","sum-of-two-integers","sum-of-two-integers","Medium",true],
+    ["Reverse Integer","reverse-integer","reverse-integer","Medium",false]
+  ]
+};
+
+const STORE_KEY = "neetcode150_status_v1";
+let statusMap = {};
+try { statusMap = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e) { statusMap = {}; }
+
+function saveStatus(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(statusMap)); } catch(e){} }
+function keyFor(cat, title){ return cat + "::" + title; }
+
+const STATUSES = [
+  {id:"TODO", label:"TODO"},
+  {id:"PROGRESS", label:"In Progress"},
+  {id:"DONE", label:"Done"}
+];
+
+function render(){
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  let totalEasy=0, totalMed=0, totalHard=0, totalBlind=0, totalDone=0, totalProgress=0;
+
+  Object.entries(DATA).forEach(([cat, rows]) => {
+    rows.forEach(r => {
+      if(r[3]==="Easy") totalEasy++; else if(r[3]==="Medium") totalMed++; else totalHard++;
+      if(r[4]) totalBlind++;
+      const st = statusMap[keyFor(cat, r[0])];
+      if(st==="DONE") totalDone++;
+      if(st==="PROGRESS") totalProgress++;
+    });
+
+    const catDiv = document.createElement("div");
+    catDiv.className = "category";
+    catDiv.dataset.cat = cat;
+
+    const doneInCat = rows.filter(r => statusMap[keyFor(cat,r[0])]==="DONE").length;
+
+    catDiv.innerHTML = `
+      <div class="cat-head">
+        <h2><span class="chev">▾</span> ${cat}</h2>
+        <span class="count">${doneInCat}/${rows.length} done</span>
+      </div>
+      <div class="cat-body">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40%">Problem</th>
+              <th style="width:12%">Difficulty</th>
+              <th style="width:20%">Links</th>
+              <th style="width:28%">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => rowHtml(cat, r)).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+    main.appendChild(catDiv);
+
+    catDiv.querySelector(".cat-head").addEventListener("click", () => {
+      catDiv.classList.toggle("collapsed");
+    });
+  });
+
+  document.getElementById("stats").innerHTML = `
+    <div class="stat"><div class="v">150</div><div class="k">Total</div></div>
+    <div class="stat"><div class="v" style="color:var(--easy)">${totalEasy}</div><div class="k">Easy</div></div>
+    <div class="stat"><div class="v" style="color:var(--medium)">${totalMed}</div><div class="k">Medium</div></div>
+    <div class="stat"><div class="v" style="color:var(--hard)">${totalHard}</div><div class="k">Hard</div></div>
+    <div class="stat"><div class="v" style="color:var(--accent)">${totalBlind}</div><div class="k">In Blind 75</div></div>
+    <div class="stat"><div class="v" style="color:var(--progress)">${totalProgress}</div><div class="k">In Progress</div></div>
+    <div class="stat"><div class="v" style="color:var(--done)">${totalDone}</div><div class="k">Done</div></div>
+  `;
+
+  attachStatusHandlers();
+  applyFilters();
+}
+
+function rowHtml(cat, r){
+  const [title, lcSlug, ncSlug, diff, blind] = r;
+  const k = keyFor(cat, title);
+  const current = statusMap[k] || "TODO";
+  return `
+    <tr data-title="${title.toLowerCase()}" data-diff="${diff}" data-blind="${blind ? "yes":"no"}" data-status="${current}">
+      <td class="prob-name">${title}${blind ? ' <span class="blind-tag">BLIND 75</span>' : ''}</td>
+      <td><span class="diff ${diff}">${diff}</span></td>
+      <td class="links">
+        <a href="https://leetcode.com/problems/${lcSlug}/" target="_blank" rel="noopener">LeetCode ↗</a>
+        <a href="https://neetcode.io/solutions/${ncSlug}" target="_blank" rel="noopener">NeetCode ↗</a>
+      </td>
+      <td>
+        <div class="status-group" data-cat="${cat}" data-title="${title}">
+          ${STATUSES.map(s => `<button class="status-btn sel-${s.id} ${current===s.id ? "selected":""}" data-id="${s.id}">${s.label}</button>`).join("")}
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function attachStatusHandlers(){
+  document.querySelectorAll(".status-group").forEach(group => {
+    const cat = group.dataset.cat, title = group.dataset.title;
+    group.querySelectorAll(".status-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const k = keyFor(cat, title);
+        // toggle off if clicking the already-selected status, back to TODO
+        statusMap[k] = (statusMap[k] === id) ? "TODO" : id;
+        saveStatus();
+        render();
+      });
+    });
+  });
+}
+
+function applyFilters(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const diff = document.getElementById("diffFilter").value;
+  const blind = document.getElementById("blindFilter").value;
+  const status = document.getElementById("statusFilter").value;
+
+  document.querySelectorAll(".category").forEach(catDiv => {
+    let visibleCount = 0;
+    catDiv.querySelectorAll("tbody tr").forEach(tr => {
+      const matchesQ = !q || tr.dataset.title.includes(q);
+      const matchesDiff = !diff || tr.dataset.diff === diff;
+      const matchesBlind = !blind || tr.dataset.blind === blind;
+      const matchesStatus = !status || tr.dataset.status === status;
+      const show = matchesQ && matchesDiff && matchesBlind && matchesStatus;
+      tr.classList.toggle("row-hidden", !show);
+      if(show) visibleCount++;
+    });
+    catDiv.style.display = visibleCount === 0 ? "none" : "";
+  });
+}
+
+document.getElementById("search").addEventListener("input", applyFilters);
+document.getElementById("diffFilter").addEventListener("change", applyFilters);
+document.getElementById("blindFilter").addEventListener("change", applyFilters);
+document.getElementById("statusFilter").addEventListener("change", applyFilters);
+document.getElementById("expandAll").addEventListener("click", () => document.querySelectorAll(".category").forEach(c=>c.classList.remove("collapsed")));
+document.getElementById("collapseAll").addEventListener("click", () => document.querySelectorAll(".category").forEach(c=>c.classList.add("collapsed")));
+document.getElementById("resetAll").addEventListener("click", () => {
+  if(confirm("Reset all saved statuses back to TODO?")){
+    statusMap = {};
+    saveStatus();
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
