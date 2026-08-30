@@ -1,5 +1,12 @@
 # DevRev System Design Round — Study Guide
 
+> Part of the broader DevRev interview prep — see [`../README.md`](../README.md) for the coding round and base prep guide.
+
+**Where the project docs live:** every path below (`enterprise_rag_platform/`, `agent_platform/`,
+`delivery_framework_platform/`, `cross_cutting_prep/`) is relative to
+[`../../agentic system design/`](<../../agentic system design/>) — the generic, reusable system-design
+build-out lives there, while this folder holds only the DevRev-specific prep doc and this study guide.
+
 **Scope:** every document across the three prep projects (`enterprise_rag_platform`, `agent_platform`,
 `delivery_framework_platform`) plus `cross_cutting_prep/`, read in the order that builds understanding
 correctly — architecture and access control first, then cross-cutting concerns that assume you already
