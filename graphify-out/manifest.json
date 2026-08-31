@@ -1,0 +1,3572 @@
+{
+  ".claude/settings.local.json": {
+    "mtime": 1786720947.5312157,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6cad0436dd4e2243e6cfd204075b0f93",
+    "semantic_hash": "6cad0436dd4e2243e6cfd204075b0f93"
+  },
+  ".claude/skills/excalidraw-diagram/references/pyproject.toml": {
+    "mtime": 1788134396.3382673,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8c369ebeedccbd1ae92d8795c645dc1a",
+    "semantic_hash": "8c369ebeedccbd1ae92d8795c645dc1a"
+  },
+  ".claude/skills/excalidraw-diagram/references/render_excalidraw.py": {
+    "mtime": 1788134396.3574314,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3e9023a19a4d538b5364bba59684683c",
+    "semantic_hash": "3e9023a19a4d538b5364bba59684683c"
+  },
+  ".vscode/settings.json": {
+    "mtime": 1786722091.9534602,
+    "seen": 1788135387.7251854,
+    "ast_hash": "18a5181b523de2c97859b0c53aa08f6e",
+    "semantic_hash": "18a5181b523de2c97859b0c53aa08f6e"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/notebooks/langgraph_react_agent.py": {
+    "mtime": 1786780571.7306995,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a0eced65ae3be5f74eb1bda5e8c65efe",
+    "semantic_hash": "a0eced65ae3be5f74eb1bda5e8c65efe"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/src/__init__.py": {
+    "mtime": 1786628728.8021834,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c6e8b1e46046a4dee0ed7fa3e841c4de",
+    "semantic_hash": "c6e8b1e46046a4dee0ed7fa3e841c4de"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/src/brain.py": {
+    "mtime": 1786628815.6914828,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a461c2b22fa2fe9f8f6b781ea4d1a7cd",
+    "semantic_hash": "a461c2b22fa2fe9f8f6b781ea4d1a7cd"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/src/langgraph_agent.py": {
+    "mtime": 1786628855.6456964,
+    "seen": 1788135387.7251854,
+    "ast_hash": "af4741e1e53cf7f3c690e3a50be6b2ad",
+    "semantic_hash": "af4741e1e53cf7f3c690e3a50be6b2ad"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/src/observability.py": {
+    "mtime": 1786628765.3504472,
+    "seen": 1788135387.7251854,
+    "ast_hash": "977febf2dacacc6fc52c964fc97a263a",
+    "semantic_hash": "977febf2dacacc6fc52c964fc97a263a"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/src/robustness.py": {
+    "mtime": 1786628916.2411718,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e168107e6fe1cd040e85607df24fd40f",
+    "semantic_hash": "e168107e6fe1cd040e85607df24fd40f"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/src/scratch_agent.py": {
+    "mtime": 1786628922.3936064,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e62068f3792f2f030438244024a9e6ab",
+    "semantic_hash": "e62068f3792f2f030438244024a9e6ab"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/src/tools.py": {
+    "mtime": 1786628753.9632943,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a2c725d4891ffeeab178eb70d2fcec01",
+    "semantic_hash": "a2c725d4891ffeeab178eb70d2fcec01"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/tests/test_agent.py": {
+    "mtime": 1786628970.889338,
+    "seen": 1788135387.7251854,
+    "ast_hash": "db34359b626edc2c4c6bb7de92dd843d",
+    "semantic_hash": "db34359b626edc2c4c6bb7de92dd843d"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/notebooks/bench_utils.py": {
+    "mtime": 1786636263.4505196,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bcdf1a7526fb314f27b14d75647379ee",
+    "semantic_hash": "bcdf1a7526fb314f27b14d75647379ee"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/notebooks/01_API_Integration/api_integration_reference.py": {
+    "mtime": 1786627711.234919,
+    "seen": 1788135387.7251854,
+    "ast_hash": "56ec92b1adb37fc7a099b87c489e9c9d",
+    "semantic_hash": "56ec92b1adb37fc7a099b87c489e9c9d"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/notebooks/02_Data_Transformation/data_transformation_reference.py": {
+    "mtime": 1786628349.7599568,
+    "seen": 1788135387.7251854,
+    "ast_hash": "608ad4d0f61bab9beb1a37e72f697724",
+    "semantic_hash": "608ad4d0f61bab9beb1a37e72f697724"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/bench_utils.py": {
+    "mtime": 1787867355.2430365,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0cc66d0aa2c2a5dea51a2240a8f39fc6",
+    "semantic_hash": "0cc66d0aa2c2a5dea51a2240a8f39fc6"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/site-nav.js": {
+    "mtime": 1786129509.984542,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9193736d360534f96a1374c1fc3020c1",
+    "semantic_hash": "9193736d360534f96a1374c1fc3020c1"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/site-nav.js": {
+    "mtime": 1786129467.0674124,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e750869836d2f6eaa6e16be8242e04c2",
+    "semantic_hash": "e750869836d2f6eaa6e16be8242e04c2"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/site-nav.js": {
+    "mtime": 1786129478.2885575,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8fd58727fcec4a009269d7f3efd16226",
+    "semantic_hash": "8fd58727fcec4a009269d7f3efd16226"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/agents.py": {
+    "mtime": 1782809966.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b1bf227bddc4fbc88b1428125ae40024",
+    "semantic_hash": "b1bf227bddc4fbc88b1428125ae40024"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/auth.py": {
+    "mtime": 1782703292.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "59ebee5247ea6be65d681b98959a098d",
+    "semantic_hash": "59ebee5247ea6be65d681b98959a098d"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/cache.py": {
+    "mtime": 1782703392.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8d77580251ff5daaf4d1afa953210b26",
+    "semantic_hash": "8d77580251ff5daaf4d1afa953210b26"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/config.py": {
+    "mtime": 1782801654.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "fe65c743f71a1a62b3fbfd56f6aaa353",
+    "semantic_hash": "fe65c743f71a1a62b3fbfd56f6aaa353"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/eval.py": {
+    "mtime": 1782810064.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7f19f6c4bcb54c2c2fc326d530219581",
+    "semantic_hash": "7f19f6c4bcb54c2c2fc326d530219581"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/guardrails.py": {
+    "mtime": 1782803206.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d792c3bff6a7ee3b2f5ab7a0941a8afa",
+    "semantic_hash": "d792c3bff6a7ee3b2f5ab7a0941a8afa"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/main.py": {
+    "mtime": 1782704390.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "200c33ed7a39661185d54c0869c4ee4c",
+    "semantic_hash": "200c33ed7a39661185d54c0869c4ee4c"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/memory.py": {
+    "mtime": 1782726714.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f4a25709cdddf6c77f2bc451d10c551f",
+    "semantic_hash": "f4a25709cdddf6c77f2bc451d10c551f"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/output.py": {
+    "mtime": 1782810092.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "09f0ac39ac611a80dbbf9c91ffd53cc5",
+    "semantic_hash": "09f0ac39ac611a80dbbf9c91ffd53cc5"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/pool.py": {
+    "mtime": 1782703284.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f4a6e19501062a49294a89b67eaa8250",
+    "semantic_hash": "f4a6e19501062a49294a89b67eaa8250"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/queue.py": {
+    "mtime": 1782703382.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0fde9ca19a47ab0b49f091a5be32e640",
+    "semantic_hash": "0fde9ca19a47ab0b49f091a5be32e640"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/app/retry.py": {
+    "mtime": 1782801870.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e46478049d055a45e880a09d1da0e350",
+    "semantic_hash": "e46478049d055a45e880a09d1da0e350"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/bootstrap.sh": {
+    "mtime": 1782394700.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8f5e5dd2f1d12745db68f414cc40ddcd",
+    "semantic_hash": "8f5e5dd2f1d12745db68f414cc40ddcd"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/pyrit_dashboard/main.py": {
+    "mtime": 1782728012.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4b6170fb295efefd8c860860867c2b3a",
+    "semantic_hash": "4b6170fb295efefd8c860860867c2b3a"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/terraform/main.tf": {
+    "mtime": 1782799776.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c506eb40d8b55f0ba075ae6c5694c3d2",
+    "semantic_hash": "c506eb40d8b55f0ba075ae6c5694c3d2"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/data/case_study.json": {
+    "mtime": 1787467354.1400094,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ce32d7f87613c48711ddfb7b7940758b",
+    "semantic_hash": "ce32d7f87613c48711ddfb7b7940758b"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/scripts/_bootstrap.py": {
+    "mtime": 1787467357.9191422,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6889d964779c7ced1f717f6e34179729",
+    "semantic_hash": "6889d964779c7ced1f717f6e34179729"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/scripts/_scenario.py": {
+    "mtime": 1787467563.9700334,
+    "seen": 1788135387.7251854,
+    "ast_hash": "46adfbc7c747554ee708ce554e090202",
+    "semantic_hash": "46adfbc7c747554ee708ce554e090202"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/scripts/demo_guardrail_failure.py": {
+    "mtime": 1787467453.1977406,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8a3926286922a6a50c3080fff708563d",
+    "semantic_hash": "8a3926286922a6a50c3080fff708563d"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/scripts/run_workflow_demo.py": {
+    "mtime": 1787467435.3064322,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c8a5bedb1fd8dbc5b4587fa37ef550b2",
+    "semantic_hash": "c8a5bedb1fd8dbc5b4587fa37ef550b2"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/src/agent_platform/__init__.py": {
+    "mtime": 1787467214.5262704,
+    "seen": 1788135387.7251854,
+    "ast_hash": "df4697b9472e60508b091c83df7f595e",
+    "semantic_hash": "df4697b9472e60508b091c83df7f595e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/src/agent_platform/channels.py": {
+    "mtime": 1787467253.7902327,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a93ffdcdc8c1100964f200e894107e6a",
+    "semantic_hash": "a93ffdcdc8c1100964f200e894107e6a"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/src/agent_platform/config.py": {
+    "mtime": 1787467238.0558932,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6a3f86f6219e9a0008e1ad9e8bff863c",
+    "semantic_hash": "6a3f86f6219e9a0008e1ad9e8bff863c"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/src/agent_platform/guardrails.py": {
+    "mtime": 1787467395.3691783,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ea4bfe0ab7b3f610a314a941c172ac87",
+    "semantic_hash": "ea4bfe0ab7b3f610a314a941c172ac87"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/src/agent_platform/identity.py": {
+    "mtime": 1787467244.0540414,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c6aa12c0f666ceb6f9df37fe870387bd",
+    "semantic_hash": "c6aa12c0f666ceb6f9df37fe870387bd"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/src/agent_platform/models.py": {
+    "mtime": 1787467232.5797274,
+    "seen": 1788135387.7251854,
+    "ast_hash": "73d04c1dfcf82bf52535905322528135",
+    "semantic_hash": "73d04c1dfcf82bf52535905322528135"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/src/agent_platform/observability.py": {
+    "mtime": 1787467341.005888,
+    "seen": 1788135387.7251854,
+    "ast_hash": "47533f952f300d7e80e8627119b2ef80",
+    "semantic_hash": "47533f952f300d7e80e8627119b2ef80"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/src/agent_platform/orchestrator.py": {
+    "mtime": 1787467987.4364483,
+    "seen": 1788135387.7251854,
+    "ast_hash": "17862a458e85fee0f5e5efe3dec0aeac",
+    "semantic_hash": "17862a458e85fee0f5e5efe3dec0aeac"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/src/agent_platform/routing.py": {
+    "mtime": 1787467266.117596,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f84a90c1ad495f6c26dcb062b949a597",
+    "semantic_hash": "f84a90c1ad495f6c26dcb062b949a597"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/src/agent_platform/tools.py": {
+    "mtime": 1787467277.084155,
+    "seen": 1788135387.7251854,
+    "ast_hash": "68810ebc924089d28c4967d0467d343f",
+    "semantic_hash": "68810ebc924089d28c4967d0467d343f"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/src/agent_platform/workflows.py": {
+    "mtime": 1787467288.5166698,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3418f20d8a724d0193c5cb393035ab5e",
+    "semantic_hash": "3418f20d8a724d0193c5cb393035ab5e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/tests/test_platform.py": {
+    "mtime": 1787467557.2867851,
+    "seen": 1788135387.7251854,
+    "ast_hash": "059bd47a13e46b014bd0fdddeda137d0",
+    "semantic_hash": "059bd47a13e46b014bd0fdddeda137d0"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/acl_manifest.json": {
+    "mtime": 1787433826.9073315,
+    "seen": 1788135387.7251854,
+    "ast_hash": "68a3d895e3ee5572a455f5582e0c37f3",
+    "semantic_hash": "68a3d895e3ee5572a455f5582e0c37f3"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/acl_manifest_acme.json": {
+    "mtime": 1787472812.0887198,
+    "seen": 1788135387.7251854,
+    "ast_hash": "45ee733a9862e9142738e10181e6a19b",
+    "semantic_hash": "45ee733a9862e9142738e10181e6a19b"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/golden_set.json": {
+    "mtime": 1787388913.926601,
+    "seen": 1788135387.7251854,
+    "ast_hash": "03b257ca9e2dd7ae74eed414f160ceaa",
+    "semantic_hash": "03b257ca9e2dd7ae74eed414f160ceaa"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/identities.json": {
+    "mtime": 1787388913.912463,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3a588f8e170dae9d4e86187e3e94284b",
+    "semantic_hash": "3a588f8e170dae9d4e86187e3e94284b"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/judge_calibration_set.json": {
+    "mtime": 1787472903.2244322,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bc615f4a6a5cc0547ce5b705e34eae14",
+    "semantic_hash": "bc615f4a6a5cc0547ce5b705e34eae14"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/ticket_export_acme.json": {
+    "mtime": 1787472805.3942482,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e68aa6d2a6207f92c3bd3d1697ce6b5a",
+    "semantic_hash": "e68aa6d2a6207f92c3bd3d1697ce6b5a"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/databricks/dbx_sql.py": {
+    "mtime": 1787393586.775013,
+    "seen": 1788135387.7251854,
+    "ast_hash": "22e2333c57cd105d2887b0847c80f5b4",
+    "semantic_hash": "22e2333c57cd105d2887b0847c80f5b4"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/databricks/validate_uc_governance.py": {
+    "mtime": 1787393586.8026683,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c3e1b7338579a3f1f97d9442d6781a97",
+    "semantic_hash": "c3e1b7338579a3f1f97d9442d6781a97"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/databricks/validate_vector_search_acl.py": {
+    "mtime": 1787393586.836299,
+    "seen": 1788135387.7251854,
+    "ast_hash": "42f8800fad5345d141aa58011926dd5a",
+    "semantic_hash": "42f8800fad5345d141aa58011926dd5a"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/databricks/validate_vector_search_syntax.py": {
+    "mtime": 1787393586.8869672,
+    "seen": 1788135387.7251854,
+    "ast_hash": "221f9184a143202e14f52c6bd8a1afd2",
+    "semantic_hash": "221f9184a143202e14f52c6bd8a1afd2"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/scripts/_bootstrap.py": {
+    "mtime": 1787386818.5046346,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6889d964779c7ced1f717f6e34179729",
+    "semantic_hash": "6889d964779c7ced1f717f6e34179729"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/scripts/ask.py": {
+    "mtime": 1787386880.9331374,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1f6bf85ac9eb912fc118422a4ebadd63",
+    "semantic_hash": "1f6bf85ac9eb912fc118422a4ebadd63"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/scripts/calibrate_judge.py": {
+    "mtime": 1787473412.2537348,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b89bba2c9f98cddb79c106fc964bf625",
+    "semantic_hash": "b89bba2c9f98cddb79c106fc964bf625"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/scripts/demo_access_control.py": {
+    "mtime": 1787387028.3721423,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a6b7125260499725d25225a4f9044c27",
+    "semantic_hash": "a6b7125260499725d25225a4f9044c27"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/scripts/demo_acl_catalog_update.py": {
+    "mtime": 1787431371.3229246,
+    "seen": 1788135387.7251854,
+    "ast_hash": "04426011e52cfd11f758d810458a348f",
+    "semantic_hash": "04426011e52cfd11f758d810458a348f"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/scripts/demo_incremental_sync.py": {
+    "mtime": 1787473167.5135398,
+    "seen": 1788135387.7251854,
+    "ast_hash": "cc93ef07bce6c19543c58d0e7bc45e69",
+    "semantic_hash": "cc93ef07bce6c19543c58d0e7bc45e69"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/scripts/demo_second_connector.py": {
+    "mtime": 1787472851.0497324,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7434768ce9112d8bd39285162c33fd10",
+    "semantic_hash": "7434768ce9112d8bd39285162c33fd10"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/scripts/evaluate.py": {
+    "mtime": 1787387347.8236077,
+    "seen": 1788135387.7251854,
+    "ast_hash": "39066fc276095fb19d3422d0194a046d",
+    "semantic_hash": "39066fc276095fb19d3422d0194a046d"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/scripts/generate_corpus.py": {
+    "mtime": 1787383984.112695,
+    "seen": 1788135387.7251854,
+    "ast_hash": "617a1b065df205b2ac0aab54e2640d4d",
+    "semantic_hash": "617a1b065df205b2ac0aab54e2640d4d"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/scripts/ingest.py": {
+    "mtime": 1787386828.6220572,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4451d3d0dbcd3472e54c94870bcf6306",
+    "semantic_hash": "4451d3d0dbcd3472e54c94870bcf6306"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/__init__.py": {
+    "mtime": 1787386780.855409,
+    "seen": 1788135387.7251854,
+    "ast_hash": "36b550230aa198eb27a5197cf6744be2",
+    "semantic_hash": "36b550230aa198eb27a5197cf6744be2"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/authz/__init__.py": {
+    "mtime": 1787386780.781104,
+    "seen": 1788135387.7251854,
+    "ast_hash": "df4697b9472e60508b091c83df7f595e",
+    "semantic_hash": "df4697b9472e60508b091c83df7f595e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/authz/enforcement.py": {
+    "mtime": 1787431348.8424108,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f2fc6912a5ca0ece64192ac28e59c70a",
+    "semantic_hash": "f2fc6912a5ca0ece64192ac28e59c70a"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/authz/policy.py": {
+    "mtime": 1787471217.6757548,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1db94b72ea49a9f70930a5d0ce0c81fe",
+    "semantic_hash": "1db94b72ea49a9f70930a5d0ce0c81fe"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/authz/rate_limit.py": {
+    "mtime": 1787472626.530392,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5dbb30ea24139bd6a5e0404bf317a7e6",
+    "semantic_hash": "5dbb30ea24139bd6a5e0404bf317a7e6"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/config.py": {
+    "mtime": 1787472553.5155215,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f9393b76b3cb054f41f84f3091af0452",
+    "semantic_hash": "f9393b76b3cb054f41f84f3091af0452"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/evaluation/__init__.py": {
+    "mtime": 1787386780.7861388,
+    "seen": 1788135387.7251854,
+    "ast_hash": "df4697b9472e60508b091c83df7f595e",
+    "semantic_hash": "df4697b9472e60508b091c83df7f595e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/evaluation/harness.py": {
+    "mtime": 1787470168.6242416,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5d26704a1ace348d0f482052a0fec95a",
+    "semantic_hash": "5d26704a1ace348d0f482052a0fec95a"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/graph/__init__.py": {
+    "mtime": 1787386780.7851295,
+    "seen": 1788135387.7251854,
+    "ast_hash": "df4697b9472e60508b091c83df7f595e",
+    "semantic_hash": "df4697b9472e60508b091c83df7f595e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/graph/build.py": {
+    "mtime": 1787472656.4664764,
+    "seen": 1788135387.7251854,
+    "ast_hash": "eea9e5a415ddfac118f272e02dafd556",
+    "semantic_hash": "eea9e5a415ddfac118f272e02dafd556"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/graph/nodes.py": {
+    "mtime": 1787472713.6852388,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c77b41622a1d1c4558ac81eb70d88ce9",
+    "semantic_hash": "c77b41622a1d1c4558ac81eb70d88ce9"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/graph/prompts.py": {
+    "mtime": 1787472611.1196806,
+    "seen": 1788135387.7251854,
+    "ast_hash": "77e28f38f295179471275a117542b3ec",
+    "semantic_hash": "77e28f38f295179471275a117542b3ec"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/graph/state.py": {
+    "mtime": 1787472661.2845387,
+    "seen": 1788135387.7251854,
+    "ast_hash": "045cf724335fcfc8e5a6dac4fb88b815",
+    "semantic_hash": "045cf724335fcfc8e5a6dac4fb88b815"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/identity.py": {
+    "mtime": 1787386795.3629622,
+    "seen": 1788135387.7251854,
+    "ast_hash": "db5212bec097bcb10737c2ac453e5d02",
+    "semantic_hash": "db5212bec097bcb10737c2ac453e5d02"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/ingest/__init__.py": {
+    "mtime": 1787386780.7826104,
+    "seen": 1788135387.7251854,
+    "ast_hash": "df4697b9472e60508b091c83df7f595e",
+    "semantic_hash": "df4697b9472e60508b091c83df7f595e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/ingest/acl_manifest.py": {
+    "mtime": 1787433842.16745,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8e9be54c2c282e9ff0fc5deed6986cf9",
+    "semantic_hash": "8e9be54c2c282e9ff0fc5deed6986cf9"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/ingest/catalog.py": {
+    "mtime": 1787473065.5234096,
+    "seen": 1788135387.7251854,
+    "ast_hash": "06588d59c381fa7de69b7cfcef5caec8",
+    "semantic_hash": "06588d59c381fa7de69b7cfcef5caec8"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/ingest/chunker.py": {
+    "mtime": 1787384184.295926,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f1e2ca0a6c651ef895c7110f54f49733",
+    "semantic_hash": "f1e2ca0a6c651ef895c7110f54f49733"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/ingest/freshness.py": {
+    "mtime": 1787473089.4849682,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4075af7acb580cc226ff3842544de585",
+    "semantic_hash": "4075af7acb580cc226ff3842544de585"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/ingest/loader.py": {
+    "mtime": 1787472839.4809606,
+    "seen": 1788135387.7251854,
+    "ast_hash": "050ca4ace932efeb50ce513564c64b4b",
+    "semantic_hash": "050ca4ace932efeb50ce513564c64b4b"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/ingest/pipeline.py": {
+    "mtime": 1787473229.0237048,
+    "seen": 1788135387.7251854,
+    "ast_hash": "38b052ca881e5ea3f714b71565fb3e60",
+    "semantic_hash": "38b052ca881e5ea3f714b71565fb3e60"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/ingest/store.py": {
+    "mtime": 1787473051.9196434,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2852788d5ad8559c825f554cca2b57e4",
+    "semantic_hash": "2852788d5ad8559c825f554cca2b57e4"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/llm/__init__.py": {
+    "mtime": 1787386780.7836208,
+    "seen": 1788135387.7251854,
+    "ast_hash": "df4697b9472e60508b091c83df7f595e",
+    "semantic_hash": "df4697b9472e60508b091c83df7f595e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/llm/client.py": {
+    "mtime": 1787472882.4571416,
+    "seen": 1788135387.7251854,
+    "ast_hash": "648d90e333a2960af99f5bf723063c64",
+    "semantic_hash": "648d90e333a2960af99f5bf723063c64"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/models.py": {
+    "mtime": 1787472569.368202,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7e54e14edee7966ddddbe87a82e2a85a",
+    "semantic_hash": "7e54e14edee7966ddddbe87a82e2a85a"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/observability/__init__.py": {
+    "mtime": 1787386780.7861388,
+    "seen": 1788135387.7251854,
+    "ast_hash": "df4697b9472e60508b091c83df7f595e",
+    "semantic_hash": "df4697b9472e60508b091c83df7f595e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/observability/trace.py": {
+    "mtime": 1787386643.2314312,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a4c53397a242c69d90701314b6a527b3",
+    "semantic_hash": "a4c53397a242c69d90701314b6a527b3"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/retrieval/__init__.py": {
+    "mtime": 1787386780.7836208,
+    "seen": 1788135387.7251854,
+    "ast_hash": "df4697b9472e60508b091c83df7f595e",
+    "semantic_hash": "df4697b9472e60508b091c83df7f595e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/retrieval/expansion.py": {
+    "mtime": 1787472696.4119408,
+    "seen": 1788135387.7251854,
+    "ast_hash": "fe1ae9a4e91108d20494507d3fc51cae",
+    "semantic_hash": "fe1ae9a4e91108d20494507d3fc51cae"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/retrieval/fusion.py": {
+    "mtime": 1787387847.9605925,
+    "seen": 1788135387.7251854,
+    "ast_hash": "084b6870df62c3ce4394e0ec2cfeccea",
+    "semantic_hash": "084b6870df62c3ce4394e0ec2cfeccea"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/retrieval/lexical.py": {
+    "mtime": 1787384245.1149685,
+    "seen": 1788135387.7251854,
+    "ast_hash": "63cea2fb32ec5d6cf1746bc0e853b3a2",
+    "semantic_hash": "63cea2fb32ec5d6cf1746bc0e853b3a2"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/retrieval/rerank.py": {
+    "mtime": 1787386587.296667,
+    "seen": 1788135387.7251854,
+    "ast_hash": "af398b19f6d0a6fb792029cf3c041509",
+    "semantic_hash": "af398b19f6d0a6fb792029cf3c041509"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/src/enterprise_rag/retrieval/strategies.py": {
+    "mtime": 1787472733.5046802,
+    "seen": 1788135387.7251854,
+    "ast_hash": "630a4fffd647f738cddb69a52e4cb14d",
+    "semantic_hash": "630a4fffd647f738cddb69a52e4cb14d"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/tests/test_golden_set.py": {
+    "mtime": 1787388869.012308,
+    "seen": 1788135387.7251854,
+    "ast_hash": "fd8c0939d733e5529af931bd7106526e",
+    "semantic_hash": "fd8c0939d733e5529af931bd7106526e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/tests/test_pipeline.py": {
+    "mtime": 1787387795.1385152,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1bc3be8443f0b557c3df8d740f6d8d69",
+    "semantic_hash": "1bc3be8443f0b557c3df8d740f6d8d69"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/tests/test_policy.py": {
+    "mtime": 1787387659.1470935,
+    "seen": 1788135387.7251854,
+    "ast_hash": "57746cb9c9814462df81457f021d37d1",
+    "semantic_hash": "57746cb9c9814462df81457f021d37d1"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/tests/test_retrieval.py": {
+    "mtime": 1787387839.0006757,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0b40069102dfd3850b7af320c8eb2ad4",
+    "semantic_hash": "0b40069102dfd3850b7af320c8eb2ad4"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/tests/verify_security_reference.py": {
+    "mtime": 1787408860.8685596,
+    "seen": 1788135387.7251854,
+    "ast_hash": "43e76b71f24cf3ecddf19af7b97b45e4",
+    "semantic_hash": "43e76b71f24cf3ecddf19af7b97b45e4"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/data/case_study.json": {
+    "mtime": 1787436975.276939,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2bc8555b70d4fc46a76311fa42cbb952",
+    "semantic_hash": "2bc8555b70d4fc46a76311fa42cbb952"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/scripts/_bootstrap.py": {
+    "mtime": 1787436990.5840604,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6889d964779c7ced1f717f6e34179729",
+    "semantic_hash": "6889d964779c7ced1f717f6e34179729"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/scripts/demo_gate_failure.py": {
+    "mtime": 1787437029.6153443,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9ea0f2a4e2f0941eaa6189513c7e4790",
+    "semantic_hash": "9ea0f2a4e2f0941eaa6189513c7e4790"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/scripts/run_engagement_demo.py": {
+    "mtime": 1787437130.5110703,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7a400e20d5e3172acc2656413bc9f767",
+    "semantic_hash": "7a400e20d5e3172acc2656413bc9f767"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/src/delivery_framework/__init__.py": {
+    "mtime": 1787436853.9356027,
+    "seen": 1788135387.7251854,
+    "ast_hash": "df4697b9472e60508b091c83df7f595e",
+    "semantic_hash": "df4697b9472e60508b091c83df7f595e"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/src/delivery_framework/accelerators.py": {
+    "mtime": 1787437112.8569274,
+    "seen": 1788135387.7251854,
+    "ast_hash": "479b0b2517cd4c56debf992e905a0919",
+    "semantic_hash": "479b0b2517cd4c56debf992e905a0919"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/src/delivery_framework/config.py": {
+    "mtime": 1787436877.9895082,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9f39dfb4547012e80a2cce5dd5c4268c",
+    "semantic_hash": "9f39dfb4547012e80a2cce5dd5c4268c"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/src/delivery_framework/engine.py": {
+    "mtime": 1787436943.1155872,
+    "seen": 1788135387.7251854,
+    "ast_hash": "30bd081f532aa318b0923b3ef3b56508",
+    "semantic_hash": "30bd081f532aa318b0923b3ef3b56508"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/src/delivery_framework/gates.py": {
+    "mtime": 1787436904.2430174,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ebddb102bbf61db588b333f92089d2d6",
+    "semantic_hash": "ebddb102bbf61db588b333f92089d2d6"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/src/delivery_framework/identity.py": {
+    "mtime": 1787436884.6451833,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b2dacbd22dd57c2c959da5587900a189",
+    "semantic_hash": "b2dacbd22dd57c2c959da5587900a189"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/src/delivery_framework/metrics.py": {
+    "mtime": 1787436955.1520045,
+    "seen": 1788135387.7251854,
+    "ast_hash": "cf898d56302f59d78269623a9aa4054f",
+    "semantic_hash": "cf898d56302f59d78269623a9aa4054f"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/src/delivery_framework/models.py": {
+    "mtime": 1787437119.914199,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bad2f06cc72f4f894d0db6a795742969",
+    "semantic_hash": "bad2f06cc72f4f894d0db6a795742969"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/src/delivery_framework/observability.py": {
+    "mtime": 1787437154.8300767,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bdb74d1d12707833cf4a17772a8bdfb5",
+    "semantic_hash": "bdb74d1d12707833cf4a17772a8bdfb5"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/src/delivery_framework/pipeline.py": {
+    "mtime": 1787436923.7973728,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3743fde0bbf3630263c26e1a924a8aa3",
+    "semantic_hash": "3743fde0bbf3630263c26e1a924a8aa3"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/tests/test_gates.py": {
+    "mtime": 1787437052.3185189,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f75d1af6c9bb1fb8d0cd63ef8bd6691e",
+    "semantic_hash": "f75d1af6c9bb1fb8d0cd63ef8bd6691e"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/bench_utils.py": {
+    "mtime": 1786598325.1625116,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bcdf1a7526fb314f27b14d75647379ee",
+    "semantic_hash": "bcdf1a7526fb314f27b14d75647379ee"
+  },
+  "pyproject.toml": {
+    "mtime": 1787891545.7633946,
+    "seen": 1788135387.7251854,
+    "ast_hash": "906984bc73336f5767aeaee15fef3a32",
+    "semantic_hash": "906984bc73336f5767aeaee15fef3a32"
+  },
+  ".claude/skills/dsa-mock/SKILL.md": {
+    "mtime": 1787907780.5103724,
+    "seen": 1788135387.7251854,
+    "ast_hash": "06b64f4559e3b3e9fc9733560cd98302",
+    "semantic_hash": "06b64f4559e3b3e9fc9733560cd98302"
+  },
+  ".claude/skills/dsa-snippet-explainer/SKILL.md": {
+    "mtime": 1787928816.0380807,
+    "seen": 1788135387.7251854,
+    "ast_hash": "287e1331aecdb189145790c066fbfbd5",
+    "semantic_hash": "287e1331aecdb189145790c066fbfbd5"
+  },
+  ".claude/skills/dsa-snippet-explainer/TEMPLATE.md": {
+    "mtime": 1787928816.354294,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3beab555e62e75fa9ba5084dc7d81879",
+    "semantic_hash": "3beab555e62e75fa9ba5084dc7d81879"
+  },
+  ".claude/skills/excalidraw-diagram/README.md": {
+    "mtime": 1788134396.2844656,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8cc189a48c71cd37d9718a33277ead05",
+    "semantic_hash": "8cc189a48c71cd37d9718a33277ead05"
+  },
+  ".claude/skills/excalidraw-diagram/SKILL.md": {
+    "mtime": 1788134396.2754343,
+    "seen": 1788135387.7251854,
+    "ast_hash": "239bc2b8c9b1c1047241f100f97e100f",
+    "semantic_hash": "239bc2b8c9b1c1047241f100f97e100f"
+  },
+  ".claude/skills/excalidraw-diagram/references/color-palette.md": {
+    "mtime": 1788134396.3100123,
+    "seen": 1788135387.7251854,
+    "ast_hash": "eea94e84940b0bc24baf760e767e9995",
+    "semantic_hash": "eea94e84940b0bc24baf760e767e9995"
+  },
+  ".claude/skills/excalidraw-diagram/references/element-templates.md": {
+    "mtime": 1788134396.3199856,
+    "seen": 1788135387.7251854,
+    "ast_hash": "64b6a9b9bea07669ff63b69309601337",
+    "semantic_hash": "64b6a9b9bea07669ff63b69309601337"
+  },
+  ".claude/skills/excalidraw-diagram/references/json-schema.md": {
+    "mtime": 1788134396.3299854,
+    "seen": 1788135387.7251854,
+    "ast_hash": "812f4cf12e7d6118acc8e960e5611d89",
+    "semantic_hash": "812f4cf12e7d6118acc8e960e5611d89"
+  },
+  ".claude/skills/excalidraw-diagram/references/render_template.html": {
+    "mtime": 1788134396.3916507,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e6fd303972a8959d8d088c33be2d97e9",
+    "semantic_hash": "e6fd303972a8959d8d088c33be2d97e9"
+  },
+  ".claude/skills/leetcode-notebook/SKILL.md": {
+    "mtime": 1786598848.0600278,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3483ba3eb2f6fe574ac60653e0d5ddc6",
+    "semantic_hash": "3483ba3eb2f6fe574ac60653e0d5ddc6"
+  },
+  ".claude/skills/leetcode-visualizer/SKILL.md": {
+    "mtime": 1787125974.2150009,
+    "seen": 1788135387.7251854,
+    "ast_hash": "cd05297e424e66dfaeaa70555efa0b7f",
+    "semantic_hash": "cd05297e424e66dfaeaa70555efa0b7f"
+  },
+  ".claude/skills/plain-theory-formatter/SKILL.md": {
+    "mtime": 1787893975.559623,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f701fe5a13cbfc3953b7909b234acaae",
+    "semantic_hash": "f701fe5a13cbfc3953b7909b234acaae"
+  },
+  ".claude/skills/tree-notebook-explainer/SKILL.md": {
+    "mtime": 1786703783.1539984,
+    "seen": 1788135387.7251854,
+    "ast_hash": "74c87ebb4606478de02d66dbfd081d11",
+    "semantic_hash": "74c87ebb4606478de02d66dbfd081d11"
+  },
+  ".claude/skills/tree-notebook-explainer/TEMPLATE.md": {
+    "mtime": 1786703324.808648,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8470ff4a63beba619a58c73024a3bda9",
+    "semantic_hash": "8470ff4a63beba619a58c73024a3bda9"
+  },
+  "0. Roadmap/MASTER_PREPARATION_ROADMAP.md": {
+    "mtime": 1786874323.52343,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4467632e262ebc1384d4175c7560122d",
+    "semantic_hash": "4467632e262ebc1384d4175c7560122d"
+  },
+  "0. Roadmap/MASTER_ROADMAP_TRACKER.html": {
+    "mtime": 1786874356.718925,
+    "seen": 1788135387.7251854,
+    "ast_hash": "75cfe64ed1986b856ed6063478af0a04",
+    "semantic_hash": "75cfe64ed1986b856ed6063478af0a04"
+  },
+  "1. Company_Wise_Preparation/1. GreyLabs.ai/01_collections_case_study.md": {
+    "mtime": 1786339598.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a74fd897d6ebcedab879760c053190e7",
+    "semantic_hash": "a74fd897d6ebcedab879760c053190e7"
+  },
+  "1. Company_Wise_Preparation/1. GreyLabs.ai/02_sales_crosssell_case_study.md": {
+    "mtime": 1786339598.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b8f5400a74f9c8001c1efe9697c3feff",
+    "semantic_hash": "b8f5400a74f9c8001c1efe9697c3feff"
+  },
+  "1. Company_Wise_Preparation/1. GreyLabs.ai/03_servicing_multilanguage_case_study.md": {
+    "mtime": 1786339598.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "48c3974ceb0e6beda6966ec93ad75bb6",
+    "semantic_hash": "48c3974ceb0e6beda6966ec93ad75bb6"
+  },
+  "1. Company_Wise_Preparation/1. GreyLabs.ai/04_fraud_risk_case_study.md": {
+    "mtime": 1786339598.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8fb114bd9050583c6e729b67d86335fb",
+    "semantic_hash": "8fb114bd9050583c6e729b67d86335fb"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/INDEX.html": {
+    "mtime": 1786654864.4903224,
+    "seen": 1788135387.7251854,
+    "ast_hash": "608c4679bc484e3748f39c16582e9728",
+    "semantic_hash": "608c4679bc484e3748f39c16582e9728"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/README.md": {
+    "mtime": 1786629021.4454534,
+    "seen": 1788135387.7251854,
+    "ast_hash": "491ad3cdd699d0dc5d453111655b6669",
+    "semantic_hash": "491ad3cdd699d0dc5d453111655b6669"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/docs/DESIGN.md": {
+    "mtime": 1786629048.6882405,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ab3e7846cd60c7cdccc3eee355ed4373",
+    "semantic_hash": "ab3e7846cd60c7cdccc3eee355ed4373"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/agent_tool_calling_demo/requirements.txt": {
+    "mtime": 1786742770.2050517,
+    "seen": 1788135387.7251854,
+    "ast_hash": "96eae140ef951c88c25a06da39cb0ff0",
+    "semantic_hash": "96eae140ef951c88c25a06da39cb0ff0"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/reference/Array/sliding_window_maximum_explained.md": {
+    "mtime": 1787002881.6416912,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0e2c4fa88d9fafd69aacee0f5f5d7c9f",
+    "semantic_hash": "0e2c4fa88d9fafd69aacee0f5f5d7c9f"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/reference/Array/subarray_sum_equals_k_explained.md": {
+    "mtime": 1787001485.8916466,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5bde17df32e954d42b85abb161a4588c",
+    "semantic_hash": "5bde17df32e954d42b85abb161a4588c"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/reference/Design/lru_cache_explained.md": {
+    "mtime": 1787001808.8803332,
+    "seen": 1788135387.7251854,
+    "ast_hash": "57ff2dbb45ea316b8873cd7c118ed0d9",
+    "semantic_hash": "57ff2dbb45ea316b8873cd7c118ed0d9"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/reference/Graph/downstream_of_a_failure_explained.md": {
+    "mtime": 1787001754.556852,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6e963518e206e7596ba86a8bf92c84e5",
+    "semantic_hash": "6e963518e206e7596ba86a8bf92c84e5"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/reference/Graph/topological_wave_scheduling_explained.md": {
+    "mtime": 1787001737.6565642,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4abee65fb4075f3831b8b826f09495a8",
+    "semantic_hash": "4abee65fb4075f3831b8b826f09495a8"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/reference/Tree/build_tree_from_flat_list_explained.md": {
+    "mtime": 1787001773.7094722,
+    "seen": 1788135387.7251854,
+    "ast_hash": "244a2b610c7f0d160cf33e962f7852aa",
+    "semantic_hash": "244a2b610c7f0d160cf33e962f7852aa"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/reference/Tree/lowest_common_ancestor_binary_tree_explained.md": {
+    "mtime": 1787001790.2576287,
+    "seen": 1788135387.7251854,
+    "ast_hash": "68a53e730a7a50ab1a44ab0bf8d62658",
+    "semantic_hash": "68a53e730a7a50ab1a44ab0bf8d62658"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/visualizations/Array/sliding_window_maximum.html": {
+    "mtime": 1787004668.268522,
+    "seen": 1788135387.7251854,
+    "ast_hash": "920a82fe4119f63f92ef31f55186757d",
+    "semantic_hash": "920a82fe4119f63f92ef31f55186757d"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/visualizations/Array/subarray_sum_equals_k.html": {
+    "mtime": 1787004668.3400893,
+    "seen": 1788135387.7251854,
+    "ast_hash": "cab1d2b2465f92a4d0765f1f5751f874",
+    "semantic_hash": "cab1d2b2465f92a4d0765f1f5751f874"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/visualizations/Design/lru_cache.html": {
+    "mtime": 1787004668.6380084,
+    "seen": 1788135387.7251854,
+    "ast_hash": "eb122d2bbcb9035de1b9ef1a6b4273fa",
+    "semantic_hash": "eb122d2bbcb9035de1b9ef1a6b4273fa"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/visualizations/Graph/downstream_of_a_failure.html": {
+    "mtime": 1787004668.4102361,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e3b65b27be3ff42e3cdd3be1087c1ced",
+    "semantic_hash": "e3b65b27be3ff42e3cdd3be1087c1ced"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/visualizations/Graph/topological_wave_scheduling.html": {
+    "mtime": 1787004668.4670348,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2760d3f9196c6fd65967348b8a5318d5",
+    "semantic_hash": "2760d3f9196c6fd65967348b8a5318d5"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/visualizations/Tree/build_tree_from_flat_list.html": {
+    "mtime": 1787004668.527513,
+    "seen": 1788135387.7251854,
+    "ast_hash": "988875764ac99b4ff1bdae43f3888642",
+    "semantic_hash": "988875764ac99b4ff1bdae43f3888642"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/visualizations/Tree/lowest_common_ancestor_binary_tree.html": {
+    "mtime": 1787004668.5832918,
+    "seen": 1788135387.7251854,
+    "ast_hash": "66c3e256865684bd52783836e5c4afe6",
+    "semantic_hash": "66c3e256865684bd52783836e5c4afe6"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/visualizations/index.html": {
+    "mtime": 1787004696.7166786,
+    "seen": 1788135387.7251854,
+    "ast_hash": "40a49995f01fccbe7fc0bb82ac8a28ce",
+    "semantic_hash": "40a49995f01fccbe7fc0bb82ac8a28ce"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/dsa_notebooks/visualizations/patterns.html": {
+    "mtime": 1787004676.148472,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d42b81ea31af3feb5c3f7833c3e30e9b",
+    "semantic_hash": "d42b81ea31af3feb5c3f7833c3e30e9b"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/notebooks/04_Agent_RAG_Eval/requirements.txt": {
+    "mtime": 1787040989.367452,
+    "seen": 1788135387.7251854,
+    "ast_hash": "71ec09335a13adc47a86c44828803b88",
+    "semantic_hash": "71ec09335a13adc47a86c44828803b88"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/tutorials/01_API_Integration.md": {
+    "mtime": 1786628390.2123148,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f86569a75efb11ff88b441632733ae12",
+    "semantic_hash": "f86569a75efb11ff88b441632733ae12"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/tutorials/02_Data_Transformation.md": {
+    "mtime": 1786653472.9302616,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e7bfb115baccdf287e46eb80ccf8f628",
+    "semantic_hash": "e7bfb115baccdf287e46eb80ccf8f628"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/tutorials/03_Agent_Tool_Calling_Loop.md": {
+    "mtime": 1786730406.8639903,
+    "seen": 1788135387.7251854,
+    "ast_hash": "23a931fa3d9199e55f78b70e25aadebc",
+    "semantic_hash": "23a931fa3d9199e55f78b70e25aadebc"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/tutorials/04_Core_DSA.md": {
+    "mtime": 1786654645.9729798,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e8cb58888be0fbe7bea98a273ee16977",
+    "semantic_hash": "e8cb58888be0fbe7bea98a273ee16977"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/visualizations/build_tree_from_flat_list.html": {
+    "mtime": 1786654460.6793773,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2990a2936239130d2b9f14ce0910226e",
+    "semantic_hash": "2990a2936239130d2b9f14ce0910226e"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/visualizations/downstream_of_a_failure.html": {
+    "mtime": 1786654460.6813726,
+    "seen": 1788135387.7251854,
+    "ast_hash": "530898c88cb13d1377e3a8d0a110b5e4",
+    "semantic_hash": "530898c88cb13d1377e3a8d0a110b5e4"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/visualizations/index.html": {
+    "mtime": 1786654460.6813726,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5425fa03d72c0507529f40d43c4019f5",
+    "semantic_hash": "5425fa03d72c0507529f40d43c4019f5"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/visualizations/lowest_common_ancestor_binary_tree.html": {
+    "mtime": 1786654460.6803777,
+    "seen": 1788135387.7251854,
+    "ast_hash": "88e95e4a1fbf6a475539e7e157da4c55",
+    "semantic_hash": "88e95e4a1fbf6a475539e7e157da4c55"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/visualizations/lru_cache.html": {
+    "mtime": 1786654460.6803777,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5cf7c1a4b5c513ce3a42e26d9bce7b90",
+    "semantic_hash": "5cf7c1a4b5c513ce3a42e26d9bce7b90"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/visualizations/patterns.html": {
+    "mtime": 1786654460.6813726,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d6239158d33cd87b4d427c50179d9bbb",
+    "semantic_hash": "d6239158d33cd87b4d427c50179d9bbb"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/visualizations/sliding_window_maximum.html": {
+    "mtime": 1786654460.6793773,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0867a44662b784dd728f8d9818ff00ea",
+    "semantic_hash": "0867a44662b784dd728f8d9818ff00ea"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/visualizations/subarray_sum_equals_k.html": {
+    "mtime": 1786654460.6784115,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f6dd8290a6fc43b49ba63926b893c3fa",
+    "semantic_hash": "f6dd8290a6fc43b49ba63926b893c3fa"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/visualizations/topological_wave_scheduling.html": {
+    "mtime": 1786654460.6793773,
+    "seen": 1788135387.7251854,
+    "ast_hash": "fe5f0ff5637c9ad3c58e94e4bff8ca1d",
+    "semantic_hash": "fe5f0ff5637c9ad3c58e94e4bff8ca1d"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/README.md": {
+    "mtime": 1788086371.5990214,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1ebf1c24b7c6f235fc23730e2f8cab8a",
+    "semantic_hash": "1ebf1c24b7c6f235fc23730e2f8cab8a"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/System_Design_Round/STUDY_GUIDE.md": {
+    "mtime": 1788086364.971003,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4a9c7c732e7546117da874943233283e",
+    "semantic_hash": "4a9c7c732e7546117da874943233283e"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/System_Design_Round/study-path.html": {
+    "mtime": 1787771161.1881716,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3c814cc8f36597c4a74047eeba17b709",
+    "semantic_hash": "3c814cc8f36597c4a74047eeba17b709"
+  },
+  "1. Company_Wise_Preparation/3. MongoDB/1. Hiring Manager Screen/Hiring_Manager_Screen_Prep.md": {
+    "mtime": 1787949613.559116,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0db8c58dcc583ba002a743b93cba1371",
+    "semantic_hash": "0db8c58dcc583ba002a743b93cba1371"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/1. Jira_Issue_CSV_Exporter/README.md": {
+    "mtime": 1787867117.0021987,
+    "seen": 1788135387.7251854,
+    "ast_hash": "724e17767e9b8547ea084cd0c11e127c",
+    "semantic_hash": "724e17767e9b8547ea084cd0c11e127c"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/1. Jira_Issue_CSV_Exporter/jira_issue_csv_exporter_explained.md": {
+    "mtime": 1787944151.6586387,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ee49848035e4e54ddeb0cdad69b27a56",
+    "semantic_hash": "ee49848035e4e54ddeb0cdad69b27a56"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/10. Customer_Satisfaction/README.md": {
+    "mtime": 1787867939.4690106,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6c58787019da1bc7dd86953f24387fd7",
+    "semantic_hash": "6c58787019da1bc7dd86953f24387fd7"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/10. Customer_Satisfaction/customer_satisfaction_explained.md": {
+    "mtime": 1787944459.5505538,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9842a5912bff7ba2dae24eb2855164ca",
+    "semantic_hash": "9842a5912bff7ba2dae24eb2855164ca"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/11. Data_Engineer_Questions/README.md": {
+    "mtime": 1787867911.7706642,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1a77a1985c5789206cef477cddcacd12",
+    "semantic_hash": "1a77a1985c5789206cef477cddcacd12"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/11. Data_Engineer_Questions/data_engineer_questions_explained.md": {
+    "mtime": 1787944526.5097208,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b040f52456b3b9be4f6d4c88cd8d0b34",
+    "semantic_hash": "b040f52456b3b9be4f6d4c88cd8d0b34"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/12. File_System/README.md": {
+    "mtime": 1787867918.0362673,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f78a594a8a09cb533bf6e89843453fdd",
+    "semantic_hash": "f78a594a8a09cb533bf6e89843453fdd"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/12. File_System/file_system_explained.md": {
+    "mtime": 1787944557.6940773,
+    "seen": 1788135387.7251854,
+    "ast_hash": "07080d985436438ea88fa2fbc3fbb5a9",
+    "semantic_hash": "07080d985436438ea88fa2fbc3fbb5a9"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/13. Tennis_Club/README.md": {
+    "mtime": 1787867947.810165,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9a460a8683c8693ae204438882a453f0",
+    "semantic_hash": "9a460a8683c8693ae204438882a453f0"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/13. Tennis_Club/tennis_club_explained.md": {
+    "mtime": 1787944588.2242448,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9831386c4e696224aabdda63c376495a",
+    "semantic_hash": "9831386c4e696224aabdda63c376495a"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/2. Confluence_Page_Word_Count/README.md": {
+    "mtime": 1787867434.824484,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9c06d3de717aa9d798fbe4e17cb80ee2",
+    "semantic_hash": "9c06d3de717aa9d798fbe4e17cb80ee2"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/2. Confluence_Page_Word_Count/confluence_page_word_count_explained.md": {
+    "mtime": 1787946828.7158337,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b891a934470408abd84d562ef2e072ec",
+    "semantic_hash": "b891a934470408abd84d562ef2e072ec"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/3. Content_Popularity_Tracker/README.md": {
+    "mtime": 1787867419.481421,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a0a68953b7926673df687a216f12e9e4",
+    "semantic_hash": "a0a68953b7926673df687a216f12e9e4"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/3. Content_Popularity_Tracker/content_popularity_tracker_explained.md": {
+    "mtime": 1787944211.7564363,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3c0f1fca13a11375c115dc3a3c886ced",
+    "semantic_hash": "3c0f1fca13a11375c115dc3a3c886ced"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/4. Highest_Price/README.md": {
+    "mtime": 1787867424.6978772,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ce3188e2a54f769aa1caf5e1f375dbe9",
+    "semantic_hash": "ce3188e2a54f769aa1caf5e1f375dbe9"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/4. Highest_Price/highest_price_explained.md": {
+    "mtime": 1787944255.6377892,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0b747d718680a61a44443c76f19a0be2",
+    "semantic_hash": "0b747d718680a61a44443c76f19a0be2"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/5. Middleware_Router/README.md": {
+    "mtime": 1787867428.9614465,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4f35b3adf025e5af7b6ebe9bb0cecbd8",
+    "semantic_hash": "4f35b3adf025e5af7b6ebe9bb0cecbd8"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/5. Middleware_Router/middleware_router_explained.md": {
+    "mtime": 1787944287.9970133,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d06a0a221892a8266606cc48ddf7c92e",
+    "semantic_hash": "d06a0a221892a8266606cc48ddf7c92e"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/6. Ballot_Processing/README.md": {
+    "mtime": 1787867902.9838853,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d47fe2fa55ab949f2d596220d947a245",
+    "semantic_hash": "d47fe2fa55ab949f2d596220d947a245"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/6. Ballot_Processing/ballot_processing_explained.md": {
+    "mtime": 1787944327.6395621,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4416608a34fde28a8fe2000943ec1730",
+    "semantic_hash": "4416608a34fde28a8fe2000943ec1730"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/7. CICD_Jobs/README.md": {
+    "mtime": 1787867924.582392,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0ea15072f40c4384abd8105905e6ffd0",
+    "semantic_hash": "0ea15072f40c4384abd8105905e6ffd0"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/7. CICD_Jobs/cicd_jobs_explained.md": {
+    "mtime": 1787944367.8647492,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a71a93d3e96377ce6b2cd3d3b95d57a7",
+    "semantic_hash": "a71a93d3e96377ce6b2cd3d3b95d57a7"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/8. Company_Hierarchy/README.md": {
+    "mtime": 1787867929.103608,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5b947a3ed4b10ab3706eeca2fa12127a",
+    "semantic_hash": "5b947a3ed4b10ab3706eeca2fa12127a"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/8. Company_Hierarchy/company_hierarchy_explained.md": {
+    "mtime": 1787944399.5169418,
+    "seen": 1788135387.7251854,
+    "ast_hash": "87a26c1c6668fab6d8cb5f532db1a554",
+    "semantic_hash": "87a26c1c6668fab6d8cb5f532db1a554"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/9. Confluence_Page_Link_Graph/README.md": {
+    "mtime": 1787867907.13613,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e7f2335f9e2f02672b4f7c6a8ea9bcbe",
+    "semantic_hash": "e7f2335f9e2f02672b4f7c6a8ea9bcbe"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/9. Confluence_Page_Link_Graph/confluence_page_link_graph_explained.md": {
+    "mtime": 1787944430.039909,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7bb397155206e088d1d2e5c0e9239b99",
+    "semantic_hash": "7bb397155206e088d1d2e5c0e9239b99"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/DSA_Study_Guide.md": {
+    "mtime": 1787927538.266956,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4df989f3b5d231cdaade358d0a72d4c6",
+    "semantic_hash": "4df989f3b5d231cdaade358d0a72d4c6"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/DSA_Used.md": {
+    "mtime": 1787929841.8548553,
+    "seen": 1788135387.7251854,
+    "ast_hash": "de4249a84c8784eaef63ea56d72bf748",
+    "semantic_hash": "de4249a84c8784eaef63ea56d72bf748"
+  },
+  "1. Company_Wise_Preparation/4. Atlassian/README.md": {
+    "mtime": 1787912083.0145288,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7ad28b5de255c3f62259a3eadf63ba1e",
+    "semantic_hash": "7ad28b5de255c3f62259a3eadf63ba1e"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch02_data_ingestion_design_patterns_CRAM_SHEET.html": {
+    "mtime": 1786129490.04197,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ce17f7f1367945342a704bd586608d2a",
+    "semantic_hash": "ce17f7f1367945342a704bd586608d2a"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch02_data_ingestion_design_patterns_CRAM_SHEET.md": {
+    "mtime": 1786109166.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "143ee7bd463ab1cd3673869aa3df1f5d",
+    "semantic_hash": "143ee7bd463ab1cd3673869aa3df1f5d"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch03_error_management_CRAM_SHEET.html": {
+    "mtime": 1786129490.0474513,
+    "seen": 1788135387.7251854,
+    "ast_hash": "01261dc958b05398ce83270e5b7222b0",
+    "semantic_hash": "01261dc958b05398ce83270e5b7222b0"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch03_error_management_CRAM_SHEET.md": {
+    "mtime": 1786091686.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d076332b9c3e05b0cec0e4cc34bebaaa",
+    "semantic_hash": "d076332b9c3e05b0cec0e4cc34bebaaa"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch04_idempotency_cram_sheet.html": {
+    "mtime": 1786129490.055006,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7953d4bf1598819b4da42d58236a2fea",
+    "semantic_hash": "7953d4bf1598819b4da42d58236a2fea"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch04_idempotency_cram_sheet.md": {
+    "mtime": 1786094426.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "495e6b61d5396e84798cef11b98cce5c",
+    "semantic_hash": "495e6b61d5396e84798cef11b98cce5c"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch05_data_value_CRAM_SHEET.html": {
+    "mtime": 1786129490.0595162,
+    "seen": 1788135387.7251854,
+    "ast_hash": "fe0c6313f34ae872549aa5378547cf1b",
+    "semantic_hash": "fe0c6313f34ae872549aa5378547cf1b"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch05_data_value_CRAM_SHEET.md": {
+    "mtime": 1786109088.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6f60cb54975e978d1b9fabbb50d6dbe6",
+    "semantic_hash": "6f60cb54975e978d1b9fabbb50d6dbe6"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch06_data_flow_design_patterns_CRAM_SHEET.html": {
+    "mtime": 1786129490.0655272,
+    "seen": 1788135387.7251854,
+    "ast_hash": "99e6400919092e8712ce2bf177920e67",
+    "semantic_hash": "99e6400919092e8712ce2bf177920e67"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch06_data_flow_design_patterns_CRAM_SHEET.md": {
+    "mtime": 1786109116.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ddc8511558f043d8c8fb3a85e94edeab",
+    "semantic_hash": "ddc8511558f043d8c8fb3a85e94edeab"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch07_data_security_design_patterns_CRAM_SHEET.html": {
+    "mtime": 1786129490.0730715,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7b0c5e5afeebd4fc4603598b7710250a",
+    "semantic_hash": "7b0c5e5afeebd4fc4603598b7710250a"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch07_data_security_design_patterns_CRAM_SHEET.md": {
+    "mtime": 1786109140.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "342dc51926526dae164ac3db98dc9d96",
+    "semantic_hash": "342dc51926526dae164ac3db98dc9d96"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch08_data_storage_design_patterns_CRAM_SHEET.html": {
+    "mtime": 1786129490.0816052,
+    "seen": 1788135387.7251854,
+    "ast_hash": "de9c5eaac6425445d757dcdeec574a4a",
+    "semantic_hash": "de9c5eaac6425445d757dcdeec574a4a"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch08_data_storage_design_patterns_CRAM_SHEET.md": {
+    "mtime": 1786109052.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b09b40585f20771272f9a64a527746eb",
+    "semantic_hash": "b09b40585f20771272f9a64a527746eb"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch09_data_quality_CRAM_SHEET.html": {
+    "mtime": 1786129490.0881038,
+    "seen": 1788135387.7251854,
+    "ast_hash": "093b56df624fdd723b6498bf63fe68bd",
+    "semantic_hash": "093b56df624fdd723b6498bf63fe68bd"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch09_data_quality_CRAM_SHEET.md": {
+    "mtime": 1786109022.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1ef45e7bf659c8415987853b14b8570e",
+    "semantic_hash": "1ef45e7bf659c8415987853b14b8570e"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch10_data_observability_design_patterns.html": {
+    "mtime": 1786129490.0961237,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6c7331fc165f58879f39cde7754c87db",
+    "semantic_hash": "6c7331fc165f58879f39cde7754c87db"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/ch10_data_observability_design_patterns.md": {
+    "mtime": 1786108998.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ac51a88d715d74630f31f9ad68c5a331",
+    "semantic_hash": "ac51a88d715d74630f31f9ad68c5a331"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Patter-Cram/index.html": {
+    "mtime": 1786129413.265311,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e4dbf089b6c5e7686c95eaeb89a7a3ac",
+    "semantic_hash": "e4dbf089b6c5e7686c95eaeb89a7a3ac"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch02_data_ingestion_design_patterns.html": {
+    "mtime": 1786129489.9036088,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b05297158a960bc95e13dfd52c0f95a9",
+    "semantic_hash": "b05297158a960bc95e13dfd52c0f95a9"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch02_data_ingestion_design_patterns.md": {
+    "mtime": 1786064098.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2ce7e7c43ad1156c0e232b020aaef4c0",
+    "semantic_hash": "2ce7e7c43ad1156c0e232b020aaef4c0"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch03_error_management_design_patterns.html": {
+    "mtime": 1786129489.924658,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7d2d2852afe782df516df14a27eaab08",
+    "semantic_hash": "7d2d2852afe782df516df14a27eaab08"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch03_error_management_design_patterns.md": {
+    "mtime": 1786064054.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c2215e51d3580d00d41f07edfc53da32",
+    "semantic_hash": "c2215e51d3580d00d41f07edfc53da32"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch04_idempotency_design_patterns.html": {
+    "mtime": 1786129489.9627864,
+    "seen": 1788135387.7251854,
+    "ast_hash": "96050fd43f1beb6f25b633d1f9870ff8",
+    "semantic_hash": "96050fd43f1beb6f25b633d1f9870ff8"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch04_idempotency_design_patterns.md": {
+    "mtime": 1786064036.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "416d172bdd10a9965ebeba32f9b9c1bd",
+    "semantic_hash": "416d172bdd10a9965ebeba32f9b9c1bd"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch05_data_value_design_patterns.html": {
+    "mtime": 1786129489.9703104,
+    "seen": 1788135387.7251854,
+    "ast_hash": "82565807b27ed32bb659d0d4c3c1a2fd",
+    "semantic_hash": "82565807b27ed32bb659d0d4c3c1a2fd"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch05_data_value_design_patterns.md": {
+    "mtime": 1786091530.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9491e11f78642c4f5dae728c6842aab6",
+    "semantic_hash": "9491e11f78642c4f5dae728c6842aab6"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch06_data_flow_design_patterns.html": {
+    "mtime": 1786129489.9763198,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d603860ab453892504388eb2257f3240",
+    "semantic_hash": "d603860ab453892504388eb2257f3240"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch06_data_flow_design_patterns.md": {
+    "mtime": 1786091566.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c563f8edfa69aa3a43d1571efecf93fc",
+    "semantic_hash": "c563f8edfa69aa3a43d1571efecf93fc"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch07_data_security_design_patterns.html": {
+    "mtime": 1786129489.984367,
+    "seen": 1788135387.7251854,
+    "ast_hash": "91687d8dc9eff5168676ebb3e5b30596",
+    "semantic_hash": "91687d8dc9eff5168676ebb3e5b30596"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch07_data_security_design_patterns.md": {
+    "mtime": 1786091582.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3f32bb7a6fb157c8f4b884dc42d412e9",
+    "semantic_hash": "3f32bb7a6fb157c8f4b884dc42d412e9"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch08_data_storage_design_patterns.html": {
+    "mtime": 1786129490.0064309,
+    "seen": 1788135387.7251854,
+    "ast_hash": "845ddf1366dafc98693028d9428fae24",
+    "semantic_hash": "845ddf1366dafc98693028d9428fae24"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch08_data_storage_design_patterns.md": {
+    "mtime": 1786091600.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1fde03db947398ca89fa3abffd0cc8f4",
+    "semantic_hash": "1fde03db947398ca89fa3abffd0cc8f4"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch09_data_quality_design_patterns.html": {
+    "mtime": 1786129490.0244782,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ea9400f95cf7329f8fefd7b9c5d839c6",
+    "semantic_hash": "ea9400f95cf7329f8fefd7b9c5d839c6"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch09_data_quality_design_patterns.md": {
+    "mtime": 1786091622.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "408d5e157582bec81a74f9b0f0d30be8",
+    "semantic_hash": "408d5e157582bec81a74f9b0f0d30be8"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch10_data_observability_design_patterns.html": {
+    "mtime": 1786129490.0326698,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6c7331fc165f58879f39cde7754c87db",
+    "semantic_hash": "6c7331fc165f58879f39cde7754c87db"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/ch10_data_observability_design_patterns.md": {
+    "mtime": 1786091640.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ac51a88d715d74630f31f9ad68c5a331",
+    "semantic_hash": "ac51a88d715d74630f31f9ad68c5a331"
+  },
+  "2. Data_Engineer_Interview_Preparation/Design Pattern/index.html": {
+    "mtime": 1786129412.916173,
+    "seen": 1788135387.7251854,
+    "ast_hash": "49d27cd867fa0929979b5a3344242815",
+    "semantic_hash": "49d27cd867fa0929979b5a3344242815"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/INSTRUCTIONS.md": {
+    "mtime": 1785934340.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ea77b4032e887b8792c2d5924af92d52",
+    "semantic_hash": "ea77b4032e887b8792c2d5924af92d52"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch03_fundamentals_of_scale.html": {
+    "mtime": 1786009830.0966418,
+    "seen": 1788135387.7251854,
+    "ast_hash": "70b0f55c2a5e9bc02daa07c8739912d8",
+    "semantic_hash": "70b0f55c2a5e9bc02daa07c8739912d8"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch03_fundamentals_of_scale.md": {
+    "mtime": 1785934340.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "57bce93ce2bdd168febf85a1f1071843",
+    "semantic_hash": "57bce93ce2bdd168febf85a1f1071843"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch04_storage_engines.html": {
+    "mtime": 1786027587.8057868,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0602a5746343c760469e26a20d90ee19",
+    "semantic_hash": "0602a5746343c760469e26a20d90ee19"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch04_storage_engines.md": {
+    "mtime": 1786007706.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "19fb3977ce2c3d4769230cb0465a7a5f",
+    "semantic_hash": "19fb3977ce2c3d4769230cb0465a7a5f"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch05_data_modeling_at_scale.html": {
+    "mtime": 1786027587.8247998,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7c57b210125aacfaedf04e947aeaea83",
+    "semantic_hash": "7c57b210125aacfaedf04e947aeaea83"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch05_data_modeling_at_scale.md": {
+    "mtime": 1786007706.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f9309bd01218e1761358e009d5657976",
+    "semantic_hash": "f9309bd01218e1761358e009d5657976"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch06_batch_systems.html": {
+    "mtime": 1786009830.1218498,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9dd5afd8048749e156ce7a469f5844c0",
+    "semantic_hash": "9dd5afd8048749e156ce7a469f5844c0"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch06_batch_systems.md": {
+    "mtime": 1785980190.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b99fa4a0a1bd546cf50c51332f20e8d0",
+    "semantic_hash": "b99fa4a0a1bd546cf50c51332f20e8d0"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch07_streaming_systems.html": {
+    "mtime": 1786009830.1293817,
+    "seen": 1788135387.7251854,
+    "ast_hash": "da5a03b173e9727fedd67fc3b17b2008",
+    "semantic_hash": "da5a03b173e9727fedd67fc3b17b2008"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch07_streaming_systems.md": {
+    "mtime": 1785980224.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a386fe60dc38c779b2af409f3d8b6b94",
+    "semantic_hash": "a386fe60dc38c779b2af409f3d8b6b94"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch08_cdc_and_replication.html": {
+    "mtime": 1786009830.1379042,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3e6b027f08db3a81bdf9a512ed1485fc",
+    "semantic_hash": "3e6b027f08db3a81bdf9a512ed1485fc"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch08_cdc_and_replication.md": {
+    "mtime": 1785980240.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ef5aa9908a3e7427c8429c8a19ce0a0a",
+    "semantic_hash": "ef5aa9908a3e7427c8429c8a19ce0a0a"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch09_lakehouse_and_table_formats.html": {
+    "mtime": 1786009830.147439,
+    "seen": 1788135387.7251854,
+    "ast_hash": "491002a8ef4a4d6d9683684d1cc37846",
+    "semantic_hash": "491002a8ef4a4d6d9683684d1cc37846"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch09_lakehouse_and_table_formats.md": {
+    "mtime": 1785981028.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "756255c82be5bf5c66c29a3ef521ce4d",
+    "semantic_hash": "756255c82be5bf5c66c29a3ef521ce4d"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch10_query_engines.html": {
+    "mtime": 1786009830.156447,
+    "seen": 1788135387.7251854,
+    "ast_hash": "81cb6d1c80405740b550e817875717b7",
+    "semantic_hash": "81cb6d1c80405740b550e817875717b7"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch10_query_engines.md": {
+    "mtime": 1785980318.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7bc01594bae0ffd9a0a382bcec5c6e00",
+    "semantic_hash": "7bc01594bae0ffd9a0a382bcec5c6e00"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch11_orchestration.html": {
+    "mtime": 1786009830.1649914,
+    "seen": 1788135387.7251854,
+    "ast_hash": "fc528918ed04810a5bf0f33504d360b6",
+    "semantic_hash": "fc528918ed04810a5bf0f33504d360b6"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch11_orchestration.md": {
+    "mtime": 1785980280.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "87cc93b818f08975a7801790214c892f",
+    "semantic_hash": "87cc93b818f08975a7801790214c892f"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch12_data_contracts_and_governance.html": {
+    "mtime": 1786009830.1797585,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f61da076fc3959e1a40cb5e31e831888",
+    "semantic_hash": "f61da076fc3959e1a40cb5e31e831888"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch12_data_contracts_and_governance.md": {
+    "mtime": 1785980388.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "92ab45f61dd156b598b334f358c08572",
+    "semantic_hash": "92ab45f61dd156b598b334f358c08572"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch13_reliability_and_operations.html": {
+    "mtime": 1786009830.1925445,
+    "seen": 1788135387.7251854,
+    "ast_hash": "de3e82c9d6d65e4adc8d6bc50ac943c2",
+    "semantic_hash": "de3e82c9d6d65e4adc8d6bc50ac943c2"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch13_reliability_and_operations.md": {
+    "mtime": 1785980294.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "06f418473c802aa12bd288f5e02c50e5",
+    "semantic_hash": "06f418473c802aa12bd288f5e02c50e5"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch14_cost_at_scale.html": {
+    "mtime": 1786009830.2045753,
+    "seen": 1788135387.7251854,
+    "ast_hash": "71b8fbc9a9e0c0d7e5985b68f8d355de",
+    "semantic_hash": "71b8fbc9a9e0c0d7e5985b68f8d355de"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch14_cost_at_scale.md": {
+    "mtime": 1785988568.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f31ace5f157a72fc9b05da63793978bb",
+    "semantic_hash": "f31ace5f157a72fc9b05da63793978bb"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch15_de_interview_playbook.html": {
+    "mtime": 1786009830.2171347,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c5cd42e28d10ac9d932701b76cf1e39c",
+    "semantic_hash": "c5cd42e28d10ac9d932701b76cf1e39c"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch15_de_interview_playbook.md": {
+    "mtime": 1785988590.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7348a706a3567e25fdb35af3bd0149c9",
+    "semantic_hash": "7348a706a3567e25fdb35af3bd0149c9"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch16_case_studies.html": {
+    "mtime": 1786083699.1782017,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1708690f12d53383e17c2fb7837d2803",
+    "semantic_hash": "1708690f12d53383e17c2fb7837d2803"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch16_case_study_1_fraud_detection.html": {
+    "mtime": 1786024942.5695179,
+    "seen": 1788135387.7251854,
+    "ast_hash": "06c4d142d96385a856370f9cdf765c20",
+    "semantic_hash": "06c4d142d96385a856370f9cdf765c20"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch16_case_study_1_fraud_detection.md": {
+    "mtime": 1786004136.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "36d6818fcf2f123fc8a68764d146ecf9",
+    "semantic_hash": "36d6818fcf2f123fc8a68764d146ecf9"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch16_case_study_2_recommendation_serving.html": {
+    "mtime": 1786024942.5925615,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2974d3217f5b84b1320ce7121321888a",
+    "semantic_hash": "2974d3217f5b84b1320ce7121321888a"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch16_case_study_2_recommendation_serving.md": {
+    "mtime": 1786004158.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bcd2e4e7c4607b187047a42e344b3575",
+    "semantic_hash": "bcd2e4e7c4607b187047a42e344b3575"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch16_case_study_3_clickstream_analytics.html": {
+    "mtime": 1786024942.6000807,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a4a3d430064b72b26e45432e59054684",
+    "semantic_hash": "a4a3d430064b72b26e45432e59054684"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch16_case_study_3_clickstream_analytics.md": {
+    "mtime": 1786004158.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bbae1b355d1c291e1adf7554380e4ea6",
+    "semantic_hash": "bbae1b355d1c291e1adf7554380e4ea6"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch16_case_study_4_iot_telemetry.html": {
+    "mtime": 1786024942.6106153,
+    "seen": 1788135387.7251854,
+    "ast_hash": "39aaf0a28165f2db1ca63aac05f8e705",
+    "semantic_hash": "39aaf0a28165f2db1ca63aac05f8e705"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch16_case_study_4_iot_telemetry.md": {
+    "mtime": 1786004158.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7895275f36946e58332938ee21a26976",
+    "semantic_hash": "7895275f36946e58332938ee21a26976"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/index.html": {
+    "mtime": 1786129481.9084473,
+    "seen": 1788135387.7251854,
+    "ast_hash": "95fc0dd8b2708497fc6a64918cd3e1ec",
+    "semantic_hash": "95fc0dd8b2708497fc6a64918cd3e1ec"
+  },
+  "2. Data_Engineer_Interview_Preparation/index.html": {
+    "mtime": 1786129380.1040964,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a84664938668d72abd3b6f7e0b5356a4",
+    "semantic_hash": "a84664938668d72abd3b6f7e0b5356a4"
+  },
+  "3. AI_Engineer_Interview_Preparation/Cross Cutting Preparation/00-first-ten-minutes.html": {
+    "mtime": 1787696567.4798188,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4e4f8ae57feafd984664571d395aa7e2",
+    "semantic_hash": "4e4f8ae57feafd984664571d395aa7e2"
+  },
+  "3. AI_Engineer_Interview_Preparation/Cross Cutting Preparation/01-identity-secrets-and-tenant-fairness.md": {
+    "mtime": 1787695648.5338862,
+    "seen": 1788135387.7251854,
+    "ast_hash": "848c1c40100dddb827540f6e1afc18e6",
+    "semantic_hash": "848c1c40100dddb827540f6e1afc18e6"
+  },
+  "3. AI_Engineer_Interview_Preparation/Cross Cutting Preparation/02-observability-standards-and-failure-patterns.md": {
+    "mtime": 1787774462.0601904,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2790bd8651acd46861d82d789cc621e7",
+    "semantic_hash": "2790bd8651acd46861d82d789cc621e7"
+  },
+  "3. AI_Engineer_Interview_Preparation/Cross Cutting Preparation/03-cost-latency-cicd-rigor-and-build-vs-buy.md": {
+    "mtime": 1787775965.7070878,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8ac93467bea5192e7ee0a8259fea502e",
+    "semantic_hash": "8ac93467bea5192e7ee0a8259fea502e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Cross Cutting Preparation/04-agentops-on-databricks.md": {
+    "mtime": 1787771012.7996726,
+    "seen": 1788135387.7251854,
+    "ast_hash": "170b1f5cdaac0e7df006e0426d35b0bc",
+    "semantic_hash": "170b1f5cdaac0e7df006e0426d35b0bc"
+  },
+  "3. AI_Engineer_Interview_Preparation/Cross Cutting Preparation/05-guarding-tool-calls.md": {
+    "mtime": 1787771140.1279187,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e322134baa8c65c4df514f794c6cbb4a",
+    "semantic_hash": "e322134baa8c65c4df514f794c6cbb4a"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/ARCHITECTURE DIAGRAMS/LAYERS_EXPLAINED.md": {
+    "mtime": 1788099592.419121,
+    "seen": 1788135387.7251854,
+    "ast_hash": "50897affaca852532b57fcce6366eade",
+    "semantic_hash": "50897affaca852532b57fcce6366eade"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/ARCHITECTURE DIAGRAMS/architecture.html": {
+    "mtime": 1788083508.378583,
+    "seen": 1788135387.7251854,
+    "ast_hash": "27db30a99a54210ca06d01f0a20f823e",
+    "semantic_hash": "27db30a99a54210ca06d01f0a20f823e"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/ARCHITECTURE DIAGRAMS/architecture_mermaid.html": {
+    "mtime": 1787915084.066205,
+    "seen": 1788135387.7251854,
+    "ast_hash": "898fa21805f249a990b3028424342f51",
+    "semantic_hash": "898fa21805f249a990b3028424342f51"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/.github/workflows/deploy.yml": {
+    "mtime": 1782704756.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ac5882c61097a18904be9e4739b75ce0",
+    "semantic_hash": "ac5882c61097a18904be9e4739b75ce0"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/README.md": {
+    "mtime": 1782744672.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3015c5c3284d89bbc1d52828beb1ed7c",
+    "semantic_hash": "3015c5c3284d89bbc1d52828beb1ed7c"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/index.html": {
+    "mtime": 1782728022.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e2ecfb09b61f3b5bd2fcc777d81ee91d",
+    "semantic_hash": "e2ecfb09b61f3b5bd2fcc777d81ee91d"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/pyrit_dashboard/requirements.txt": {
+    "mtime": 1782721674.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a131b2f1dce23199f24856342c39428c",
+    "semantic_hash": "a131b2f1dce23199f24856342c39428c"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/CODE/requirements.txt": {
+    "mtime": 1782722018.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bc03717fcc1ced234e21648636b8d44c",
+    "semantic_hash": "bc03717fcc1ced234e21648636b8d44c"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/GITHUB LINK/GITHUB LINK TO PROJECT.txt": {
+    "mtime": 1782884170.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "62a0f8de23b2f5483c4d704e8e9734ec",
+    "semantic_hash": "62a0f8de23b2f5483c4d704e8e9734ec"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/INTERVIEW_SCRIPT.md": {
+    "mtime": 1787697442.7525978,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8a7f47a83043e49ff0e6c09b83ba24a9",
+    "semantic_hash": "8a7f47a83043e49ff0e6c09b83ba24a9"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/README.md": {
+    "mtime": 1787697762.7502596,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f014569abfc3c3fc7b2176cf2af25ebc",
+    "semantic_hash": "f014569abfc3c3fc7b2176cf2af25ebc"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/docs/01-theory.md": {
+    "mtime": 1787697642.1771736,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a76f77fb537219d7c69f593bed7f311c",
+    "semantic_hash": "a76f77fb537219d7c69f593bed7f311c"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/docs/02-architecture-end-to-end.md": {
+    "mtime": 1787467639.842965,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4fca88faba8a4511713d34bad6023641",
+    "semantic_hash": "4fca88faba8a4511713d34bad6023641"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/docs/03-src-modules-reference.md": {
+    "mtime": 1787468036.316,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8cd2bfdfb85ae79b86df3c441385e23d",
+    "semantic_hash": "8cd2bfdfb85ae79b86df3c441385e23d"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/docs/04-system-design-coverage-map.md": {
+    "mtime": 1787467726.112903,
+    "seen": 1788135387.7251854,
+    "ast_hash": "cb0d50c956a43e2e2379b2c8e8fcbecb",
+    "semantic_hash": "cb0d50c956a43e2e2379b2c8e8fcbecb"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/docs/05-security-tenancy-and-observability-gaps.md": {
+    "mtime": 1787695426.7865217,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7d5afca74e397262c6429f5b7a54cbbe",
+    "semantic_hash": "7d5afca74e397262c6429f5b7a54cbbe"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise Agentic Workflow Automation Platform/requirements.txt": {
+    "mtime": 1787467456.0341203,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bf408a16b2ce8e61791d1cc776347eac",
+    "semantic_hash": "bf408a16b2ce8e61791d1cc776347eac"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/INTERVIEW_SCRIPT.md": {
+    "mtime": 1787389034.3150308,
+    "seen": 1788135387.7251854,
+    "ast_hash": "273d539d3a20d832b61a9bc149ea496c",
+    "semantic_hash": "273d539d3a20d832b61a9bc149ea496c"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/INTERVIEW_SCRIPT_DATABRICKS.md": {
+    "mtime": 1787400550.1223295,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5ff7c9b38921b74b6b2b3f70970c72cf",
+    "semantic_hash": "5ff7c9b38921b74b6b2b3f70970c72cf"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/README.md": {
+    "mtime": 1787524879.908202,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2c7bfc9f740b59346dbd16e10d35c0c9",
+    "semantic_hash": "2c7bfc9f740b59346dbd16e10d35c0c9"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/CT-KST-003.md": {
+    "mtime": 1787433826.90833,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3f6fb448f51568aab2d597ab60330c1d",
+    "semantic_hash": "3f6fb448f51568aab2d597ab60330c1d"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/CT-NGR-002.md": {
+    "mtime": 1787433826.90833,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8942b66b02f781168765848ed452f9e4",
+    "semantic_hash": "8942b66b02f781168765848ed452f9e4"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/CT-VTX-001.md": {
+    "mtime": 1787433826.90833,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0038754d8a4f2a347437eccb3a51095a",
+    "semantic_hash": "0038754d8a4f2a347437eccb3a51095a"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/HC-001.md": {
+    "mtime": 1787433826.9093628,
+    "seen": 1788135387.7251854,
+    "ast_hash": "21e1c66a6aeb16e1987043091f705c9c",
+    "semantic_hash": "21e1c66a6aeb16e1987043091f705c9c"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/HC-002.md": {
+    "mtime": 1787433826.9103587,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5e7012e7c2c206adbe836afba5c2af17",
+    "semantic_hash": "5e7012e7c2c206adbe836afba5c2af17"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/HC-003.md": {
+    "mtime": 1787433826.9103587,
+    "seen": 1788135387.7251854,
+    "ast_hash": "edc8b5c0f5199898ecb8f3c79a18678f",
+    "semantic_hash": "edc8b5c0f5199898ecb8f3c79a18678f"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/HC-004.md": {
+    "mtime": 1787433826.9103587,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7e6e26b61b32ed54b89b9d9550587a94",
+    "semantic_hash": "7e6e26b61b32ed54b89b9d9550587a94"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/PM-2025-11-03.md": {
+    "mtime": 1787433826.9120371,
+    "seen": 1788135387.7251854,
+    "ast_hash": "66af99a38c3e0e9955df992edff620bc",
+    "semantic_hash": "66af99a38c3e0e9955df992edff620bc"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/PM-2026-01-22.md": {
+    "mtime": 1787433826.9124434,
+    "seen": 1788135387.7251854,
+    "ast_hash": "59842db0227b0f10ea57b989c14d5929",
+    "semantic_hash": "59842db0227b0f10ea57b989c14d5929"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/PM-2026-03-14.md": {
+    "mtime": 1787433826.9124434,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ee24b12b87c7421740b360a07ac24617",
+    "semantic_hash": "ee24b12b87c7421740b360a07ac24617"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/PR-001.md": {
+    "mtime": 1787433826.9134495,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e475bda9e09874dba5cfe9cc4c5f144b",
+    "semantic_hash": "e475bda9e09874dba5cfe9cc4c5f144b"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/PR-002.md": {
+    "mtime": 1787433826.9134495,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1180f235b5a0df9b7d6e46639731af12",
+    "semantic_hash": "1180f235b5a0df9b7d6e46639731af12"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/RB-101.md": {
+    "mtime": 1787473249.2908368,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f58bedc93335a93a0c25b1b328fbee93",
+    "semantic_hash": "f58bedc93335a93a0c25b1b328fbee93"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/RB-102.md": {
+    "mtime": 1787433826.9134495,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6b81987c6beefa9d9f2b7c633f0ac41f",
+    "semantic_hash": "6b81987c6beefa9d9f2b7c633f0ac41f"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/RB-103.md": {
+    "mtime": 1787433826.915103,
+    "seen": 1788135387.7251854,
+    "ast_hash": "736688873b70dd13db903bed434b7651",
+    "semantic_hash": "736688873b70dd13db903bed434b7651"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/RB-104.md": {
+    "mtime": 1787433826.915103,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ec2d6c6b3e2b24d322bf8f6b539dac16",
+    "semantic_hash": "ec2d6c6b3e2b24d322bf8f6b539dac16"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/SA-2026-05.md": {
+    "mtime": 1787433826.9161096,
+    "seen": 1788135387.7251854,
+    "ast_hash": "40f4835014f31ad1607ca83b197a651d",
+    "semantic_hash": "40f4835014f31ad1607ca83b197a651d"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/SA-2026-07.md": {
+    "mtime": 1787433826.9161096,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d8cd0121f5ea9a69b01266de6f7f2fca",
+    "semantic_hash": "d8cd0121f5ea9a69b01266de6f7f2fca"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/TK-4471.md": {
+    "mtime": 1787433826.9171088,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b139452eef290cc21225634565bb68ea",
+    "semantic_hash": "b139452eef290cc21225634565bb68ea"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/TK-4488.md": {
+    "mtime": 1787433826.9171088,
+    "seen": 1788135387.7251854,
+    "ast_hash": "48d39a49b5b7cf1633328f5dd6348c50",
+    "semantic_hash": "48d39a49b5b7cf1633328f5dd6348c50"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/TK-4502.md": {
+    "mtime": 1787433826.9171088,
+    "seen": 1788135387.7251854,
+    "ast_hash": "089e161ef0abde689afe53610ea6437a",
+    "semantic_hash": "089e161ef0abde689afe53610ea6437a"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/data/corpus/TK-4519.md": {
+    "mtime": 1787433826.918108,
+    "seen": 1788135387.7251854,
+    "ast_hash": "45a9d66fe75e97d91a5a0503ce4ebd6c",
+    "semantic_hash": "45a9d66fe75e97d91a5a0503ce4ebd6c"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/databricks/README.md": {
+    "mtime": 1787393606.46753,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b63095a49c8ae1d34e4f3dc2f32a588d",
+    "semantic_hash": "b63095a49c8ae1d34e4f3dc2f32a588d"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/01-theory.md": {
+    "mtime": 1787419952.7797341,
+    "seen": 1788135387.7251854,
+    "ast_hash": "25cef5f726e47a373623c96a8bafb12b",
+    "semantic_hash": "25cef5f726e47a373623c96a8bafb12b"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/03-theory-databricks.md": {
+    "mtime": 1787431679.8767712,
+    "seen": 1788135387.7251854,
+    "ast_hash": "05fd409ba16d6eda466fa6249f1a84a0",
+    "semantic_hash": "05fd409ba16d6eda466fa6249f1a84a0"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/04-security-checks-reference.md": {
+    "mtime": 1787429268.652122,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ef840b002c9539ce7f3e2041e1d7fc03",
+    "semantic_hash": "ef840b002c9539ce7f3e2041e1d7fc03"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/05-src-modules-reference.md": {
+    "mtime": 1787473680.8209925,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a301dad356d3e475b6933ab5890894dc",
+    "semantic_hash": "a301dad356d3e475b6933ab5890894dc"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/06-architecture-end-to-end.md": {
+    "mtime": 1787690929.6749961,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5b67cce884177f49402908a8798e8022",
+    "semantic_hash": "5b67cce884177f49402908a8798e8022"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/07-system-design-coverage-map.md": {
+    "mtime": 1787473506.2130337,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5a202757a0ed8a00b7f1077ac250521c",
+    "semantic_hash": "5a202757a0ed8a00b7f1077ac250521c"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/08-structured-data-and-connectors.md": {
+    "mtime": 1787695759.8528392,
+    "seen": 1788135387.7251854,
+    "ast_hash": "707bafbe8f3e1aaeab170997324cca58",
+    "semantic_hash": "707bafbe8f3e1aaeab170997324cca58"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/09-multi-agent-orchestration.md": {
+    "mtime": 1787695786.466994,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b302d1ed00640e270c2ade2f1a6cf490",
+    "semantic_hash": "b302d1ed00640e270c2ade2f1a6cf490"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/10-agent-ops-and-channels.md": {
+    "mtime": 1787695812.780507,
+    "seen": 1788135387.7251854,
+    "ast_hash": "26d5e723d522da4f7b88139baecb0eae",
+    "semantic_hash": "26d5e723d522da4f7b88139baecb0eae"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/QA.md": {
+    "mtime": 1787435601.0742636,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6c0a31447ba9cbe3ba3d62df1b85450d",
+    "semantic_hash": "6c0a31447ba9cbe3ba3d62df1b85450d"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/Scale_Optimization.md": {
+    "mtime": 1787815159.4039514,
+    "seen": 1788135387.7251854,
+    "ast_hash": "35e60dfa47ee490b345b451dbb4db625",
+    "semantic_hash": "35e60dfa47ee490b345b451dbb4db625"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/notebooks/02-hands-on-parts/README.md": {
+    "mtime": 1787434070.4559383,
+    "seen": 1788135387.7251854,
+    "ast_hash": "fb8da18f066f1621acb93c0f237b771a",
+    "semantic_hash": "fb8da18f066f1621acb93c0f237b771a"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/requirements.txt": {
+    "mtime": 1787435301.5974016,
+    "seen": 1788135387.7251854,
+    "ast_hash": "50a8a7e4d70dcdab28933637cb27abe0",
+    "semantic_hash": "50a8a7e4d70dcdab28933637cb27abe0"
+  },
+  "3. AI_Engineer_Interview_Preparation/System_Design/System Design Components.html": {
+    "mtime": 1788133631.6604183,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6b1bc578ceb2915844957858a48d2cea",
+    "semantic_hash": "6b1bc578ceb2915844957858a48d2cea"
+  },
+  "3. AI_Engineer_Interview_Preparation/System_Design/System Design Components.md": {
+    "mtime": 1788133652.354523,
+    "seen": 1788135387.7251854,
+    "ast_hash": "290a5c29c219bec5a7968483d8cdaa47",
+    "semantic_hash": "290a5c29c219bec5a7968483d8cdaa47"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/INTERVIEW_SCRIPT.md": {
+    "mtime": 1787437410.3882897,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ec50cd62a534ec017fbebb49af032d68",
+    "semantic_hash": "ec50cd62a534ec017fbebb49af032d68"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/README.md": {
+    "mtime": 1787777804.586629,
+    "seen": 1788135387.7251854,
+    "ast_hash": "196e4f5d20d62c185e83077e21653081",
+    "semantic_hash": "196e4f5d20d62c185e83077e21653081"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/docs/01-theory.md": {
+    "mtime": 1787697702.9674454,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2b4c29d46bf627e33553a3153af227f8",
+    "semantic_hash": "2b4c29d46bf627e33553a3153af227f8"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/docs/02-architecture-end-to-end.md": {
+    "mtime": 1787468806.948359,
+    "seen": 1788135387.7251854,
+    "ast_hash": "46f366a05ec166bc03439f03f8eae2d2",
+    "semantic_hash": "46f366a05ec166bc03439f03f8eae2d2"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/docs/03-src-modules-reference.md": {
+    "mtime": 1787437264.2724874,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b34c114877f721754df3bc283af911aa",
+    "semantic_hash": "b34c114877f721754df3bc283af911aa"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/docs/04-system-design-coverage-map.md": {
+    "mtime": 1787437344.4591289,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4249a170f949c387f9610f540a7050c8",
+    "semantic_hash": "4249a170f949c387f9610f540a7050c8"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/docs/05-security-gate-depth-and-tenant-scale.md": {
+    "mtime": 1787695730.610773,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b58eb2bd6781f74a3f06bb298d3a9144",
+    "semantic_hash": "b58eb2bd6781f74a3f06bb298d3a9144"
+  },
+  "4. FDE_Related_Preparation/Delivery Framework from Scoping to Delivery/requirements.txt": {
+    "mtime": 1787436977.87729,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bf408a16b2ce8e61791d1cc776347eac",
+    "semantic_hash": "bf408a16b2ce8e61791d1cc776347eac"
+  },
+  "4. FDE_Related_Preparation/Star_Stories/AIA_Enterprise_RAG_Conversational_Guide.md": {
+    "mtime": 1787992609.7912035,
+    "seen": 1788135387.7251854,
+    "ast_hash": "aa81952e5509c510bacc774012450f38",
+    "semantic_hash": "aa81952e5509c510bacc774012450f38"
+  },
+  "4. FDE_Related_Preparation/Star_Stories/AIA_Enterprise_RAG_DeepDive_15-20min.md": {
+    "mtime": 1787992577.3042934,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1c0d7b0b0dee90dcc81b1148807dd5b6",
+    "semantic_hash": "1c0d7b0b0dee90dcc81b1148807dd5b6"
+  },
+  "4. FDE_Related_Preparation/Star_Stories/AIA_Enterprise_RAG_Governance_FDE_Script.md": {
+    "mtime": 1787992178.3184588,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5fb6556ea36d840a8b25def2c2c0e112",
+    "semantic_hash": "5fb6556ea36d840a8b25def2c2c0e112"
+  },
+  "4. FDE_Related_Preparation/Star_Stories/AIA_MultiAgent_Conversational_Guide.md": {
+    "mtime": 1787992709.6939065,
+    "seen": 1788135387.7251854,
+    "ast_hash": "262c5c86287fe4c6b740906482fd0142",
+    "semantic_hash": "262c5c86287fe4c6b740906482fd0142"
+  },
+  "4. FDE_Related_Preparation/Star_Stories/AIA_MultiAgent_DeepDive_15-20min.md": {
+    "mtime": 1787992679.3163052,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f13a2a22e255a6406abea8916f232883",
+    "semantic_hash": "f13a2a22e255a6406abea8916f232883"
+  },
+  "4. FDE_Related_Preparation/Star_Stories/AIA_Technical_Implementation_Flow.md": {
+    "mtime": 1787983952.4877276,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2d3e5fadbe2bf26d6c567276236fb3b0",
+    "semantic_hash": "2d3e5fadbe2bf26d6c567276236fb3b0"
+  },
+  "4. FDE_Related_Preparation/Star_Stories/Bajaj_RapidLR_Technical_Implementation_Flow.md": {
+    "mtime": 1787983979.0566013,
+    "seen": 1788135387.7251854,
+    "ast_hash": "13089def0b920e05989e3d0369fd2a0f",
+    "semantic_hash": "13089def0b920e05989e3d0369fd2a0f"
+  },
+  "4. FDE_Related_Preparation/Star_Stories/Enterprise_RAG_Conversational_Guide.md": {
+    "mtime": 1787991881.5635178,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6395a7b2c01a06715c555628707e7edc",
+    "semantic_hash": "6395a7b2c01a06715c555628707e7edc"
+  },
+  "4. FDE_Related_Preparation/Star_Stories/Enterprise_RAG_DeepDive_15-20min.md": {
+    "mtime": 1787991834.1531582,
+    "seen": 1788135387.7251854,
+    "ast_hash": "eb72654e9e8e82032d12e0b937bf0556",
+    "semantic_hash": "eb72654e9e8e82032d12e0b937bf0556"
+  },
+  "4. FDE_Related_Preparation/Star_Stories/STAR Stories \u2014 Technical Build Projects.html": {
+    "mtime": 1788085801.673898,
+    "seen": 1788135387.7251854,
+    "ast_hash": "36fcdb5efdf15c37a14cc5ab0814d094",
+    "semantic_hash": "36fcdb5efdf15c37a14cc5ab0814d094"
+  },
+  "4. FDE_Related_Preparation/Star_Stories/star_stories.html": {
+    "mtime": 1787986616.891733,
+    "seen": 1788135387.7251854,
+    "ast_hash": "75391f0b20b87e984855da90a87fa876",
+    "semantic_hash": "75391f0b20b87e984855da90a87fa876"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 1_ hashing-pattern/contains_duplicate.html": {
+    "mtime": 1787126489.760712,
+    "seen": 1788135387.7251854,
+    "ast_hash": "99ba401cd18375668b8dec0ebd59b8af",
+    "semantic_hash": "99ba401cd18375668b8dec0ebd59b8af"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 1_ hashing-pattern/hashing-pattern-explorer.html": {
+    "mtime": 1787124741.6112309,
+    "seen": 1788135387.7251854,
+    "ast_hash": "23d91d09354b9f6445ea35fa2193430e",
+    "semantic_hash": "23d91d09354b9f6445ea35fa2193430e"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 1_ hashing-pattern/two_sum.html": {
+    "mtime": 1787126489.698287,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8b9953bd0fabb673d4d21ab1acf5b5dd",
+    "semantic_hash": "8b9953bd0fabb673d4d21ab1acf5b5dd"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 2_two-pointers/container_with_most_water.html": {
+    "mtime": 1787126489.820752,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0717a62f7597f82f10cca688c216512a",
+    "semantic_hash": "0717a62f7597f82f10cca688c216512a"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 2_two-pointers/three_sum.html": {
+    "mtime": 1787126489.8802788,
+    "seen": 1788135387.7251854,
+    "ast_hash": "33ee956f5103e5ce7d361c9b21335993",
+    "semantic_hash": "33ee956f5103e5ce7d361c9b21335993"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 2_two-pointers/two-pointers-explorer.html": {
+    "mtime": 1787124766.0196848,
+    "seen": 1788135387.7251854,
+    "ast_hash": "242daf04c56c7ec244b1c50364f6a62a",
+    "semantic_hash": "242daf04c56c7ec244b1c50364f6a62a"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 3_kadane-running-aggregates/best_time_to_buy_and_sell_stock.html": {
+    "mtime": 1787126489.9332833,
+    "seen": 1788135387.7251854,
+    "ast_hash": "77b9641416390e246f5738c72e09c529",
+    "semantic_hash": "77b9641416390e246f5738c72e09c529"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 3_kadane-running-aggregates/kadane-running-aggregates-explorer.html": {
+    "mtime": 1787124779.2118988,
+    "seen": 1788135387.7251854,
+    "ast_hash": "32c037f147c2540aa86b249d614ab281",
+    "semantic_hash": "32c037f147c2540aa86b249d614ab281"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 3_kadane-running-aggregates/maximum_product_subarray.html": {
+    "mtime": 1787126489.9933574,
+    "seen": 1788135387.7251854,
+    "ast_hash": "11dcdd0a49c3da184c4b2eb66e5f57e6",
+    "semantic_hash": "11dcdd0a49c3da184c4b2eb66e5f57e6"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 3_kadane-running-aggregates/maximum_subarray.html": {
+    "mtime": 1787126490.05855,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e241a1ba238cbd64aed9fc2244912612",
+    "semantic_hash": "e241a1ba238cbd64aed9fc2244912612"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 4_rotated-binary-search/find_minimum_in_rotated_sorted_array.html": {
+    "mtime": 1787126490.1185894,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2ba086f37a1b384a186c7c1fc2b61669",
+    "semantic_hash": "2ba086f37a1b384a186c7c1fc2b61669"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 4_rotated-binary-search/rotated-binary-search-explorer.html": {
+    "mtime": 1787124795.3193755,
+    "seen": 1788135387.7251854,
+    "ast_hash": "73e800bd262c462ced7c219098fa8663",
+    "semantic_hash": "73e800bd262c462ced7c219098fa8663"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 4_rotated-binary-search/search_in_rotated_sorted_array.html": {
+    "mtime": 1787126490.1806073,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ddfd8e75912a52cb95d3239421c8f8fe",
+    "semantic_hash": "ddfd8e75912a52cb95d3239421c8f8fe"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 5_prefix-suffix-products/prefix-suffix-products-explorer.html": {
+    "mtime": 1787124805.6335802,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7f5bde3186d0ae87e9e8dd3599634309",
+    "semantic_hash": "7f5bde3186d0ae87e9e8dd3599634309"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/Group 5_prefix-suffix-products/product_of_array_except_self.html": {
+    "mtime": 1787126490.2408097,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f1f8a5632553c4ff182a4d5596305be2",
+    "semantic_hash": "f1f8a5632553c4ff182a4d5596305be2"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/README.md": {
+    "mtime": 1786618693.43602,
+    "seen": 1788135387.7251854,
+    "ast_hash": "189f939b3a560ffefbfd6dfbb4286c7f",
+    "semantic_hash": "189f939b3a560ffefbfd6dfbb4286c7f"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/index.html": {
+    "mtime": 1787126905.597783,
+    "seen": 1788135387.7251854,
+    "ast_hash": "379e653d79336f3c77c9dfad86384711",
+    "semantic_hash": "379e653d79336f3c77c9dfad86384711"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Array/patterns.html": {
+    "mtime": 1787126905.6684732,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8f9b135d67c874d00d8c94359033ca9c",
+    "semantic_hash": "8f9b135d67c874d00d8c94359033ca9c"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Binary/README.md": {
+    "mtime": 1786618867.4741392,
+    "seen": 1788135387.7251854,
+    "ast_hash": "652e254cbf43e31c49e7b1d093a1cddd",
+    "semantic_hash": "652e254cbf43e31c49e7b1d093a1cddd"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Binary/counting_bits.html": {
+    "mtime": 1786615486.7306402,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c0663746f3ce98267f872bc28790ac22",
+    "semantic_hash": "c0663746f3ce98267f872bc28790ac22"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Binary/index.html": {
+    "mtime": 1786615486.7341597,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8ecdf78833e812308777f7df6a08a53f",
+    "semantic_hash": "8ecdf78833e812308777f7df6a08a53f"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Binary/missing_number.html": {
+    "mtime": 1786615486.7306402,
+    "seen": 1788135387.7251854,
+    "ast_hash": "59e9dbfdcc847cfda813d02d31f52494",
+    "semantic_hash": "59e9dbfdcc847cfda813d02d31f52494"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Binary/number_of_1_bits.html": {
+    "mtime": 1786615486.7292187,
+    "seen": 1788135387.7251854,
+    "ast_hash": "20c8baac0cb33fdf5480b879714e6c05",
+    "semantic_hash": "20c8baac0cb33fdf5480b879714e6c05"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Binary/patterns.html": {
+    "mtime": 1786615486.7341597,
+    "seen": 1788135387.7251854,
+    "ast_hash": "21ef2fdeab671206064f2b4f63bde8b6",
+    "semantic_hash": "21ef2fdeab671206064f2b4f63bde8b6"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Binary/reverse_bits.html": {
+    "mtime": 1786615486.7321484,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bf55f2a69f178b66113536b76450b8f8",
+    "semantic_hash": "bf55f2a69f178b66113536b76450b8f8"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Binary/sum_of_two_integers.html": {
+    "mtime": 1786615486.7282166,
+    "seen": 1788135387.7251854,
+    "ast_hash": "79ba43ab9861b95b55c022d9048af3fa",
+    "semantic_hash": "79ba43ab9861b95b55c022d9048af3fa"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Blind75_Tracker.md": {
+    "mtime": 1786615528.1497464,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5c5dfc32472b6faf02de59a53304f9ce",
+    "semantic_hash": "5c5dfc32472b6faf02de59a53304f9ce"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/README.md": {
+    "mtime": 1786618816.563403,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0baa30cb8bc854d527027713cc986da0",
+    "semantic_hash": "0baa30cb8bc854d527027713cc986da0"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/climbing_stairs.html": {
+    "mtime": 1786604835.9448934,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8b76d3c0053a785b6d93bdd8aca79e19",
+    "semantic_hash": "8b76d3c0053a785b6d93bdd8aca79e19"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/coin_change.html": {
+    "mtime": 1786604835.9458933,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c9c1092d3b7d26ebbdd38c3c4b65bda4",
+    "semantic_hash": "c9c1092d3b7d26ebbdd38c3c4b65bda4"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/combination_sum.html": {
+    "mtime": 1786604835.9478974,
+    "seen": 1788135387.7251854,
+    "ast_hash": "69c5ada4343bb2fd5566082d7619ceaa",
+    "semantic_hash": "69c5ada4343bb2fd5566082d7619ceaa"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/decode_ways.html": {
+    "mtime": 1786604835.949894,
+    "seen": 1788135387.7251854,
+    "ast_hash": "75f95450ff03f101394c12a89946461b",
+    "semantic_hash": "75f95450ff03f101394c12a89946461b"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/house_robber.html": {
+    "mtime": 1786604835.9478974,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b1f338f2e994133a4b7cdc003014d63e",
+    "semantic_hash": "b1f338f2e994133a4b7cdc003014d63e"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/house_robber_ii.html": {
+    "mtime": 1786604835.949894,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3463f766ee0f83c00c2ee739e0a99c48",
+    "semantic_hash": "3463f766ee0f83c00c2ee739e0a99c48"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/index.html": {
+    "mtime": 1786604835.9518964,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a67b696bacb1ad85f78c714ecbf00a1c",
+    "semantic_hash": "a67b696bacb1ad85f78c714ecbf00a1c"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/jump_game.html": {
+    "mtime": 1786604835.9509163,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ac72471a82063db10a1d8380dc742a52",
+    "semantic_hash": "ac72471a82063db10a1d8380dc742a52"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/longest_common_subsequence.html": {
+    "mtime": 1786604835.9458933,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a10274febb3b21ed9a013860038c1453",
+    "semantic_hash": "a10274febb3b21ed9a013860038c1453"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/longest_increasing_subsequence.html": {
+    "mtime": 1786604835.9458933,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bcf4971374f2741b821d5f7073226590",
+    "semantic_hash": "bcf4971374f2741b821d5f7073226590"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/patterns.html": {
+    "mtime": 1786604835.9518964,
+    "seen": 1788135387.7251854,
+    "ast_hash": "911f50d19f99ad38ed3931188d70f451",
+    "semantic_hash": "911f50d19f99ad38ed3931188d70f451"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/unique_paths.html": {
+    "mtime": 1786604835.9509163,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ba6426de18d1d5abe0e214bee952b807",
+    "semantic_hash": "ba6426de18d1d5abe0e214bee952b807"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Dynamic Programming/word_break.html": {
+    "mtime": 1786604835.9468935,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8adbc550597ac3cbcac95e26962658f2",
+    "semantic_hash": "8adbc550597ac3cbcac95e26962658f2"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 1 - Grid Flood Field & Connectivity/graph-flood-fill-connectivity-explorer.html": {
+    "mtime": 1787225513.6151168,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e212b58d375636864b3a8c4cebfcae00",
+    "semantic_hash": "e212b58d375636864b3a8c4cebfcae00"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 1 - Grid Flood Field & Connectivity/graph_valid_tree.html": {
+    "mtime": 1786603937.7844417,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e972f8d0c5a3a4cd727a9993e6f94779",
+    "semantic_hash": "e972f8d0c5a3a4cd727a9993e6f94779"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 1 - Grid Flood Field & Connectivity/graph_valid_tree_explained.md": {
+    "mtime": 1786861057.7977054,
+    "seen": 1788135387.7251854,
+    "ast_hash": "36e6091be83a2c886ed6626b678214e8",
+    "semantic_hash": "36e6091be83a2c886ed6626b678214e8"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 1 - Grid Flood Field & Connectivity/number_of_connected_components.html": {
+    "mtime": 1786603937.7844417,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9486b22d567343590da33679f4974edf",
+    "semantic_hash": "9486b22d567343590da33679f4974edf"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 1 - Grid Flood Field & Connectivity/number_of_connected_components_explained.md": {
+    "mtime": 1786861085.3367918,
+    "seen": 1788135387.7251854,
+    "ast_hash": "308080ab25aaa0a27bdfb31bf239d107",
+    "semantic_hash": "308080ab25aaa0a27bdfb31bf239d107"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 1 - Grid Flood Field & Connectivity/number_of_islands.html": {
+    "mtime": 1786603937.7824411,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b1f0a153482d9b7a4861c2b83a0582a3",
+    "semantic_hash": "b1f0a153482d9b7a4861c2b83a0582a3"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 1 - Grid Flood Field & Connectivity/number_of_islands_explained.md": {
+    "mtime": 1786861106.0262034,
+    "seen": 1788135387.7251854,
+    "ast_hash": "69b24eaa4e0e9ccc45362fdea0804728",
+    "semantic_hash": "69b24eaa4e0e9ccc45362fdea0804728"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 1 - Grid Flood Field & Connectivity/pacific_atlantic_water_flow.html": {
+    "mtime": 1786603937.7824411,
+    "seen": 1788135387.7251854,
+    "ast_hash": "33ed13e99389be47974356dfbd5e146d",
+    "semantic_hash": "33ed13e99389be47974356dfbd5e146d"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 1 - Grid Flood Field & Connectivity/pacific_atlantic_water_flow_explained.md": {
+    "mtime": 1786870310.9469435,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3ca577c5719f680ca06cde89adc8da9b",
+    "semantic_hash": "3ca577c5719f680ca06cde89adc8da9b"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 2 - Cycle Detection & Topological Sort/alien_dictionary.html": {
+    "mtime": 1786603937.7834406,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b01b71e2638758aed0ac08ed7d1e163e",
+    "semantic_hash": "b01b71e2638758aed0ac08ed7d1e163e"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 2 - Cycle Detection & Topological Sort/alien_dictionary_explained.md": {
+    "mtime": 1786861115.7535107,
+    "seen": 1788135387.7251854,
+    "ast_hash": "55cc981e1ec19b38ab61c4e9d5bf7025",
+    "semantic_hash": "55cc981e1ec19b38ab61c4e9d5bf7025"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 2 - Cycle Detection & Topological Sort/course_schedule.html": {
+    "mtime": 1786603937.7814426,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2003c56e398d68ea0e98deb78c3388aa",
+    "semantic_hash": "2003c56e398d68ea0e98deb78c3388aa"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 2 - Cycle Detection & Topological Sort/course_schedule_explained.md": {
+    "mtime": 1786864157.889106,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5b7e62b7f178e8a1573e61cf5d9c9179",
+    "semantic_hash": "5b7e62b7f178e8a1573e61cf5d9c9179"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 2 - Cycle Detection & Topological Sort/cycle-detection-topo-sort-explorer.html": {
+    "mtime": 1787225529.0470467,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a26d6be1e92b91b4abb979aa8616816b",
+    "semantic_hash": "a26d6be1e92b91b4abb979aa8616816b"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 3 - Clone Graph & Longest Consecutive Sequence/clone-graph-longest-consecutive-explorer.html": {
+    "mtime": 1787225538.864944,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8fe18a085423530aeac514325b9d2529",
+    "semantic_hash": "8fe18a085423530aeac514325b9d2529"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 3 - Clone Graph & Longest Consecutive Sequence/clone_graph.html": {
+    "mtime": 1786603937.7814426,
+    "seen": 1788135387.7251854,
+    "ast_hash": "eaa06eb2b15d2bc4bb1b0f42f475445f",
+    "semantic_hash": "eaa06eb2b15d2bc4bb1b0f42f475445f"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 3 - Clone Graph & Longest Consecutive Sequence/clone_graph_explained.md": {
+    "mtime": 1786861055.4245532,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9a34899a65431b0b7b66e7a97afd3e7c",
+    "semantic_hash": "9a34899a65431b0b7b66e7a97afd3e7c"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 3 - Clone Graph & Longest Consecutive Sequence/longest_consecutive_sequence.html": {
+    "mtime": 1786603937.7824411,
+    "seen": 1788135387.7251854,
+    "ast_hash": "12def0d3ec7af60d3abb691c2dbaf5d2",
+    "semantic_hash": "12def0d3ec7af60d3abb691c2dbaf5d2"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/Group 3 - Clone Graph & Longest Consecutive Sequence/longest_consecutive_sequence_explained.md": {
+    "mtime": 1787259016.7209885,
+    "seen": 1788135387.7251854,
+    "ast_hash": "63658c85bb54fb496442f9bfd6333b26",
+    "semantic_hash": "63658c85bb54fb496442f9bfd6333b26"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/README.md": {
+    "mtime": 1786861337.182319,
+    "seen": 1788135387.7251854,
+    "ast_hash": "49555e19175ed88d194886e369735beb",
+    "semantic_hash": "49555e19175ed88d194886e369735beb"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/index.html": {
+    "mtime": 1786603937.7844417,
+    "seen": 1788135387.7251854,
+    "ast_hash": "72a042e6dabe597c5a53cd75d00237ce",
+    "semantic_hash": "72a042e6dabe597c5a53cd75d00237ce"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Graph/patterns.html": {
+    "mtime": 1786603937.7854414,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d9bb3bfe6be668c318a27e5fbdab1b51",
+    "semantic_hash": "d9bb3bfe6be668c318a27e5fbdab1b51"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Heap/README.md": {
+    "mtime": 1786618933.9553318,
+    "seen": 1788135387.7251854,
+    "ast_hash": "dc892fd6560978079c00bd046eab01b5",
+    "semantic_hash": "dc892fd6560978079c00bd046eab01b5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Heap/find_median_from_data_stream.html": {
+    "mtime": 1786615486.75092,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5a703bcbb820415ff5563d0011c45a96",
+    "semantic_hash": "5a703bcbb820415ff5563d0011c45a96"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Heap/index.html": {
+    "mtime": 1786615486.7519188,
+    "seen": 1788135387.7251854,
+    "ast_hash": "eea6857e56088b25ea66abde8321da3c",
+    "semantic_hash": "eea6857e56088b25ea66abde8321da3c"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Heap/patterns.html": {
+    "mtime": 1786615486.7529216,
+    "seen": 1788135387.7251854,
+    "ast_hash": "91b35b722e3ce9f2586e7c3f00eb94a4",
+    "semantic_hash": "91b35b722e3ce9f2586e7c3f00eb94a4"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Heap/top_k_frequent_elements.html": {
+    "mtime": 1786615486.749919,
+    "seen": 1788135387.7251854,
+    "ast_hash": "442744e09956af9b7b2a872d5953ebb4",
+    "semantic_hash": "442744e09956af9b7b2a872d5953ebb4"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Interval/README.md": {
+    "mtime": 1786618891.1274474,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2e863a3393da1503c18f9871dd5daeb5",
+    "semantic_hash": "2e863a3393da1503c18f9871dd5daeb5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Interval/index.html": {
+    "mtime": 1786615486.741889,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e83cba4327ac94baa6ed3b330b9bd8d1",
+    "semantic_hash": "e83cba4327ac94baa6ed3b330b9bd8d1"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Interval/insert_interval.html": {
+    "mtime": 1787127568.7334712,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6d24dff779ba54615c1cb33ceec321ff",
+    "semantic_hash": "6d24dff779ba54615c1cb33ceec321ff"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Interval/interval-patterns-explorer.html": {
+    "mtime": 1787124896.0182478,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8da0443835ab8b53b3a578c772707743",
+    "semantic_hash": "8da0443835ab8b53b3a578c772707743"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Interval/meeting_rooms.html": {
+    "mtime": 1787127590.1445782,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5ecc0891706df6435b41472ca0b0e56b",
+    "semantic_hash": "5ecc0891706df6435b41472ca0b0e56b"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Interval/meeting_rooms_ii.html": {
+    "mtime": 1787127612.8006947,
+    "seen": 1788135387.7251854,
+    "ast_hash": "95025c7ea44a2ab3ebffa1a5dafcab1a",
+    "semantic_hash": "95025c7ea44a2ab3ebffa1a5dafcab1a"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Interval/merge_intervals.html": {
+    "mtime": 1787127549.934401,
+    "seen": 1788135387.7251854,
+    "ast_hash": "69806207b124ad4ce2ba769808a6d30d",
+    "semantic_hash": "69806207b124ad4ce2ba769808a6d30d"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Interval/non_overlapping_intervals.html": {
+    "mtime": 1787127637.0978668,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bedcf5a6c0aa60ddfe3732276505f338",
+    "semantic_hash": "bedcf5a6c0aa60ddfe3732276505f338"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Interval/patterns.html": {
+    "mtime": 1786615486.7429037,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c4ec9ab5334614e2c077236acda64ac1",
+    "semantic_hash": "c4ec9ab5334614e2c077236acda64ac1"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Linked List/README.md": {
+    "mtime": 1786618840.8789833,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4d0c38b51f1affb56e09f765b45aa3a7",
+    "semantic_hash": "4d0c38b51f1affb56e09f765b45aa3a7"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Linked List/detect_cycle_linked_list.html": {
+    "mtime": 1786615486.7206755,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d38d76f5d799a4379c9e7d39c87669f4",
+    "semantic_hash": "d38d76f5d799a4379c9e7d39c87669f4"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Linked List/index.html": {
+    "mtime": 1786615486.7252069,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3b99f2af66cb8cb2d32426a37e8aedb4",
+    "semantic_hash": "3b99f2af66cb8cb2d32426a37e8aedb4"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Linked List/merge_k_sorted_lists.html": {
+    "mtime": 1786615486.7226844,
+    "seen": 1788135387.7251854,
+    "ast_hash": "06448542fe11b8099c042e569651a372",
+    "semantic_hash": "06448542fe11b8099c042e569651a372"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Linked List/merge_two_sorted_lists.html": {
+    "mtime": 1786615486.721682,
+    "seen": 1788135387.7251854,
+    "ast_hash": "be4809908ea2b18daf30f33e13bb4935",
+    "semantic_hash": "be4809908ea2b18daf30f33e13bb4935"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Linked List/patterns.html": {
+    "mtime": 1786615486.7262073,
+    "seen": 1788135387.7251854,
+    "ast_hash": "aa35c8593ee9a6a2a4297b1829753af3",
+    "semantic_hash": "aa35c8593ee9a6a2a4297b1829753af3"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Linked List/remove_nth_node_from_end.html": {
+    "mtime": 1786615486.7226844,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b50bae320ecfe0ab665289479039332f",
+    "semantic_hash": "b50bae320ecfe0ab665289479039332f"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Linked List/reorder_list.html": {
+    "mtime": 1786615486.7241952,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d6e55d08d4df19b9cb27bb51e2acae61",
+    "semantic_hash": "d6e55d08d4df19b9cb27bb51e2acae61"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Linked List/reverse_linked_list.html": {
+    "mtime": 1786615486.7196689,
+    "seen": 1788135387.7251854,
+    "ast_hash": "e77ba746372346d446773cd53b3c9077",
+    "semantic_hash": "e77ba746372346d446773cd53b3c9077"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Matrix/README.md": {
+    "mtime": 1786618912.2411952,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c23ef6c2baf6ce42833f9bcff0ca9f2f",
+    "semantic_hash": "c23ef6c2baf6ce42833f9bcff0ca9f2f"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Matrix/index.html": {
+    "mtime": 1786615486.7474012,
+    "seen": 1788135387.7251854,
+    "ast_hash": "97575adb33d5ced974262bafc81f6716",
+    "semantic_hash": "97575adb33d5ced974262bafc81f6716"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Matrix/patterns.html": {
+    "mtime": 1786615486.7489097,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ae1587892aef2993580c1d4760142c24",
+    "semantic_hash": "ae1587892aef2993580c1d4760142c24"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Matrix/rotate_image.html": {
+    "mtime": 1786615486.7454011,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f992670ec1a508913d7bb3d03ee1cf2c",
+    "semantic_hash": "f992670ec1a508913d7bb3d03ee1cf2c"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Matrix/set_matrix_zeroes.html": {
+    "mtime": 1786615486.744393,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a523816a589b07fa6500b9eee86c7dbb",
+    "semantic_hash": "a523816a589b07fa6500b9eee86c7dbb"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Matrix/spiral_matrix.html": {
+    "mtime": 1786615486.744393,
+    "seen": 1788135387.7251854,
+    "ast_hash": "86be75f2d7ac43402b80aca8debf915d",
+    "semantic_hash": "86be75f2d7ac43402b80aca8debf915d"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Matrix/word_search.html": {
+    "mtime": 1786615486.7464008,
+    "seen": 1788135387.7251854,
+    "ast_hash": "286c8dbf818d47fb3714594115c51aa0",
+    "semantic_hash": "286c8dbf818d47fb3714594115c51aa0"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/README.md": {
+    "mtime": 1787864955.0105362,
+    "seen": 1788135387.7251854,
+    "ast_hash": "afbf6ce3eadd6bd07457ef03d9b5eddc",
+    "semantic_hash": "afbf6ce3eadd6bd07457ef03d9b5eddc"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 1_sliding-window/longest_repeating_character_replacement.html": {
+    "mtime": 1787127829.3497217,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d593859492a8d1b075e35eb31a2bed7e",
+    "semantic_hash": "d593859492a8d1b075e35eb31a2bed7e"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 1_sliding-window/longest_repeating_character_replacement_explained.md": {
+    "mtime": 1787133476.916391,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ded51f995d40a8509466e85eccb1c2a5",
+    "semantic_hash": "ded51f995d40a8509466e85eccb1c2a5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 1_sliding-window/longest_substring_without_repeating.html": {
+    "mtime": 1787127829.4130504,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5cebb664f129f3433aa5932ff8db1699",
+    "semantic_hash": "5cebb664f129f3433aa5932ff8db1699"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 1_sliding-window/longest_substring_without_repeating_explained.md": {
+    "mtime": 1787133440.0048115,
+    "seen": 1788135387.7251854,
+    "ast_hash": "498a1e755822dd82a88426e65ba97946",
+    "semantic_hash": "498a1e755822dd82a88426e65ba97946"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 1_sliding-window/minimum_window_substring.html": {
+    "mtime": 1787127829.471997,
+    "seen": 1788135387.7251854,
+    "ast_hash": "931cdc5c941e1731c5c80df84cd3822d",
+    "semantic_hash": "931cdc5c941e1731c5c80df84cd3822d"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 1_sliding-window/minimum_window_substring_explained.md": {
+    "mtime": 1787133530.8034682,
+    "seen": 1788135387.7251854,
+    "ast_hash": "aa6c32d92125f492d9525eec9e94728c",
+    "semantic_hash": "aa6c32d92125f492d9525eec9e94728c"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 1_sliding-window/sliding-window-strings-explorer.html": {
+    "mtime": 1787124825.0412889,
+    "seen": 1788135387.7251854,
+    "ast_hash": "67ad07fae0adf9d2c40f4e819ce48b7e",
+    "semantic_hash": "67ad07fae0adf9d2c40f4e819ce48b7e"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 2_expand-around-center/expand-around-center-explorer.html": {
+    "mtime": 1787124836.3093379,
+    "seen": 1788135387.7251854,
+    "ast_hash": "aa227153cbd6d416aebf06419f4c521a",
+    "semantic_hash": "aa227153cbd6d416aebf06419f4c521a"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 2_expand-around-center/longest_palindromic_substring.html": {
+    "mtime": 1787127829.531465,
+    "seen": 1788135387.7251854,
+    "ast_hash": "503679f4412fe506d54c5d6b5e54a8a5",
+    "semantic_hash": "503679f4412fe506d54c5d6b5e54a8a5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 2_expand-around-center/longest_palindromic_substring_explained.md": {
+    "mtime": 1787133448.3730905,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a659af9326e61b103f88a268881515d4",
+    "semantic_hash": "a659af9326e61b103f88a268881515d4"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 2_expand-around-center/palindromic_substrings.html": {
+    "mtime": 1787127829.5951715,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ae5b9d323c058cb4337215e85351d253",
+    "semantic_hash": "ae5b9d323c058cb4337215e85351d253"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 2_expand-around-center/palindromic_substrings_explained.md": {
+    "mtime": 1787133483.592084,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1e6e50c9d3e1b476d99cc0f69ba7a929",
+    "semantic_hash": "1e6e50c9d3e1b476d99cc0f69ba7a929"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 3_Other Patterns/encode_and_decode_strings.html": {
+    "mtime": 1787127829.6635394,
+    "seen": 1788135387.7251854,
+    "ast_hash": "17fd743420cb593094ad1e697b499388",
+    "semantic_hash": "17fd743420cb593094ad1e697b499388"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 3_Other Patterns/encode_and_decode_strings_explained.md": {
+    "mtime": 1787133543.9750187,
+    "seen": 1788135387.7251854,
+    "ast_hash": "720507956e8ff1f03b8556d2bf427ac9",
+    "semantic_hash": "720507956e8ff1f03b8556d2bf427ac9"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 3_Other Patterns/group_anagrams.html": {
+    "mtime": 1787127829.7284327,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d1c7b9a8ec7b390307dfe10a41f3153e",
+    "semantic_hash": "d1c7b9a8ec7b390307dfe10a41f3153e"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 3_Other Patterns/group_anagrams_explained.md": {
+    "mtime": 1787133503.3571565,
+    "seen": 1788135387.7251854,
+    "ast_hash": "58befb90fd015eb7fb19429af6020e93",
+    "semantic_hash": "58befb90fd015eb7fb19429af6020e93"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 3_Other Patterns/string-patterns-remainder-explorer.html": {
+    "mtime": 1787124858.8314219,
+    "seen": 1788135387.7251854,
+    "ast_hash": "50bb6d156368ddb583c06e6fbedeb3ed",
+    "semantic_hash": "50bb6d156368ddb583c06e6fbedeb3ed"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 3_Other Patterns/valid_anagram.html": {
+    "mtime": 1787127829.7923634,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5fa335e79267607887c8ecf2dad12722",
+    "semantic_hash": "5fa335e79267607887c8ecf2dad12722"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 3_Other Patterns/valid_anagram_explained.md": {
+    "mtime": 1787133439.2984073,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7067ea135e9d00d46ed3b8e0f97232ee",
+    "semantic_hash": "7067ea135e9d00d46ed3b8e0f97232ee"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 3_Other Patterns/valid_palindrome.html": {
+    "mtime": 1787127829.8567307,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f1c2ae78770e7711eac655ecb784aeb5",
+    "semantic_hash": "f1c2ae78770e7711eac655ecb784aeb5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 3_Other Patterns/valid_palindrome_explained.md": {
+    "mtime": 1787133468.4850814,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f0ca1f6483b75744c73dff86467eeebd",
+    "semantic_hash": "f0ca1f6483b75744c73dff86467eeebd"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 3_Other Patterns/valid_parentheses.html": {
+    "mtime": 1787127829.9107015,
+    "seen": 1788135387.7251854,
+    "ast_hash": "10d8ee2cf938b68077012114c1411f97",
+    "semantic_hash": "10d8ee2cf938b68077012114c1411f97"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/Group 3_Other Patterns/valid_parentheses_explained.md": {
+    "mtime": 1787133404.3872664,
+    "seen": 1788135387.7251854,
+    "ast_hash": "478ab24bd1d4c1c15099efbf8e3e692a",
+    "semantic_hash": "478ab24bd1d4c1c15099efbf8e3e692a"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/README.md": {
+    "mtime": 1786618784.910231,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c32051362ffb41b258c000027e6f31b9",
+    "semantic_hash": "c32051362ffb41b258c000027e6f31b9"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/index.html": {
+    "mtime": 1787127844.1287682,
+    "seen": 1788135387.7251854,
+    "ast_hash": "65783708b3286a66e67ac22211efce64",
+    "semantic_hash": "65783708b3286a66e67ac22211efce64"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/String/patterns.html": {
+    "mtime": 1787127844.1684098,
+    "seen": 1788135387.7251854,
+    "ast_hash": "cd8dd21feec8a5f404d633c9c409eb42",
+    "semantic_hash": "cd8dd21feec8a5f404d633c9c409eb42"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 1_Basic Tree DFS/basic-tree-dfs-explorer.html": {
+    "mtime": 1787124914.40404,
+    "seen": 1788135387.7251854,
+    "ast_hash": "bac12137ec7b9baf5e9648a7b241a8d5",
+    "semantic_hash": "bac12137ec7b9baf5e9648a7b241a8d5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 1_Basic Tree DFS/invert_binary_tree.html": {
+    "mtime": 1787127775.8172033,
+    "seen": 1788135387.7251854,
+    "ast_hash": "edc5d3874c4cdd7b171094b49d598b82",
+    "semantic_hash": "edc5d3874c4cdd7b171094b49d598b82"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 1_Basic Tree DFS/invert_binary_tree_explained.md": {
+    "mtime": 1786703858.448747,
+    "seen": 1788135387.7251854,
+    "ast_hash": "fce0a65da6e0a6c6a5352bcd54260397",
+    "semantic_hash": "fce0a65da6e0a6c6a5352bcd54260397"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 1_Basic Tree DFS/maximum_depth_of_binary_tree.html": {
+    "mtime": 1787127775.8867743,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c578eb37b48f7f18b12c54538ffd33f5",
+    "semantic_hash": "c578eb37b48f7f18b12c54538ffd33f5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 1_Basic Tree DFS/maximum_depth_of_binary_tree_explained.md": {
+    "mtime": 1787135052.589535,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7cb3f1dfd6e5b9bf1e4c4a5399810863",
+    "semantic_hash": "7cb3f1dfd6e5b9bf1e4c4a5399810863"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 1_Basic Tree DFS/same_tree.html": {
+    "mtime": 1787127775.9515412,
+    "seen": 1788135387.7251854,
+    "ast_hash": "283cccfef7ae0ae6ce29718f37070b72",
+    "semantic_hash": "283cccfef7ae0ae6ce29718f37070b72"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 1_Basic Tree DFS/same_tree_explained.md": {
+    "mtime": 1786703845.8566487,
+    "seen": 1788135387.7251854,
+    "ast_hash": "db376e0360d44a0a30ec82e5e7f7c7ad",
+    "semantic_hash": "db376e0360d44a0a30ec82e5e7f7c7ad"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 1_Basic Tree DFS/subtree_of_another_tree.html": {
+    "mtime": 1787127776.0210614,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d453389e99488b7aabcf6888e97890a3",
+    "semantic_hash": "d453389e99488b7aabcf6888e97890a3"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 1_Basic Tree DFS/subtree_of_another_tree_explained.md": {
+    "mtime": 1787136306.4677393,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8cc29cff8bcb5f16b41adc955338b6fd",
+    "semantic_hash": "8cc29cff8bcb5f16b41adc955338b6fd"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 2_bst-order-rule/bst-order-rule-explorer.html": {
+    "mtime": 1787124925.2341125,
+    "seen": 1788135387.7251854,
+    "ast_hash": "dc12880a96be33818939cce128144ae3",
+    "semantic_hash": "dc12880a96be33818939cce128144ae3"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 2_bst-order-rule/kth_smallest_element_in_a_bst.html": {
+    "mtime": 1787127776.0850577,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9dd544c6ff71130c2facdab79c50b24d",
+    "semantic_hash": "9dd544c6ff71130c2facdab79c50b24d"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 2_bst-order-rule/kth_smallest_element_in_a_bst_explained.md": {
+    "mtime": 1786709452.4412353,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5e8ff3bbcfd08d72d243c429fad3ffdc",
+    "semantic_hash": "5e8ff3bbcfd08d72d243c429fad3ffdc"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 2_bst-order-rule/lowest_common_ancestor_of_a_bst.html": {
+    "mtime": 1787127776.1483653,
+    "seen": 1788135387.7251854,
+    "ast_hash": "356da670fe1a4a24e5df3048b87c7981",
+    "semantic_hash": "356da670fe1a4a24e5df3048b87c7981"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 2_bst-order-rule/lowest_common_ancestor_of_a_bst_explained.md": {
+    "mtime": 1786703835.7367015,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f0157571e1150da42817bca3ce4d20df",
+    "semantic_hash": "f0157571e1150da42817bca3ce4d20df"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 2_bst-order-rule/validate_binary_search_tree.html": {
+    "mtime": 1787127776.2095091,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d1b6db9b965fc7bf6a7dedff23c989d8",
+    "semantic_hash": "d1b6db9b965fc7bf6a7dedff23c989d8"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 2_bst-order-rule/validate_binary_search_tree_explained.md": {
+    "mtime": 1786703857.962109,
+    "seen": 1788135387.7251854,
+    "ast_hash": "52b98c810884ccb3317898797c23e3ee",
+    "semantic_hash": "52b98c810884ccb3317898797c23e3ee"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 3_bfs-level-order/bfs-level-order-explorer.html": {
+    "mtime": 1787124935.7432191,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ce6a54109d43a3a9c0e3444c13d5d5fd",
+    "semantic_hash": "ce6a54109d43a3a9c0e3444c13d5d5fd"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 3_bfs-level-order/binary_tree_level_order_traversal.html": {
+    "mtime": 1787127776.2720022,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ca1a1c154e90ac71ebc40dbaff310510",
+    "semantic_hash": "ca1a1c154e90ac71ebc40dbaff310510"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 3_bfs-level-order/binary_tree_level_order_traversal_explained.md": {
+    "mtime": 1786703831.186665,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d19e67a5939aa543ad578120b241a10f",
+    "semantic_hash": "d19e67a5939aa543ad578120b241a10f"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 4_advanced-dfs-max-path-sum/advanced-dfs-max-path-sum-explorer.html": {
+    "mtime": 1787124951.9767847,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c8b623cd6ac02de805167c82d12bab00",
+    "semantic_hash": "c8b623cd6ac02de805167c82d12bab00"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 4_advanced-dfs-max-path-sum/binary_tree_maximum_path_sum.html": {
+    "mtime": 1787131256.5239184,
+    "seen": 1788135387.7251854,
+    "ast_hash": "260c69dcba2bd981e9588af334f4989d",
+    "semantic_hash": "260c69dcba2bd981e9588af334f4989d"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 4_advanced-dfs-max-path-sum/binary_tree_maximum_path_sum_explained.md": {
+    "mtime": 1787137671.74879,
+    "seen": 1788135387.7251854,
+    "ast_hash": "b0bda29accf97b3d827bd47b6ea9d1a5",
+    "semantic_hash": "b0bda29accf97b3d827bd47b6ea9d1a5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 5_tree-reconstruction-serialization/construct_binary_tree_preorder_inorder.html": {
+    "mtime": 1787127776.3940868,
+    "seen": 1788135387.7251854,
+    "ast_hash": "68ddb7de641fecd5d009a532b18bf5a5",
+    "semantic_hash": "68ddb7de641fecd5d009a532b18bf5a5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 5_tree-reconstruction-serialization/construct_binary_tree_preorder_inorder_explained.md": {
+    "mtime": 1786703844.197981,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7f42a87002252ed02a7a12c679e74a43",
+    "semantic_hash": "7f42a87002252ed02a7a12c679e74a43"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 5_tree-reconstruction-serialization/serialize_and_deserialize_binary_tree.html": {
+    "mtime": 1787127776.4609632,
+    "seen": 1788135387.7251854,
+    "ast_hash": "cf26c226d0c558a437acac8fb6f3d7bd",
+    "semantic_hash": "cf26c226d0c558a437acac8fb6f3d7bd"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 5_tree-reconstruction-serialization/serialize_and_deserialize_binary_tree_explained.md": {
+    "mtime": 1786703867.4590142,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7292d43346747ee19fc95b67a71f999a",
+    "semantic_hash": "7292d43346747ee19fc95b67a71f999a"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 5_tree-reconstruction-serialization/tree-reconstruction-serialization-explorer.html": {
+    "mtime": 1787124964.5791214,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3aadf2176acc6fe541cf1ef4cc9cea32",
+    "semantic_hash": "3aadf2176acc6fe541cf1ef4cc9cea32"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 6_Trie/add_and_search_word.html": {
+    "mtime": 1787127776.5246034,
+    "seen": 1788135387.7251854,
+    "ast_hash": "c8a69c521b41a9de5c14ac702499ea33",
+    "semantic_hash": "c8a69c521b41a9de5c14ac702499ea33"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 6_Trie/add_and_search_word_explained.md": {
+    "mtime": 1786703853.1135015,
+    "seen": 1788135387.7251854,
+    "ast_hash": "00d9e8184b276d6f24e23f9318bcf72d",
+    "semantic_hash": "00d9e8184b276d6f24e23f9318bcf72d"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 6_Trie/implement_trie_prefix_tree.html": {
+    "mtime": 1787127776.599727,
+    "seen": 1788135387.7251854,
+    "ast_hash": "df01d422d26baf5e5bcd5b2d544a8b03",
+    "semantic_hash": "df01d422d26baf5e5bcd5b2d544a8b03"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 6_Trie/implement_trie_prefix_tree_explained.md": {
+    "mtime": 1786703873.6604514,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5582e42cbfcf536f631ef6fe59183b57",
+    "semantic_hash": "5582e42cbfcf536f631ef6fe59183b57"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 6_Trie/word_search_ii.html": {
+    "mtime": 1787127776.6778834,
+    "seen": 1788135387.7251854,
+    "ast_hash": "95cc638e83cb5992a7eea2d4fa4823e4",
+    "semantic_hash": "95cc638e83cb5992a7eea2d4fa4823e4"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/Group 6_Trie/word_search_ii_explained.md": {
+    "mtime": 1786703905.7894015,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ae19bf822b766d842292a2dcf5084e78",
+    "semantic_hash": "ae19bf822b766d842292a2dcf5084e78"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/README.md": {
+    "mtime": 1786618725.167388,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4fe14bf20fdba5ac9c6cd7b8040d8870",
+    "semantic_hash": "4fe14bf20fdba5ac9c6cd7b8040d8870"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/index.html": {
+    "mtime": 1787127793.7446349,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9adb33a2db81609510c98b0603589c65",
+    "semantic_hash": "9adb33a2db81609510c98b0603589c65"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/Tree/patterns.html": {
+    "mtime": 1787127793.7976768,
+    "seen": 1788135387.7251854,
+    "ast_hash": "914cdf1af674eefda40e3da452001414",
+    "semantic_hash": "914cdf1af674eefda40e3da452001414"
+  },
+  "5. Data_Structure and Algorithms/DSA_Blind 75/index.html": {
+    "mtime": 1787930158.45337,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5290905cdb8593136abc3f2cfd347a90",
+    "semantic_hash": "5290905cdb8593136abc3f2cfd347a90"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/01_Generic_Tree/01_generic_tree.html": {
+    "mtime": 1787865641.089356,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5bbf20cbff79b79619dce296ff1491b5",
+    "semantic_hash": "5bbf20cbff79b79619dce296ff1491b5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/01_Generic_Tree/01_generic_tree_explained.md": {
+    "mtime": 1786703668.790611,
+    "seen": 1788135387.7251854,
+    "ast_hash": "39b7eaf78cadf62c1f6611c399e71aa3",
+    "semantic_hash": "39b7eaf78cadf62c1f6611c399e71aa3"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/01_Generic_Tree/PRIMARY.md": {
+    "mtime": 1787927369.8872817,
+    "seen": 1788135387.7251854,
+    "ast_hash": "9a228f6a6852c1b048a752c46cf10936",
+    "semantic_hash": "9a228f6a6852c1b048a752c46cf10936"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/01_Generic_Tree/README.md": {
+    "mtime": 1787927286.5567732,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5fb3f49800458937c0f1a880e5ecd55c",
+    "semantic_hash": "5fb3f49800458937c0f1a880e5ecd55c"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/02_Binary_Tree/02_binary_tree.html": {
+    "mtime": 1787865641.089356,
+    "seen": 1788135387.7251854,
+    "ast_hash": "33cfd1482b01f7f671039c876af44960",
+    "semantic_hash": "33cfd1482b01f7f671039c876af44960"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/02_Binary_Tree/02_binary_tree_explained.md": {
+    "mtime": 1786703686.183859,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a73290b2f6eecdfc9c8f91fd679f0543",
+    "semantic_hash": "a73290b2f6eecdfc9c8f91fd679f0543"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/02_Binary_Tree/README.md": {
+    "mtime": 1787865657.9894507,
+    "seen": 1788135387.7251854,
+    "ast_hash": "198cfeb85f20cf60ccfcdb25ffc76897",
+    "semantic_hash": "198cfeb85f20cf60ccfcdb25ffc76897"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/03_Binary_Search_Tree/03_binary_search_tree.html": {
+    "mtime": 1787865641.0915573,
+    "seen": 1788135387.7251854,
+    "ast_hash": "58ae52b96a204d4f75daeb4d51c30928",
+    "semantic_hash": "58ae52b96a204d4f75daeb4d51c30928"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/03_Binary_Search_Tree/03_binary_search_tree_explained.md": {
+    "mtime": 1786703710.9555495,
+    "seen": 1788135387.7251854,
+    "ast_hash": "1ff770e4b30d6c07fafa616725e97365",
+    "semantic_hash": "1ff770e4b30d6c07fafa616725e97365"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/03_Binary_Search_Tree/README.md": {
+    "mtime": 1787865657.9904406,
+    "seen": 1788135387.7251854,
+    "ast_hash": "28d6ce8db63ac941675fd5b258d5b88e",
+    "semantic_hash": "28d6ce8db63ac941675fd5b258d5b88e"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/04_Tree_Traversal/04_tree_traversal.html": {
+    "mtime": 1787865641.092557,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2be6653e5d810aec61d3bcf3bd3e1605",
+    "semantic_hash": "2be6653e5d810aec61d3bcf3bd3e1605"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/04_Tree_Traversal/04_tree_traversal_explained.md": {
+    "mtime": 1786703619.021078,
+    "seen": 1788135387.7251854,
+    "ast_hash": "282a20ce15a1ec5e9c72cd791a1667ee",
+    "semantic_hash": "282a20ce15a1ec5e9c72cd791a1667ee"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/04_Tree_Traversal/README.md": {
+    "mtime": 1787865657.9914224,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6e84e38f35457f842a0dc2d0aaae7cb5",
+    "semantic_hash": "6e84e38f35457f842a0dc2d0aaae7cb5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/05_Graph_Fundamentals/05_graph_fundamentals.html": {
+    "mtime": 1787865641.093557,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4fff82fdac50a486b41638489ace3667",
+    "semantic_hash": "4fff82fdac50a486b41638489ace3667"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/05_Graph_Fundamentals/README.md": {
+    "mtime": 1787865657.9914224,
+    "seen": 1788135387.7251854,
+    "ast_hash": "2d45cdb1a6ab65ecba4cbecdd3af1f2e",
+    "semantic_hash": "2d45cdb1a6ab65ecba4cbecdd3af1f2e"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/06_Graph_Representation/06_graph_representation.html": {
+    "mtime": 1787865641.0945258,
+    "seen": 1788135387.7251854,
+    "ast_hash": "db1d0a1eb6af6a52f0a4cd52663c0ba4",
+    "semantic_hash": "db1d0a1eb6af6a52f0a4cd52663c0ba4"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/06_Graph_Representation/PRIMARY.md": {
+    "mtime": 1787927377.2761762,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5ed710adf4307ec60842aa8bb69cd3b0",
+    "semantic_hash": "5ed710adf4307ec60842aa8bb69cd3b0"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/06_Graph_Representation/README.md": {
+    "mtime": 1787927293.4654555,
+    "seen": 1788135387.7251854,
+    "ast_hash": "98bde226fb4779f86f56fbb0a8167284",
+    "semantic_hash": "98bde226fb4779f86f56fbb0a8167284"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/07_Graph_Traversal/07_graph_traversal.html": {
+    "mtime": 1787865641.0965068,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4c3afc04e861f68f87f7e847fe7f0941",
+    "semantic_hash": "4c3afc04e861f68f87f7e847fe7f0941"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/07_Graph_Traversal/PRIMARY.md": {
+    "mtime": 1787927385.0688798,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f3befe4245e096eb2017ddde906689e9",
+    "semantic_hash": "f3befe4245e096eb2017ddde906689e9"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/07_Graph_Traversal/README.md": {
+    "mtime": 1787927300.6643846,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ae7838070e4f5087e53a8afca568706c",
+    "semantic_hash": "ae7838070e4f5087e53a8afca568706c"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/08_Weighted_Shortest_Paths/08_weighted_shortest_paths.html": {
+    "mtime": 1787865641.0965068,
+    "seen": 1788135387.7251854,
+    "ast_hash": "685e94c6a6d1d8328c297a54bfea30de",
+    "semantic_hash": "685e94c6a6d1d8328c297a54bfea30de"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/08_Weighted_Shortest_Paths/README.md": {
+    "mtime": 1787865657.9934227,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a43111ed747c23f8b81fd7fa41456e0a",
+    "semantic_hash": "a43111ed747c23f8b81fd7fa41456e0a"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/09_Minimum_Spanning_Tree/09_minimum_spanning_tree.html": {
+    "mtime": 1787865641.0981903,
+    "seen": 1788135387.7251854,
+    "ast_hash": "28cbacf3613f9d9918e02f7298c87369",
+    "semantic_hash": "28cbacf3613f9d9918e02f7298c87369"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/09_Minimum_Spanning_Tree/README.md": {
+    "mtime": 1787865657.9944232,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ce82b8ee4f1f91e74cbd51c924e11f67",
+    "semantic_hash": "ce82b8ee4f1f91e74cbd51c924e11f67"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/10_Topological_Sort/10_topological_sort.html": {
+    "mtime": 1787865641.0991962,
+    "seen": 1788135387.7251854,
+    "ast_hash": "47a05e3f4eb8c7eee3323883eb60b66a",
+    "semantic_hash": "47a05e3f4eb8c7eee3323883eb60b66a"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/10_Topological_Sort/README.md": {
+    "mtime": 1787865657.9944232,
+    "seen": 1788135387.7251854,
+    "ast_hash": "cd80ff771086f5cb4752e7ee45485260",
+    "semantic_hash": "cd80ff771086f5cb4752e7ee45485260"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/11_Cycle_Detection/11_cycle_detection.html": {
+    "mtime": 1787865641.1003458,
+    "seen": 1788135387.7251854,
+    "ast_hash": "edd00aaff53427c3e972e58ee5b5ede9",
+    "semantic_hash": "edd00aaff53427c3e972e58ee5b5ede9"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/11_Cycle_Detection/README.md": {
+    "mtime": 1787865657.9959295,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3721ea10bea337ba7773a0342cf3703c",
+    "semantic_hash": "3721ea10bea337ba7773a0342cf3703c"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/12_Heaps_Priority_Queues/12_heaps_priority_queues.html": {
+    "mtime": 1787865641.1013436,
+    "seen": 1788135387.7251854,
+    "ast_hash": "8a25df9337aa1795bd81281c21695aa3",
+    "semantic_hash": "8a25df9337aa1795bd81281c21695aa3"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/12_Heaps_Priority_Queues/PRIMARY.md": {
+    "mtime": 1787927393.6849945,
+    "seen": 1788135387.7251854,
+    "ast_hash": "661aad3c001441bb0a5a9032b6de9cb2",
+    "semantic_hash": "661aad3c001441bb0a5a9032b6de9cb2"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/12_Heaps_Priority_Queues/README.md": {
+    "mtime": 1787927306.9053533,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f997d9888d0a59817787468ff5a64464",
+    "semantic_hash": "f997d9888d0a59817787468ff5a64464"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/13_Tries/13_tries.html": {
+    "mtime": 1787865641.1033778,
+    "seen": 1788135387.7251854,
+    "ast_hash": "588b1f4147a7fff3adeff91a5413855c",
+    "semantic_hash": "588b1f4147a7fff3adeff91a5413855c"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/13_Tries/PRIMARY.md": {
+    "mtime": 1787927401.1009502,
+    "seen": 1788135387.7251854,
+    "ast_hash": "50ec4de0f13db0f935e451f1560facad",
+    "semantic_hash": "50ec4de0f13db0f935e451f1560facad"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/13_Tries/README.md": {
+    "mtime": 1787927315.037882,
+    "seen": 1788135387.7251854,
+    "ast_hash": "fca85b256043bd61c0da7b469c29e755",
+    "semantic_hash": "fca85b256043bd61c0da7b469c29e755"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/14_AStar_Floyd_Warshall/14_astar_floyd_warshall.html": {
+    "mtime": 1787865641.1033778,
+    "seen": 1788135387.7251854,
+    "ast_hash": "cabc2c90c222c2c07653a048226517e4",
+    "semantic_hash": "cabc2c90c222c2c07653a048226517e4"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/14_AStar_Floyd_Warshall/README.md": {
+    "mtime": 1787865657.9979367,
+    "seen": 1788135387.7251854,
+    "ast_hash": "accfe639d7fc7814dcd8e4a507a42a6a",
+    "semantic_hash": "accfe639d7fc7814dcd8e4a507a42a6a"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/15_Strongly_Connected_Components/15_strongly_connected_components.html": {
+    "mtime": 1787865641.1043763,
+    "seen": 1788135387.7251854,
+    "ast_hash": "deb1de794b35b33a5ff21a0567028e21",
+    "semantic_hash": "deb1de794b35b33a5ff21a0567028e21"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/15_Strongly_Connected_Components/PRIMARY.md": {
+    "mtime": 1787927410.2454624,
+    "seen": 1788135387.7251854,
+    "ast_hash": "993a04be53b312ac44d5329077d302e7",
+    "semantic_hash": "993a04be53b312ac44d5329077d302e7"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/15_Strongly_Connected_Components/README.md": {
+    "mtime": 1787927321.637032,
+    "seen": 1788135387.7251854,
+    "ast_hash": "44de190684cdfdef1aec513b83f9a7da",
+    "semantic_hash": "44de190684cdfdef1aec513b83f9a7da"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/16_Hash_Tables/PRIMARY.md": {
+    "mtime": 1787927329.6757655,
+    "seen": 1788135387.7251854,
+    "ast_hash": "ffe7eb28fa9681defd327868db6624c8",
+    "semantic_hash": "ffe7eb28fa9681defd327868db6624c8"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/16_Hash_Tables/README.md": {
+    "mtime": 1787927253.159955,
+    "seen": 1788135387.7251854,
+    "ast_hash": "6039dbd5f27b591ae06d93bd923466f5",
+    "semantic_hash": "6039dbd5f27b591ae06d93bd923466f5"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/17_Sorting_Algorithms/PRIMARY.md": {
+    "mtime": 1787927337.6106944,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5b208563d4a3c9ee8c65fcd52027c227",
+    "semantic_hash": "5b208563d4a3c9ee8c65fcd52027c227"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/17_Sorting_Algorithms/README.md": {
+    "mtime": 1787927259.6668348,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3a75cad20e40cdaffe149f677ac2f493",
+    "semantic_hash": "3a75cad20e40cdaffe149f677ac2f493"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/18_Binary_Search/PRIMARY.md": {
+    "mtime": 1787927344.7868571,
+    "seen": 1788135387.7251854,
+    "ast_hash": "d535bba57ae05095fa5fec47bfe5d9ee",
+    "semantic_hash": "d535bba57ae05095fa5fec47bfe5d9ee"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/18_Binary_Search/README.md": {
+    "mtime": 1787927266.2534153,
+    "seen": 1788135387.7251854,
+    "ast_hash": "0bb0d14fc78ca60ef79772651719f040",
+    "semantic_hash": "0bb0d14fc78ca60ef79772651719f040"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/19_Two_Pointers_Sliding_Window/PRIMARY.md": {
+    "mtime": 1787927353.1958008,
+    "seen": 1788135387.7251854,
+    "ast_hash": "adb6cc97b014a6da7912717a1a1042fc",
+    "semantic_hash": "adb6cc97b014a6da7912717a1a1042fc"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/19_Two_Pointers_Sliding_Window/README.md": {
+    "mtime": 1787927272.974834,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a10cf36ecb115d691189458606988abb",
+    "semantic_hash": "a10cf36ecb115d691189458606988abb"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/20_Greedy_Algorithms/PRIMARY.md": {
+    "mtime": 1787927361.6978693,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a6e9893bc11c1d4c05a532eb1006a8b0",
+    "semantic_hash": "a6e9893bc11c1d4c05a532eb1006a8b0"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/20_Greedy_Algorithms/README.md": {
+    "mtime": 1787927279.958948,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3928dbf1d5b3ff08e2edd28024fc7f54",
+    "semantic_hash": "3928dbf1d5b3ff08e2edd28024fc7f54"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/README.md": {
+    "mtime": 1787915334.542848,
+    "seen": 1788135387.7251854,
+    "ast_hash": "18da7fed978ee9eaae0bdcf5c80ca468",
+    "semantic_hash": "18da7fed978ee9eaae0bdcf5c80ca468"
+  },
+  "5. Data_Structure and Algorithms/DSA_Deep_Dive/index.html": {
+    "mtime": 1787865682.579523,
+    "seen": 1788135387.7251854,
+    "ast_hash": "eba7095de0b69314ef00928ddbef235c",
+    "semantic_hash": "eba7095de0b69314ef00928ddbef235c"
+  },
+  "5. Data_Structure and Algorithms/DSA_Links.md": {
+    "mtime": 1787915428.4766245,
+    "seen": 1788135387.7251854,
+    "ast_hash": "3c47b26627d053cae5204cf1d8dfef02",
+    "semantic_hash": "3c47b26627d053cae5204cf1d8dfef02"
+  },
+  "5. Data_Structure and Algorithms/NeetCode_YouTube_Links.md": {
+    "mtime": 1786870964.4199383,
+    "seen": 1788135387.7251854,
+    "ast_hash": "222159ba5c5b60f0d730d2f6f619de17",
+    "semantic_hash": "222159ba5c5b60f0d730d2f6f619de17"
+  },
+  "5. Data_Structure and Algorithms/Neetcode_150/index.html": {
+    "mtime": 1788020220.533329,
+    "seen": 1788135387.7251854,
+    "ast_hash": "43d65b868650d1c1089225318a3dd583",
+    "semantic_hash": "43d65b868650d1c1089225318a3dd583"
+  },
+  "5. Data_Structure and Algorithms/README.md": {
+    "mtime": 1787865768.8155565,
+    "seen": 1788135387.7251854,
+    "ast_hash": "4bf78ee5a10c68729b7074aff61e03b2",
+    "semantic_hash": "4bf78ee5a10c68729b7074aff61e03b2"
+  },
+  "5. Data_Structure and Algorithms/leetcode-prep-roadmap.html": {
+    "mtime": 1786596249.3771074,
+    "seen": 1788135387.7251854,
+    "ast_hash": "42b17a5f1d0f0a6b952681c59d9df58c",
+    "semantic_hash": "42b17a5f1d0f0a6b952681c59d9df58c"
+  },
+  "AGENTS.md": {
+    "mtime": 1787929547.4966593,
+    "seen": 1788135387.7251854,
+    "ast_hash": "48a13752ad11b375e0aa3aebe8ba4ef0",
+    "semantic_hash": "48a13752ad11b375e0aa3aebe8ba4ef0"
+  },
+  "databricks.yml": {
+    "mtime": 1786722083.7744098,
+    "seen": 1788135387.7251854,
+    "ast_hash": "46d8d64a6698223d2a6be8bda03e841e",
+    "semantic_hash": "46d8d64a6698223d2a6be8bda03e841e"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Coding_Round/DevRev-Technical-Prep.pdf": {
+    "mtime": 1786627339.066101,
+    "seen": 1788135387.7251854,
+    "ast_hash": "7ca80bca2eb30df4065e772041aed338",
+    "semantic_hash": "7ca80bca2eb30df4065e772041aed338"
+  },
+  "1. Company_Wise_Preparation/2. DevRev/Interview_prep_guide_-_Forward_Deployed_Architect__DevRev.pdf": {
+    "mtime": 1786999544.320685,
+    "seen": 1788135387.7251854,
+    "ast_hash": "98b9c5bff6075c18b5821906510aaf2f",
+    "semantic_hash": "98b9c5bff6075c18b5821906510aaf2f"
+  },
+  "2. Data_Engineer_Interview_Preparation/System Design/ch03_fundamentals_of_scale.pdf": {
+    "mtime": 1786024094.40606,
+    "seen": 1788135387.7251854,
+    "ast_hash": "5568107e23d1abdfb5ef842fed0ffca1",
+    "semantic_hash": "5568107e23d1abdfb5ef842fed0ffca1"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/Designing a Multi-Tenant Enterprise RAG Platform _ by Md Johirul Islam _ Jul, 2026 _ Medium.pdf": {
+    "mtime": 1787433062.8651776,
+    "seen": 1788135387.7251854,
+    "ast_hash": "79ebaa7c3623d421c313a1a72972a4c6",
+    "semantic_hash": "79ebaa7c3623d421c313a1a72972a4c6"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enterprise RAG Platform/docs/Enterprise-RAG-Architecture-Patterns-Explained-Medium-08-23-2026_02_36_AM.pdf": {
+    "mtime": 1787432799.757629,
+    "seen": 1788135387.7251854,
+    "ast_hash": "a09e6714839bd93df78abff83a0df071",
+    "semantic_hash": "a09e6714839bd93df78abff83a0df071"
+  },
+  "3. AI_Engineer_Interview_Preparation/Enteprise Multi-Agent AI Research Platform/ARCHITECTURE DIAGRAMS/PNG DIAAGRAM.png": {
+    "mtime": 1782729994.0,
+    "seen": 1788135387.7251854,
+    "ast_hash": "f2b3006166fcfe6b6b59232c342966f6",
+    "semantic_hash": "f2b3006166fcfe6b6b59232c342966f6"
+  }
+}
