@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tries (Prefix Trees) — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Tries · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Tries (Prefix Trees)</h1>
+          <p>
+            A trie is a tree keyed by characters: each path from the root spells out a string, and words that
+            share a prefix share the same nodes. That single structural fact is why insert, search, and
+            "does anything start with this?" all cost <code>O(word length)</code> — no matter how many words
+            are stored.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: shared prefixes share nodes</span>
+            <span class="chip">Interactive insert trace</span>
+            <span class="chip">Interactive search vs starts_with trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>words = ["cat", "car", "card", "dog"]</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 520 340" width="100%" role="img" aria-label="Trie built from cat, car, card, dog with end-of-word nodes ringed">
+              <defs>
+                <style>
+                  .hro-edge { stroke: #315efb; stroke-width: 4; stroke-linecap: round; }
+                  .hro-node { fill: #315efb; }
+                  .hro-ring { fill: none; stroke: #182132; stroke-width: 3; }
+                  .hro-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                </style>
+              </defs>
+              <line x1="260" y1="30" x2="150" y2="100" class="hro-edge" />
+              <line x1="260" y1="30" x2="370" y2="100" class="hro-edge" />
+              <line x1="150" y1="100" x2="150" y2="170" class="hro-edge" />
+              <line x1="370" y1="100" x2="370" y2="170" class="hro-edge" />
+              <line x1="150" y1="170" x2="90" y2="240" class="hro-edge" />
+              <line x1="150" y1="170" x2="210" y2="240" class="hro-edge" />
+              <line x1="370" y1="170" x2="370" y2="240" class="hro-edge" />
+              <line x1="210" y1="240" x2="210" y2="310" class="hro-edge" />
+
+              <circle cx="90" cy="240" r="28" class="hro-ring" />
+              <circle cx="210" cy="240" r="28" class="hro-ring" />
+              <circle cx="210" cy="310" r="28" class="hro-ring" />
+              <circle cx="370" cy="240" r="28" class="hro-ring" />
+
+              <circle cx="260" cy="30" r="22" class="hro-node" />
+              <circle cx="150" cy="100" r="22" class="hro-node" />
+              <circle cx="370" cy="100" r="22" class="hro-node" />
+              <circle cx="150" cy="170" r="22" class="hro-node" />
+              <circle cx="370" cy="170" r="22" class="hro-node" />
+              <circle cx="90" cy="240" r="22" class="hro-node" />
+              <circle cx="210" cy="240" r="22" class="hro-node" />
+              <circle cx="370" cy="240" r="22" class="hro-node" />
+              <circle cx="210" cy="310" r="22" class="hro-node" />
+
+              <text x="254" y="36" class="hro-label">&#8226;</text>
+              <text x="144" y="106" class="hro-label">c</text>
+              <text x="364" y="106" class="hro-label">d</text>
+              <text x="144" y="176" class="hro-label">a</text>
+              <text x="364" y="176" class="hro-label">o</text>
+              <text x="84" y="246" class="hro-label">t</text>
+              <text x="204" y="246" class="hro-label">r</text>
+              <text x="364" y="246" class="hro-label">g</text>
+              <text x="204" y="316" class="hro-label">d</text>
+            </svg>
+          </div>
+          <div class="result-badge">search('car') = True &middot; search('ca') = False &middot; starts_with('ca') = True</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Autocomplete / typeahead</h3>
+          <p>Given a few typed letters, walk to that node once, then collect every complete word in the subtree below it — no scanning the whole dictionary.</p>
+        </div>
+        <div class="card">
+          <h3>Spell-checkers</h3>
+          <p>"Is this exact string a real word?" is a single walk plus one flag check, regardless of how large the dictionary is.</p>
+        </div>
+        <div class="card">
+          <h3>IP routing / word games</h3>
+          <p>Routing tables use the same idea for longest-prefix match; Scrabble and Boggle solvers use it to prune branches that can never form a word.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> a hash set already answers "is this exact string present?" in <code>O(L)</code>. A trie exists for the question a hash set structurally cannot answer without scanning everything: "which words start with this?"</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a trie?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>A trie is a tree where the edges are labeled by characters instead of arbitrary values. Following a path from the root spells out a string, and any two words that start the same way walk the same nodes for as long as they agree.</p>
+        </div>
+        <div class="card">
+          <h3>What each node stores</h3>
+          <p>A node carries almost nothing: a <code>children</code> map from character to child node, and one boolean, <code>is_word</code>. Reaching a node only proves the string-so-far is a <strong>prefix</strong> of something; the flag is the only thing that says a full word actually ends there.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if two words start with the same letters, they share the same nodes for those letters — the trie only branches at the first character where two words disagree.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Walk one character at a time</h3>
+          <p>Every operation — insert, search, starts_with — is the same loop: start at the root, move to the child for the next character.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Reuse before you create</h3>
+          <p>If a child already exists for this character, step into it. Only create a new node when nothing exists there yet — that's what makes prefixes free.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>The end of a word is a flag, not a node type</h3>
+          <p>There is no special "leaf" node class. Any node can have <code>is_word = True</code>, whether or not it also has children.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Prefix questions just stop the walk early</h3>
+          <p>To check a prefix, walk the characters and stop — you never need to look at <code>is_word</code> at all.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes a trie</h2>
+      <p>A trie is built by inserting one word at a time. Each insert either reuses existing nodes or grows exactly the nodes it needs — nothing more.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input word list</h3>
+          <div class="code-block"><code>words = ["cat", "car", "card", "dog"]</code></div>
+        </div>
+        <div class="arrow-box">&rarr;</div>
+        <div class="mini-diagram">
+          <h3>Children maps + is_word flags</h3>
+          <div class="code-block"><code>root.children  = {'c': node_c, 'd': node_d}
+node_c.children  = {'a': node_ca}
+node_ca.children = {'t': node_cat  (is_word=True),
+                     'r': node_car  (is_word=True)}
+node_car.children = {'d': node_card (is_word=True)}
+node_d.children  = {'o': node_do}
+node_do.children = {'g': node_dog  (is_word=True)}</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Insert <code>"cat"</code></h4>
+          <p>Root has no <code>'c'</code> child yet, so three brand-new nodes are created: <code>c &rarr; a &rarr; t</code>. The <code>t</code> node is marked <code>is_word = True</code>.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Insert <code>"car"</code></h4>
+          <p><code>c</code> and <code>a</code> already exist and are reused. Only <code>r</code> is new. The <code>r</code> node is marked <code>is_word = True</code>.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Insert <code>"card"</code></h4>
+          <p><code>c</code>, <code>a</code>, and <code>r</code> all already exist — the walk lands on the same <code>r</code> node that "car" ends on. Only <code>d</code> is new. That <code>d</code> node is marked <code>is_word = True</code>.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Insert <code>"dog"</code></h4>
+          <p>Root has no <code>'d'</code> child, so this starts a completely separate branch: three new nodes <code>d &rarr; o &rarr; g</code>, with <code>g</code> marked <code>is_word = True</code>.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> reaching a node only ever proves the string-so-far is a <strong>prefix</strong> of some word. Whether it is also a complete, stored word is a separate question, answered only by that node's <code>is_word</code> flag. <code>"car"</code> is both a prefix (of <code>"card"</code>) and a word — that is normal, not a special case.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: insert</h2>
+      <p>Walk the word character by character from the root. Reuse a child if it already exists; create it if it doesn't. When the loop finishes, mark whatever node you landed on as a complete word.</p>
+      <div class="code-block stepped">
+        <code id="ins-code">
+<span class="code-line" data-line="1">class TrieNode:</span>
+<span class="code-line" data-line="2">    def __init__(self):</span>
+<span class="code-line" data-line="3">        self.children = {}        # char -&gt; TrieNode</span>
+<span class="code-line" data-line="4">        self.is_word = False      # does a word END here?</span>
+<span class="code-line" data-line="5"></span>
+<span class="code-line" data-line="6">class Trie:</span>
+<span class="code-line" data-line="7">    def __init__(self):</span>
+<span class="code-line" data-line="8">        self.root = TrieNode()</span>
+<span class="code-line" data-line="9"></span>
+<span class="code-line" data-line="10">    def insert(self, word):</span>
+<span class="code-line" data-line="11">        node = self.root</span>
+<span class="code-line" data-line="12">        for ch in word:                       # walk/create one node per character</span>
+<span class="code-line" data-line="13">            if ch not in node.children:</span>
+<span class="code-line" data-line="14">                node.children[ch] = TrieNode()</span>
+<span class="code-line" data-line="15">            node = node.children[ch]</span>
+<span class="code-line" data-line="16">        node.is_word = True                    # mark the final node as a word end</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive insert trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="ins-graph" viewBox="0 0 520 340" width="100%" role="img" aria-label="Trie growing as cat, car, card, dog are inserted">
+              <defs>
+                <style>
+                  .insg-edge { stroke-width: 4; stroke-linecap: round; visibility: hidden; }
+                  .insg-edge.edge-exists { stroke: #315efb; }
+                  .insg-edge.edge-created { stroke: #13a46b; }
+                  .insg-edge.edge-current { stroke: #ff9f1c; stroke-width: 6; }
+                  .insg-node { fill: #c8d2e7; transition: fill 0.2s ease; }
+                  .insg-node.exists { fill: #315efb; }
+                  .insg-node.created { fill: #13a46b; }
+                  .insg-node.current { fill: #ff9f1c; }
+                  .insg-ring { fill: none; stroke: #182132; stroke-width: 3; visibility: hidden; }
+                  .insg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .insg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="18" class="insg-title">Trie under construction</text>
+
+              <line x1="260" y1="30" x2="150" y2="100" class="insg-edge" data-edge="root-c" />
+              <line x1="260" y1="30" x2="370" y2="100" class="insg-edge" data-edge="root-d" />
+              <line x1="150" y1="100" x2="150" y2="170" class="insg-edge" data-edge="c-ca" />
+              <line x1="370" y1="100" x2="370" y2="170" class="insg-edge" data-edge="d-do" />
+              <line x1="150" y1="170" x2="90" y2="240" class="insg-edge" data-edge="ca-cat" />
+              <line x1="150" y1="170" x2="210" y2="240" class="insg-edge" data-edge="ca-car" />
+              <line x1="370" y1="170" x2="370" y2="240" class="insg-edge" data-edge="do-dog" />
+              <line x1="210" y1="240" x2="210" y2="310" class="insg-edge" data-edge="car-card" />
+
+              <circle cx="90" cy="240" r="28" class="insg-ring" data-ring="cat" />
+              <circle cx="210" cy="240" r="28" class="insg-ring" data-ring="car" />
+              <circle cx="210" cy="310" r="28" class="insg-ring" data-ring="card" />
+              <circle cx="370" cy="240" r="28" class="insg-ring" data-ring="dog" />
+
+              <circle cx="260" cy="30" r="22" class="insg-node exists" data-node="root" />
+              <circle cx="150" cy="100" r="22" class="insg-node" data-node="c" />
+              <circle cx="370" cy="100" r="22" class="insg-node" data-node="d" />
+              <circle cx="150" cy="170" r="22" class="insg-node" data-node="ca" />
+              <circle cx="370" cy="170" r="22" class="insg-node" data-node="do" />
+              <circle cx="90" cy="240" r="22" class="insg-node" data-node="cat" />
+              <circle cx="210" cy="240" r="22" class="insg-node" data-node="car" />
+              <circle cx="370" cy="240" r="22" class="insg-node" data-node="dog" />
+              <circle cx="210" cy="310" r="22" class="insg-node" data-node="card" />
+
+              <text x="254" y="36" class="insg-label">&#8226;</text>
+              <text x="144" y="106" class="insg-label">c</text>
+              <text x="364" y="106" class="insg-label">d</text>
+              <text x="144" y="176" class="insg-label">a</text>
+              <text x="364" y="176" class="insg-label">o</text>
+              <text x="84" y="246" class="insg-label">t</text>
+              <text x="204" y="246" class="insg-label">r</text>
+              <text x="364" y="246" class="insg-label">g</text>
+              <text x="204" y="316" class="insg-label">d</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-green"></i> node just created this step</span>
+            <span><i class="dot dot-orange"></i> current node (reused, not new)</span>
+            <span><i class="dot dot-blue"></i> already exists in the trie</span>
+            <span><i class="dot dot-gray"></i> not created yet</span>
+            <span>ring around a letter = is_word is True</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="ins-step-title">Initial state</h3>
+          <p id="ins-step-text">The trie starts as a single empty root node.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="ins-prev">Previous</button>
+            <button type="button" id="ins-play" class="primary">Resume</button>
+            <button type="button" id="ins-next">Next</button>
+            <button type="button" id="ins-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="ins-step-counter">Step 0 / 17</span>
+            <div class="progress"><span id="ins-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Word being inserted</strong><div class="state-value" id="ins-word">&mdash;</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="ins-action">root = TrieNode()</div></div>
+            <div class="state-box"><strong>Path so far</strong><div class="state-value" id="ins-path">&mdash;</div></div>
+            <div class="state-box"><strong>Children at this node</strong><div class="state-value" id="ins-children">[]</div></div>
+            <div class="state-box"><strong>is_word flag here</strong><div class="state-value" id="ins-flag">&mdash;</div></div>
+            <div class="state-box"><strong>Words fully inserted</strong><div class="state-value" id="ins-words">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="ins-detail"><strong>What changed:</strong> a trie always starts with one empty root node.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="ins-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Word</th><th>Char</th><th>Path so far</th><th>Action</th><th>is_word after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>root = TrieNode()</td><td>&mdash;</td></tr>
+            <tr data-step="1"><td>1</td><td>cat</td><td>c</td><td>c</td><td>create node, move in</td><td>False</td></tr>
+            <tr data-step="2"><td>2</td><td>cat</td><td>a</td><td>ca</td><td>create node, move in</td><td>False</td></tr>
+            <tr data-step="3"><td>3</td><td>cat</td><td>t</td><td>cat</td><td>create node, move in</td><td>False</td></tr>
+            <tr data-step="4"><td>4</td><td>cat</td><td>&mdash;</td><td>cat</td><td>node.is_word = True</td><td>True</td></tr>
+            <tr data-step="5"><td>5</td><td>car</td><td>c</td><td>c</td><td>reuse existing node</td><td>False</td></tr>
+            <tr data-step="6"><td>6</td><td>car</td><td>a</td><td>ca</td><td>reuse existing node</td><td>False</td></tr>
+            <tr data-step="7"><td>7</td><td>car</td><td>r</td><td>car</td><td>create node, move in</td><td>False</td></tr>
+            <tr data-step="8"><td>8</td><td>car</td><td>&mdash;</td><td>car</td><td>node.is_word = True</td><td>True</td></tr>
+            <tr data-step="9"><td>9</td><td>card</td><td>c</td><td>c</td><td>reuse existing node</td><td>False</td></tr>
+            <tr data-step="10"><td>10</td><td>card</td><td>a</td><td>ca</td><td>reuse existing node</td><td>False</td></tr>
+            <tr data-step="11"><td>11</td><td>card</td><td>r</td><td>car</td><td>reuse existing node (already a word)</td><td>True</td></tr>
+            <tr data-step="12"><td>12</td><td>card</td><td>d</td><td>card</td><td>create node, move in</td><td>False</td></tr>
+            <tr data-step="13"><td>13</td><td>card</td><td>&mdash;</td><td>card</td><td>node.is_word = True</td><td>True</td></tr>
+            <tr data-step="14"><td>14</td><td>dog</td><td>d</td><td>d</td><td>create node, move in</td><td>False</td></tr>
+            <tr data-step="15"><td>15</td><td>dog</td><td>o</td><td>do</td><td>create node, move in</td><td>False</td></tr>
+            <tr data-step="16"><td>16</td><td>dog</td><td>g</td><td>dog</td><td>create node, move in</td><td>False</td></tr>
+            <tr data-step="17"><td>17</td><td>dog</td><td>&mdash;</td><td>dog</td><td>node.is_word = True</td><td>True</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p><code>if ch not in node.children</code> is the entire reason prefixes are shared: a new node is created only the first time a branch is needed, never again for later words that pass through it.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common insert mistake</h4>
+          <p>Forgetting <code>node.is_word = True</code> after the loop. Every node still gets created correctly, but <code>search()</code> will never find the word — only <code>starts_with()</code> would still find the path.</p>
+        </div>
+        <div class="card">
+          <h4>Why the children dict matters</h4>
+          <p>A dict gives O(1) lookup for "does this character already have a branch here?" — that single check is what makes insert cost O(word length) instead of scanning existing words.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: search vs starts_with</h2>
+      <p>Both methods call the exact same <code>_walk</code> helper and land on the exact same node for the exact same string. The only difference is the check performed once the walk is over: <code>search</code> also requires <code>is_word</code> to be True; <code>starts_with</code> only requires that the walk didn't fall off the trie.</p>
+      <div class="code-block stepped">
+        <code id="srch-code">
+<span class="code-line" data-line="1">def search(self, word):</span>
+<span class="code-line" data-line="2">    node = self._walk(word)</span>
+<span class="code-line" data-line="3">    return node is not None and node.is_word</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">def starts_with(self, prefix):</span>
+<span class="code-line" data-line="6">    return self._walk(prefix) is not None</span>
+<span class="code-line" data-line="7"></span>
+<span class="code-line" data-line="8">def _walk(self, s):</span>
+<span class="code-line" data-line="9">    node = self.root</span>
+<span class="code-line" data-line="10">    for ch in s:</span>
+<span class="code-line" data-line="11">        if ch not in node.children:</span>
+<span class="code-line" data-line="12">            return None</span>
+<span class="code-line" data-line="13">        node = node.children[ch]</span>
+<span class="code-line" data-line="14">    return node</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive search / starts_with trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="srch-graph" viewBox="0 0 520 340" width="100%" role="img" aria-label="Walking the fully built trie for search and starts_with">
+              <defs>
+                <style>
+                  .srchg-edge { stroke: #315efb; stroke-width: 4; stroke-linecap: round; }
+                  .srchg-active-edge { stroke: #ff9f1c; stroke-width: 6; stroke-linecap: round; visibility: hidden; }
+                  .srchg-node { fill: #c8d2e7; transition: fill 0.2s ease; }
+                  .srchg-node.path { fill: #315efb; }
+                  .srchg-node.current { fill: #ff9f1c; }
+                  .srchg-ring { fill: none; stroke: #182132; stroke-width: 3; }
+                  .srchg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .srchg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="18" class="srchg-title">Current walk</text>
+
+              <line x1="260" y1="30" x2="150" y2="100" class="srchg-edge" />
+              <line x1="260" y1="30" x2="370" y2="100" class="srchg-edge" />
+              <line x1="150" y1="100" x2="150" y2="170" class="srchg-edge" />
+              <line x1="370" y1="100" x2="370" y2="170" class="srchg-edge" />
+              <line x1="150" y1="170" x2="90" y2="240" class="srchg-edge" />
+              <line x1="150" y1="170" x2="210" y2="240" class="srchg-edge" />
+              <line x1="370" y1="170" x2="370" y2="240" class="srchg-edge" />
+              <line x1="210" y1="240" x2="210" y2="310" class="srchg-edge" />
+
+              <line x1="260" y1="30" x2="150" y2="100" class="srchg-active-edge" data-active-edge="root-c" />
+              <line x1="150" y1="100" x2="150" y2="170" class="srchg-active-edge" data-active-edge="c-ca" />
+              <line x1="150" y1="170" x2="210" y2="240" class="srchg-active-edge" data-active-edge="ca-car" />
+
+              <circle cx="90" cy="240" r="28" class="srchg-ring" />
+              <circle cx="210" cy="240" r="28" class="srchg-ring" />
+              <circle cx="210" cy="310" r="28" class="srchg-ring" />
+              <circle cx="370" cy="240" r="28" class="srchg-ring" />
+
+              <circle cx="260" cy="30" r="22" class="srchg-node path" data-node="root" />
+              <circle cx="150" cy="100" r="22" class="srchg-node" data-node="c" />
+              <circle cx="370" cy="100" r="22" class="srchg-node" data-node="d" />
+              <circle cx="150" cy="170" r="22" class="srchg-node" data-node="ca" />
+              <circle cx="370" cy="170" r="22" class="srchg-node" data-node="do" />
+              <circle cx="90" cy="240" r="22" class="srchg-node" data-node="cat" />
+              <circle cx="210" cy="240" r="22" class="srchg-node" data-node="car" />
+              <circle cx="370" cy="240" r="22" class="srchg-node" data-node="dog" />
+              <circle cx="210" cy="310" r="22" class="srchg-node" data-node="card" />
+
+              <text x="254" y="36" class="srchg-label">&#8226;</text>
+              <text x="144" y="106" class="srchg-label">c</text>
+              <text x="364" y="106" class="srchg-label">d</text>
+              <text x="144" y="176" class="srchg-label">a</text>
+              <text x="364" y="176" class="srchg-label">o</text>
+              <text x="84" y="246" class="srchg-label">t</text>
+              <text x="204" y="246" class="srchg-label">r</text>
+              <text x="364" y="246" class="srchg-label">g</text>
+              <text x="204" y="316" class="srchg-label">d</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> node just landed on</span>
+            <span><i class="dot dot-blue"></i> on the walked path</span>
+            <span><i class="dot dot-gray"></i> not on this query's path</span>
+            <span>ring around a letter = is_word is True</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="srch-step-title">Initial state</h3>
+          <p id="srch-step-text">The trie is already fully built. We will walk four queries and compare search() against starts_with().</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="srch-prev">Previous</button>
+            <button type="button" id="srch-play" class="primary">Resume</button>
+            <button type="button" id="srch-next">Next</button>
+            <button type="button" id="srch-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="srch-step-counter">Step 0 / 12</span>
+            <div class="progress"><span id="srch-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Query</strong><div class="state-value" id="srch-query">&mdash;</div></div>
+            <div class="state-box"><strong>Method</strong><div class="state-value" id="srch-method">&mdash;</div></div>
+            <div class="state-box"><strong>Character</strong><div class="state-value" id="srch-char">&mdash;</div></div>
+            <div class="state-box"><strong>Landed on a node?</strong><div class="state-value" id="srch-landed">&mdash;</div></div>
+            <div class="state-box"><strong>is_word flag here</strong><div class="state-value" id="srch-flag">&mdash;</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="srch-result">&mdash;</div></div>
+          </div>
+          <div class="explainer">
+            <p id="srch-detail"><strong>What changed:</strong> both methods call the exact same _walk helper.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="srch-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Query</th><th>Char</th><th>Landed?</th><th>is_word here</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr>
+            <tr data-step="1"><td>1</td><td>search("car")</td><td>c</td><td>Yes</td><td>False</td><td>pending</td></tr>
+            <tr data-step="2"><td>2</td><td>search("car")</td><td>a</td><td>Yes</td><td>False</td><td>pending</td></tr>
+            <tr data-step="3"><td>3</td><td>search("car")</td><td>r</td><td>Yes</td><td>True</td><td>pending</td></tr>
+            <tr data-step="4"><td>4</td><td>search("car")</td><td>&mdash;</td><td>Yes</td><td>True</td><td>True</td></tr>
+            <tr data-step="5"><td>5</td><td>search("ca")</td><td>c</td><td>Yes</td><td>False</td><td>pending</td></tr>
+            <tr data-step="6"><td>6</td><td>search("ca")</td><td>a</td><td>Yes</td><td>False</td><td>pending</td></tr>
+            <tr data-step="7"><td>7</td><td>search("ca")</td><td>&mdash;</td><td>Yes</td><td>False</td><td>False</td></tr>
+            <tr data-step="8"><td>8</td><td>starts_with("ca")</td><td>c</td><td>Yes</td><td>False</td><td>pending</td></tr>
+            <tr data-step="9"><td>9</td><td>starts_with("ca")</td><td>a</td><td>Yes</td><td>False</td><td>pending</td></tr>
+            <tr data-step="10"><td>10</td><td>starts_with("ca")</td><td>&mdash;</td><td>Yes</td><td>False</td><td>True</td></tr>
+            <tr data-step="11"><td>11</td><td>starts_with("zz")</td><td>z</td><td>No</td><td>&mdash;</td><td>pending</td></tr>
+            <tr data-step="12"><td>12</td><td>starts_with("zz")</td><td>&mdash;</td><td>No</td><td>&mdash;</td><td>False</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="margin-top:18px;">Autocomplete extends the same walk one step further: land on the prefix node, then DFS the subtree below it and collect every node with <code>is_word = True</code>.</p>
+      <div class="code-block"><code>def words_with_prefix(trie, prefix):
+    node = trie._walk(prefix)
+    out = []
+    def dfs(n, path):
+        if n.is_word:
+            out.append(prefix + path)
+        for ch, child in sorted(n.children.items()):   # sorted -> alphabetical order
+            dfs(child, path + ch)
+    if node:
+        dfs(node, "")
+    return out
+
+# words_with_prefix(trie, "ca") -> ["car", "card", "cat"]</code></div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Steps 5-6 and 8-9 above are pixel-for-pixel the same walk. <code>search("ca")</code> and <code>starts_with("ca")</code> land on the exact same node with the exact same <code>is_word = False</code> — only the final check differs.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Writing <code>starts_with</code> to check <code>node.is_word</code> the way <code>search</code> does. That wrongly rejects a real prefix like <code>"ca"</code> just because <code>"ca"</code> was never inserted as its own word.</p>
+        </div>
+        <div class="card">
+          <h4>Why is_word matters</h4>
+          <p>Without the flag, a trie could only ever tell you "this string exists as a path" — it could never distinguish a stored word from a substring of a longer one.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Prefix, not a word</button>
+        <button type="button" data-example-tab="1">Insert an existing prefix</button>
+        <button type="button" data-example-tab="2">Empty string</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: searching a prefix that was never inserted as a word</h3>
+          <p><code>trie.search("ca")</code> vs <code>trie.starts_with("ca")</code></p>
+          <div class="result-badge">search("ca") = False &middot; starts_with("ca") = True</div>
+          <p class="footer-note">The walk for "ca" lands on a real node — but that node's <code>is_word</code> is False because "ca" alone was never inserted. <code>search</code> requires the flag; <code>starts_with</code> does not.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: inserting a word that is already a prefix of an existing word</h3>
+          <p><code>trie.insert("ca")</code> after cat/car/card/dog are already inserted</p>
+          <div class="result-badge">Zero new nodes created &middot; only node_ca.is_word flips to True</div>
+          <p class="footer-note">The walk for "ca" reuses the existing <code>c &rarr; a</code> nodes and lands on <code>node_ca</code>, which already exists as an internal (non-word) node. The only change is that its <code>is_word</code> flag flips to True — the trie's shape does not change at all.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: the empty string</h3>
+          <p><code>trie.search("")</code> and <code>trie.starts_with("")</code></p>
+          <div class="result-badge">starts_with("") = True always &middot; search("") depends on whether "" was inserted</div>
+          <p class="footer-note"><code>for ch in ""</code> never executes, so the walk never leaves the root and immediately returns it. <code>node is not None</code> is trivially True — every trie "starts with" the empty string. <code>search("")</code> is only True if <code>root.is_word</code> was explicitly set, which almost never happens.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Trie</th><th>Hash set of words</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Insert one word (length L)</td><td>O(L)</td><td>O(L)</td></tr>
+            <tr><td>Exact search (length L)</td><td>O(L)</td><td>O(L) average</td></tr>
+            <tr><td>"Does any word start with prefix P?"</td><td>O(len(P)) &mdash; walk to the node</td><td>O(n &middot; L) &mdash; scan every stored word</td></tr>
+            <tr><td>"List every word starting with P"</td><td>O(len(P) + characters returned) &mdash; walk then DFS the subtree</td><td>O(n &middot; L) &mdash; scan and filter every stored word</td></tr>
+            <tr><td>Alphabetical enumeration</td><td>Free &mdash; DFS over sorted children keys</td><td>Not supported &mdash; a set has no order</td></tr>
+            <tr><td>Space (n words, average length L)</td><td>O(total characters), less with shared prefixes</td><td>O(n &middot; L), no sharing</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">Both structures answer "is this exact string present?" equally well. A trie exists for the row a hash set structurally cannot do at all: prefix questions.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>The question is about prefixes — autocomplete, "starts with", spell-check suggestions — not just exact lookup.</p></div>
+            <div class="timeline-step"><p>A hash set answers exact lookup in O(L), but has no way to enumerate by prefix without scanning every stored string.</p></div>
+            <div class="timeline-step"><p>I need a structure where matching characters do shared work: branch per character, and let common prefixes reuse the same nodes.</p></div>
+            <div class="timeline-step"><p>That's a trie: each node is just a <code>children</code> map plus an <code>is_word</code> flag.</p></div>
+            <div class="timeline-step"><p>insert / search / starts_with are all O(word length), independent of how many words are stored — and prefix listing is a short DFS from wherever the walk stops.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"I'll use a trie because the question is about prefixes, not just exact matches."</li>
+            <li>"Each node only needs two things: a map from character to child node, and a boolean for 'a word ends here.'"</li>
+            <li>"insert walks the word, creating a node only when a character isn't already a child — that's what makes shared prefixes free."</li>
+            <li>"search and starts_with are the same walk; they only disagree on whether the final flag has to be True."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>insert mistakes</h3>
+          <ul class="mistake-list">
+            <li>Forgetting <code>node.is_word = True</code> after the loop — the word becomes permanently unsearchable by <code>search()</code>, even though <code>starts_with()</code> would still find it.</li>
+            <li>Creating a new node unconditionally instead of checking <code>if ch not in node.children</code> first — this silently disconnects any word already stored under that branch.</li>
+            <li>Giving every node the same shared <code>children</code> dict by accident instead of a fresh one per node — corrupts every other branch.</li>
+            <li>Assuming inserting <code>"car"</code> after <code>"card"</code> needs a new node — it doesn't; <code>"car"</code> already exists as an internal node, only its flag needs to flip.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>search / starts_with mistakes</h3>
+          <ul class="mistake-list">
+            <li>Indexing <code>node.children[ch]</code> directly instead of the safe <code>if ch not in node.children: return None</code> guard, which raises a <code>KeyError</code> instead of failing cleanly.</li>
+            <li>Returning <code>node.is_word</code> from <code>starts_with()</code> instead of <code>node is not None</code> — wrongly returns False for a valid prefix that never happens to be a complete word.</li>
+            <li>Returning <code>node is not None</code> from <code>search()</code> instead of <code>node is not None and node.is_word</code> — wrongly returns True for any string that merely shares a path with a longer word.</li>
+            <li>Assuming a successful walk proves the word was inserted — it only proves the prefix exists.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 &mdash; Using the trie built from <code>["cat","car","card","dog"]</code>, what does <code>trie.search("card")</code> return, and what does <code>trie.starts_with("ca")</code> return? Why is the second one True even though "ca" itself was never inserted?</summary>
+          <p style="margin-top:10px;">Answer: <code>search("card")</code> = <strong>True</strong> &mdash; "card" was inserted, so its node's <code>is_word</code> flag is True. <code>starts_with("ca")</code> = <strong>True</strong> because the walk lands on a real node (the shared <code>c &rarr; a</code> path); <code>starts_with</code> never checks <code>is_word</code>, so it does not matter that "ca" alone was never inserted as a word.</p>
+        </details>
+        <details>
+          <summary>Practice 2 &mdash; If you now call <code>trie.insert("do")</code>, how many brand-new <code>TrieNode</code> objects get created, and what is the one thing that actually changes?</summary>
+          <p style="margin-top:10px;">Answer: <strong>Zero</strong> new nodes. The walk for <code>'d'</code> then <code>'o'</code> reuses the existing nodes created while inserting "dog" (<code>root &rarr; d &rarr; do</code>). The only change is that the <code>do</code> node's <code>is_word</code> flag flips from False to True &mdash; "do" becomes a second valid word sharing a path with "dog".</p>
+        </details>
+        <details>
+          <summary>Practice 3 &mdash; Calling <code>words_with_prefix(trie, "car")</code>, what list comes back, and why does it include "car" itself and not just "card"?</summary>
+          <p style="margin-top:10px;">Answer: <code>["car", "card"]</code>. The DFS starts at the node reached by walking "car", and at every node it visits &mdash; including that very first one &mdash; it checks <code>n.is_word</code> before recursing into children. Since the "car" node's own flag is True, it gets appended before the DFS even descends into its <code>'d'</code> child to find "card".</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          A trie is not a new data structure to memorize in the abstract — it is a tree where the alphabet is the
+          branching factor, and every node quietly asks one question: <strong>does a word end here?</strong>
+          <code>insert</code> grows that tree one character at a time, reusing whatever already exists.
+          <code>search</code> and <code>starts_with</code> are the identical walk; the only thing that changes is
+          whether you check that one flag at the end. Once you can write those three functions from memory,
+          autocomplete, spell-check, and prefix search are the same handful of lines with different endings.
+        </p>
+      </div>
+      <p class="footer-note">Based on the Tries (Prefix Trees) tutorial and runnable notebook &mdash; canonical example: words = ["cat", "car", "card", "dog"].</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const insSteps = [
+        { step: 0, title: 'Initial state', text: 'The trie starts as a single empty root node. Nothing has been inserted yet — insert("cat") is about to begin.', word: '—', path: '—', action: 'root = TrieNode()', childrenAfter: '[]', isWordFlag: '—', wordsSoFar: '[]', existsNodes: [], currentNode: null, createdNode: null, activeEdge: null, endOfWordNodes: [], detail: 'A trie always starts with one empty root node that represents the empty string.', lines: [7, 8] },
+        { step: 1, title: 'Insert "cat" — step 1: char \'c\'', text: "'c' is not yet a child of the root, so we create a brand-new node and step into it.", word: 'cat', path: 'c', action: "'c' not in root.children -> create node, move in", childrenAfter: '[]', isWordFlag: 'False', wordsSoFar: '[]', existsNodes: ['c'], currentNode: 'c', createdNode: 'c', activeEdge: 'root-c', endOfWordNodes: [], detail: 'A brand-new node appears — this is where "cat" begins branching off the root.', lines: [12, 13, 14, 15] },
+        { step: 2, title: 'Insert "cat" — step 2: char \'a\'', text: "'a' is not yet a child of 'c', so another new node is created.", word: 'cat', path: 'ca', action: "'a' not in c.children -> create node, move in", childrenAfter: '[]', isWordFlag: 'False', wordsSoFar: '[]', existsNodes: ['c', 'ca'], currentNode: 'ca', createdNode: 'ca', activeEdge: 'c-ca', endOfWordNodes: [], detail: 'Two characters in, two nodes created — no sharing has happened yet because nothing else starts with "ca".', lines: [12, 13, 14, 15] },
+        { step: 3, title: 'Insert "cat" — step 3: char \'t\'', text: "'t' is not yet a child of 'a', so a third new node is created.", word: 'cat', path: 'cat', action: "'t' not in a.children -> create node, move in", childrenAfter: '[]', isWordFlag: 'False', wordsSoFar: '[]', existsNodes: ['c', 'ca', 'cat'], currentNode: 'cat', createdNode: 'cat', activeEdge: 'ca-cat', endOfWordNodes: [], detail: 'The loop over "cat" is done — three nodes now exist, but none of them are marked as a word yet.', lines: [12, 13, 14, 15] },
+        { step: 4, title: 'Insert "cat" — mark end of word', text: 'After the loop, the node we landed on (the \'t\' node) gets its is_word flag flipped to True.', word: 'cat', path: 'cat', action: 'node.is_word = True', childrenAfter: '[]', isWordFlag: 'True', wordsSoFar: '[cat]', existsNodes: ['c', 'ca', 'cat'], currentNode: 'cat', createdNode: null, activeEdge: null, endOfWordNodes: ['cat'], detail: '"cat" is now a complete, retrievable word — the ring marks it.', lines: [16] },
+        { step: 5, title: 'Insert "car" — step 1: char \'c\'', text: "'c' already exists as a child of the root (from inserting \"cat\"), so we reuse it instead of creating anything.", word: 'car', path: 'c', action: "'c' in root.children -> reuse, move in", childrenAfter: '[a]', isWordFlag: 'False', wordsSoFar: '[cat]', existsNodes: ['c', 'ca', 'cat'], currentNode: 'c', createdNode: null, activeEdge: 'root-c', endOfWordNodes: ['cat'], detail: 'This is the whole point of a trie: "car" and "cat" share the same first node instead of duplicating it.', lines: [12, 13, 15] },
+        { step: 6, title: 'Insert "car" — step 2: char \'a\'', text: "'a' already exists as a child of 'c', so we reuse it again.", word: 'car', path: 'ca', action: "'a' in c.children -> reuse, move in", childrenAfter: '[t]', isWordFlag: 'False', wordsSoFar: '[cat]', existsNodes: ['c', 'ca', 'cat'], currentNode: 'ca', createdNode: null, activeEdge: 'c-ca', endOfWordNodes: ['cat'], detail: 'Two characters reused, zero new nodes so far for "car".', lines: [12, 13, 15] },
+        { step: 7, title: 'Insert "car" — step 3: char \'r\'', text: "'r' is not yet a child of 'a' (only 't' is), so a new node is created.", word: 'car', path: 'car', action: "'r' not in a.children -> create node, move in", childrenAfter: '[]', isWordFlag: 'False', wordsSoFar: '[cat]', existsNodes: ['c', 'ca', 'cat', 'car'], currentNode: 'car', createdNode: 'car', activeEdge: 'ca-car', endOfWordNodes: ['cat'], detail: 'This is where "car" and "cat" finally diverge — one new node, not three.', lines: [12, 13, 14, 15] },
+        { step: 8, title: 'Insert "car" — mark end of word', text: "The node we landed on (the 'r' node) gets marked as a word ending.", word: 'car', path: 'car', action: 'node.is_word = True', childrenAfter: '[]', isWordFlag: 'True', wordsSoFar: '[cat, car]', existsNodes: ['c', 'ca', 'cat', 'car'], currentNode: 'car', createdNode: null, activeEdge: null, endOfWordNodes: ['cat', 'car'], detail: '"car" is now a complete word too — two rings, one shared prefix.', lines: [16] },
+        { step: 9, title: 'Insert "card" — step 1: char \'c\'', text: "'c' already exists — reuse it.", word: 'card', path: 'c', action: "'c' in root.children -> reuse, move in", childrenAfter: '[a]', isWordFlag: 'False', wordsSoFar: '[cat, car]', existsNodes: ['c', 'ca', 'cat', 'car'], currentNode: 'c', createdNode: null, activeEdge: 'root-c', endOfWordNodes: ['cat', 'car'], detail: 'Third word, same starting node — no duplication.', lines: [12, 13, 15] },
+        { step: 10, title: 'Insert "card" — step 2: char \'a\'', text: "'a' already exists — reuse it.", word: 'card', path: 'ca', action: "'a' in c.children -> reuse, move in", childrenAfter: '[r, t]', isWordFlag: 'False', wordsSoFar: '[cat, car]', existsNodes: ['c', 'ca', 'cat', 'car'], currentNode: 'ca', createdNode: null, activeEdge: 'c-ca', endOfWordNodes: ['cat', 'car'], detail: "Node 'ca' now has two children, 'r' and 't' — the fork point for \"car\"/\"card\" vs \"cat\".", lines: [12, 13, 15] },
+        { step: 11, title: 'Insert "card" — step 3: char \'r\'', text: "'r' already exists too — we land on the SAME node that \"car\" ends on. Notice its is_word flag is already True.", word: 'card', path: 'car', action: "'r' in a.children -> reuse, move in", childrenAfter: '[]', isWordFlag: 'True', wordsSoFar: '[cat, car]', existsNodes: ['c', 'ca', 'cat', 'car'], currentNode: 'car', createdNode: null, activeEdge: 'ca-car', endOfWordNodes: ['cat', 'car'], detail: 'Landing on an existing end-of-word node while inserting a longer word does not disturb it — "car" stays a valid word, and "card" simply continues past it.', lines: [12, 13, 15] },
+        { step: 12, title: 'Insert "card" — step 4: char \'d\'', text: "'d' is not yet a child of 'r', so a new node is created.", word: 'card', path: 'card', action: "'d' not in r.children -> create node, move in", childrenAfter: '[]', isWordFlag: 'False', wordsSoFar: '[cat, car]', existsNodes: ['c', 'ca', 'cat', 'car', 'card'], currentNode: 'card', createdNode: 'card', activeEdge: 'car-card', endOfWordNodes: ['cat', 'car'], detail: 'One more node, one character past "car" — that is the entire cost of adding "card" once "car" already exists.', lines: [12, 13, 14, 15] },
+        { step: 13, title: 'Insert "card" — mark end of word', text: 'The node we landed on (path "card") gets marked as a word ending.', word: 'card', path: 'card', action: 'node.is_word = True', childrenAfter: '[]', isWordFlag: 'True', wordsSoFar: '[cat, car, card]', existsNodes: ['c', 'ca', 'cat', 'car', 'card'], currentNode: 'card', createdNode: null, activeEdge: null, endOfWordNodes: ['cat', 'car', 'card'], detail: '"card" is now retrievable. Note "car" is still also a word — a node can be a prefix AND a word at the same time.', lines: [16] },
+        { step: 14, title: 'Insert "dog" — step 1: char \'d\'', text: "'d' is not yet a child of the root, so a new node is created here — a completely separate branch from \"cat\"/\"car\"/\"card\".", word: 'dog', path: 'd', action: "'d' not in root.children -> create node, move in", childrenAfter: '[]', isWordFlag: 'False', wordsSoFar: '[cat, car, card]', existsNodes: ['c', 'ca', 'cat', 'car', 'card', 'd'], currentNode: 'd', createdNode: 'd', activeEdge: 'root-d', endOfWordNodes: ['cat', 'car', 'card'], detail: '"dog" shares nothing with the other three words, so it starts a brand-new branch straight off the root.', lines: [12, 13, 14, 15] },
+        { step: 15, title: 'Insert "dog" — step 2: char \'o\'', text: "'o' is not yet a child of 'd', so a new node is created.", word: 'dog', path: 'do', action: "'o' not in d.children -> create node, move in", childrenAfter: '[]', isWordFlag: 'False', wordsSoFar: '[cat, car, card]', existsNodes: ['c', 'ca', 'cat', 'car', 'card', 'd', 'do'], currentNode: 'do', createdNode: 'do', activeEdge: 'd-do', endOfWordNodes: ['cat', 'car', 'card'], detail: 'Second node in the "dog" branch.', lines: [12, 13, 14, 15] },
+        { step: 16, title: 'Insert "dog" — step 3: char \'g\'', text: "'g' is not yet a child of 'o', so a new node is created.", word: 'dog', path: 'dog', action: "'g' not in o.children -> create node, move in", childrenAfter: '[]', isWordFlag: 'False', wordsSoFar: '[cat, car, card]', existsNodes: ['c', 'ca', 'cat', 'car', 'card', 'd', 'do', 'dog'], currentNode: 'dog', createdNode: 'dog', activeEdge: 'do-dog', endOfWordNodes: ['cat', 'car', 'card'], detail: 'Third and final node for "dog".', lines: [12, 13, 14, 15] },
+        { step: 17, title: 'Insert "dog" — mark end of word', text: 'The node we landed on (path "dog") gets marked as a word ending. All four words are now in the trie.', word: 'dog', path: 'dog', action: 'node.is_word = True', childrenAfter: '[]', isWordFlag: 'True', wordsSoFar: '[cat, car, card, dog]', existsNodes: ['c', 'ca', 'cat', 'car', 'card', 'd', 'do', 'dog'], currentNode: 'dog', createdNode: null, activeEdge: null, endOfWordNodes: ['cat', 'car', 'card', 'dog'], detail: '9 nodes total for 4 words (10 characters) — sharing "c-a" saved nodes, and every word still costs exactly O(length) to insert.', lines: [16] }
+      ];
+
+      const srchSteps = [
+        { step: 0, title: 'Initial state', text: 'The trie is already fully built from cat, car, card, dog. We will walk four queries and compare search() against starts_with().', query: '—', method: '—', char: '—', landed: '—', isWordFlag: '—', result: '—', pathNodes: ['root'], currentNode: null, activeEdge: null, detail: 'Both search and starts_with call the exact same _walk helper — they only differ in what they check once the walk ends.', lines: [8, 9] },
+        { step: 1, title: "search(\"car\") — step 1: char 'c'", text: "Walk from the root. 'c' is a child of the root, so we move into it.", query: 'search("car")', method: 'search', char: 'c', landed: 'Yes', isWordFlag: 'False', result: 'pending', pathNodes: ['root', 'c'], currentNode: 'c', activeEdge: 'root-c', detail: 'One character matched so far.', lines: [9, 10, 11, 13] },
+        { step: 2, title: "search(\"car\") — step 2: char 'a'", text: "'a' is a child of 'c', so we move into it.", query: 'search("car")', method: 'search', char: 'a', landed: 'Yes', isWordFlag: 'False', result: 'pending', pathNodes: ['root', 'c', 'ca'], currentNode: 'ca', activeEdge: 'c-ca', detail: 'Two characters matched.', lines: [10, 11, 13] },
+        { step: 3, title: "search(\"car\") — step 3: char 'r'", text: "'r' is a child of 'a', so we move into it. This is the same node \"car\" was marked on during insert.", query: 'search("car")', method: 'search', char: 'r', landed: 'Yes', isWordFlag: 'True', result: 'pending', pathNodes: ['root', 'c', 'ca', 'car'], currentNode: 'car', activeEdge: 'ca-car', detail: 'The walk is over — we landed on a node, and it happens to have is_word = True.', lines: [10, 11, 13] },
+        { step: 4, title: 'search("car") — final check', text: 'search() requires BOTH that we landed on a node AND that its is_word flag is True. Both hold, so the result is True.', query: 'search("car")', method: 'search', char: '—', landed: 'Yes', isWordFlag: 'True', result: 'True', pathNodes: ['root', 'c', 'ca', 'car'], currentNode: 'car', activeEdge: null, detail: '"car" was inserted as a full word, so search finds it.', lines: [1, 2, 3] },
+        { step: 5, title: "search(\"ca\") — step 1: char 'c'", text: "New query, same starting point: 'c' exists, move in.", query: 'search("ca")', method: 'search', char: 'c', landed: 'Yes', isWordFlag: 'False', result: 'pending', pathNodes: ['root', 'c'], currentNode: 'c', activeEdge: 'root-c', detail: 'This is the exact same first move as walking "car" or "cat" — the path is identical until the strings diverge.', lines: [9, 10, 11, 13] },
+        { step: 6, title: "search(\"ca\") — step 2: char 'a'", text: "'a' exists, move in. We land on the SAME node reached at step 2 of \"car\" — this is node 'ca'.", query: 'search("ca")', method: 'search', char: 'a', landed: 'Yes', isWordFlag: 'False', result: 'pending', pathNodes: ['root', 'c', 'ca'], currentNode: 'ca', activeEdge: 'c-ca', detail: '"ca" is a real node in the trie, but it was never marked as its own word.', lines: [10, 11, 13] },
+        { step: 7, title: 'search("ca") — final check', text: "We landed on node 'ca', but its is_word flag is False. search() requires the flag to be True, so the result is False even though the node exists.", query: 'search("ca")', method: 'search', char: '—', landed: 'Yes', isWordFlag: 'False', result: 'False', pathNodes: ['root', 'c', 'ca'], currentNode: 'ca', activeEdge: null, detail: 'This is the whole point: existing on the trie is not the same as being a stored word.', lines: [1, 2, 3] },
+        { step: 8, title: "starts_with(\"ca\") — step 1: char 'c'", text: "Identical walk to the previous query: 'c' exists, move in.", query: 'starts_with("ca")', method: 'starts_with', char: 'c', landed: 'Yes', isWordFlag: 'False', result: 'pending', pathNodes: ['root', 'c'], currentNode: 'c', activeEdge: 'root-c', detail: 'starts_with calls the exact same _walk() helper as search.', lines: [9, 10, 11, 13] },
+        { step: 9, title: "starts_with(\"ca\") — step 2: char 'a'", text: "'a' exists, move in — same node 'ca' as before.", query: 'starts_with("ca")', method: 'starts_with', char: 'a', landed: 'Yes', isWordFlag: 'False', result: 'pending', pathNodes: ['root', 'c', 'ca'], currentNode: 'ca', activeEdge: 'c-ca', detail: 'Up to this point, this trace is identical to the search("ca") trace above.', lines: [10, 11, 13] },
+        { step: 10, title: 'starts_with("ca") — final check', text: "starts_with() only checks that the walk landed on a node — it never looks at is_word. Landing on 'ca' is enough, so the result is True.", query: 'starts_with("ca")', method: 'starts_with', char: '—', landed: 'Yes', isWordFlag: 'False', result: 'True', pathNodes: ['root', 'c', 'ca'], currentNode: 'ca', activeEdge: null, detail: 'Same node, same is_word=False, but a DIFFERENT final check — that is the entire difference between the two methods.', lines: [5, 6] },
+        { step: 11, title: "starts_with(\"zz\") — step 1: char 'z'", text: "'z' is not a child of the root at all. The walk falls off the trie immediately and returns None.", query: 'starts_with("zz")', method: 'starts_with', char: 'z', landed: 'No', isWordFlag: '—', result: 'pending', pathNodes: ['root'], currentNode: null, activeEdge: null, detail: "No node in this trie has ever branched on 'z' — root.children only has 'c' and 'd'.", lines: [9, 10, 11, 12] },
+        { step: 12, title: 'starts_with("zz") — final check', text: '_walk returned None, so starts_with() returns False without even looking at is_word.', query: 'starts_with("zz")', method: 'starts_with', char: '—', landed: 'No', isWordFlag: '—', result: 'False', pathNodes: ['root'], currentNode: null, activeEdge: null, detail: 'Falling off the trie makes the result False for both search and starts_with — there is nothing left to check.', lines: [5, 6] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderIns(step, index, max) {
+        document.getElementById('ins-step-title').textContent = step.title;
+        document.getElementById('ins-step-text').textContent = step.text;
+        document.getElementById('ins-word').textContent = step.word;
+        document.getElementById('ins-path').textContent = step.path;
+        document.getElementById('ins-action').textContent = step.action;
+        document.getElementById('ins-children').textContent = step.childrenAfter;
+        document.getElementById('ins-flag').textContent = step.isWordFlag;
+        document.getElementById('ins-words').textContent = step.wordsSoFar;
+        document.getElementById('ins-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('ins-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('ins-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('ins-trace-table', step.step);
+        setCodeHighlight('ins-code', step.lines);
+
+        document.querySelectorAll('#ins-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('exists', 'created', 'current');
+          if (step.createdNode === id) {
+            node.classList.add('created');
+          } else if (step.currentNode === id) {
+            node.classList.add('current');
+          } else if (id === 'root' || step.existsNodes.includes(id)) {
+            node.classList.add('exists');
+          }
+        });
+
+        document.querySelectorAll('#ins-graph [data-ring]').forEach((ring) => {
+          const id = ring.dataset.ring;
+          ring.setAttribute('visibility', step.endOfWordNodes.includes(id) ? 'visible' : 'hidden');
+        });
+
+        document.querySelectorAll('#ins-graph [data-edge]').forEach((edge) => {
+          const parts = edge.dataset.edge.split('-');
+          const child = parts[1];
+          edge.classList.remove('edge-exists', 'edge-created', 'edge-current');
+          if (step.createdNode === child) {
+            edge.classList.add('edge-created');
+            edge.setAttribute('visibility', 'visible');
+          } else if (step.activeEdge === edge.dataset.edge) {
+            edge.classList.add('edge-current');
+            edge.setAttribute('visibility', 'visible');
+          } else if (step.existsNodes.includes(child)) {
+            edge.classList.add('edge-exists');
+            edge.setAttribute('visibility', 'visible');
+          } else {
+            edge.setAttribute('visibility', 'hidden');
+          }
+        });
+      }
+
+      function renderSrch(step, index, max) {
+        document.getElementById('srch-step-title').textContent = step.title;
+        document.getElementById('srch-step-text').textContent = step.text;
+        document.getElementById('srch-query').textContent = step.query;
+        document.getElementById('srch-method').textContent = step.method;
+        document.getElementById('srch-char').textContent = step.char;
+        document.getElementById('srch-landed').textContent = step.landed;
+        document.getElementById('srch-flag').textContent = step.isWordFlag;
+        document.getElementById('srch-result').textContent = step.result;
+        document.getElementById('srch-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('srch-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('srch-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('srch-trace-table', step.step);
+        setCodeHighlight('srch-code', step.lines);
+
+        document.querySelectorAll('#srch-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('path', 'current');
+          if (step.currentNode === id) {
+            node.classList.add('current');
+          } else if (step.pathNodes.includes(id)) {
+            node.classList.add('path');
+          }
+        });
+
+        document.querySelectorAll('#srch-graph [data-active-edge]').forEach((edge) => {
+          edge.setAttribute('visibility', edge.dataset.activeEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
+      setupTrace({ steps: insSteps, prefix: 'ins', render: renderIns });
+      setupTrace({ steps: srchSteps, prefix: 'srch', render: renderSrch });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

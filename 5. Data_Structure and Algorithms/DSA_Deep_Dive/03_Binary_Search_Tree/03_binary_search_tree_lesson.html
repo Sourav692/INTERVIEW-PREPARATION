@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Binary Search Trees — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Trees · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Binary Search Trees</h1>
+          <p>
+            A BST is binary search wearing a tree's clothing. One rule — everything left of a node is smaller,
+            everything right is larger, recursively — is enough to give you search, insert, and delete in
+            O(height) time, and sorted output for free. This page traces the real <code>search</code>,
+            <code>insert</code>, and <code>delete</code> functions from the companion notebook, step by step,
+            on one concrete tree.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: compare, then discard half the tree</span>
+            <span class="chip">Interactive search + insert trace</span>
+            <span class="chip">Interactive delete trace (2-children case)</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p>Insert order: <code>8, 3, 10, 1, 6, 14, 4, 7, 13</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 470 280" width="100%" role="img" aria-label="BST built by inserting 8, 3, 10, 1, 6, 14, 4, 7, 13">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 3; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-label { font: 700 15px Inter, Arial, sans-serif; fill: #ffffff; }
+                </style>
+              </defs>
+              <line x1="280" y1="30" x2="80" y2="100" class="hero-edge" />
+              <line x1="280" y1="30" x2="330" y2="100" class="hero-edge" />
+              <line x1="80" y1="100" x2="30" y2="170" class="hero-edge" />
+              <line x1="80" y1="100" x2="180" y2="170" class="hero-edge" />
+              <line x1="180" y1="170" x2="130" y2="240" class="hero-edge" />
+              <line x1="180" y1="170" x2="230" y2="240" class="hero-edge" />
+              <line x1="330" y1="100" x2="430" y2="170" class="hero-edge" />
+              <line x1="430" y1="170" x2="380" y2="240" class="hero-edge" />
+              <circle cx="280" cy="30" r="22" class="hero-node" />
+              <circle cx="80" cy="100" r="22" class="hero-node" />
+              <circle cx="330" cy="100" r="22" class="hero-node" />
+              <circle cx="30" cy="170" r="22" class="hero-node" />
+              <circle cx="180" cy="170" r="22" class="hero-node" />
+              <circle cx="430" cy="170" r="22" class="hero-node" />
+              <circle cx="130" cy="240" r="22" class="hero-node" />
+              <circle cx="230" cy="240" r="22" class="hero-node" />
+              <circle cx="380" cy="240" r="22" class="hero-node" />
+              <text x="274" y="36" class="hero-label">8</text>
+              <text x="74" y="106" class="hero-label">3</text>
+              <text x="322" y="106" class="hero-label">10</text>
+              <text x="24" y="176" class="hero-label">1</text>
+              <text x="174" y="176" class="hero-label">6</text>
+              <text x="422" y="176" class="hero-label">14</text>
+              <text x="124" y="246" class="hero-label">4</text>
+              <text x="224" y="246" class="hero-label">7</text>
+              <text x="374" y="246" class="hero-label">13</text>
+            </svg>
+          </div>
+          <div class="result-badge">inorder(root) = 1, 3, 4, 6, 7, 8, 10, 13, 14 — always sorted</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Ordered maps and sets</h3>
+          <p><code>std::map</code>, Java's <code>TreeMap</code>, and database indexes all lean on this exact idea: keep keys ordered so lookup, insert, delete, and "give me everything sorted" are all fast.</p>
+        </div>
+        <div class="card">
+          <h3>Range and neighbor queries</h3>
+          <p>"Smallest value ≥ x" (ceiling), "largest value ≤ x" (floor), and "what comes right after this value" all fall out of the same left/right walk — no extra data structure needed.</p>
+        </div>
+        <div class="card">
+          <h3>Interview reuse</h3>
+          <p>Validate BST, Kth Smallest, Lowest Common Ancestor in a BST, and Convert Sorted Array to BST are all small edits to the same two functions traced on this page.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> a BST is not a new algorithm to memorize — it is binary search, generalized from a sorted array onto a linked structure. Every technique here is that one idea applied to search, insert, and delete.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a Binary Search Tree?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>For <strong>every</strong> node, everything in its left subtree is smaller, and everything in its right subtree is larger. This holds recursively — at every node, not only the root.</p>
+        </div>
+        <div class="card">
+          <h3>What you are actually computing</h3>
+          <p>At each node you throw away half the remaining tree: smaller than me → forget the right side entirely; bigger → forget the left. That halving is where <code>O(log n)</code> comes from — it is binary search, on a tree.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> at any node, ask one question — is my target smaller, larger, or equal? Smaller → go left. Larger → go right. Equal → you found it (search) or that's where you stop comparing (delete).</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Compare</h3>
+          <p>Compare the target value to the value at the current node.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Decide a direction</h3>
+          <p>Smaller → left. Larger → right. Equal → stop here (found, or this is the node to modify).</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Recurse or loop</h3>
+          <p>Repeat the same comparison one level down. Every step discards the other half of the remaining tree.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Stop condition</h3>
+          <p>Search/insert stop at a match or an empty slot. Delete stops at a match, then branches on child count.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes the tree</h2>
+      <p>The notebook builds the canonical tree by calling <code>insert()</code> once per value, in this exact order. Each call is itself a full search-like walk down to an empty slot.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Insert order</h3>
+          <div class="code-block"><code>[8, 3, 10, 1, 6, 14, 4, 7, 13]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Resulting links</h3>
+          <div class="code-block"><code>8.left=3    8.right=10
+3.left=1    3.right=6
+6.left=4    6.right=7
+10.right=14
+14.left=13</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Insert <code>8</code></h4>
+          <p>The tree is empty, so <code>8</code> becomes the root directly (line 2's base case).</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Insert <code>3</code>, then <code>10</code></h4>
+          <p><code>3 &lt; 8</code> lands on the root's empty left slot; <code>10 &gt; 8</code> lands on its empty right slot.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Insert <code>1</code>, then <code>6</code></h4>
+          <p>Both compare against <code>8</code> first (go left), then against <code>3</code>: <code>1 &lt; 3</code> goes left, <code>6 &gt; 3</code> goes right.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Insert <code>14, 4, 7, 13</code></h4>
+          <p>Each one repeats the same walk from the root. <code>4</code> and <code>7</code> land under <code>6</code>; <code>14</code> lands under <code>10</code>; <code>13</code> lands under <code>14</code> because <code>13 &lt; 14</code>.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> the invariant holds at every node, not only the root — <code>{1,4,6,7}</code> are all smaller than <code>3</code>'s parent path where required, and <code>{4,7}</code> stay correctly split around <code>6</code>. That recursive property is what beginners miss when they only check immediate children.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: Search &amp; Insert — the shared walk</h2>
+      <p><code>search</code> and <code>insert</code> are the same walk with different stop conditions. Both compare the target to the current node and go left or right; <code>search</code> stops at a match or falls off the tree, while <code>insert</code> stops at a match (ignored) or an empty slot, where it hangs a new node.</p>
+      <div class="code-block stepped">
+        <code id="walk-code">
+<span class="code-line" data-line="1">def insert(root, val):</span>
+<span class="code-line" data-line="2">    if root is None:</span>
+<span class="code-line" data-line="3">        return TreeNode(val)</span>
+<span class="code-line" data-line="4">    if val < root.val:</span>
+<span class="code-line" data-line="5">        root.left = insert(root.left, val)</span>
+<span class="code-line" data-line="6">    elif val > root.val:</span>
+<span class="code-line" data-line="7">        root.right = insert(root.right, val)</span>
+<span class="code-line" data-line="8">    return root</span>
+<span class="code-line" data-line="9"></span>
+<span class="code-line" data-line="10">def search(root, target):</span>
+<span class="code-line" data-line="11">    node = root</span>
+<span class="code-line" data-line="12">    while node:</span>
+<span class="code-line" data-line="13">        if target == node.val:</span>
+<span class="code-line" data-line="14">            return True</span>
+<span class="code-line" data-line="15">        node = node.left if target < node.val else node.right</span>
+<span class="code-line" data-line="16">    return False</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive search + insert trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="walk-graph" viewBox="0 0 700 460" width="100%" role="img" aria-label="Search and insert trace over the canonical BST">
+              <defs>
+                <style>
+                  .walk-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .walk-active-edge { stroke: #ff9f1c; stroke-width: 7; stroke-linecap: round; }
+                  .walk-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .walk-node.seen { fill: #315efb; }
+                  .walk-node.current { fill: #ff9f1c; }
+                  .walk-node.newnode { fill: #13a46b; }
+                  .walk-label { font: 700 17px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .walk-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="16" y="24" class="walk-title">Current comparison</text>
+              <line x1="420" y1="45" x2="120" y2="150" class="walk-base-edge" />
+              <line x1="420" y1="45" x2="495" y2="150" class="walk-base-edge" />
+              <line x1="120" y1="150" x2="45" y2="255" class="walk-base-edge" />
+              <line x1="120" y1="150" x2="270" y2="255" class="walk-base-edge" />
+              <line x1="270" y1="255" x2="195" y2="360" class="walk-base-edge" />
+              <line x1="270" y1="255" x2="345" y2="360" class="walk-base-edge" />
+              <line x1="495" y1="150" x2="645" y2="255" class="walk-base-edge" />
+              <line x1="645" y1="255" x2="570" y2="360" class="walk-base-edge" />
+              <line x1="195" y1="360" x2="255" y2="430" class="walk-base-edge" id="walk-new-edge" visibility="hidden" />
+
+              <line x1="420" y1="45" x2="120" y2="150" class="walk-active-edge" data-walk-edge="8-3" visibility="hidden" />
+              <line x1="120" y1="150" x2="270" y2="255" class="walk-active-edge" data-walk-edge="3-6" visibility="hidden" />
+              <line x1="270" y1="255" x2="345" y2="360" class="walk-active-edge" data-walk-edge="6-7" visibility="hidden" />
+              <line x1="270" y1="255" x2="195" y2="360" class="walk-active-edge" data-walk-edge="6-4" visibility="hidden" />
+              <line x1="195" y1="360" x2="255" y2="430" class="walk-active-edge" data-walk-edge="4-5" visibility="hidden" />
+
+              <circle cx="420" cy="45" r="26" class="walk-node" data-node="8" />
+              <circle cx="120" cy="150" r="26" class="walk-node" data-node="3" />
+              <circle cx="495" cy="150" r="26" class="walk-node" data-node="10" />
+              <circle cx="45" cy="255" r="26" class="walk-node" data-node="1" />
+              <circle cx="270" cy="255" r="26" class="walk-node" data-node="6" />
+              <circle cx="645" cy="255" r="26" class="walk-node" data-node="14" />
+              <circle cx="195" cy="360" r="26" class="walk-node" data-node="4" />
+              <circle cx="345" cy="360" r="26" class="walk-node" data-node="7" />
+              <circle cx="570" cy="360" r="26" class="walk-node" data-node="13" />
+              <circle cx="255" cy="430" r="24" class="walk-node" data-node="5" id="walk-new-node" visibility="hidden" />
+
+              <text x="412" y="51" class="walk-label">8</text>
+              <text x="112" y="156" class="walk-label">3</text>
+              <text x="487" y="156" class="walk-label">10</text>
+              <text x="37" y="261" class="walk-label">1</text>
+              <text x="262" y="261" class="walk-label">6</text>
+              <text x="637" y="261" class="walk-label">14</text>
+              <text x="187" y="366" class="walk-label">4</text>
+              <text x="337" y="366" class="walk-label">7</text>
+              <text x="562" y="366" class="walk-label">13</text>
+              <text x="248" y="436" class="walk-label" id="walk-new-label" visibility="hidden">5</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current node being compared</span>
+            <span><i class="dot dot-blue"></i> already passed through (confirmed path)</span>
+            <span><i class="dot dot-green"></i> newly created node (insert phase)</span>
+            <span><i class="dot dot-gray"></i> not touched yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="walk-step-title">Initial state</h3>
+          <p id="walk-step-text">search() begins at the root and walks down comparing the target to each node.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="walk-prev">Previous</button>
+            <button type="button" id="walk-play" class="primary">Resume</button>
+            <button type="button" id="walk-next">Next</button>
+            <button type="button" id="walk-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="walk-step-counter">Step 0 / 9</span>
+            <div class="progress"><span id="walk-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Function running</strong><div class="state-value" id="walk-fn">search(root, 7)</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="walk-current">8</div></div>
+            <div class="state-box"><strong>Comparison</strong><div class="state-value" id="walk-cmp">—</div></div>
+            <div class="state-box"><strong>Path so far</strong><div class="state-value" id="walk-path">[]</div></div>
+            <div class="state-box"><strong>Result / action</strong><div class="state-value" id="walk-result">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="walk-detail"><strong>What changed:</strong> no comparisons made yet — node = root = 8.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="walk-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Function</th><th>Comparison</th><th>Path after</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td><code>search(root, 7)</code></td><td>—</td><td><code>[]</code></td><td>—</td></tr>
+            <tr data-step="1"><td>1</td><td><code>search(root, 7)</code></td><td><code>7 &lt; 8 → left</code></td><td><code>[8]</code></td><td>—</td></tr>
+            <tr data-step="2"><td>2</td><td><code>search(root, 7)</code></td><td><code>7 &gt; 3 → right</code></td><td><code>[8, 3]</code></td><td>—</td></tr>
+            <tr data-step="3"><td>3</td><td><code>search(root, 7)</code></td><td><code>7 &gt; 6 → right</code></td><td><code>[8, 3, 6]</code></td><td>—</td></tr>
+            <tr data-step="4"><td>4</td><td><code>search(root, 7)</code></td><td><code>7 == 7 → match</code></td><td><code>[8, 3, 6, 7]</code></td><td><code>True</code></td></tr>
+            <tr data-step="5"><td>5</td><td><code>insert(root, 5)</code></td><td>—</td><td><code>[]</code></td><td>—</td></tr>
+            <tr data-step="6"><td>6</td><td><code>insert(root, 5)</code></td><td><code>5 &lt; 8 → left</code></td><td><code>[8]</code></td><td>—</td></tr>
+            <tr data-step="7"><td>7</td><td><code>insert(root, 5)</code></td><td><code>5 &gt; 3 → right</code></td><td><code>[8, 3]</code></td><td>—</td></tr>
+            <tr data-step="8"><td>8</td><td><code>insert(root, 5)</code></td><td><code>5 &lt; 6 → left</code></td><td><code>[8, 3, 6]</code></td><td>—</td></tr>
+            <tr data-step="9"><td>9</td><td><code>insert(root, 5)</code></td><td><code>5 &gt; 4 → right → empty</code></td><td><code>[8, 3, 6, 4]</code></td><td><code>attached as 4.right</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Search and insert are the same function in spirit: insert is just a search that is allowed to fail, and the failure point (an empty slot) is exactly where the value belongs.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common search/insert mistake</h4>
+          <p>Forgetting to reassign the return value: <code>root.left = insert(root.left, val)</code>. Without the reassignment, a brand-new node is built and immediately thrown away.</p>
+        </div>
+        <div class="card">
+          <h4>Why the comparison order matters</h4>
+          <p>Using <code>if / elif</code> (not two independent <code>if</code>s) guarantees exactly one branch runs per call — that is what keeps the walk to a single root-to-leaf path.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Delete — the three cases</h2>
+      <p>Deleting must preserve the invariant. A leaf is just removed. One child means splicing the parent straight to that child. Two children is the hard case: swap in the in-order successor's value, then delete that successor — which is guaranteed to have at most one child, so it falls back into the easy case.</p>
+      <div class="code-block stepped">
+        <code id="del-code">
+<span class="code-line" data-line="1">def delete(root, val):</span>
+<span class="code-line" data-line="2">    if root is None:</span>
+<span class="code-line" data-line="3">        return None</span>
+<span class="code-line" data-line="4">    if val < root.val:</span>
+<span class="code-line" data-line="5">        root.left = delete(root.left, val)</span>
+<span class="code-line" data-line="6">    elif val > root.val:</span>
+<span class="code-line" data-line="7">        root.right = delete(root.right, val)</span>
+<span class="code-line" data-line="8">    else:</span>
+<span class="code-line" data-line="9">        if root.left is None:</span>
+<span class="code-line" data-line="10">            return root.right</span>
+<span class="code-line" data-line="11">        if root.right is None:</span>
+<span class="code-line" data-line="12">            return root.left</span>
+<span class="code-line" data-line="13">        succ = root.right</span>
+<span class="code-line" data-line="14">        while succ.left:</span>
+<span class="code-line" data-line="15">            succ = succ.left</span>
+<span class="code-line" data-line="16">        root.val = succ.val</span>
+<span class="code-line" data-line="17">        root.right = delete(root.right, succ.val)</span>
+<span class="code-line" data-line="18">    return root</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive delete trace — delete(root, 3)</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="del-graph" viewBox="0 0 700 420" width="100%" role="img" aria-label="Delete trace removing value 3 from the canonical BST">
+              <defs>
+                <style>
+                  .del-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .del-active-edge { stroke: #ff9f1c; stroke-width: 7; stroke-linecap: round; }
+                  .del-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .del-node.stack { fill: #315efb; }
+                  .del-node.successor { fill: #13a46b; }
+                  .del-node.current { fill: #ff9f1c; }
+                  .del-label { font: 700 17px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .del-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="16" y="24" class="del-title">Current recursive call</text>
+
+              <line x1="420" y1="45" x2="120" y2="150" class="del-base-edge" data-del-base-edge="root-L" data-child="L" />
+              <line x1="420" y1="45" x2="495" y2="150" class="del-base-edge" data-del-base-edge="root-R" data-child="R" />
+              <line x1="120" y1="150" x2="45" y2="255" class="del-base-edge" data-del-base-edge="L-LL" data-child="LL" />
+              <line x1="120" y1="150" x2="270" y2="255" class="del-base-edge" data-del-base-edge="L-LR" data-child="LR" />
+              <line x1="270" y1="255" x2="195" y2="360" class="del-base-edge" data-del-base-edge="LR-LRL" data-child="LRL" />
+              <line x1="270" y1="255" x2="345" y2="360" class="del-base-edge" data-del-base-edge="LR-LRR" data-child="LRR" />
+              <line x1="495" y1="150" x2="645" y2="255" class="del-base-edge" data-del-base-edge="R-RR" data-child="RR" />
+              <line x1="645" y1="255" x2="570" y2="360" class="del-base-edge" data-del-base-edge="RR-RRL" data-child="RRL" />
+
+              <line x1="420" y1="45" x2="120" y2="150" class="del-active-edge" data-del-edge="root-L" visibility="hidden" />
+              <line x1="120" y1="150" x2="270" y2="255" class="del-active-edge" data-del-edge="L-LR" visibility="hidden" />
+              <line x1="270" y1="255" x2="195" y2="360" class="del-active-edge" data-del-edge="LR-LRL" visibility="hidden" />
+
+              <circle cx="420" cy="45" r="26" class="del-node" data-pos="root" />
+              <circle cx="120" cy="150" r="26" class="del-node" data-pos="L" />
+              <circle cx="495" cy="150" r="26" class="del-node" data-pos="R" />
+              <circle cx="45" cy="255" r="26" class="del-node" data-pos="LL" />
+              <circle cx="270" cy="255" r="26" class="del-node" data-pos="LR" />
+              <circle cx="645" cy="255" r="26" class="del-node" data-pos="RR" />
+              <circle cx="195" cy="360" r="26" class="del-node" data-pos="LRL" />
+              <circle cx="345" cy="360" r="26" class="del-node" data-pos="LRR" />
+              <circle cx="570" cy="360" r="26" class="del-node" data-pos="RRL" />
+
+              <text x="412" y="51" class="del-label" data-pos="root">8</text>
+              <text x="112" y="156" class="del-label" data-pos="L">3</text>
+              <text x="487" y="156" class="del-label" data-pos="R">10</text>
+              <text x="37" y="261" class="del-label" data-pos="LL">1</text>
+              <text x="262" y="261" class="del-label" data-pos="LR">6</text>
+              <text x="637" y="261" class="del-label" data-pos="RR">14</text>
+              <text x="187" y="366" class="del-label" data-pos="LRL">4</text>
+              <text x="337" y="366" class="del-label" data-pos="LRR">7</text>
+              <text x="562" y="366" class="del-label" data-pos="RRL">13</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current call frame</span>
+            <span><i class="dot dot-blue"></i> ancestor calls waiting on the stack</span>
+            <span><i class="dot dot-green"></i> in-order successor candidate</span>
+            <span><i class="dot dot-gray"></i> untouched / already returned</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="del-step-title">Initial state</h3>
+          <p id="del-step-text">delete(root, 3) walks down like search/insert, then branches on child count.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="del-prev">Previous</button>
+            <button type="button" id="del-play" class="primary">Resume</button>
+            <button type="button" id="del-next">Next</button>
+            <button type="button" id="del-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="del-step-counter">Step 0 / 17</span>
+            <div class="progress"><span id="del-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Current call</strong><div class="state-value" id="del-call">—</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="del-action">Not yet called</div></div>
+            <div class="state-box"><strong>Call stack</strong><div class="state-value" id="del-stack">[]</div></div>
+            <div class="state-box"><strong>Successor search</strong><div class="state-value" id="del-succ">—</div></div>
+            <div class="state-box"><strong>Tree shape now</strong><div class="state-value" id="del-tree">8(3(1, 6(4, 7)), 10(_, 14(13, _)))</div></div>
+          </div>
+          <div class="explainer">
+            <p id="del-detail"><strong>What changed:</strong> nothing has run yet — this is the canonical 9-node tree.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="del-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Call</th><th>Action</th><th>Stack after</th><th>Tree shape after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>Not yet called</td><td><code>[]</code></td><td><code>8(3(1,6(4,7)),10(_,14(13,_)))</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>delete(8, 3)</code></td><td>root is not None → continue</td><td><code>[8]</code></td><td>unchanged</td></tr>
+            <tr data-step="2"><td>2</td><td><code>delete(8, 3)</code></td><td>3 &lt; 8 → recurse into root.left</td><td><code>[8]</code></td><td>unchanged</td></tr>
+            <tr data-step="3"><td>3</td><td><code>delete(3, 3)</code></td><td>node is not None → continue</td><td><code>[8, 3]</code></td><td>unchanged</td></tr>
+            <tr data-step="4"><td>4</td><td><code>delete(3, 3)</code></td><td>3 == 3 → this is the target</td><td><code>[8, 3]</code></td><td>unchanged</td></tr>
+            <tr data-step="5"><td>5</td><td><code>delete(3, 3)</code></td><td>two children → succ = root.right (6)</td><td><code>[8, 3]</code></td><td>unchanged</td></tr>
+            <tr data-step="6"><td>6</td><td><code>delete(3, 3)</code></td><td>succ.left exists → succ = succ.left (4)</td><td><code>[8, 3]</code></td><td>unchanged</td></tr>
+            <tr data-step="7"><td>7</td><td><code>delete(3, 3)</code></td><td>succ.left is None → successor = 4</td><td><code>[8, 3]</code></td><td>unchanged</td></tr>
+            <tr data-step="8"><td>8</td><td><code>delete(3→4, 3)</code></td><td>node.val = succ.val (3 → 4)</td><td><code>[8, 3]</code></td><td><code>8(4(1,6(4,7)),10(_,14(13,_)))</code></td></tr>
+            <tr data-step="9"><td>9</td><td><code>delete(3→4, 3)</code></td><td>root.right = delete(root.right, 4)</td><td><code>[8, 3]</code></td><td>unchanged</td></tr>
+            <tr data-step="10"><td>10</td><td><code>delete(6, 4)</code></td><td>node is not None → continue</td><td><code>[8, 3, 6]</code></td><td>unchanged</td></tr>
+            <tr data-step="11"><td>11</td><td><code>delete(6, 4)</code></td><td>4 &lt; 6 → recurse into node.left</td><td><code>[8, 3, 6]</code></td><td>unchanged</td></tr>
+            <tr data-step="12"><td>12</td><td><code>delete(4, 4)</code></td><td>node is not None → continue</td><td><code>[8, 3, 6, 4]</code></td><td>unchanged</td></tr>
+            <tr data-step="13"><td>13</td><td><code>delete(4, 4)</code></td><td>4 == 4 → this is the target</td><td><code>[8, 3, 6, 4]</code></td><td>unchanged</td></tr>
+            <tr data-step="14"><td>14</td><td><code>delete(4, 4)</code></td><td>node.left is None → return node.right (None)</td><td><code>[8, 3, 6, 4]</code></td><td><code>8(4(1,6(_,7)),10(_,14(13,_)))</code></td></tr>
+            <tr data-step="15"><td>15</td><td><code>delete(6, 4)</code> returns</td><td>node.left = None → return node (6)</td><td><code>[8, 3, 6]</code></td><td>unchanged</td></tr>
+            <tr data-step="16"><td>16</td><td><code>delete(3→4, 3)</code> returns</td><td>root.right = updated subtree → return node (4)</td><td><code>[8, 3]</code></td><td>unchanged</td></tr>
+            <tr data-step="17"><td>17</td><td><code>delete(8, 3)</code> returns</td><td>root.left = updated subtree → return node (8), DONE</td><td><code>[8]</code></td><td>final: <code>8(4(1,6(_,7)),10(_,14(13,_)))</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The successor search always walks <code>node.right</code> then all-the-way-left — by construction it lands on a node with no left child, so removing it can never be the hard two-children case.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common delete mistake</h4>
+          <p>Copying <code>succ.val</code> into the node but forgetting the second <code>delete()</code> call. Without it, the value 4 exists in the tree twice — the old leaf never gets removed.</p>
+        </div>
+        <div class="card">
+          <h4>Why every call reassigns</h4>
+          <p><code>root.left = delete(root.left, val)</code> — delete's return value must be reassigned by every caller, or a deleted subtree stays wired into the tree.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Skewed insert order</button>
+        <button type="button" data-example-tab="1">Delete a leaf</button>
+        <button type="button" data-example-tab="2">Search for a missing value</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: sorted insert order degenerates the tree</h3>
+          <p>Insert <code>1, 2, 3, 4, 5, 6, 7, 8, 9</code> into an empty BST, in that order.</p>
+          <div class="result-badge">search(skewed, 9) = 9 comparisons · search(balanced, 9) = 3 comparisons</div>
+          <p class="footer-note">Every new value is larger than everything before it, so each one attaches as a right child of the previous node — the tree becomes a 9-node linked list with height 8. Inserting the same 9 values as <code>[5, 3, 8, 2, 4, 7, 9, 1, 6]</code> keeps the tree short (height 2), and <code>search_steps()</code> confirms it: <strong>9 comparisons vs. 3</strong> for the identical target, purely from insert order. This is the single most important BST caveat: a plain BST is only <code>O(log n)</code> if it stays balanced. Sorted (or nearly sorted) input makes it <code>O(n)</code> — no better than a linked list. Production code reaches for a self-balancing variant (AVL, Red-Black) specifically to prevent this.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: delete a leaf (0-children case)</h3>
+          <p><code>delete(root, 1)</code> on the canonical tree — node 1 is a leaf.</p>
+          <div class="result-badge">Result: 8(3(_, 6(4, 7)), 10(_, 14(13, _)))</div>
+          <p class="footer-note">Node 1 has no children, so <code>root.left is None</code> is true immediately and the function returns <code>root.right</code>, which is also <code>None</code>. The parent (node 3) receives <code>None</code> back and its left pointer is simply cleared. This is the simple case the two-children delete traced above deliberately reduces itself down to.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: searching for a value that is not present</h3>
+          <p><code>search(root, 9)</code> on the canonical tree — 9 was never inserted.</p>
+          <div class="result-badge">Result: False, after 2 comparisons</div>
+          <p class="footer-note">At node 8: <code>9 &gt; 8</code> → go right to 10. At node 10: <code>9 &lt; 10</code> → go left, but <code>10.left</code> is <code>None</code>, so the loop variable <code>node</code> becomes <code>None</code> and the while-loop exits, returning <code>False</code>. Notice this is exactly the spot <code>insert(root, 9)</code> would have attached a new node — search and insert fail (or succeed) at the same empty slot.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Balanced tree</th><th>Skewed tree (worst case)</th><th>Space</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Search</td><td>O(log n)</td><td>O(n)</td><td>O(1) iterative / O(h) recursive</td></tr>
+            <tr><td>Insert</td><td>O(log n)</td><td>O(n)</td><td>O(h) — recursion call stack</td></tr>
+            <tr><td>Delete</td><td>O(log n)</td><td>O(n)</td><td>O(h) — recursion call stack</td></tr>
+            <tr><td>In-order traversal (sorted output)</td><td>O(n)</td><td>O(n)</td><td>O(h) — recursion call stack</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">All four rely on the same truth: every operation's cost is bounded by the tree's height <code>h</code>, not the number of nodes <code>n</code>. Balanced ⇒ <code>h = O(log n)</code>. Skewed ⇒ <code>h = O(n)</code>.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>The problem needs ordered lookups, inserts, and deletes — a BST gives all three in O(h) via one shared rule.</p></div>
+            <div class="timeline-step"><p>State the invariant out loud: left &lt; node &lt; right, recursively — write it before any code.</p></div>
+            <div class="timeline-step"><p>Search and insert are the same walk; insert just keeps going until it finds an empty slot instead of a match.</p></div>
+            <div class="timeline-step"><p>Delete needs a case split on child count — 0/1 child is a splice, 2 children needs the in-order successor.</p></div>
+            <div class="timeline-step"><p>Mention balance: sorted input degenerates a plain BST to O(n) — call that out and name AVL/Red-Black as the fix.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"I'll walk down comparing the target to the current node — smaller goes left, larger goes right, discarding half the remaining tree each step."</li>
+            <li>"Insert is the same walk, but landing on <code>None</code> means I create the node there instead of failing."</li>
+            <li>"For delete, I first find the node. 0 or 1 child, I splice it out directly. 2 children, I swap in the in-order successor's value and delete that successor instead — it's guaranteed to have at most one child."</li>
+            <li>"In-order traversal gives me sorted order for free — that's the single most useful consequence of the invariant."</li>
+            <li>"None of this is O(log n) unless the tree stays balanced. I'd call that out and mention AVL/Red-Black, or a hash map if I don't need ordering."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Search / Insert mistakes</h3>
+          <ul class="mistake-list">
+            <li>Using <code>&lt;=</code>/<code>&gt;=</code> instead of strict <code>&lt;</code>/<code>&gt;</code>, which silently changes duplicate handling.</li>
+            <li>Forgetting <code>root.left = insert(root.left, val)</code> — insert must rebuild the pointer chain on the way back up, not just recurse.</li>
+            <li>Writing two independent <code>if</code>s instead of <code>if / elif</code>, which can process an equal value on both branches.</li>
+            <li>Assuming search is always <code>O(log n)</code> — it is <code>O(h)</code>, and <code>h</code> can be <code>n</code>.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Delete mistakes</h3>
+          <ul class="mistake-list">
+            <li>Copying the successor's value without also calling <code>delete()</code> on it — leaves a duplicate value in the tree.</li>
+            <li>Assuming the successor is always <code>node.right</code> itself — only true when that node has no left child.</li>
+            <li>Deleting the successor by value from the subtree instead of via a fresh recursive call — risks detaching part of that subtree.</li>
+            <li>Forgetting the caller must reassign delete's return value — the old subtree stays wired in otherwise.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — Insert <code>1..9</code> into an empty BST in order, then insert the same 9 values as <code>[5, 3, 8, 2, 4, 7, 9, 1, 6]</code> into a second empty BST. How many comparisons does <code>search(tree, 9)</code> take in each?</summary>
+          <p style="margin-top:10px;">Answer: <strong>9 comparisons</strong> in the sorted-insert tree (it degenerates into a 9-node right-leaning chain, height 8) versus <strong>3 comparisons</strong> in the second tree (height 2). Same 9 values, same target — the 3x difference comes entirely from insert order, which is why real systems use self-balancing BSTs.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — On the canonical tree, what does <code>delete(root, 8)</code> — deleting the root — produce?</summary>
+          <p style="margin-top:10px;">Answer: <strong>10(3(1, 6(4, 7)), 14(13, _))</strong>. Root 8 has two children, so its successor is the leftmost node of its right subtree — node 10 itself, since 10 has no left child. Root's value becomes 10, then <code>delete(root.right, 10)</code> removes the original node 10 by returning its right child (the 14-subtree), which becomes the new root's right child.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — The two-children delete case guarantees the in-order successor never has a left child. Why is that always true, and why does it matter?</summary>
+          <p style="margin-top:10px;">Answer: the successor search is <code>succ = node.right; while succ.left: succ = succ.left</code> — by definition, that loop only stops when <code>succ.left is None</code>. It matters because it collapses the "hard" two-children deletion into the "easy" 0-or-1-child case for the nested <code>delete(node.right, succ.val)</code> call — no additional case logic is ever needed for the successor itself.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          A Binary Search Tree is one invariant — <strong>left &lt; node &lt; right, recursively</strong> — applied
+          consistently to search, insert, and delete. Search and insert are literally the same walk with different
+          stop conditions. Delete is the same walk plus one extra idea: when a node has two children, swap in its
+          in-order successor and let the easy case clean up the rest. None of it is fast unless the tree stays
+          short — that single caveat is worth saying out loud in every interview.
+        </p>
+      </div>
+      <p class="footer-note">Based on <code>README.md</code> and <code>03_binary_search_tree.ipynb</code> in this folder — every trace on this page was produced by running the notebook's actual <code>insert</code>, <code>search</code>, and <code>delete</code> functions on the canonical example and recording the real output.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const walkSteps = [
+        { step: 0, title: 'Start: search(root, 7)', text: 'search() begins at the root and walks down a single path, comparing the target to each node it visits.', fn: 'search(root, 7)', current: '8', cmp: '—', path: '[]', result: '—', detail: 'No comparisons made yet — node = root = 8.', currentNode: '8', pathNodes: [], activeEdge: null, newNodeVisible: false, lines: [10, 11, 12] },
+        { step: 1, title: 'Step 1: at node 8', text: '7 is less than 8, so the entire right subtree (10, 14, 13) is discarded in one comparison — go left.', fn: 'search(root, 7)', current: '8', cmp: '7 < 8 → go left', path: '[8]', result: '—', detail: 'One comparison just eliminated half the remaining tree.', currentNode: '8', pathNodes: [], activeEdge: '8-3', newNodeVisible: false, lines: [12, 13, 15] },
+        { step: 2, title: 'Step 2: at node 3', text: '7 is greater than 3, so the left subtree (just node 1) is discarded — go right.', fn: 'search(root, 7)', current: '3', cmp: '7 > 3 → go right', path: '[8, 3]', result: '—', detail: 'Two levels deep, still one straight line with no backtracking.', currentNode: '3', pathNodes: ['8'], activeEdge: '3-6', newNodeVisible: false, lines: [12, 13, 15] },
+        { step: 3, title: 'Step 3: at node 6', text: '7 is greater than 6, so the left subtree (node 4) is discarded — go right.', fn: 'search(root, 7)', current: '6', cmp: '7 > 6 → go right', path: '[8, 3, 6]', result: '—', detail: 'Three comparisons in, and the candidate set keeps shrinking.', currentNode: '6', pathNodes: ['8', '3'], activeEdge: '6-7', newNodeVisible: false, lines: [12, 13, 15] },
+        { step: 4, title: 'Step 4: at node 7 — found', text: '7 equals the current node value, so search returns True immediately.', fn: 'search(root, 7)', current: '7', cmp: '7 == 7 → match', path: '[8, 3, 6, 7]', result: 'True', detail: '4 comparisons total in a 9-node tree — the O(h) walk in action.', currentNode: '7', pathNodes: ['8', '3', '6'], activeEdge: '6-7', newNodeVisible: false, lines: [12, 13, 14] },
+        { step: 5, title: 'Switch to insert(root, 5)', text: 'insert() reuses the exact same comparison logic as search — it restarts from the root of the same tree.', fn: 'insert(root, 5)', current: '8', cmp: '—', path: '[]', result: '—', detail: 'insert() is a failed search: the empty slot the walk lands on is exactly where 5 belongs.', currentNode: '8', pathNodes: [], activeEdge: null, newNodeVisible: false, lines: [1, 2] },
+        { step: 6, title: 'Step 1: at node 8', text: '5 is less than 8, so recurse into the left subtree.', fn: 'insert(root, 5)', current: '8', cmp: '5 < 8 → go left', path: '[8]', result: '—', detail: 'root.left = insert(root.left, 5) — same halving as search.', currentNode: '8', pathNodes: [], activeEdge: '8-3', newNodeVisible: false, lines: [4, 5] },
+        { step: 7, title: 'Step 2: at node 3', text: '5 is greater than 3, so recurse into the right subtree.', fn: 'insert(root, 5)', current: '3', cmp: '5 > 3 → go right', path: '[8, 3]', result: '—', detail: 'root.right = insert(root.right, 5).', currentNode: '3', pathNodes: ['8'], activeEdge: '3-6', newNodeVisible: false, lines: [4, 6, 7] },
+        { step: 8, title: 'Step 3: at node 6', text: '5 is less than 6, so recurse into the left subtree.', fn: 'insert(root, 5)', current: '6', cmp: '5 < 6 → go left', path: '[8, 3, 6]', result: '—', detail: 'root.left = insert(root.left, 5).', currentNode: '6', pathNodes: ['8', '3'], activeEdge: '6-4', newNodeVisible: false, lines: [4, 5] },
+        { step: 9, title: 'Step 4: at node 4 — empty slot found', text: '5 is greater than 4, and node 4 has no right child. That None is exactly where the recursion bottoms out: return TreeNode(5).', fn: 'insert(root, 5)', current: '4', cmp: '5 > 4 → go right → empty', path: '[8, 3, 6, 4]', result: 'attached as 4.right', detail: 'The invariant still holds: 5 sits between 4 and 6, and left of everything ≥ 6.', currentNode: '4', pathNodes: ['8', '3', '6'], activeEdge: '4-5', newNodeVisible: true, lines: [2, 3, 4, 6, 7] }
+      ];
+
+      const deleteSteps = [
+        { step: 0, title: 'Ready to delete(root, 3)', text: 'delete(root, 3) walks down like search/insert, but branches into three cases based on how many children the target node has.', call: '—', action: 'Not yet called', stack: [], succ: '—', tree: '8(3(1, 6(4, 7)), 10(_, 14(13, _)))', current: null, successorPos: null, labels: { root: '8', L: '3', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: null, detail: 'Nothing has run yet — this is the canonical 9-node tree.', lines: [1] },
+        { step: 1, title: 'Step 1: enter delete(root=8, val=3)', text: 'The call starts at the root. 8 is not None, so we skip the base case and continue.', call: 'delete(node=8, val=3)', action: 'root is not None → continue', stack: ['root'], succ: '—', tree: '8(3(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'root', successorPos: null, labels: { root: '8', L: '3', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: null, detail: 'This mirrors search/insert exactly at the top of the recursion.', lines: [1, 2] },
+        { step: 2, title: 'Step 2: compare at node 8', text: '3 is less than 8, so the right subtree is irrelevant — recurse into root.left.', call: 'delete(node=8, val=3)', action: '3 < 8 → recurse into root.left', stack: ['root'], succ: '—', tree: '8(3(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'root', successorPos: null, labels: { root: '8', L: '3', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: 'root-L', detail: 'root.left = delete(root.left, 3) — the result will be reassigned once it returns.', lines: [4, 5] },
+        { step: 3, title: 'Step 3: enter delete(node=3, val=3)', text: 'The recursive call lands on node 3.', call: 'delete(node=3, val=3)', action: 'node is not None → continue', stack: ['root', 'L'], succ: '—', tree: '8(3(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'L', successorPos: null, labels: { root: '8', L: '3', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: null, detail: 'One call frame deeper; root is still waiting on the stack for this call to return.', lines: [1, 2] },
+        { step: 4, title: 'Step 4: 3 == 3 — target found', text: 'Neither val < node.val nor val > node.val holds, so this IS the node to delete. Now the case split begins.', call: 'delete(node=3, val=3)', action: '3 == 3 → this is the target', stack: ['root', 'L'], succ: '—', tree: '8(3(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'L', successorPos: null, labels: { root: '8', L: '3', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: null, detail: 'Falls through both comparisons into the else branch.', lines: [4, 6, 8] },
+        { step: 5, title: 'Step 5: two children — need the successor', text: 'Node 3 has both a left child (1) and a right child (6) — the two-children case. It cannot simply be spliced out.', call: 'delete(node=3, val=3)', action: 'two children → succ = root.right', stack: ['root', 'L'], succ: 'start at 6 (root.right)', tree: '8(3(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'L', successorPos: 'LR', labels: { root: '8', L: '3', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: 'L-LR', detail: 'succ begins at node 6 and will walk left to find the smallest value greater than 3.', lines: [9, 11, 13] },
+        { step: 6, title: 'Step 6: succ walks left', text: 'Node 6 has a left child (4), so succ keeps walking left — there is a smaller candidate further down.', call: 'delete(node=3, val=3)', action: 'succ.left exists → succ = succ.left', stack: ['root', 'L'], succ: '6 has left child → move to 4', tree: '8(3(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'L', successorPos: 'LRL', labels: { root: '8', L: '3', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: 'LR-LRL', detail: 'The in-order successor is always found by walking as far left as possible from node.right.', lines: [14, 15] },
+        { step: 7, title: 'Step 7: successor found', text: 'Node 4 has no left child, so the walk stops. 4 is the in-order successor — the smallest value greater than 3.', call: 'delete(node=3, val=3)', action: 'succ.left is None → successor = 4', stack: ['root', 'L'], succ: 'found: 4 (leftmost of right subtree)', tree: '8(3(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'L', successorPos: 'LRL', labels: { root: '8', L: '3', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: null, detail: 'By construction this successor has no left child — that fact is what keeps the next step simple.', lines: [14] },
+        { step: 8, title: 'Step 8: copy the successor value up', text: "node.val is overwritten with succ.val: node 3's value becomes 4. For a moment two nodes hold the value 4.", call: 'delete(node=3→4, val=3)', action: 'node.val = succ.val (3 → 4)', stack: ['root', 'L'], succ: 'value copied — old node 4 still needs removing', tree: '8(4(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'L', successorPos: 'LRL', labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: null, detail: 'This is the swap-in-the-successor step. The tree is briefly not a clean BST until the duplicate is removed next.', lines: [16] },
+        { step: 9, title: 'Step 9: delete the old successor node', text: 'Now the original node holding 4 must be removed from the right subtree, or the value 4 would appear twice.', call: 'delete(node=3→4, val=3)', action: 'root.right = delete(root.right, 4)', stack: ['root', 'L'], succ: '4 (deleting the original leaf now)', tree: '8(4(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'L', successorPos: 'LRL', labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: 'L-LR', detail: 'This is just a fresh delete() call, now hunting for 4 instead of 3 — the same function, reused.', lines: [17] },
+        { step: 10, title: 'Step 10: enter delete(node=6, val=4)', text: 'The new recursive call lands on node 6.', call: 'delete(node=6, val=4)', action: 'node is not None → continue', stack: ['root', 'L', 'LR'], succ: '4 (target of this nested call)', tree: '8(4(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'LR', successorPos: 'LRL', labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: null, detail: 'A second, independent delete() call — this one is looking for 4, not 3.', lines: [1, 2] },
+        { step: 11, title: 'Step 11: compare at node 6', text: '4 is less than 6, so recurse into node.left.', call: 'delete(node=6, val=4)', action: '4 < 6 → recurse into node.left', stack: ['root', 'L', 'LR'], succ: '4', tree: '8(4(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'LR', successorPos: 'LRL', labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: 'LR-LRL', detail: 'node.left = delete(node.left, 4).', lines: [4, 5] },
+        { step: 12, title: 'Step 12: enter delete(node=4, val=4)', text: 'The call lands directly on the node that needs removing.', call: 'delete(node=4, val=4)', action: 'node is not None → continue', stack: ['root', 'L', 'LR', 'LRL'], succ: '4 (this node)', tree: '8(4(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'LRL', successorPos: null, labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: null, detail: 'Four call frames deep now — root, 3→4, 6, and this one.', lines: [1, 2] },
+        { step: 13, title: 'Step 13: 4 == 4 — target found', text: 'This is the node to remove. Check how many children it has.', call: 'delete(node=4, val=4)', action: '4 == 4 → this is the target', stack: ['root', 'L', 'LR', 'LRL'], succ: '4', tree: '8(4(1, 6(4, 7)), 10(_, 14(13, _)))', current: 'LRL', successorPos: null, labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: '4', LRR: '7', RRL: '13' }, activeEdge: null, detail: 'Falls into the else branch again, but this node is a leaf.', lines: [4, 6, 8] },
+        { step: 14, title: 'Step 14: leaf — zero children', text: 'Node 4 has no left child, so we return node.right — which is also None. The leaf is simply removed.', call: 'delete(node=4, val=4)', action: 'node.left is None → return node.right (None)', stack: ['root', 'L', 'LR', 'LRL'], succ: 'removed', tree: '8(4(1, 6(_, 7)), 10(_, 14(13, _)))', current: 'LRL', successorPos: null, labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: null, LRR: '7', RRL: '13' }, activeEdge: null, detail: 'This is the easy 0-or-1-child case the successor swap was designed to fall into.', lines: [9, 10] },
+        { step: 15, title: 'Step 15: delete(node=6,...) returns', text: 'The call at node 6 receives None from its left recursive call, sets node.left = None, and returns itself.', call: 'delete(node=6, val=4) → returning', action: 'node.left = None → return node (6)', stack: ['root', 'L', 'LR'], succ: '—', tree: '8(4(1, 6(_, 7)), 10(_, 14(13, _)))', current: 'LR', successorPos: null, labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: null, LRR: '7', RRL: '13' }, activeEdge: null, detail: 'Node 6 now has only a right child, 7.', lines: [5, 18] },
+        { step: 16, title: 'Step 16: delete(node=3→4,...) returns', text: 'The call that swapped in the successor now receives the updated right subtree back and returns itself.', call: 'delete(node=3→4, val=3) → returning', action: 'root.right = updated subtree → return node (4)', stack: ['root', 'L'], succ: '—', tree: '8(4(1, 6(_, 7)), 10(_, 14(13, _)))', current: 'L', successorPos: null, labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: null, LRR: '7', RRL: '13' }, activeEdge: null, detail: 'The node that used to hold 3 keeps its new value, 4, and its left child (1) untouched.', lines: [17, 18] },
+        { step: 17, title: 'Step 17: delete(root,...) returns — done', text: '3 is gone, and the tree is still a valid BST.', call: 'delete(node=8, val=3) → returning', action: 'root.left = updated subtree → return node (8), DONE', stack: ['root'], succ: '—', tree: '8(4(1, 6(_, 7)), 10(_, 14(13, _)))', current: 'root', successorPos: null, labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: null, LRR: '7', RRL: '13' }, activeEdge: null, detail: 'Inorder is now 1, 4, 6, 7, 8, 10, 13, 14 — sorted, and 3 no longer appears.', lines: [5, 18] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderWalk(step, index, max) {
+        document.getElementById('walk-step-title').textContent = step.title;
+        document.getElementById('walk-step-text').textContent = step.text;
+        document.getElementById('walk-fn').textContent = step.fn;
+        document.getElementById('walk-current').textContent = step.current;
+        document.getElementById('walk-cmp').textContent = step.cmp;
+        document.getElementById('walk-path').textContent = step.path;
+        document.getElementById('walk-result').textContent = step.result;
+        document.getElementById('walk-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('walk-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('walk-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('walk-trace-table', step.step);
+        setCodeHighlight('walk-code', step.lines);
+
+        document.querySelectorAll('#walk-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          if (id === '5') return;
+          node.classList.remove('seen', 'current');
+          if (step.pathNodes.includes(id)) node.classList.add('seen');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#walk-graph [data-walk-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.walkEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+
+        const newNode = document.getElementById('walk-new-node');
+        const newLabel = document.getElementById('walk-new-label');
+        const newEdge = document.getElementById('walk-new-edge');
+        const vis = step.newNodeVisible ? 'visible' : 'hidden';
+        newNode.setAttribute('visibility', vis);
+        newLabel.setAttribute('visibility', vis);
+        newEdge.setAttribute('visibility', vis);
+        if (step.newNodeVisible) newNode.classList.add('newnode');
+      }
+
+      function renderDelete(step, index, max) {
+        document.getElementById('del-step-title').textContent = step.title;
+        document.getElementById('del-step-text').textContent = step.text;
+        document.getElementById('del-call').textContent = step.call;
+        document.getElementById('del-action').textContent = step.action;
+        document.getElementById('del-stack').textContent = `[${step.stack.join(', ')}]`;
+        document.getElementById('del-succ').textContent = step.succ;
+        document.getElementById('del-tree').textContent = step.tree;
+        document.getElementById('del-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('del-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('del-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('del-trace-table', step.step);
+        setCodeHighlight('del-code', step.lines);
+
+        const stackNodes = step.stack.filter((p) => p !== step.current);
+
+        document.querySelectorAll('#del-graph [data-pos]').forEach((el) => {
+          const pos = el.dataset.pos;
+          const label = step.labels[pos];
+          if (label === null || label === undefined) {
+            el.setAttribute('visibility', 'hidden');
+            return;
+          }
+          el.setAttribute('visibility', 'visible');
+          if (el.tagName.toLowerCase() === 'text') {
+            el.textContent = label;
+          } else {
+            el.classList.remove('stack', 'successor', 'current');
+            if (stackNodes.includes(pos)) el.classList.add('stack');
+            if (step.successorPos === pos) el.classList.add('successor');
+            if (step.current === pos) el.classList.add('current');
+          }
+        });
+
+        document.querySelectorAll('#del-graph [data-del-base-edge]').forEach((line) => {
+          const childPos = line.dataset.child;
+          const label = step.labels[childPos];
+          line.setAttribute('visibility', (label === null || label === undefined) ? 'hidden' : 'visible');
+        });
+
+        document.querySelectorAll('#del-graph [data-del-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.delEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
+      setupTrace({ steps: walkSteps, prefix: 'walk', render: renderWalk });
+      setupTrace({ steps: deleteSteps, prefix: 'del', render: renderDelete });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

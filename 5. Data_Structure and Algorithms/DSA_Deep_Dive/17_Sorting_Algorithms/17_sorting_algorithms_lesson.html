@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sorting Algorithms — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Fundamentals · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Sorting Algorithms</h1>
+          <p>
+            Sorting is the most-used subroutine in computer science, and the property beginners forget to ask
+            about is <strong>stability</strong> — whether equal elements keep their original order. This page
+            traces two real, hand-written sorts on the same seven-element array: merge sort's two-pointer merge,
+            and quicksort's index-by-index partition, so you can see exactly what changes in memory at every step.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: divide, place, done</span>
+            <span class="chip">Interactive merge trace</span>
+            <span class="chip">Interactive partition trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>a = [5, 3, 8, 1, 9, 2, 7]</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 560 220" width="100%" role="img" aria-label="Bar chart of the unsorted array 5, 3, 8, 1, 9, 2, 7">
+              <defs>
+                <style>
+                  .hero-bar { fill: #c8d2e7; }
+                  .hero-val { font: 700 14px Inter, Arial, sans-serif; fill: #182132; text-anchor: middle; }
+                  .hero-idx { font: 600 12px Inter, Arial, sans-serif; fill: #5d677d; text-anchor: middle; }
+                </style>
+              </defs>
+              <line x1="20" y1="190" x2="540" y2="190" stroke="#d9e1ef" stroke-width="2" />
+              <rect class="hero-bar" x="30"  y="110" width="54" height="80"  rx="6" />
+              <rect class="hero-bar" x="100" y="142" width="54" height="48"  rx="6" />
+              <rect class="hero-bar" x="170" y="62"  width="54" height="128" rx="6" />
+              <rect class="hero-bar" x="240" y="174" width="54" height="16"  rx="6" />
+              <rect class="hero-bar" x="310" y="46"  width="54" height="144" rx="6" />
+              <rect class="hero-bar" x="380" y="158" width="54" height="32"  rx="6" />
+              <rect class="hero-bar" x="450" y="78"  width="54" height="112" rx="6" />
+              <text x="57"  y="102" class="hero-val">5</text>
+              <text x="127" y="134" class="hero-val">3</text>
+              <text x="197" y="54"  class="hero-val">8</text>
+              <text x="267" y="166" class="hero-val">1</text>
+              <text x="337" y="38"  class="hero-val">9</text>
+              <text x="407" y="150" class="hero-val">2</text>
+              <text x="477" y="70"  class="hero-val">7</text>
+              <text x="57"  y="206" class="hero-idx">0</text>
+              <text x="127" y="206" class="hero-idx">1</text>
+              <text x="197" y="206" class="hero-idx">2</text>
+              <text x="267" y="206" class="hero-idx">3</text>
+              <text x="337" y="206" class="hero-idx">4</text>
+              <text x="407" y="206" class="hero-idx">5</text>
+              <text x="477" y="206" class="hero-idx">6</text>
+            </svg>
+          </div>
+          <div class="result-badge">sorted(a) = [1, 2, 3, 5, 7, 8, 9]</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Every "sort by column" UI</h3>
+          <p>Spreadsheets, issue trackers, and admin dashboards all rely on a stable sort so that sorting by a second column doesn't scramble ties from the first.</p>
+        </div>
+        <div class="card">
+          <h3>Unlocks binary search</h3>
+          <p>Once data is sorted, you can search it in O(log n), merge two datasets in one linear pass, or find duplicates by scanning adjacent pairs.</p>
+        </div>
+        <div class="card">
+          <h3>Interview reuse</h3>
+          <p>Merge sort's two-pointer merge is the same skeleton behind Merge Intervals and Merge K Sorted Lists. Quicksort's partition is the same skeleton behind Kth Largest Element (quickselect).</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> almost nobody asks you to hand-roll a sort in a real interview. They ask you to reason about <em>which</em> sort, its complexity, and — most often — whether Python's built-in <code>sorted()</code> already solves the problem with the right <code>key=</code> function.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is sorting?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>What it costs</h3>
+          <p>Any sorting algorithm that only compares elements pairwise cannot beat <code>O(n log n)</code> in the worst case. There are <code>n!</code> possible orderings of <code>n</code> elements, and each comparison narrows the possibilities by at most half — so you need at least <code>log2(n!) = O(n log n)</code> comparisons to tell every ordering apart. This is a hard floor, not an implementation detail.</p>
+        </div>
+        <div class="card">
+          <h3>Stability, defined plainly</h3>
+          <p>A sort is <strong>stable</strong> if two elements that compare equal keep the same relative order they had before sorting. Merge sort is stable because its merge step takes from the left side on ties. Quicksort is not, because swaps during partitioning can jump an equal element past another one.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if the interviewer says "sort by status, then by assignee, independently" — that is a stability question, not a comparator question. Sort once per column, least significant column first, and let stability carry the earlier order through as the tiebreak.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Decide: build it, or call <code>sorted()</code>?</h3>
+          <p>If the interviewer just needs sorted data as a step toward something else, use <code>sorted()</code> and spend your time on the <code>key=</code> function.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Pick a strategy</h3>
+          <p>Divide the array and merge sorted halves back together, or pick a pivot and partition around it. Same goal, two different mechanics.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Nail the base case</h3>
+          <p>An array of length 0 or 1 is already sorted by definition — every recursive sort bottoms out here.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Track what moves</h3>
+          <p>Merging appends without ever reordering equal ties. Partitioning swaps in place, which is exactly what breaks stability.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes the working structure</h2>
+      <p>Both algorithms start from the same flat array. Merge sort's recursion repeatedly halves it by index until every piece is a single element — that recursion tree is the shape both traces below are built on.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input array</h3>
+          <div class="code-block"><code>a = [5, 3, 8, 1, 9, 2, 7]
+      idx  0  1  2  3  4  5  6</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Recursion tree of splits</h3>
+          <div class="diagram" style="padding:8px;">
+            <svg viewBox="0 0 700 260" width="100%" role="img" aria-label="Recursion tree showing the array splitting down to single elements">
+              <defs>
+                <style>
+                  .rt-box { fill: #fcfdff; stroke: #d9e1ef; stroke-width: 1.5; rx: 8; }
+                  .rt-leaf { fill: #eaf0ff; stroke: #315efb; stroke-width: 1.5; rx: 8; }
+                  .rt-line { stroke: #b7c3dd; stroke-width: 1.5; }
+                  .rt-text { font: 600 13px ui-monospace, Consolas, monospace; fill: #182132; text-anchor: middle; }
+                </style>
+              </defs>
+              <line x1="350" y1="38" x2="180" y2="80" class="rt-line" />
+              <line x1="350" y1="38" x2="520" y2="80" class="rt-line" />
+              <line x1="180" y1="98" x2="110" y2="140" class="rt-line" />
+              <line x1="180" y1="98" x2="250" y2="140" class="rt-line" />
+              <line x1="520" y1="98" x2="450" y2="140" class="rt-line" />
+              <line x1="520" y1="98" x2="590" y2="140" class="rt-line" />
+              <line x1="250" y1="158" x2="210" y2="200" class="rt-line" />
+              <line x1="250" y1="158" x2="290" y2="200" class="rt-line" />
+              <line x1="450" y1="158" x2="410" y2="200" class="rt-line" />
+              <line x1="450" y1="158" x2="490" y2="200" class="rt-line" />
+              <line x1="590" y1="158" x2="550" y2="200" class="rt-line" />
+              <line x1="590" y1="158" x2="630" y2="200" class="rt-line" />
+              <rect class="rt-box" x="290" y="16" width="120" height="26" />
+              <text x="350" y="34" class="rt-text">5,3,8,1,9,2,7</text>
+              <rect class="rt-box" x="130" y="80" width="100" height="24" />
+              <text x="180" y="97" class="rt-text">5,3,8</text>
+              <rect class="rt-box" x="470" y="80" width="100" height="24" />
+              <text x="520" y="97" class="rt-text">1,9,2,7</text>
+              <rect class="rt-leaf" x="90"  y="140" width="40" height="24" />
+              <text x="110" y="157" class="rt-text">5</text>
+              <rect class="rt-box" x="220" y="140" width="60" height="24" />
+              <text x="250" y="157" class="rt-text">3,8</text>
+              <rect class="rt-box" x="420" y="140" width="60" height="24" />
+              <text x="450" y="157" class="rt-text">1,9</text>
+              <rect class="rt-box" x="560" y="140" width="60" height="24" />
+              <text x="590" y="157" class="rt-text">2,7</text>
+              <rect class="rt-leaf" x="190" y="200" width="40" height="24" />
+              <text x="210" y="217" class="rt-text">3</text>
+              <rect class="rt-leaf" x="270" y="200" width="40" height="24" />
+              <text x="290" y="217" class="rt-text">8</text>
+              <rect class="rt-leaf" x="390" y="200" width="40" height="24" />
+              <text x="410" y="217" class="rt-text">1</text>
+              <rect class="rt-leaf" x="470" y="200" width="40" height="24" />
+              <text x="490" y="217" class="rt-text">9</text>
+              <rect class="rt-leaf" x="530" y="200" width="40" height="24" />
+              <text x="550" y="217" class="rt-text">2</text>
+              <rect class="rt-leaf" x="610" y="200" width="40" height="24" />
+              <text x="630" y="217" class="rt-text">7</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Level 1: split at <code>mid = 7 // 2 = 3</code></h4>
+          <p><code>a[0:3] = [5,3,8]</code> goes left, <code>a[3:7] = [1,9,2,7]</code> goes right.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Level 2: split each half again</h4>
+          <p><code>[5,3,8]</code> → <code>[5]</code> and <code>[3,8]</code>. <code>[1,9,2,7]</code> → <code>[1,9]</code> and <code>[2,7]</code>.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Level 3: reach base cases</h4>
+          <p><code>[3,8] → [3],[8]</code>, <code>[1,9] → [1],[9]</code>, <code>[2,7] → [2],[7]</code>. Every leaf is length ≤ 1 — already "sorted" by definition.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Now merge back up</h4>
+          <p>The recursion unwinds and every pair of sibling leaves gets merged, then those results get merged, all the way back to one sorted array of 7. This unwind is exactly what Method 1 traces below.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> quicksort never builds this tree explicitly — it partitions the array <strong>in place</strong> and only recurses into the two resulting sides. Same "divide" idea, opposite mechanics: merge sort does the work on the way back up, quicksort does the work on the way down.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: Merge sort — split, sort halves, merge</h2>
+      <p>Split the array in half recursively until every piece is a single element (already sorted), then <strong>merge</strong> sorted pieces back together two at a time. All the real work — every comparison — happens in <code>merge()</code>, using two pointers that each walk one sorted half.</p>
+      <div class="code-block stepped">
+        <code id="ms-code">
+<span class="code-line" data-line="1">def merge(left, right):</span>
+<span class="code-line" data-line="2">    result, i, j = [], 0, 0</span>
+<span class="code-line" data-line="3">    while i < len(left) and j < len(right):</span>
+<span class="code-line" data-line="4">        if left[i] <= right[j]:</span>
+<span class="code-line" data-line="5">            result.append(left[i]); i += 1</span>
+<span class="code-line" data-line="6">        else:</span>
+<span class="code-line" data-line="7">            result.append(right[j]); j += 1</span>
+<span class="code-line" data-line="8">    return result + left[i:] + right[j:]</span>
+<span class="code-line" data-line="9"></span>
+<span class="code-line" data-line="10">def merge_sort(a):</span>
+<span class="code-line" data-line="11">    if len(a) <= 1:</span>
+<span class="code-line" data-line="12">        return a</span>
+<span class="code-line" data-line="13">    mid = len(a) // 2</span>
+<span class="code-line" data-line="14">    return merge(merge_sort(a[:mid]), merge_sort(a[mid:]))</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive merge trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="ms-graph" viewBox="0 0 560 220" width="100%" role="img" aria-label="Bar chart trace of merge sort">
+              <defs>
+                <style>
+                  .ms-val { font: 700 14px Inter, Arial, sans-serif; fill: #182132; text-anchor: middle; }
+                  .ms-idx { font: 600 12px Inter, Arial, sans-serif; fill: #5d677d; text-anchor: middle; }
+                </style>
+              </defs>
+              <line x1="20" y1="190" x2="540" y2="190" stroke="#d9e1ef" stroke-width="2" />
+              <rect id="ms-bar-0" x="30"  width="54" rx="6" fill="#c8d2e7" />
+              <rect id="ms-bar-1" x="100" width="54" rx="6" fill="#c8d2e7" />
+              <rect id="ms-bar-2" x="170" width="54" rx="6" fill="#c8d2e7" />
+              <rect id="ms-bar-3" x="240" width="54" rx="6" fill="#c8d2e7" />
+              <rect id="ms-bar-4" x="310" width="54" rx="6" fill="#c8d2e7" />
+              <rect id="ms-bar-5" x="380" width="54" rx="6" fill="#c8d2e7" />
+              <rect id="ms-bar-6" x="450" width="54" rx="6" fill="#c8d2e7" />
+              <text id="ms-label-0" x="57"  class="ms-val">5</text>
+              <text id="ms-label-1" x="127" class="ms-val">3</text>
+              <text id="ms-label-2" x="197" class="ms-val">8</text>
+              <text id="ms-label-3" x="267" class="ms-val">1</text>
+              <text id="ms-label-4" x="337" class="ms-val">9</text>
+              <text id="ms-label-5" x="407" class="ms-val">2</text>
+              <text id="ms-label-6" x="477" class="ms-val">7</text>
+              <text x="57"  y="206" class="ms-idx">0</text>
+              <text x="127" y="206" class="ms-idx">1</text>
+              <text x="197" y="206" class="ms-idx">2</text>
+              <text x="267" y="206" class="ms-idx">3</text>
+              <text x="337" y="206" class="ms-idx">4</text>
+              <text x="407" y="206" class="ms-idx">5</text>
+              <text x="477" y="206" class="ms-idx">6</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> currently compared (pointer)</span>
+            <span><i class="dot dot-green"></i> placed by a completed merge</span>
+            <span><i class="dot dot-blue"></i> final sorted position</span>
+            <span><i class="dot dot-gray"></i> not yet touched</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="ms-step-title">Initial state</h3>
+          <p id="ms-step-text">The array is about to be recursively split.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="ms-prev">Previous</button>
+            <button type="button" id="ms-play" class="primary">Resume</button>
+            <button type="button" id="ms-next">Next</button>
+            <button type="button" id="ms-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="ms-step-counter">Step 0 / 16</span>
+            <div class="progress"><span id="ms-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="ms-action">Call merge_sort(a), idx 0..6</div></div>
+            <div class="state-box"><strong>Left pointer</strong><div class="state-value" id="ms-leftptr">—</div></div>
+            <div class="state-box"><strong>Right pointer</strong><div class="state-value" id="ms-rightptr">—</div></div>
+            <div class="state-box"><strong>Result so far (this merge)</strong><div class="state-value" id="ms-result">—</div></div>
+            <div class="state-box"><strong>Array now</strong><div class="state-value" id="ms-array">[5, 3, 8, 1, 9, 2, 7]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="ms-detail"><strong>What changed:</strong> nothing yet — this is the starting array.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="ms-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>Array after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>merge_sort(a) called on the full array, idx 0..6</td><td><code>[5,3,8,1,9,2,7]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>Recursion splits down to single elements: [5] | [3] [8] | [1] [9] | [2] [7]</td><td><code>[5,3,8,1,9,2,7]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>merge([3],[8]): 3&lt;=8 true, take 3, leftover 8 → [3,8] written to idx 1..2</td><td><code>[5,3,8,1,9,2,7]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>merge([5],[3,8]) compare 1: left[0]=5 &lt;=right[0]=3? false → take right 3</td><td><code>[5,3,8,1,9,2,7]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>compare 2: 5&lt;=8? true → take left 5; left exhausted, leftover 8 → [3,5,8] written idx 0..2</td><td><code>[3,5,8,1,9,2,7]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>merge([1],[9]): 1&lt;=9 true, take 1, leftover 9 → [1,9] written idx 3..4</td><td><code>[3,5,8,1,9,2,7]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>merge([2],[7]): 2&lt;=7 true, take 2, leftover 7 → [2,7] written idx 5..6</td><td><code>[3,5,8,1,9,2,7]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>merge([1,9],[2,7]) compare 1: 1&lt;=2? true → take left 1</td><td><code>[3,5,8,1,9,2,7]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>compare 2: 9&lt;=2? false → take right 2</td><td><code>[3,5,8,1,9,2,7]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>compare 3: 9&lt;=7? false → take right 7; right exhausted, leftover 9 → [1,2,7,9] written idx 3..6</td><td><code>[3,5,8,1,2,7,9]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>FINAL merge([3,5,8],[1,2,7,9]) compare 1: 3&lt;=1? false → take right 1</td><td><code>[3,5,8,1,2,7,9]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>compare 2: 3&lt;=2? false → take right 2</td><td><code>[3,5,8,1,2,7,9]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>compare 3: 3&lt;=7? true → take left 3</td><td><code>[3,5,8,1,2,7,9]</code></td></tr>
+            <tr data-step="13"><td>13</td><td>compare 4: 5&lt;=7? true → take left 5</td><td><code>[3,5,8,1,2,7,9]</code></td></tr>
+            <tr data-step="14"><td>14</td><td>compare 5: 8&lt;=7? false → take right 7</td><td><code>[3,5,8,1,2,7,9]</code></td></tr>
+            <tr data-step="15"><td>15</td><td>compare 6: 8&lt;=9? true → take left 8; left exhausted, leftover 9 → [1,2,3,5,7,8,9] written idx 0..6</td><td><code>[1,2,3,5,7,8,9]</code></td></tr>
+            <tr data-step="16"><td>16</td><td>Done — merge_sort(a) returns the fully sorted array</td><td><code>[1,2,3,5,7,8,9]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Two pointers, <code>i</code> into <code>left</code> and <code>j</code> into <code>right</code>, only ever move forward. Each comparison places exactly one element into the result — the merge never revisits a decision.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common merge sort mistake</h4>
+          <p>Using <code>&lt;</code> instead of <code>&lt;=</code> in the comparison. That single character is what makes merge sort stable — with strict <code>&lt;</code>, ties would start pulling from <code>right</code> instead of <code>left</code>, breaking original order.</p>
+        </div>
+        <div class="card">
+          <h4>Why the extra space matters</h4>
+          <p>Each merge builds a brand-new list rather than shuffling in place — that's the <code>O(n)</code> auxiliary space cost, and it's exactly what makes stability possible. Quicksort skips this cost by swapping in place, but loses stability as a result.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Quicksort — partition around a pivot</h2>
+      <p>Pick a pivot (here, the last element), and rearrange the array in one linear pass so that everything <code>&lt;= pivot</code> ends up left of it and everything else ends up right of it — then recursively partition each side. No merge step: the array is sorted <strong>in place</strong>, and the pivot lands in its final position the moment its partition call finishes.</p>
+      <div class="code-block stepped">
+        <code id="qs-code">
+<span class="code-line" data-line="1">def partition(a, lo, hi):</span>
+<span class="code-line" data-line="2">    pivot = a[hi]</span>
+<span class="code-line" data-line="3">    i = lo - 1</span>
+<span class="code-line" data-line="4">    for j in range(lo, hi):</span>
+<span class="code-line" data-line="5">        if a[j] <= pivot:</span>
+<span class="code-line" data-line="6">            i += 1</span>
+<span class="code-line" data-line="7">            a[i], a[j] = a[j], a[i]</span>
+<span class="code-line" data-line="8">    a[i + 1], a[hi] = a[hi], a[i + 1]</span>
+<span class="code-line" data-line="9">    return i + 1</span>
+<span class="code-line" data-line="10"></span>
+<span class="code-line" data-line="11">def quicksort(a, lo=0, hi=None):</span>
+<span class="code-line" data-line="12">    if hi is None:</span>
+<span class="code-line" data-line="13">        hi = len(a) - 1</span>
+<span class="code-line" data-line="14">    if lo < hi:</span>
+<span class="code-line" data-line="15">        p = partition(a, lo, hi)</span>
+<span class="code-line" data-line="16">        quicksort(a, lo, p - 1)</span>
+<span class="code-line" data-line="17">        quicksort(a, p + 1, hi)</span>
+<span class="code-line" data-line="18">    return a</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive partition trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="qs-graph" viewBox="0 0 560 220" width="100%" role="img" aria-label="Bar chart trace of quicksort partitioning">
+              <defs>
+                <style>
+                  .qs-val { font: 700 14px Inter, Arial, sans-serif; fill: #182132; text-anchor: middle; }
+                  .qs-idx { font: 600 12px Inter, Arial, sans-serif; fill: #5d677d; text-anchor: middle; }
+                </style>
+              </defs>
+              <line x1="20" y1="190" x2="540" y2="190" stroke="#d9e1ef" stroke-width="2" />
+              <rect id="qs-bar-0" x="30"  width="54" rx="6" fill="#c8d2e7" />
+              <rect id="qs-bar-1" x="100" width="54" rx="6" fill="#c8d2e7" />
+              <rect id="qs-bar-2" x="170" width="54" rx="6" fill="#c8d2e7" />
+              <rect id="qs-bar-3" x="240" width="54" rx="6" fill="#c8d2e7" />
+              <rect id="qs-bar-4" x="310" width="54" rx="6" fill="#c8d2e7" />
+              <rect id="qs-bar-5" x="380" width="54" rx="6" fill="#c8d2e7" />
+              <rect id="qs-bar-6" x="450" width="54" rx="6" fill="#c8d2e7" />
+              <text id="qs-label-0" x="57"  class="qs-val">5</text>
+              <text id="qs-label-1" x="127" class="qs-val">3</text>
+              <text id="qs-label-2" x="197" class="qs-val">8</text>
+              <text id="qs-label-3" x="267" class="qs-val">1</text>
+              <text id="qs-label-4" x="337" class="qs-val">9</text>
+              <text id="qs-label-5" x="407" class="qs-val">2</text>
+              <text id="qs-label-6" x="477" class="qs-val">7</text>
+              <text x="57"  y="206" class="qs-idx">0</text>
+              <text x="127" y="206" class="qs-idx">1</text>
+              <text x="197" y="206" class="qs-idx">2</text>
+              <text x="267" y="206" class="qs-idx">3</text>
+              <text x="337" y="206" class="qs-idx">4</text>
+              <text x="407" y="206" class="qs-idx">5</text>
+              <text x="477" y="206" class="qs-idx">6</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current pivot or scan index j</span>
+            <span><i class="dot dot-green"></i> confirmed inside the &lt;=pivot region</span>
+            <span><i class="dot dot-blue"></i> final sorted position</span>
+            <span><i class="dot dot-gray"></i> not yet placed</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="qs-step-title">Initial state</h3>
+          <p id="qs-step-text">quicksort(a, 0, 6) is called on the full array.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="qs-prev">Previous</button>
+            <button type="button" id="qs-play" class="primary">Resume</button>
+            <button type="button" id="qs-next">Next</button>
+            <button type="button" id="qs-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="qs-step-counter">Step 0 / 12</span>
+            <div class="progress"><span id="qs-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="qs-action">partition(lo=0, hi=6)</div></div>
+            <div class="state-box"><strong>Pivot</strong><div class="state-value" id="qs-pivot">a[6] = 7</div></div>
+            <div class="state-box"><strong>i (boundary)</strong><div class="state-value" id="qs-i">-1</div></div>
+            <div class="state-box"><strong>j (scan)</strong><div class="state-value" id="qs-j">—</div></div>
+            <div class="state-box"><strong>Array now</strong><div class="state-value" id="qs-array">[5, 3, 8, 1, 9, 2, 7]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="qs-detail"><strong>What changed:</strong> pivot is fixed at index 6 for this whole partition call.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="qs-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>Array after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>partition(0,6): pivot = a[6] = 7, i = -1</td><td><code>[5,3,8,1,9,2,7]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>j=0: a[0]=5 &lt;=7? true → i=0, swap a[0]&lt;-&gt;a[0] (no-op)</td><td><code>[5,3,8,1,9,2,7]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>j=1: a[1]=3 &lt;=7? true → i=1, swap a[1]&lt;-&gt;a[1] (no-op)</td><td><code>[5,3,8,1,9,2,7]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>j=2: a[2]=8 &lt;=7? false → skip, i stays 1</td><td><code>[5,3,8,1,9,2,7]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>j=3: a[3]=1 &lt;=7? true → i=2, swap a[2]&lt;-&gt;a[3]</td><td><code>[5,3,1,8,9,2,7]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>j=4: a[4]=9 &lt;=7? false → skip, i stays 2</td><td><code>[5,3,1,8,9,2,7]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>j=5: a[5]=2 &lt;=7? true → i=3, swap a[3]&lt;-&gt;a[5]</td><td><code>[5,3,1,2,9,8,7]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>Loop ends. Final swap a[4]&lt;-&gt;a[6] places pivot 7 at idx 4. Return p=4</td><td><code>[5,3,1,2,7,8,9]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>Recursively partition left a[0..3]=[5,3,1,2], pivot=2 → [1,2,5,3], p=1 (pivot placed idx1); idx0 is a singleton, final too</td><td><code>[1,2,5,3,7,8,9]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>Recursively partition a[2..3]=[5,3], pivot=3 → [3,5], p=2 (pivot placed idx2); idx3 singleton, final too</td><td><code>[1,2,3,5,7,8,9]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>Recursively partition right a[5..6]=[8,9], pivot=9 → unchanged, p=6 (already correct); idx5 singleton, final too</td><td><code>[1,2,3,5,7,8,9]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>Remaining calls (quicksort(0,0), (3,3), (5,5), (7,6)) are base cases — nothing left to do</td><td><code>[1,2,3,5,7,8,9]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>Done — array is fully sorted in place</td><td><code>[1,2,3,5,7,8,9]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p><code>i</code> is the boundary of "confirmed <code>&lt;= pivot</code>" territory. Every time <code>j</code> finds a small-enough element, <code>i</code> advances by one and that element gets swapped into the confirmed zone.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common quicksort mistake</h4>
+          <p>Forgetting the final swap (<code>a[i+1], a[hi] = a[hi], a[i+1]</code>). Without it, the pivot never actually moves out of index <code>hi</code> into its true sorted position.</p>
+        </div>
+        <div class="card">
+          <h4>Why the pivot choice matters</h4>
+          <p>Picking the last element is simple but fragile: on an already-sorted array it always produces the most lopsided possible split, which is exactly the worst case below.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Already sorted</button>
+        <button type="button" data-example-tab="1">All duplicates</button>
+        <button type="button" data-example-tab="2">Single / empty</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: already-sorted input, naive last-element pivot</h3>
+          <p><code>a = [1, 2, 3, 4, 5, 6, 7]</code></p>
+          <div class="result-badge">Quicksort degrades to O(n²) · merge sort stays O(n log n)</div>
+          <p class="footer-note">With pivot = last element, every partition call picks the <em>largest</em> remaining value as pivot. The "left of pivot" side always contains everything except the pivot itself, so the recursion depth is <code>n</code> instead of <code>log n</code> — this is exactly the case the notebook tests with <code>already_sorted = list(range(50))</code>. Median-of-three or random pivot selection avoids this; merge sort is completely unaffected because its split point never depends on the data.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: all duplicate values</h3>
+          <p><code>a = [4, 4, 4, 4, 4, 4]</code></p>
+          <div class="result-badge">Quicksort partitions everything to one side · merge sort unaffected, and still stable</div>
+          <p class="footer-note">Because the condition is <code>a[j] &lt;= pivot</code>, every element counts as "belongs on the left," so <code>i</code> advances on every iteration and the pivot always lands at the very last index — the same lopsided shape as the sorted-input case. Merge sort doesn't care: it still splits by position, not by value, and its stability guarantee means five equal 4's keep whatever order they started in.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: single element or empty array</h3>
+          <p><code>a = [7]</code> and <code>a = []</code></p>
+          <div class="result-badge">Both return immediately, unchanged</div>
+          <p class="footer-note"><code>merge_sort</code> hits <code>len(a) &lt;= 1</code> and returns <code>a</code> as-is. <code>quicksort</code> hits <code>lo &lt; hi</code> as false (for a single element, <code>lo == hi</code>; for empty, there's no valid <code>hi</code> to even reach the check) and returns immediately. Every recursive call in both algorithms eventually bottoms out here — it's worth tracing by hand once.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Stable?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Merge sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n)</td><td>Yes</td></tr>
+            <tr><td>Quicksort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n²)</td><td>O(log n)</td><td>No</td></tr>
+            <tr><td>Python's <code>sorted()</code> — Timsort</td><td>O(n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n)</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">Timsort's O(n) best case comes from detecting already-sorted "runs" in the data; it extends short runs with insertion sort, then merges them the way merge sort does — a hybrid that inherits merge sort's stability without merge sort's guaranteed O(n) space in the common case.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>First question: do I actually need to hand-roll a sort, or just sorted data? Nine times out of ten, it's <code>sorted(data, key=...)</code>.</p></div>
+            <div class="timeline-step"><p>If they want an implementation, ask: does order of equal elements matter? If yes, merge sort. If no, quicksort is usually faster in practice and uses less memory.</p></div>
+            <div class="timeline-step"><p>If they push on worst case: quicksort with a bad pivot on sorted/duplicate-heavy input degrades to O(n²) — mention random or median-of-three pivots as the fix.</p></div>
+            <div class="timeline-step"><p>If it's a "sort by multiple columns" question, that's a stability question — sort least-significant key first, most-significant key last.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"Unless you need me to implement it, I'd just call <code>sorted()</code> here and focus on getting the <code>key=</code> function right."</li>
+            <li>"Merge sort guarantees O(n log n) and is stable, at the cost of O(n) extra space for the merge buffers."</li>
+            <li>"Quicksort is in-place and fast on average, but a naive last-element pivot is O(n²) on sorted or duplicate-heavy input — I'd randomize the pivot to avoid that."</li>
+            <li>"Since I need to sort by status then by assignee independently, I'll rely on stability: sort by assignee first, then by status."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Merge sort mistakes</h3>
+          <ul class="mistake-list">
+            <li>Using <code>&lt;</code> instead of <code>&lt;=</code> in the merge comparison, which silently breaks stability.</li>
+            <li>Forgetting the leftover-append (<code>left[i:] + right[j:]</code>) — one side almost always finishes before the other.</li>
+            <li>Recomputing <code>len(a)</code> or <code>mid</code> inside the loop instead of once, wasting work on every call.</li>
+            <li>Assuming the base case is <code>len(a) == 0</code> only — a single-element array must also return immediately.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Quicksort mistakes</h3>
+          <ul class="mistake-list">
+            <li>Forgetting the final swap that moves the pivot from <code>a[hi]</code> into its true position at <code>a[i+1]</code>.</li>
+            <li>Recursing on <code>(lo, p)</code> and <code>(p, hi)</code> instead of <code>(lo, p-1)</code> and <code>(p+1, hi)</code> — that re-includes the already-placed pivot and causes infinite recursion.</li>
+            <li>Always picking the last element as pivot in production code, ignoring the sorted-input O(n²) trap.</li>
+            <li>Assuming quicksort is stable because it "looks like" it preserves order on small examples — the in-place swaps can and do reorder equal elements.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — Merging <code>left = [2, 4, 6]</code> and <code>right = [1, 3, 5]</code>, what are the first three values appended to <code>result</code>?</summary>
+          <p style="margin-top:10px;">Answer: <strong>1, 2, 3</strong>. Compare 2 vs 1 → take 1 (right). Compare 2 vs 3 → take 2 (left). Compare 4 vs 3 → take 3 (right). The two pointers only ever move forward, one comparison per step.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — Why does quicksort with a "pivot = last element" strategy become O(n²) on <code>a = [1, 2, 3, 4, 5]</code>?</summary>
+          <p style="margin-top:10px;">Answer: on sorted input, the last element is always the <strong>largest</strong> remaining value, so every element satisfies <code>a[j] &lt;= pivot</code> and the pivot always lands at the very end of its current range. Every partition call only removes one element (the pivot) from further recursion, giving <code>n</code> recursive levels instead of <code>log n</code> — <code>O(n)</code> work per level times <code>n</code> levels is <code>O(n²)</code>.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — You sort a list of dicts by <code>"score"</code> (ascending), then by <code>"team"</code> (ascending), using <code>sorted()</code> twice. Does the score order survive within a team?</summary>
+          <p style="margin-top:10px;">Answer: <strong>Yes</strong> — because <code>sorted()</code> is stable (Timsort). The first pass establishes ascending score order; the second pass reorders by team but never disturbs the relative order of elements that share the same team, so within each team the entries stay in the score order the first pass produced. This is the exact multi-key trick: sort least-significant key first, most-significant key last.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          Merge sort and quicksort both divide the array, but the work happens on opposite ends of the recursion:
+          <strong>merge sort does its work on the way back up</strong> — two pointers walking two already-sorted
+          halves, stable because ties always take from the left. <strong>Quicksort does its work on the way down</strong>
+          — one pass partitioning around a pivot, in place, fast on average but not stable and vulnerable to a bad
+          pivot. In practice, reach for <code>sorted()</code> first and argue about the <code>key=</code> function;
+          reach for these two only when an interviewer explicitly asks you to build the sort itself.
+        </p>
+      </div>
+      <p class="footer-note">Based on the Sorting Algorithms README and notebook — every trace above was verified by running the real <code>merge_sort</code> / <code>merge</code> and <code>quicksort</code> / <code>partition</code> functions on <code>[5, 3, 8, 1, 9, 2, 7]</code> and transcribing the printed state after every comparison and swap.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const COLORS = { gray: '#c8d2e7', green: '#13a46b', orange: '#ff9f1c', blue: '#315efb' };
+
+      function renderBars(prefix, arr, colors) {
+        for (let i = 0; i < arr.length; i++) {
+          const val = arr[i];
+          const h = val * 16;
+          const rect = document.getElementById(`${prefix}-bar-${i}`);
+          const label = document.getElementById(`${prefix}-label-${i}`);
+          rect.setAttribute('height', h);
+          rect.setAttribute('y', 190 - h);
+          rect.setAttribute('fill', COLORS[colors[i]]);
+          label.textContent = val;
+          label.setAttribute('y', 190 - h - 8);
+        }
+      }
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      // ---------- MERGE SORT trace ----------
+      // Verified against scratchpad/17_sorting/trace_merge.py output on a = [5,3,8,1,9,2,7]
+      const g = 'gray', G = 'green', O = 'orange', B = 'blue';
+      const msSteps = [
+        { step: 0, title: 'Initial state', text: 'merge_sort(a) is called on the whole array, idx 0..6.', action: 'Call merge_sort(a), idx 0..6', leftptr: '—', rightptr: '—', result: '—', arr: [5,3,8,1,9,2,7], colors: [g,g,g,g,g,g,g], detail: 'Nothing has been compared yet — this is the starting array.', lines: [10,11,13,14] },
+        { step: 1, title: 'Step 1: recursive split', text: 'The array splits by index down to single elements: [5] | [3] [8] | [1] [9] | [2] [7]. No comparisons happen during a split.', action: 'Split recursively to base cases (len <= 1)', leftptr: '—', rightptr: '—', result: '—', arr: [5,3,8,1,9,2,7], colors: [g,g,g,g,g,g,g], detail: 'Splitting only computes index bounds — the values never move during this phase.', lines: [10,11,13,14] },
+        { step: 2, title: 'Step 2: merge([3],[8])', text: 'The smallest merge: compare 3 <= 8 -> true, take 3, then the right side (8) is appended as leftover.', action: 'merge([3],[8]) -> [3,8], idx 1..2', leftptr: 'idx1 = 3', rightptr: 'idx2 = 8', result: '[3, 8]', arr: [5,3,8,1,9,2,7], colors: [g,G,G,g,g,g,g], detail: 'idx 1..2 are now a confirmed, finished sorted pair.', lines: [2,3,4,5,8] },
+        { step: 3, title: 'Step 3: merge([5],[3,8]), compare 1', text: 'Compare left[0]=5 against right[0]=3 (the current front of the just-finished [3,8]).', action: 'compare 5 <= 3 -> false -> take RIGHT (3)', leftptr: 'idx0 = 5', rightptr: 'idx1 = 3', result: '[3]', arr: [5,3,8,1,9,2,7], colors: [O,O,G,g,g,g,g], detail: '5 is bigger than 3, so 3 goes into the result first; the right pointer moves from idx1 to idx2.', lines: [3,4,6,7] },
+        { step: 4, title: 'Step 4: merge([5],[3,8]), compare 2 -> done', text: 'Compare left[0]=5 against right[1]=8. 5 is smaller, so it is taken; the left side is now exhausted, so the leftover 8 is appended.', action: 'compare 5 <= 8 -> true -> take LEFT (5); leftover [8] appended', leftptr: 'idx0 = 5', rightptr: 'idx2 = 8', result: '[3, 5, 8]', arr: [3,5,8,1,9,2,7], colors: [G,G,G,g,g,g,g], detail: '[3,5,8] is written back to idx 0..2 — the first three positions are now finished.', lines: [3,4,5,8] },
+        { step: 5, title: 'Step 5: merge([1],[9])', text: 'Compare 1 <= 9 -> true, take 1, then 9 is appended as leftover.', action: 'merge([1],[9]) -> [1,9], idx 3..4', leftptr: 'idx3 = 1', rightptr: 'idx4 = 9', result: '[1, 9]', arr: [3,5,8,1,9,2,7], colors: [G,G,G,G,G,g,g], detail: 'idx 3..4 are now a confirmed, finished sorted pair.', lines: [2,3,4,5,8] },
+        { step: 6, title: 'Step 6: merge([2],[7])', text: 'Compare 2 <= 7 -> true, take 2, then 7 is appended as leftover.', action: 'merge([2],[7]) -> [2,7], idx 5..6', leftptr: 'idx5 = 2', rightptr: 'idx6 = 7', result: '[2, 7]', arr: [3,5,8,1,9,2,7], colors: [G,G,G,G,G,G,G], detail: 'idx 5..6 are now finished too — every level-2 pair is sorted, though the whole array is not sorted yet.', lines: [2,3,4,5,8] },
+        { step: 7, title: 'Step 7: merge([1,9],[2,7]), compare 1', text: 'Compare left[0]=1 against right[0]=2. 1 is smaller, so it is taken.', action: 'compare 1 <= 2 -> true -> take LEFT (1)', leftptr: 'idx3 = 1', rightptr: 'idx5 = 2', result: '[1]', arr: [3,5,8,1,9,2,7], colors: [G,G,G,O,G,O,G], detail: 'Left pointer moves from idx3 to idx4; right pointer stays at idx5.', lines: [3,4,5] },
+        { step: 8, title: 'Step 8: merge([1,9],[2,7]), compare 2', text: 'Compare left[1]=9 against right[0]=2. 9 is bigger, so 2 is taken instead.', action: 'compare 9 <= 2 -> false -> take RIGHT (2)', leftptr: 'idx4 = 9', rightptr: 'idx5 = 2', result: '[1, 2]', arr: [3,5,8,1,9,2,7], colors: [G,G,G,G,O,O,G], detail: 'Right pointer moves from idx5 to idx6.', lines: [3,4,6,7] },
+        { step: 9, title: 'Step 9: merge([1,9],[2,7]), compare 3 -> done', text: 'Compare left[1]=9 against right[1]=7. 9 is bigger, so 7 is taken; the right side is now exhausted, so leftover 9 is appended.', action: 'compare 9 <= 7 -> false -> take RIGHT (7); leftover [9] appended', leftptr: 'idx4 = 9', rightptr: 'idx6 = 7', result: '[1, 2, 7, 9]', arr: [3,5,8,1,2,7,9], colors: [G,G,G,G,G,G,G], detail: '[1,2,7,9] is written back to idx 3..6. Both halves of the array are now fully sorted on their own — only the final merge is left.', lines: [3,4,6,7,8] },
+        { step: 10, title: 'Step 10: FINAL merge, compare 1', text: 'Now merge the two fully-sorted halves [3,5,8] and [1,2,7,9]. Compare left[0]=3 against right[0]=1.', action: 'compare 3 <= 1 -> false -> take RIGHT (1)', leftptr: 'idx0 = 3', rightptr: 'idx3 = 1', result: '[1]', arr: [3,5,8,1,2,7,9], colors: [O,G,G,O,G,G,G], detail: '1 is the smallest value overall, so it is taken first; right pointer advances to idx4.', lines: [3,4,6,7] },
+        { step: 11, title: 'Step 11: FINAL merge, compare 2', text: 'Compare left[0]=3 against right[1]=2.', action: 'compare 3 <= 2 -> false -> take RIGHT (2)', leftptr: 'idx0 = 3', rightptr: 'idx4 = 2', result: '[1, 2]', arr: [3,5,8,1,2,7,9], colors: [O,G,G,G,O,G,G], detail: 'Right pointer advances to idx5.', lines: [3,4,6,7] },
+        { step: 12, title: 'Step 12: FINAL merge, compare 3', text: 'Compare left[0]=3 against right[2]=7. Now 3 finally wins a comparison.', action: 'compare 3 <= 7 -> true -> take LEFT (3)', leftptr: 'idx0 = 3', rightptr: 'idx5 = 7', result: '[1, 2, 3]', arr: [3,5,8,1,2,7,9], colors: [O,G,G,G,G,O,G], detail: 'Left pointer advances to idx1.', lines: [3,4,5] },
+        { step: 13, title: 'Step 13: FINAL merge, compare 4', text: 'Compare left[1]=5 against right[2]=7.', action: 'compare 5 <= 7 -> true -> take LEFT (5)', leftptr: 'idx1 = 5', rightptr: 'idx5 = 7', result: '[1, 2, 3, 5]', arr: [3,5,8,1,2,7,9], colors: [G,O,G,G,G,O,G], detail: 'Left pointer advances to idx2.', lines: [3,4,5] },
+        { step: 14, title: 'Step 14: FINAL merge, compare 5', text: 'Compare left[2]=8 against right[2]=7.', action: 'compare 8 <= 7 -> false -> take RIGHT (7)', leftptr: 'idx2 = 8', rightptr: 'idx5 = 7', result: '[1, 2, 3, 5, 7]', arr: [3,5,8,1,2,7,9], colors: [G,G,O,G,G,O,G], detail: 'Right pointer advances to idx6.', lines: [3,4,6,7] },
+        { step: 15, title: 'Step 15: FINAL merge, compare 6 -> done', text: 'Compare left[2]=8 against right[3]=9. 8 is smaller, so it is taken; the left side is now exhausted, so leftover 9 is appended.', action: 'compare 8 <= 9 -> true -> take LEFT (8); leftover [9] appended', leftptr: 'idx2 = 8', rightptr: 'idx6 = 9', result: '[1, 2, 3, 5, 7, 8, 9]', arr: [1,2,3,5,7,8,9], colors: [B,B,B,B,B,B,B], detail: 'The final merge writes [1,2,3,5,7,8,9] across idx 0..6 — the whole array is now sorted.', lines: [3,4,5,8] },
+        { step: 16, title: 'Step 16: done', text: 'merge_sort(a) returns the fully sorted array to its caller.', action: 'return [1, 2, 3, 5, 7, 8, 9]', leftptr: '—', rightptr: '—', result: '[1, 2, 3, 5, 7, 8, 9]', arr: [1,2,3,5,7,8,9], colors: [B,B,B,B,B,B,B], detail: 'Every element reached its final position through exactly one merge each.', lines: [14] }
+      ];
+
+      // ---------- QUICKSORT trace ----------
+      // Verified against scratchpad/17_sorting/trace_quick.py output on a = [5,3,8,1,9,2,7]
+      const qsSteps = [
+        { step: 0, title: 'Initial state', text: 'partition(lo=0, hi=6) is called. The pivot is fixed at the last element of the range, a[6] = 7.', action: 'partition(lo=0, hi=6)', pivot: 'a[6] = 7', i: '-1', j: '—', arr: [5,3,8,1,9,2,7], colors: [g,g,g,g,g,g,O], detail: 'Pivot is fixed at index 6 for this whole partition call.', lines: [1,2,3] },
+        { step: 1, title: 'Step 1: j=0', text: 'a[0]=5 <= pivot(7)? True. i advances to 0, and a[0] swaps with itself (no visible change).', action: 'i=0; swap a[0]<->a[0] (no-op)', pivot: 'a[6] = 7', i: '0', j: '0 (val 5)', arr: [5,3,8,1,9,2,7], colors: [G,g,g,g,g,g,O], detail: 'idx0 is now confirmed inside the <= pivot region.', lines: [4,5,6,7] },
+        { step: 2, title: 'Step 2: j=1', text: 'a[1]=3 <= pivot(7)? True. i advances to 1, and a[1] swaps with itself.', action: 'i=1; swap a[1]<->a[1] (no-op)', pivot: 'a[6] = 7', i: '1', j: '1 (val 3)', arr: [5,3,8,1,9,2,7], colors: [G,G,g,g,g,g,O], detail: 'idx1 joins the confirmed <= pivot region.', lines: [4,5,6,7] },
+        { step: 3, title: 'Step 3: j=2', text: 'a[2]=8 <= pivot(7)? False. Skip — 8 stays where it is for now, and i does not move.', action: 'skip (i stays 1)', pivot: 'a[6] = 7', i: '1', j: '2 (val 8)', arr: [5,3,8,1,9,2,7], colors: [G,G,O,g,g,g,O], detail: '8 is bigger than the pivot, so it is left behind in the unconfirmed zone.', lines: [4,5] },
+        { step: 4, title: 'Step 4: j=3', text: 'a[3]=1 <= pivot(7)? True. i advances to 2, and a[2] swaps with a[3] — 1 moves left, 8 moves right.', action: 'i=2; swap a[2]<->a[3]', pivot: 'a[6] = 7', i: '2', j: '3 (val 1)', arr: [5,3,1,8,9,2,7], colors: [G,G,G,g,g,g,O], detail: 'idx2 now holds 1 and joins the confirmed region; the displaced 8 sits at idx3.', lines: [4,5,6,7] },
+        { step: 5, title: 'Step 5: j=4', text: 'a[4]=9 <= pivot(7)? False. Skip — i does not move.', action: 'skip (i stays 2)', pivot: 'a[6] = 7', i: '2', j: '4 (val 9)', arr: [5,3,1,8,9,2,7], colors: [G,G,G,g,O,g,O], detail: '9 is bigger than the pivot, left behind for now.', lines: [4,5] },
+        { step: 6, title: 'Step 6: j=5', text: 'a[5]=2 <= pivot(7)? True. i advances to 3, and a[3] swaps with a[5] — 2 moves left, 8 moves right again.', action: 'i=3; swap a[3]<->a[5]', pivot: 'a[6] = 7', i: '3', j: '5 (val 2)', arr: [5,3,1,2,9,8,7], colors: [G,G,G,G,g,g,O], detail: 'idx3 now holds 2 and joins the confirmed region.', lines: [4,5,6,7] },
+        { step: 7, title: 'Step 7: loop ends, place the pivot', text: 'The scan is done. The final swap moves the pivot from a[6] into position a[i+1]=a[4] — its true sorted position.', action: 'swap a[4]<->a[6]; return p = 4', pivot: 'placed at idx4', i: '3', j: '—', arr: [5,3,1,2,7,8,9], colors: [G,G,G,G,B,g,g], detail: 'Pivot 7 is now permanently at idx4 — it will never move again in any future call.', lines: [8,9] },
+        { step: 8, title: 'Step 8: partition left a[0..3]', text: 'Recursively partition [5,3,1,2] with pivot=a[3]=2. This resolves to [1,2,5,3], placing pivot 2 at idx1; idx0 is a leftover singleton, so it is final too.', action: 'partition(0,3): pivot=2 -> p=1', pivot: 'idx1 placed (val 2)', i: '—', j: '—', arr: [1,2,5,3,7,8,9], colors: [B,B,g,g,B,g,g], detail: 'idx0 and idx1 are now confirmed final; idx2..3 still need their own partition.', lines: [11,14,15,16] },
+        { step: 9, title: 'Step 9: partition a[2..3]', text: 'Recursively partition [5,3] (right of the previous pivot) with pivot=a[3]=3. This resolves to [3,5], placing pivot 3 at idx2; idx3 is a leftover singleton, final too.', action: 'partition(2,3): pivot=3 -> p=2', pivot: 'idx2 placed (val 3)', i: '—', j: '—', arr: [1,2,3,5,7,8,9], colors: [B,B,B,B,B,g,g], detail: 'Everything left of idx4 (the first pivot) is now fully sorted.', lines: [14,15,17] },
+        { step: 10, title: 'Step 10: partition right a[5..6]', text: 'Recursively partition [8,9] with pivot=a[6]=9. 8 <= 9 is true so it swaps with itself; the final swap is also a no-op — the pivot was already in the right spot.', action: 'partition(5,6): pivot=9 -> p=6', pivot: 'idx6 placed (val 9)', i: '5', j: '5 (val 8)', arr: [1,2,3,5,7,8,9], colors: [B,B,B,B,B,B,B], detail: 'idx5 is a leftover singleton, final too — every index is now confirmed.', lines: [14,15,17] },
+        { step: 11, title: 'Step 11: remaining base cases', text: 'Every remaining call — quicksort(0,0), (3,3), (5,5), (7,6) — has lo >= hi, so each returns immediately with no more work.', action: 'lo >= hi for all remaining calls -> return', pivot: '—', i: '—', j: '—', arr: [1,2,3,5,7,8,9], colors: [B,B,B,B,B,B,B], detail: 'No index changes here — this just confirms recursion has bottomed out everywhere.', lines: [12,13,14,18] },
+        { step: 12, title: 'Step 12: done', text: 'quicksort(a) returns the fully sorted array, rearranged entirely in place.', action: 'return [1, 2, 3, 5, 7, 8, 9]', pivot: '—', i: '—', j: '—', arr: [1,2,3,5,7,8,9], colors: [B,B,B,B,B,B,B], detail: 'Three partition calls placed one pivot each — that is the entire sort.', lines: [18] }
+      ];
+
+      function renderMS(step, index, max) {
+        document.getElementById('ms-step-title').textContent = step.title;
+        document.getElementById('ms-step-text').textContent = step.text;
+        document.getElementById('ms-action').textContent = step.action;
+        document.getElementById('ms-leftptr').textContent = step.leftptr;
+        document.getElementById('ms-rightptr').textContent = step.rightptr;
+        document.getElementById('ms-result').textContent = step.result;
+        document.getElementById('ms-array').textContent = `[${step.arr.join(', ')}]`;
+        document.getElementById('ms-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('ms-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('ms-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('ms-trace-table', step.step);
+        setCodeHighlight('ms-code', step.lines);
+        renderBars('ms', step.arr, step.colors);
+      }
+
+      function renderQS(step, index, max) {
+        document.getElementById('qs-step-title').textContent = step.title;
+        document.getElementById('qs-step-text').textContent = step.text;
+        document.getElementById('qs-action').textContent = step.action;
+        document.getElementById('qs-pivot').textContent = step.pivot;
+        document.getElementById('qs-i').textContent = step.i;
+        document.getElementById('qs-j').textContent = step.j;
+        document.getElementById('qs-array').textContent = `[${step.arr.join(', ')}]`;
+        document.getElementById('qs-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('qs-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('qs-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('qs-trace-table', step.step);
+        setCodeHighlight('qs-code', step.lines);
+        renderBars('qs', step.arr, step.colors);
+      }
+
+      setupTrace({ steps: msSteps, prefix: 'ms', render: renderMS });
+      setupTrace({ steps: qsSteps, prefix: 'qs', render: renderQS });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

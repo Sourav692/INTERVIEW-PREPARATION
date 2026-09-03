@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weighted Shortest Paths — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Weighted graphs · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Weighted Shortest Paths — Dijkstra &amp; Bellman-Ford</h1>
+          <p>
+            BFS finds the path with the fewest <em>edges</em>. The moment edges carry different costs, "fewest edges"
+            stops meaning "cheapest" — you need an algorithm that tracks total cost instead. This page traces two of
+            them on the exact functions from the companion notebook: <strong>Dijkstra</strong>, a greedy algorithm
+            that only works when every weight is non-negative, and <strong>Bellman-Ford</strong>, a slower algorithm
+            that tolerates negative weights and can prove when a graph has no well-defined shortest path at all.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: relax every edge you touch</span>
+            <span class="chip">Interactive Dijkstra trace</span>
+            <span class="chip">Interactive Bellman-Ford trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p>Directed weighted graph, <code>adj[u] = list of (v, weight)</code>, source = <code>A</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 560 260" width="100%" role="img" aria-label="Directed weighted graph with vertices A through E">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .hero-weight { font: 700 14px Inter, Arial, sans-serif; fill: #172033; }
+                  .hero-wbg { fill: #ffffff; stroke: #d9e1ef; }
+                </style>
+              </defs>
+              <line x1="70" y1="150" x2="230" y2="60" class="hero-edge" />
+              <line x1="70" y1="150" x2="230" y2="240" class="hero-edge" />
+              <line x1="230" y1="60" x2="230" y2="240" class="hero-edge" />
+              <line x1="230" y1="60" x2="390" y2="150" class="hero-edge" />
+              <line x1="230" y1="240" x2="390" y2="150" class="hero-edge" />
+              <line x1="390" y1="150" x2="520" y2="150" class="hero-edge" />
+              <rect x="139" y="94" width="20" height="18" rx="4" class="hero-wbg" />
+              <text x="144" y="108" class="hero-weight">1</text>
+              <rect x="139" y="184" width="20" height="18" rx="4" class="hero-wbg" />
+              <text x="144" y="198" class="hero-weight">4</text>
+              <rect x="220" y="141" width="20" height="18" rx="4" class="hero-wbg" />
+              <text x="225" y="155" class="hero-weight">2</text>
+              <rect x="300" y="94" width="20" height="18" rx="4" class="hero-wbg" />
+              <text x="305" y="108" class="hero-weight">5</text>
+              <rect x="300" y="184" width="20" height="18" rx="4" class="hero-wbg" />
+              <text x="305" y="198" class="hero-weight">1</text>
+              <rect x="445" y="139" width="20" height="18" rx="4" class="hero-wbg" />
+              <text x="450" y="153" class="hero-weight">3</text>
+              <circle cx="70" cy="150" r="26" class="hero-node" />
+              <circle cx="230" cy="60" r="26" class="hero-node" />
+              <circle cx="230" cy="240" r="26" class="hero-node" />
+              <circle cx="390" cy="150" r="26" class="hero-node" />
+              <circle cx="520" cy="150" r="26" class="hero-node" />
+              <text x="63" y="156" class="hero-label">A</text>
+              <text x="223" y="66" class="hero-label">B</text>
+              <text x="223" y="246" class="hero-label">C</text>
+              <text x="383" y="156" class="hero-label">D</text>
+              <text x="513" y="156" class="hero-label">E</text>
+            </svg>
+          </div>
+          <div class="result-badge">Shortest distances from A — A:0, B:1, C:3, D:4, E:7</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Maps and GPS routing</h3>
+          <p>Road segments have real costs (time, distance, tolls). The "shortest route" is a Dijkstra run over the road network's weighted graph.</p>
+        </div>
+        <div class="card">
+          <h3>Network routing protocols</h3>
+          <p>OSPF and similar link-state protocols run Dijkstra on link costs so every router agrees on the cheapest path to every other router.</p>
+        </div>
+        <div class="card">
+          <h3>Arbitrage detection</h3>
+          <p>Model currency exchange rates as edge weights (via a negative log). A profitable arbitrage loop is exactly a negative cycle — the one thing only Bellman-Ford can detect.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> both algorithms share one operation — <strong>relaxation</strong>: "does going through this edge beat the best cost I already know?" Everything else is just how aggressively and in what order that question gets asked.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a weighted shortest path?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>The minimum total edge-weight needed to travel from a start vertex to another vertex, where each edge has its own cost — not just "1 hop" like in BFS.</p>
+        </div>
+        <div class="card">
+          <h3>What you are computing</h3>
+          <p>A number <code>dist[v]</code> for every reachable vertex <code>v</code>: the cheapest possible total cost from <code>start</code> to <code>v</code>. Both algorithms build this same <code>dist</code> dictionary — they just fill it in differently.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if every edge weighs the same (or exactly 1), Dijkstra degenerates into plain BFS — fewest edges really is cheapest. Weighted algorithms only start to matter once edge costs actually differ.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Check the weights</h3>
+          <p>Are all edge weights guaranteed non-negative? That single fact decides which algorithm is even legal to use.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Build the working structure</h3>
+          <p>Dijkstra needs an adjacency list grouped by source vertex. Bellman-Ford just needs the raw flat edge list.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Relax, relax, relax</h3>
+          <p>For every edge you examine: "does going through this edge beat what I already know?" If yes, update and keep going.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Know your stopping rule</h3>
+          <p>Dijkstra stops when the heap is empty. Bellman-Ford stops after <code>V-1</code> full rounds, plus one more to check for a negative cycle.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes a working structure</h2>
+      <p>Both algorithms start from the same directed, weighted edge list. Dijkstra reshapes it into an adjacency list keyed by source vertex — that is what lets it ask "who can I reach from here?" in <code>O(1)</code>. Bellman-Ford does not reshape it at all: it just walks the flat list of edges, over and over, because it never tries to be clever about order.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input edge list</h3>
+          <div class="code-block"><code>edges = [
+  (A, B, 1), (A, C, 4),
+  (B, C, 2), (B, D, 5),
+  (C, D, 1), (D, E, 3),
+]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Adjacency list (Dijkstra)</h3>
+          <div class="code-block"><code>A: [(B,1), (C,4)]
+B: [(C,2), (D,5)]
+C: [(D,1)]
+D: [(E,3)]
+E: []</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Read <code>(A, B, 1)</code>, then <code>(A, C, 4)</code></h4>
+          <p>Both are appended as <code>(neighbour, weight)</code> pairs to <code>A</code>'s list only.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read <code>(B, C, 2)</code>, then <code>(B, D, 5)</code></h4>
+          <p>Appended to <code>B</code>'s list. <code>C</code>'s list is untouched by this edge — the graph is directed.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read <code>(C, D, 1)</code>, then <code>(D, E, 3)</code></h4>
+          <p>Appended to <code>C</code>'s and <code>D</code>'s lists respectively. <code>E</code> ends with an empty list — it has no outgoing edges.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> unlike an undirected graph, each edge is added to <strong>only its source's</strong> list. There is no edge <code>B → A</code> just because <code>A → B</code> exists — direction matters, and it is exactly what the trace tables below track as "Relax <code>u → v</code>."</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: Dijkstra — greedy with a min-heap</h2>
+      <p>Always pop the <strong>closest unfinished vertex</strong> from a min-heap, lock in its distance for good, then relax its outgoing edges. Because every weight is non-negative, no path discovered later can ever beat the vertex you just popped — that guarantee is the entire algorithm, and it is also exactly the guarantee a negative edge would break.</p>
+      <div class="code-block stepped">
+        <code id="dij-code">
+<span class="code-line" data-line="1">import heapq</span>
+<span class="code-line" data-line="2"></span>
+<span class="code-line" data-line="3">def dijkstra(adj, start):</span>
+<span class="code-line" data-line="4">    dist = {start: 0}</span>
+<span class="code-line" data-line="5">    done = set()</span>
+<span class="code-line" data-line="6">    pq = [(0, start)]              # (distance, vertex) min-heap</span>
+<span class="code-line" data-line="7">    while pq:</span>
+<span class="code-line" data-line="8">        d, u = heapq.heappop(pq)    # closest unfinished vertex</span>
+<span class="code-line" data-line="9">        if u in done:</span>
+<span class="code-line" data-line="10">            continue                 # stale entry -- already finalized</span>
+<span class="code-line" data-line="11">        done.add(u)                  # lock in u's distance for good</span>
+<span class="code-line" data-line="12">        for v, w in adj[u]:</span>
+<span class="code-line" data-line="13">            if v in done:</span>
+<span class="code-line" data-line="14">                continue              # never relax a finalized vertex</span>
+<span class="code-line" data-line="15">            nd = d + w</span>
+<span class="code-line" data-line="16">            if nd &lt; dist.get(v, float("inf")):</span>
+<span class="code-line" data-line="17">                dist[v] = nd          # relax: cheaper path found</span>
+<span class="code-line" data-line="18">                heapq.heappush(pq, (nd, v))</span>
+<span class="code-line" data-line="19">    return dist</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive Dijkstra trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="dij-graph" viewBox="0 0 560 260" width="100%" role="img" aria-label="Dijkstra trace over the weighted graph">
+              <defs>
+                <style>
+                  .dijg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .dijg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .dijg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .dijg-node.done { fill: #315efb; }
+                  .dijg-node.tentative { fill: #13a46b; }
+                  .dijg-node.current { fill: #ff9f1c; }
+                  .dijg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .dijg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                  .dijg-weight { font: 700 13px Inter, Arial, sans-serif; fill: #172033; }
+                  .dijg-wbg { fill: #ffffff; stroke: #d9e1ef; }
+                </style>
+              </defs>
+              <text x="16" y="20" class="dijg-title">Current pop / relax</text>
+              <line x1="70" y1="150" x2="230" y2="60" class="dijg-base-edge" />
+              <line x1="70" y1="150" x2="230" y2="240" class="dijg-base-edge" />
+              <line x1="230" y1="60" x2="230" y2="240" class="dijg-base-edge" />
+              <line x1="230" y1="60" x2="390" y2="150" class="dijg-base-edge" />
+              <line x1="230" y1="240" x2="390" y2="150" class="dijg-base-edge" />
+              <line x1="390" y1="150" x2="520" y2="150" class="dijg-base-edge" />
+              <line x1="70" y1="150" x2="230" y2="60" class="dijg-active-edge" data-dij-edge="A-B" visibility="hidden" />
+              <line x1="70" y1="150" x2="230" y2="240" class="dijg-active-edge" data-dij-edge="A-C" visibility="hidden" />
+              <line x1="230" y1="60" x2="230" y2="240" class="dijg-active-edge" data-dij-edge="B-C" visibility="hidden" />
+              <line x1="230" y1="60" x2="390" y2="150" class="dijg-active-edge" data-dij-edge="B-D" visibility="hidden" />
+              <line x1="230" y1="240" x2="390" y2="150" class="dijg-active-edge" data-dij-edge="C-D" visibility="hidden" />
+              <line x1="390" y1="150" x2="520" y2="150" class="dijg-active-edge" data-dij-edge="D-E" visibility="hidden" />
+              <rect x="139" y="94" width="20" height="18" rx="4" class="dijg-wbg" />
+              <text x="144" y="108" class="dijg-weight">1</text>
+              <rect x="139" y="184" width="20" height="18" rx="4" class="dijg-wbg" />
+              <text x="144" y="198" class="dijg-weight">4</text>
+              <rect x="220" y="141" width="20" height="18" rx="4" class="dijg-wbg" />
+              <text x="225" y="155" class="dijg-weight">2</text>
+              <rect x="300" y="94" width="20" height="18" rx="4" class="dijg-wbg" />
+              <text x="305" y="108" class="dijg-weight">5</text>
+              <rect x="300" y="184" width="20" height="18" rx="4" class="dijg-wbg" />
+              <text x="305" y="198" class="dijg-weight">1</text>
+              <rect x="445" y="139" width="20" height="18" rx="4" class="dijg-wbg" />
+              <text x="450" y="153" class="dijg-weight">3</text>
+              <circle cx="70" cy="150" r="26" class="dijg-node" data-node="A" />
+              <circle cx="230" cy="60" r="26" class="dijg-node" data-node="B" />
+              <circle cx="230" cy="240" r="26" class="dijg-node" data-node="C" />
+              <circle cx="390" cy="150" r="26" class="dijg-node" data-node="D" />
+              <circle cx="520" cy="150" r="26" class="dijg-node" data-node="E" />
+              <text x="63" y="156" class="dijg-label">A</text>
+              <text x="223" y="66" class="dijg-label">B</text>
+              <text x="223" y="246" class="dijg-label">C</text>
+              <text x="383" y="156" class="dijg-label">D</text>
+              <text x="513" y="156" class="dijg-label">E</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current popped node / edge being relaxed</span>
+            <span><i class="dot dot-green"></i> in the heap, tentative distance</span>
+            <span><i class="dot dot-blue"></i> finalized (popped and locked)</span>
+            <span><i class="dot dot-gray"></i> still infinity, not yet reached</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="dij-step-title">Initial state</h3>
+          <p id="dij-step-text">The heap is seeded with the start vertex at distance 0. Nothing is finalized yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="dij-prev">Previous</button>
+            <button type="button" id="dij-play" class="primary">Resume</button>
+            <button type="button" id="dij-next">Next</button>
+            <button type="button" id="dij-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="dij-step-counter">Step 0 / 8</span>
+            <div class="progress"><span id="dij-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Heap (min-heap by distance)</strong><div class="state-value" id="dij-heap">[(0,A)]</div></div>
+            <div class="state-box"><strong>Popped this step</strong><div class="state-value" id="dij-popped">—</div></div>
+            <div class="state-box"><strong>Finalized (done)</strong><div class="state-value" id="dij-done">{}</div></div>
+            <div class="state-box"><strong>Relaxation notes</strong><div class="state-value" id="dij-action">dist = {A: 0}, done = {}, pq = [(0,A)]</div></div>
+          </div>
+          <div class="table-wrap" style="margin-top:14px;">
+            <table>
+              <thead><tr><th>Vertex</th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>dist</td>
+                  <td class="state-value" id="dij-dist-A">0</td>
+                  <td class="state-value" id="dij-dist-B">&#8734;</td>
+                  <td class="state-value" id="dij-dist-C">&#8734;</td>
+                  <td class="state-value" id="dij-dist-D">&#8734;</td>
+                  <td class="state-value" id="dij-dist-E">&#8734;</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="explainer">
+            <p id="dij-detail"><strong>What changed:</strong> the priority queue holds only the start vertex, so nothing has been popped yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="dij-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Popped</th><th>Action</th><th>Heap after</th><th>Done after</th><th>dist after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>Seed: dist={A:0}, done={}, pq=[(0,A)]</td><td><code>[(0,A)]</code></td><td><code>{}</code></td><td><code>{A:0}</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>(0,A)</code></td><td>Finalize A. Relax A&rarr;B: 0+1=1&lt;&#8734; improve. Relax A&rarr;C: 0+4=4&lt;&#8734; improve.</td><td><code>[(1,B),(4,C)]</code></td><td><code>{A}</code></td><td><code>{A:0,B:1,C:4}</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>(1,B)</code></td><td>Finalize B. Relax B&rarr;C: 1+2=3&lt;4 improve. Relax B&rarr;D: 1+5=6&lt;&#8734; improve.</td><td><code>[(3,C),(4,C),(6,D)]</code></td><td><code>{A,B}</code></td><td><code>{A:0,B:1,C:3,D:6}</code></td></tr>
+            <tr data-step="3"><td>3</td><td><code>(3,C)</code></td><td>Finalize C. Relax C&rarr;D: 3+1=4&lt;6 improve.</td><td><code>[(4,C),(4,D),(6,D)]</code></td><td><code>{A,B,C}</code></td><td><code>{A:0,B:1,C:3,D:4}</code></td></tr>
+            <tr data-step="4"><td>4</td><td><code>(4,C)</code></td><td>C already finalized &rarr; stale entry, skip.</td><td><code>[(4,D),(6,D)]</code></td><td><code>{A,B,C}</code></td><td><code>{A:0,B:1,C:3,D:4}</code></td></tr>
+            <tr data-step="5"><td>5</td><td><code>(4,D)</code></td><td>Finalize D. Relax D&rarr;E: 4+3=7&lt;&#8734; improve.</td><td><code>[(6,D),(7,E)]</code></td><td><code>{A,B,C,D}</code></td><td><code>{A:0,B:1,C:3,D:4,E:7}</code></td></tr>
+            <tr data-step="6"><td>6</td><td><code>(6,D)</code></td><td>D already finalized &rarr; stale entry, skip.</td><td><code>[(7,E)]</code></td><td><code>{A,B,C,D}</code></td><td><code>{A:0,B:1,C:3,D:4,E:7}</code></td></tr>
+            <tr data-step="7"><td>7</td><td><code>(7,E)</code></td><td>Finalize E. No outgoing edges to relax.</td><td><code>[]</code></td><td><code>{A,B,C,D,E}</code></td><td><code>{A:0,B:1,C:3,D:4,E:7}</code></td></tr>
+            <tr data-step="8"><td>8</td><td>—</td><td>Heap empty &rarr; return dist.</td><td><code>[]</code></td><td><code>{A,B,C,D,E}</code></td><td><code>{A:0,B:1,C:3,D:4,E:7}</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Once a vertex is popped, its distance is done forever — that is the greedy promise, and it only holds because no edge can ever make a path <em>cheaper</em> by going backwards through a bigger number.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common Dijkstra mistake</h4>
+          <p>Forgetting the stale-entry check (<code>if u in done: continue</code>) and assuming every heap pop is a brand-new vertex. C and D are each pushed twice in this trace — skip the check and you would re-process outdated distances.</p>
+        </div>
+        <div class="card">
+          <h4>Why the heap matters</h4>
+          <p>Python's <code>heapq</code> has no cheap "decrease-key," so a cheaper path to a vertex pushes a brand-new heap entry instead of updating the old one. The stale-entry check is what makes that trade-off safe.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Bellman-Ford — relax every edge, <code>V-1</code> times</h2>
+      <p>Don't be clever about order — just relax <strong>every</strong> edge, <code>V-1</code> times in a row. After <code>k</code> rounds, every shortest path using at most <code>k</code> edges is already correct, and a simple shortest path never needs more than <code>V-1</code> edges. One extra round then answers a question Dijkstra cannot even ask: is there a negative cycle?</p>
+      <div class="code-block stepped">
+        <code id="bf-code">
+<span class="code-line" data-line="1">def bellman_ford(vertices, edges, start):</span>
+<span class="code-line" data-line="2">    dist = {v: float("inf") for v in vertices}</span>
+<span class="code-line" data-line="3">    dist[start] = 0</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    for _ in range(len(vertices) - 1):   # V-1 rounds</span>
+<span class="code-line" data-line="6">        for u, v, w in edges:</span>
+<span class="code-line" data-line="7">            if dist[u] + w &lt; dist[v]:    # relax every edge</span>
+<span class="code-line" data-line="8">                dist[v] = dist[u] + w</span>
+<span class="code-line" data-line="9"></span>
+<span class="code-line" data-line="10">    # extra round: still improving => negative cycle</span>
+<span class="code-line" data-line="11">    neg = any(dist[u] + w &lt; dist[v] for u, v, w in edges)</span>
+<span class="code-line" data-line="12">    return dist, neg</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive Bellman-Ford trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="bf-graph" viewBox="0 0 520 260" width="100%" role="img" aria-label="Bellman-Ford trace over a graph with a negative cycle">
+              <defs>
+                <style>
+                  .bfg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .bfg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .bfg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .bfg-node.done { fill: #315efb; }
+                  .bfg-node.tentative { fill: #13a46b; }
+                  .bfg-node.current { fill: #ff9f1c; }
+                  .bfg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .bfg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                  .bfg-weight { font: 700 13px Inter, Arial, sans-serif; fill: #172033; }
+                  .bfg-wbg { fill: #ffffff; stroke: #d9e1ef; }
+                </style>
+              </defs>
+              <text x="16" y="20" class="bfg-title">Edge currently relaxed</text>
+              <line x1="260" y1="50" x2="130" y2="220" class="bfg-base-edge" />
+              <line x1="130" y1="220" x2="390" y2="220" class="bfg-base-edge" />
+              <line x1="390" y1="220" x2="260" y2="50" class="bfg-base-edge" />
+              <line x1="260" y1="50" x2="130" y2="220" class="bfg-active-edge" data-bf-edge="A-B" visibility="hidden" />
+              <line x1="130" y1="220" x2="390" y2="220" class="bfg-active-edge" data-bf-edge="B-C" visibility="hidden" />
+              <line x1="390" y1="220" x2="260" y2="50" class="bfg-active-edge" data-bf-edge="C-A" visibility="hidden" />
+              <rect x="185" y="127" width="24" height="18" rx="4" class="bfg-wbg" />
+              <text x="190" y="141" class="bfg-weight">1</text>
+              <rect x="250" y="212" width="30" height="18" rx="4" class="bfg-wbg" />
+              <text x="254" y="226" class="bfg-weight">-1</text>
+              <rect x="311" y="127" width="30" height="18" rx="4" class="bfg-wbg" />
+              <text x="315" y="141" class="bfg-weight">-1</text>
+              <circle cx="260" cy="50" r="26" class="bfg-node" data-node="A" />
+              <circle cx="130" cy="220" r="26" class="bfg-node" data-node="B" />
+              <circle cx="390" cy="220" r="26" class="bfg-node" data-node="C" />
+              <text x="253" y="56" class="bfg-label">A</text>
+              <text x="123" y="226" class="bfg-label">B</text>
+              <text x="383" y="226" class="bfg-label">C</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> edge being relaxed / its endpoints</span>
+            <span><i class="dot dot-green"></i> distance improved at least once</span>
+            <span><i class="dot dot-blue"></i> settled once the loop fully finishes</span>
+            <span><i class="dot dot-gray"></i> still infinity, not yet reached</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="bf-step-title">Initial state</h3>
+          <p id="bf-step-text">dist[A] = 0; every other vertex starts at infinity.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="bf-prev">Previous</button>
+            <button type="button" id="bf-play" class="primary">Resume</button>
+            <button type="button" id="bf-next">Next</button>
+            <button type="button" id="bf-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="bf-step-counter">Step 0 / 10</span>
+            <div class="progress"><span id="bf-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Round</strong><div class="state-value" id="bf-round">—</div></div>
+            <div class="state-box"><strong>Edge relaxed</strong><div class="state-value" id="bf-edge">—</div></div>
+            <div class="state-box"><strong>Relaxation check</strong><div class="state-value" id="bf-check">—</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="bf-action">dist[A]=0, dist[B]=dist[C]=&#8734;</div></div>
+          </div>
+          <div class="table-wrap" style="margin-top:14px;">
+            <table>
+              <thead><tr><th>Vertex</th><th>A</th><th>B</th><th>C</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>dist</td>
+                  <td class="state-value" id="bf-dist-A">0</td>
+                  <td class="state-value" id="bf-dist-B">&#8734;</td>
+                  <td class="state-value" id="bf-dist-C">&#8734;</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="explainer">
+            <p id="bf-detail"><strong>What changed:</strong> dist is initialized; the main double loop has not started yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="bf-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Round</th><th>Edge</th><th>Check</th><th>dist after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>—</td><td>Initialize</td><td><code>{A:0,B:&#8734;,C:&#8734;}</code></td></tr>
+            <tr data-step="1"><td>1</td><td>1 of 2</td><td>A&rarr;B (w=1)</td><td>0+1=1 &lt; &#8734; &rarr; improve</td><td><code>{A:0,B:1,C:&#8734;}</code></td></tr>
+            <tr data-step="2"><td>2</td><td>1 of 2</td><td>B&rarr;C (w=-1)</td><td>1+(-1)=0 &lt; &#8734; &rarr; improve</td><td><code>{A:0,B:1,C:0}</code></td></tr>
+            <tr data-step="3"><td>3</td><td>1 of 2</td><td>C&rarr;A (w=-1)</td><td>0+(-1)=-1 &lt; 0 &rarr; improve</td><td><code>{A:-1,B:1,C:0}</code></td></tr>
+            <tr data-step="4"><td>4</td><td>2 of 2</td><td>A&rarr;B (w=1)</td><td>-1+1=0 &lt; 1 &rarr; improve</td><td><code>{A:-1,B:0,C:0}</code></td></tr>
+            <tr data-step="5"><td>5</td><td>2 of 2</td><td>B&rarr;C (w=-1)</td><td>0+(-1)=-1 &lt; 0 &rarr; improve</td><td><code>{A:-1,B:0,C:-1}</code></td></tr>
+            <tr data-step="6"><td>6</td><td>2 of 2</td><td>C&rarr;A (w=-1)</td><td>-1+(-1)=-2 &lt; -1 &rarr; improve</td><td><code>{A:-2,B:0,C:-1}</code></td></tr>
+            <tr data-step="7"><td>7</td><td>extra (check)</td><td>A&rarr;B (w=1)</td><td>-2+1=-1 &lt; 0 &rarr; STILL improves!</td><td><code>{A:-2,B:0,C:-1}</code> (unchanged)</td></tr>
+            <tr data-step="8"><td>8</td><td>extra (check)</td><td>B&rarr;C (w=-1)</td><td>0+(-1)=-1, not &lt; -1 &rarr; no change</td><td><code>{A:-2,B:0,C:-1}</code></td></tr>
+            <tr data-step="9"><td>9</td><td>extra (check)</td><td>C&rarr;A (w=-1)</td><td>-1+(-1)=-2, not &lt; -2 &rarr; no change</td><td><code>{A:-2,B:0,C:-1}</code></td></tr>
+            <tr data-step="10"><td>10</td><td>—</td><td>—</td><td>return dist, True &mdash; negative cycle confirmed</td><td><code>{A:-2,B:0,C:-1}</code> (not meaningful)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Bellman-Ford never locks a vertex in early. dist[A] changes on rounds 1 <em>and</em> 2 here — nothing is trustworthy until every round has run, which is exactly the opposite of Dijkstra's early-lock guarantee.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common Bellman-Ford mistake</h4>
+          <p>Stopping after fewer than <code>V-1</code> rounds, or skipping the extra round entirely — without it, a negative cycle silently produces wrong-looking-but-plausible distances instead of an honest "undefined" answer.</p>
+        </div>
+        <div class="card">
+          <h4>Why the extra round matters</h4>
+          <p>After <code>V-1</code> rounds every simple shortest path is settled. If a <code>V</code>-th round still finds an improvement, that improvement can only be coming from a cycle — one with negative total weight.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Unreachable node</button>
+        <button type="button" data-example-tab="1">Negative edge breaks Dijkstra</button>
+        <button type="button" data-example-tab="2">Negative cycle</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: a node that can't be reached</h3>
+          <p><code>adj = {A: [(B, 2)], B: [], C: []}</code>, start = <code>A</code></p>
+          <div class="result-badge">dist = {A:0, B:2} — C stays at infinity</div>
+          <p class="footer-note"><code>C</code> is never pushed onto the heap, so it is never even considered. <code>dist.get('C', float('inf'))</code> returns infinity forever — that is correct, because no path to <code>C</code> exists. Beginners sometimes expect a <code>KeyError</code> here; the code is written to avoid one on purpose with <code>.get(...)</code>.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: one negative edge, wrong Dijkstra answer</h3>
+          <p><code>adj = {A: [(B,4),(C,5)], B: [], C: [(B,-3)]}</code>, start = <code>A</code></p>
+          <div class="result-badge">Dijkstra: dist[B] = 4 (WRONG) · Bellman-Ford: dist[B] = 2 (correct)</div>
+          <p class="footer-note">Dijkstra pops <code>A(0)</code>, then <code>B(4)</code> — and finalizes <code>B</code> right there. The cheaper route <code>A&rarr;C&rarr;B = 5 + (-3) = 2</code> is only discovered afterward, when <code>C</code> is popped, but <code>B</code> is already locked and the code explicitly skips relaxing a finalized vertex. Bellman-Ford has no such lock, so it finds the true answer.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: a negative cycle</h3>
+          <p><code>edges = [(A,B,1), (B,C,-1), (C,A,-1)]</code> — the loop A&rarr;B&rarr;C&rarr;A sums to <code>1 + (-1) + (-1) = -1</code></p>
+          <div class="result-badge">Bellman-Ford: negative cycle detected — no shortest path is well-defined</div>
+          <p class="footer-note">Distances keep shrinking every round instead of settling (dist[A] goes 0 &rarr; -1 &rarr; -2 &rarr; ... and would never stop). The extra, <code>V</code>-th round still finds an improvement on edge <code>A&rarr;B</code>, which is exactly the signal Bellman-Ford uses to report "no answer exists" instead of returning a plausible-looking but meaningless number.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Weights allowed</th><th>Negative cycles</th><th>Time</th><th>Space</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>BFS</td><td>none / all equal</td><td>n/a</td><td>O(V+E)</td><td>O(V)</td></tr>
+            <tr><td>Dijkstra (min-heap)</td><td>non-negative only</td><td>can't detect, silently wrong</td><td>O((V+E) log V)</td><td>O(V+E)</td></tr>
+            <tr><td>Bellman-Ford</td><td>any, including negative</td><td>detects</td><td>O(V&middot;E)</td><td>O(V+E)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">Every method builds the same kind of answer — a <code>dist</code> map from start to every vertex — using the same relaxation rule. They differ only in what order they're willing to apply it, and what that order costs and guarantees.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>Edges have different costs, so BFS's "fewest hops" guarantee breaks down.</p></div>
+            <div class="timeline-step"><p>The repeated operation everything reduces to is relaxation: can I reach v more cheaply through u?</p></div>
+            <div class="timeline-step"><p>Are weights guaranteed non-negative? If yes, I can be greedy: always expand the closest known vertex next, using a min-heap. That's Dijkstra.</p></div>
+            <div class="timeline-step"><p>If negative weights are possible, greedy breaks — a negative edge found later could undercut a vertex I already locked in.</p></div>
+            <div class="timeline-step"><p>So instead I relax every edge, blindly, for V-1 rounds — guaranteed enough for any simple shortest path. That's Bellman-Ford.</p></div>
+            <div class="timeline-step"><p>One more round tells me whether a negative cycle exists: if anything still improves, there is no bottom to the cost.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"I need cheapest total cost, not fewest edges, so plain BFS is out."</li>
+            <li>"If weights are non-negative, Dijkstra's greedy pop is safe — the closest vertex found so far can never be beaten later, because nothing can subtract from a path."</li>
+            <li>"If weights can be negative, I can't trust a greedy lock-in, so I fall back to relaxing every edge for V-1 rounds — slower, but always correct."</li>
+            <li>"One extra round of relaxation is a cheap way to prove a negative cycle exists: if anything still improves, the answer is undefined, not just unfound."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Dijkstra mistakes</h3>
+          <ul class="mistake-list">
+            <li>Running it on a graph with negative weights and trusting the answer without checking.</li>
+            <li>Forgetting the stale-entry check (<code>if u in done: continue</code>) and re-processing outdated heap entries.</li>
+            <li>Marking a vertex "done" the moment it's pushed onto the heap instead of when it's popped — a pushed value is only a candidate.</li>
+            <li>Using <code>dist[v]</code> directly instead of <code>dist.get(v, float('inf'))</code>, causing a <code>KeyError</code> on an unreached vertex.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Bellman-Ford mistakes</h3>
+          <ul class="mistake-list">
+            <li>Stopping after 1 round instead of <code>V-1</code> — distances that need more hops to propagate haven't converged yet.</li>
+            <li>Forgetting the extra <code>V</code>-th round entirely, so negative cycles go undetected and wrong distances are returned silently.</li>
+            <li>Mutating <code>dist</code> during the negative-cycle check pass — that pass must only <em>check</em>, never apply, or you get false positives.</li>
+            <li>Assuming a "lucky" edge order converges in fewer than <code>V-1</code> rounds — worst-case ordering genuinely needs every round.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — In the main Dijkstra trace, C is pushed onto the heap twice: once at distance 4 (via A), once at distance 3 (via B). What happens to the distance-4 entry, and is it a bug?</summary>
+          <p style="margin-top:10px;">Answer: no bug. By the time <code>(4, C)</code> reaches the front of the heap, <code>C</code> has already been finalized at its true distance of 3 (popped as <code>(3, C)</code> one step earlier). The <code>if u in done: continue</code> check catches the stale duplicate and skips it — <code>dist[C]</code> is never touched again. This is exactly why lazy deletion is safe: a stale entry does nothing except get thrown away.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — A graph has 6 vertices and no negative weights. What's the maximum number of times <code>heapq.heappush</code> can run, and why isn't that bound simply "V"?</summary>
+          <p style="margin-top:10px;">Answer: up to <code>E</code> times — once for every edge that turns out to be an improving relaxation — not <code>V</code> times. Python's <code>heapq</code> has no cheap "decrease-key," so a vertex that keeps getting cheaper paths before it is ever popped gets pushed again and again, rather than having one entry updated in place. That is exactly why the heap can hold more than <code>V</code> live entries at once, and why the stale-entry check on pop is mandatory, not optional.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — You run Dijkstra believing all weights are non-negative, but one edge is secretly -1. The output distances still look correct. Does that mean the negative edge was handled safely?</summary>
+          <p style="margin-top:10px;">Answer: no — it got lucky. Whether the bug shows up depends entirely on whether the negative edge's discount would have reached a vertex that was <em>already finalized</em> before that edge got a chance to relax it. If the negative edge's target hasn't been popped yet when the edge is relaxed, the wrong assumption never actually gets exercised. You cannot know that in advance just by looking at the output — "looks right" and "is correct" are not the same guarantee once a negative weight is in play.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          Both algorithms answer the same question — "what is the cheapest way to reach each vertex?" — using the same
+          core move: relaxation. <strong>Dijkstra earns its speed by being greedy</strong>: pop the closest unfinished
+          vertex, lock it in, never look back. That lock is only safe because weights can't be negative. <strong>Bellman-Ford
+          gives up the greedy shortcut</strong> and relaxes every edge, <code>V-1</code> times, so it never has to trust
+          an early guess — and one extra round turns that same patience into a proof that a negative cycle exists.
+        </p>
+      </div>
+      <p class="footer-note">Traced against the runnable <code>dijkstra</code> and <code>bellman_ford</code> functions from the companion notebook (<code>08_weighted_shortest_paths.ipynb</code>) — every distance shown here was verified by running the real algorithm in Python, not hand-computed.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const dijSteps = [
+        { step: 0, title: 'Initial state', text: 'The heap is seeded with the start vertex A at distance 0. Nothing is finalized yet.', heap: '[(0,A)]', popped: '—', done: '{}', action: 'dist = {A: 0}, done = {}, pq = [(0,A)]', dist: { A: '0', B: '∞', C: '∞', D: '∞', E: '∞' }, doneNodes: [], tentativeNodes: ['A'], currentNode: null, activeEdges: [], detail: 'The priority queue holds only the start vertex, so nothing has been popped yet.', lines: [4, 5, 6] },
+        { step: 1, title: 'Step 1: pop A (distance 0)', text: 'A is finalized immediately. Relax both of its outgoing edges: A→B and A→C both improve, since B and C start at infinity.', heap: '[(1,B),(4,C)]', popped: '(0,A)', done: '{A}', action: 'Finalize A. Relax A→B: 0+1=1<∞ improve. Relax A→C: 0+4=4<∞ improve.', dist: { A: '0', B: '1', C: '4', D: '∞', E: '∞' }, doneNodes: ['A'], tentativeNodes: ['B', 'C'], currentNode: 'A', activeEdges: ['A-B', 'A-C'], detail: 'Two heap entries get pushed: (1,B) and (4,C). Both are only candidates until popped.', lines: [8, 9, 11, 12, 13, 15, 16, 17, 18] },
+        { step: 2, title: 'Step 2: pop B (distance 1)', text: 'B is the closest unfinished vertex, so it is finalized next. Relaxing B→C finds a cheaper route to C (3 instead of 4) — that update will make the earlier (4,C) entry stale.', heap: '[(3,C),(4,C),(6,D)]', popped: '(1,B)', done: '{A,B}', action: 'Finalize B. Relax B→C: 1+2=3<4 improve. Relax B→D: 1+5=6<∞ improve.', dist: { A: '0', B: '1', C: '3', D: '6', E: '∞' }, doneNodes: ['A', 'B'], tentativeNodes: ['C', 'D'], currentNode: 'B', activeEdges: ['B-C', 'B-D'], detail: 'The heap now holds two entries for C — (3,C) and (4,C) — because heapq cannot update an entry in place.', lines: [8, 9, 11, 12, 13, 15, 16, 17, 18] },
+        { step: 3, title: 'Step 3: pop C (distance 3)', text: 'The cheaper (3,C) entry surfaces first, so C is finalized at its true distance. Relaxing C→D improves D from 6 to 4.', heap: '[(4,C),(4,D),(6,D)]', popped: '(3,C)', done: '{A,B,C}', action: 'Finalize C. Relax C→D: 3+1=4<6 improve.', dist: { A: '0', B: '1', C: '3', D: '4', E: '∞' }, doneNodes: ['A', 'B', 'C'], tentativeNodes: ['D'], currentNode: 'C', activeEdges: ['C-D'], detail: 'D now also has two live heap entries: (4,D) and (6,D).', lines: [8, 9, 11, 12, 13, 15, 16, 17, 18] },
+        { step: 4, title: 'Step 4: pop (4,C) — stale entry', text: 'This is the leftover entry from step 1. C is already in done, so this pop is skipped entirely — nothing about dist changes.', heap: '[(4,D),(6,D)]', popped: '(4,C)', done: '{A,B,C}', action: 'C already finalized → stale entry, skip.', dist: { A: '0', B: '1', C: '3', D: '4', E: '∞' }, doneNodes: ['A', 'B', 'C'], tentativeNodes: ['D'], currentNode: 'C', activeEdges: [], detail: 'This is the payoff of the stale-entry check: the outdated (4,C) does no damage, it is simply discarded.', lines: [8, 9, 10] },
+        { step: 5, title: 'Step 5: pop D (distance 4)', text: 'The cheaper (4,D) entry surfaces first, so D is finalized at 4. Relaxing D→E gives E its first (and only) distance.', heap: '[(6,D),(7,E)]', popped: '(4,D)', done: '{A,B,C,D}', action: 'Finalize D. Relax D→E: 4+3=7<∞ improve.', dist: { A: '0', B: '1', C: '3', D: '4', E: '7' }, doneNodes: ['A', 'B', 'C', 'D'], tentativeNodes: ['E'], currentNode: 'D', activeEdges: ['D-E'], detail: 'Every vertex except E is now finalized. The stale (6,D) entry is still sitting in the heap.', lines: [8, 9, 11, 12, 13, 15, 16, 17, 18] },
+        { step: 6, title: 'Step 6: pop (6,D) — stale entry', text: 'The leftover entry from step 2 surfaces. D is already done, so it is skipped just like step 4.', heap: '[(7,E)]', popped: '(6,D)', done: '{A,B,C,D}', action: 'D already finalized → stale entry, skip.', dist: { A: '0', B: '1', C: '3', D: '4', E: '7' }, doneNodes: ['A', 'B', 'C', 'D'], tentativeNodes: ['E'], currentNode: 'D', activeEdges: [], detail: 'Two stale entries have now appeared in this trace — both harmless, both caught by the same one-line check.', lines: [8, 9, 10] },
+        { step: 7, title: 'Step 7: pop E (distance 7)', text: 'E is finalized. It has no outgoing edges, so the inner for-loop does nothing this time.', heap: '[]', popped: '(7,E)', done: '{A,B,C,D,E}', action: 'Finalize E. No outgoing edges to relax.', dist: { A: '0', B: '1', C: '3', D: '4', E: '7' }, doneNodes: ['A', 'B', 'C', 'D', 'E'], tentativeNodes: [], currentNode: 'E', activeEdges: [], detail: 'Every vertex is now finalized and the heap is empty.', lines: [8, 9, 11, 12] },
+        { step: 8, title: 'Step 8: heap empty — done', text: 'The while loop exits because the heap has nothing left. The function returns the finished dist dictionary.', heap: '[]', popped: '—', done: '{A,B,C,D,E}', action: 'return dist', dist: { A: '0', B: '1', C: '3', D: '4', E: '7' }, doneNodes: ['A', 'B', 'C', 'D', 'E'], tentativeNodes: [], currentNode: null, activeEdges: [], detail: 'Final answer: A=0, B=1, C=3, D=4, E=7 — matching the notebook assertion exactly.', lines: [19] }
+      ];
+
+      const bfSteps = [
+        { step: 0, title: 'Initial state', text: 'dist[A] is set to 0. Every other vertex starts at infinity, since no path to them is known yet.', round: '—', edge: '—', check: '—', action: 'dist[A]=0, dist[B]=dist[C]=∞', dist: { A: '0', B: '∞', C: '∞' }, tentativeNodes: [], doneNodes: [], currentEdge: null, detail: 'dist is initialized; the main double loop has not started yet.', lines: [2, 3] },
+        { step: 1, title: 'Round 1, edge A→B', text: 'The outer loop begins its first full pass over every edge. A→B is relaxed: dist[A]+1 beats the current ∞ at B.', round: '1 of 2', edge: 'A→B (w=1)', check: '0 + 1 = 1 < ∞ → improve', action: 'dist[B] = 1', dist: { A: '0', B: '1', C: '∞' }, tentativeNodes: ['B'], doneNodes: [], currentEdge: 'A-B', detail: 'B gets its first real distance.', lines: [6, 7, 8] },
+        { step: 2, title: 'Round 1, edge B→C', text: 'Still round 1. B→C is relaxed next: dist[B]+(-1) beats the current ∞ at C.', round: '1 of 2', edge: 'B→C (w=-1)', check: '1 + (-1) = 0 < ∞ → improve', action: 'dist[C] = 0', dist: { A: '0', B: '1', C: '0' }, tentativeNodes: ['B', 'C'], doneNodes: [], currentEdge: 'B-C', detail: 'A negative weight is applied here exactly like a positive one — the relaxation rule does not care about sign.', lines: [6, 7, 8] },
+        { step: 3, title: 'Round 1, edge C→A', text: 'Last edge of round 1. C→A is relaxed: dist[C]+(-1) beats the current dist[A]=0. Even the start vertex gets updated.', round: '1 of 2', edge: 'C→A (w=-1)', check: '0 + (-1) = -1 < 0 → improve', action: 'dist[A] = -1', dist: { A: '-1', B: '1', C: '0' }, tentativeNodes: ['B', 'C'], doneNodes: [], currentEdge: 'C-A', detail: 'This is only possible because of the cycle A→B→C→A. Round 1 is now complete but nothing is "final" yet.', lines: [6, 7, 8] },
+        { step: 4, title: 'Round 2, edge A→B', text: 'Round 2 begins. A→B is checked again — because dist[A] itself changed to -1 in round 1, this edge can improve B again.', round: '2 of 2', edge: 'A→B (w=1)', check: '-1 + 1 = 0 < 1 → improve', action: 'dist[B] = 0', dist: { A: '-1', B: '0', C: '0' }, tentativeNodes: ['B', 'C'], doneNodes: [], currentEdge: 'A-B', detail: 'This is the core difference from Dijkstra: B was never "locked in" after round 1, so it is free to improve again.', lines: [6, 7, 8] },
+        { step: 5, title: 'Round 2, edge B→C', text: 'B→C is relaxed again with the new, lower dist[B].', round: '2 of 2', edge: 'B→C (w=-1)', check: '0 + (-1) = -1 < 0 → improve', action: 'dist[C] = -1', dist: { A: '-1', B: '0', C: '-1' }, tentativeNodes: ['B', 'C'], doneNodes: [], currentEdge: 'B-C', detail: 'Every distance keeps dropping round after round — a warning sign of a negative cycle.', lines: [6, 7, 8] },
+        { step: 6, title: 'Round 2, edge C→A', text: 'Last edge of round 2. C→A improves dist[A] again, from -1 down to -2.', round: '2 of 2', edge: 'C→A (w=-1)', check: '-1 + (-1) = -2 < -1 → improve', action: 'dist[A] = -2', dist: { A: '-2', B: '0', C: '-1' }, tentativeNodes: ['B', 'C'], doneNodes: [], currentEdge: 'C-A', detail: 'Both required rounds (V-1 = 2) are done, but distances are still changing — that should not happen on a graph without a negative cycle.', lines: [6, 7, 8] },
+        { step: 7, title: 'Extra round, edge A→B', text: 'A V-th relaxation pass runs purely as a check. A→B still improves dist[B] — that is only possible if a negative cycle is reachable.', round: 'extra (check)', edge: 'A→B (w=1)', check: '-2 + 1 = -1 < 0 → STILL improves!', action: 'Negative cycle confirmed — dist is not modified, only checked', dist: { A: '-2', B: '0', C: '-1' }, tentativeNodes: ['B', 'C'], doneNodes: [], currentEdge: 'A-B', detail: 'This single "yes" is enough: neg becomes True and stays True for the rest of the check.', lines: [11] },
+        { step: 8, title: 'Extra round, edge B→C', text: 'The check continues over the remaining edges (Python\'s any() would actually stop early — shown here for completeness). This one no longer improves.', round: 'extra (check)', edge: 'B→C (w=-1)', check: '0 + (-1) = -1, not < -1 → no change', action: 'No further improvement from this edge', dist: { A: '-2', B: '0', C: '-1' }, tentativeNodes: ['B', 'C'], doneNodes: [], currentEdge: 'B-C', detail: 'This edge happens to already be consistent with the current (still-shifting) distances.', lines: [11] },
+        { step: 9, title: 'Extra round, edge C→A', text: 'Last edge checked. C→A also shows no further improvement at this exact moment.', round: 'extra (check)', edge: 'C→A (w=-1)', check: '-1 + (-1) = -2, not < -2 → no change', action: 'neg = True (already set by step 7)', dist: { A: '-2', B: '0', C: '-1' }, tentativeNodes: ['B', 'C'], doneNodes: [], currentEdge: 'C-A', detail: 'It does not matter that this edge shows no change — one improving edge in the extra round was already enough.', lines: [11] },
+        { step: 10, title: 'Done — negative cycle confirmed', text: 'The function returns (dist, True). Because a negative cycle is reachable from A, "shortest path" has no well-defined answer — the dist values above are just whatever the loop last computed, not real shortest-path costs.', round: '—', edge: '—', check: '—', action: 'return dist, True', dist: { A: '-2', B: '0', C: '-1' }, tentativeNodes: [], doneNodes: ['A', 'B', 'C'], currentEdge: null, detail: 'This is the entire point of the extra round: proving the absence of a valid answer, not just failing to find one.', lines: [12] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function setDistTable(prefix, distObj, doneNodes, tentativeNodes) {
+        Object.keys(distObj).forEach((v) => {
+          const cell = document.getElementById(`${prefix}-dist-${v}`);
+          if (!cell) return;
+          cell.textContent = distObj[v];
+          if (doneNodes.includes(v)) {
+            cell.style.background = 'var(--accent-soft)';
+            cell.style.color = 'var(--accent)';
+            cell.style.fontWeight = '800';
+          } else if (tentativeNodes.includes(v)) {
+            cell.style.background = 'var(--good-soft)';
+            cell.style.color = 'var(--good)';
+            cell.style.fontWeight = '800';
+          } else {
+            cell.style.background = '';
+            cell.style.color = '';
+            cell.style.fontWeight = '';
+          }
+        });
+      }
+
+      function renderDij(step, index, max) {
+        document.getElementById('dij-step-title').textContent = step.title;
+        document.getElementById('dij-step-text').textContent = step.text;
+        document.getElementById('dij-heap').textContent = step.heap;
+        document.getElementById('dij-popped').textContent = step.popped;
+        document.getElementById('dij-done').textContent = step.done;
+        document.getElementById('dij-action').textContent = step.action;
+        document.getElementById('dij-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('dij-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('dij-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('dij-trace-table', step.step);
+        setCodeHighlight('dij-code', step.lines);
+        setDistTable('dij', step.dist, step.doneNodes, step.tentativeNodes);
+
+        document.querySelectorAll('#dij-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('done', 'tentative', 'current');
+          if (step.doneNodes.includes(id)) node.classList.add('done');
+          if (step.tentativeNodes.includes(id)) node.classList.add('tentative');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#dij-graph [data-dij-edge]').forEach((line) => {
+          line.setAttribute('visibility', step.activeEdges.includes(line.dataset.dijEdge) ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderBF(step, index, max) {
+        document.getElementById('bf-step-title').textContent = step.title;
+        document.getElementById('bf-step-text').textContent = step.text;
+        document.getElementById('bf-round').textContent = step.round;
+        document.getElementById('bf-edge').textContent = step.edge;
+        document.getElementById('bf-check').textContent = step.check;
+        document.getElementById('bf-action').textContent = step.action;
+        document.getElementById('bf-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('bf-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('bf-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('bf-trace-table', step.step);
+        setCodeHighlight('bf-code', step.lines);
+        setDistTable('bf', step.dist, step.doneNodes, step.tentativeNodes);
+
+        const endpoints = step.currentEdge ? step.currentEdge.split('-') : [];
+        document.querySelectorAll('#bf-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('done', 'tentative', 'current');
+          if (step.doneNodes.includes(id)) node.classList.add('done');
+          if (step.tentativeNodes.includes(id)) node.classList.add('tentative');
+          if (endpoints.includes(id)) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#bf-graph [data-bf-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.bfEdge === step.currentEdge ? 'visible' : 'hidden');
+        });
+      }
+
+      setupTrace({ steps: dijSteps, prefix: 'dij', render: renderDij });
+      setupTrace({ steps: bfSteps, prefix: 'bf', render: renderBF });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

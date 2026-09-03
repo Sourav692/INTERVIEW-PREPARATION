@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Number of Connected Components — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Graph basics · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Number of Connected Components in an Undirected Graph</h1>
+          <p>
+            This page explains the problem like an instructor would: what the problem means, why it matters, how the graph is built, how DFS and Union-Find change state step by step, and how to reason about edge cases in interviews.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: count separate groups</span>
+            <span class="chip">Interactive DFS trace</span>
+            <span class="chip">Interactive Union-Find trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>n = 5</code>, <code>edges = [[0,1],[1,2],[3,4]]</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 520 220" width="100%" role="img" aria-label="Graph with two connected components">
+              <defs>
+                <style>
+                  .edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; }
+                  .nodeA { fill: #315efb; }
+                  .nodeB { fill: #13a46b; }
+                  .label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="52" y="36" class="title">Component A</text>
+              <text x="350" y="36" class="title">Component B</text>
+              <line x1="90" y1="105" x2="190" y2="105" class="edge" />
+              <line x1="190" y1="105" x2="290" y2="105" class="edge" />
+              <line x1="370" y1="105" x2="460" y2="105" class="edge" />
+              <circle cx="90" cy="105" r="26" class="nodeA" />
+              <circle cx="190" cy="105" r="26" class="nodeA" />
+              <circle cx="290" cy="105" r="26" class="nodeA" />
+              <circle cx="370" cy="105" r="26" class="nodeB" />
+              <circle cx="460" cy="105" r="26" class="nodeB" />
+              <text x="83" y="111" class="label">0</text>
+              <text x="183" y="111" class="label">1</text>
+              <text x="283" y="111" class="label">2</text>
+              <text x="363" y="111" class="label">3</text>
+              <text x="453" y="111" class="label">4</text>
+            </svg>
+          </div>
+          <div class="result-badge">Answer = 2 connected components</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this problem matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Social network groups</h3>
+          <p>Count separate friend circles or communities.</p>
+        </div>
+        <div class="card">
+          <h3>Computer networks</h3>
+          <p>Detect how many isolated clusters of machines exist.</p>
+        </div>
+        <div class="card">
+          <h3>Pattern reuse</h3>
+          <p>The same idea appears in Number of Islands, Provinces, and Accounts Merge.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> this is not just one LeetCode problem. It teaches the bigger graph pattern: <strong>identify separate groups in connected data</strong>.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a connected component?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>A connected component is one full cluster of nodes where every node can reach every other node in that cluster.</p>
+        </div>
+        <div class="card">
+          <h3>What you are counting</h3>
+          <p>You are not counting edges. You are counting how many separate islands remain after all valid connections are considered.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if the graph breaks into two separate islands, the answer is <code>2</code>. If all nodes are reachable from one another, the answer is <code>1</code>.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Start with all nodes</h3>
+          <p>Look at every node from <code>0</code> to <code>n-1</code>, even if some nodes never appear in the edge list.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Read each edge</h3>
+          <p>Every edge says that two nodes should belong to the same component.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Merge or explore</h3>
+          <p>Union-Find merges components. DFS explores one full component at a time.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Count groups</h3>
+          <p>Whatever number of separate groups remains at the end is the final answer.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes a graph</h2>
+      <p>This is where many beginners get stuck. Before DFS starts, convert the edge list into an adjacency list.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input edges</h3>
+          <div class="code-block"><code>edges = [[0,1],[1,2],[3,4]]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Adjacency list</h3>
+          <div class="code-block"><code>0: [1]
+1: [0, 2]
+2: [1]
+3: [4]
+4: [3]</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Read edge <code>(0,1)</code></h4>
+          <p>Add <code>1</code> to node <code>0</code>'s list, and add <code>0</code> to node <code>1</code>'s list.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read edge <code>(1,2)</code></h4>
+          <p>Add <code>2</code> to node <code>1</code>'s list, and add <code>1</code> to node <code>2</code>'s list.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read edge <code>(3,4)</code></h4>
+          <p>Add <code>4</code> to node <code>3</code>'s list, and add <code>3</code> to node <code>4</code>'s list.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> because the graph is undirected, every edge must be added in <strong>both directions</strong>.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: DFS traversal</h2>
+      <p>Build the adjacency list. Then scan every node. Whenever a node is unseen, start DFS from it. That fresh start means you found a new component.</p>
+      <div class="code-block stepped">
+        <code id="dfs-code">
+<span class="code-line" data-line="1">from collections import defaultdict</span>
+<span class="code-line" data-line="2"></span>
+<span class="code-line" data-line="3">def count_components_dfs(n, edges):</span>
+<span class="code-line" data-line="4">    graph = defaultdict(list)</span>
+<span class="code-line" data-line="5"></span>
+<span class="code-line" data-line="6">    for a, b in edges:</span>
+<span class="code-line" data-line="7">        graph[a].append(b)</span>
+<span class="code-line" data-line="8">        graph[b].append(a)</span>
+<span class="code-line" data-line="9"></span>
+<span class="code-line" data-line="10">    seen = set()</span>
+<span class="code-line" data-line="11">    count = 0</span>
+<span class="code-line" data-line="12"></span>
+<span class="code-line" data-line="13">    for i in range(n):</span>
+<span class="code-line" data-line="14">        if i not in seen:</span>
+<span class="code-line" data-line="15">            count += 1</span>
+<span class="code-line" data-line="16">            stack = [i]</span>
+<span class="code-line" data-line="17"></span>
+<span class="code-line" data-line="18">            while stack:</span>
+<span class="code-line" data-line="19">                node = stack.pop()</span>
+<span class="code-line" data-line="20">                if node in seen:</span>
+<span class="code-line" data-line="21">                    continue</span>
+<span class="code-line" data-line="22">                seen.add(node)</span>
+<span class="code-line" data-line="23"></span>
+<span class="code-line" data-line="24">                for nb in graph[node]:</span>
+<span class="code-line" data-line="25">                    if nb not in seen:</span>
+<span class="code-line" data-line="26">                        stack.append(nb)</span>
+<span class="code-line" data-line="27"></span>
+<span class="code-line" data-line="28">    return count</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive DFS trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="dfs-graph" viewBox="0 0 520 240" width="100%" role="img" aria-label="DFS graph trace">
+              <defs>
+                <style>
+                  .dfs-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .dfs-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .dfs-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .dfs-node.seen { fill: #315efb; }
+                  .dfs-node.current { fill: #ff9f1c; }
+                  .dfs-node.frontier { fill: #13a46b; }
+                  .dfs-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .dfs-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="28" class="dfs-title">Current DFS movement</text>
+              <line x1="90" y1="120" x2="190" y2="120" class="dfs-base-edge" />
+              <line x1="190" y1="120" x2="290" y2="120" class="dfs-base-edge" />
+              <line x1="370" y1="120" x2="460" y2="120" class="dfs-base-edge" />
+              <line x1="90" y1="120" x2="190" y2="120" class="dfs-active-edge" data-dfs-edge="0-1" visibility="hidden" />
+              <line x1="190" y1="120" x2="290" y2="120" class="dfs-active-edge" data-dfs-edge="1-2" visibility="hidden" />
+              <line x1="370" y1="120" x2="460" y2="120" class="dfs-active-edge" data-dfs-edge="3-4" visibility="hidden" />
+              <circle cx="90" cy="120" r="28" class="dfs-node" data-node="0" />
+              <circle cx="190" cy="120" r="28" class="dfs-node" data-node="1" />
+              <circle cx="290" cy="120" r="28" class="dfs-node" data-node="2" />
+              <circle cx="370" cy="120" r="28" class="dfs-node" data-node="3" />
+              <circle cx="460" cy="120" r="28" class="dfs-node" data-node="4" />
+              <text x="83" y="126" class="dfs-label">0</text>
+              <text x="183" y="126" class="dfs-label">1</text>
+              <text x="283" y="126" class="dfs-label">2</text>
+              <text x="363" y="126" class="dfs-label">3</text>
+              <text x="453" y="126" class="dfs-label">4</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current popped node</span>
+            <span><i class="dot dot-green"></i> nodes sitting in stack</span>
+            <span><i class="dot dot-blue"></i> already seen</span>
+            <span><i class="dot dot-gray"></i> not touched yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="dfs-step-title">Initial state</h3>
+          <p id="dfs-step-text">The adjacency list is built first. Nothing is visited yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="dfs-prev">Previous</button>
+            <button type="button" id="dfs-play" class="primary">Resume</button>
+            <button type="button" id="dfs-next">Next</button>
+            <button type="button" id="dfs-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="dfs-step-counter">Step 0 / 10</span>
+            <div class="progress"><span id="dfs-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box">
+              <strong>Outer loop index</strong>
+              <div class="state-value" id="dfs-i">—</div>
+            </div>
+            <div class="state-box">
+              <strong>Action</strong>
+              <div class="state-value" id="dfs-action">Build graph</div>
+            </div>
+            <div class="state-box">
+              <strong>Stack (top is rightmost)</strong>
+              <div class="state-value" id="dfs-stack">[]</div>
+            </div>
+            <div class="state-box">
+              <strong>Seen set</strong>
+              <div class="state-value" id="dfs-seen">{}</div>
+            </div>
+            <div class="state-box">
+              <strong>Current node popped</strong>
+              <div class="state-value" id="dfs-node">—</div>
+            </div>
+            <div class="state-box">
+              <strong>Component count</strong>
+              <div class="state-value" id="dfs-count">0</div>
+            </div>
+          </div>
+          <div class="explainer">
+            <p id="dfs-detail"><strong>What changed:</strong> we are ready to sweep nodes from left to right.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="dfs-trace-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Outer i</th>
+              <th>Action</th>
+              <th>Stack</th>
+              <th>Seen after</th>
+              <th>Count after</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>Graph built: <code>{0:[1],1:[0,2],2:[1],3:[4],4:[3]}</code></td><td><code>[]</code></td><td><code>{}</code></td><td><code>0</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>0</code></td><td><code>0</code> not seen → new component, <code>stack=[0]</code></td><td><code>[0]</code></td><td><code>{}</code></td><td><code>1</code></td></tr>
+            <tr data-step="2"><td>2</td><td>—</td><td>Pop <code>0</code>, mark seen, push <code>1</code></td><td><code>[1]</code></td><td><code>{0}</code></td><td><code>1</code></td></tr>
+            <tr data-step="3"><td>3</td><td>—</td><td>Pop <code>1</code>, skip <code>0</code>, push <code>2</code></td><td><code>[2]</code></td><td><code>{0,1}</code></td><td><code>1</code></td></tr>
+            <tr data-step="4"><td>4</td><td>—</td><td>Pop <code>2</code>, neighbor <code>1</code> already seen</td><td><code>[]</code></td><td><code>{0,1,2}</code></td><td><code>1</code></td></tr>
+            <tr data-step="5"><td>5</td><td><code>1</code></td><td><code>1</code> already seen → skip</td><td><code>[]</code></td><td><code>{0,1,2}</code></td><td><code>1</code></td></tr>
+            <tr data-step="6"><td>6</td><td><code>2</code></td><td><code>2</code> already seen → skip</td><td><code>[]</code></td><td><code>{0,1,2}</code></td><td><code>1</code></td></tr>
+            <tr data-step="7"><td>7</td><td><code>3</code></td><td><code>3</code> not seen → new component, <code>stack=[3]</code></td><td><code>[3]</code></td><td><code>{0,1,2}</code></td><td><code>2</code></td></tr>
+            <tr data-step="8"><td>8</td><td>—</td><td>Pop <code>3</code>, mark seen, push <code>4</code></td><td><code>[4]</code></td><td><code>{0,1,2,3}</code></td><td><code>2</code></td></tr>
+            <tr data-step="9"><td>9</td><td>—</td><td>Pop <code>4</code>, neighbor <code>3</code> already seen</td><td><code>[]</code></td><td><code>{0,1,2,3,4}</code></td><td><code>2</code></td></tr>
+            <tr data-step="10"><td>10</td><td><code>4</code></td><td><code>4</code> already seen → skip</td><td><code>[]</code></td><td><code>{0,1,2,3,4}</code></td><td><code>2</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Every time the outer loop finds an unseen node, that means a brand-new component has been found.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common DFS mistake</h4>
+          <p>Do not forget isolated nodes. That is why the loop must still check every node from <code>0</code> to <code>n-1</code>.</p>
+        </div>
+        <div class="card">
+          <h4>Why stack matters</h4>
+          <p>The stack shows which node DFS will process next. Watching it change helps you see the traversal happen.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Union-Find</h2>
+      <p>Start with every node in its own group. When an edge joins two different groups, merge them and reduce the component count by one.</p>
+      <div class="code-block stepped">
+        <code id="uf-code">
+<span class="code-line" data-line="1">def count_components_uf(n, edges):</span>
+<span class="code-line" data-line="2">    parent = list(range(n))</span>
+<span class="code-line" data-line="3">    count = n</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    def find(x):</span>
+<span class="code-line" data-line="6">        while parent[x] != x:</span>
+<span class="code-line" data-line="7">            parent[x] = parent[parent[x]]</span>
+<span class="code-line" data-line="8">            x = parent[x]</span>
+<span class="code-line" data-line="9">        return x</span>
+<span class="code-line" data-line="10"></span>
+<span class="code-line" data-line="11">    for a, b in edges:</span>
+<span class="code-line" data-line="12">        ra, rb = find(a), find(b)</span>
+<span class="code-line" data-line="13">        if ra != rb:</span>
+<span class="code-line" data-line="14">            parent[ra] = rb</span>
+<span class="code-line" data-line="15">            count -= 1</span>
+<span class="code-line" data-line="16"></span>
+<span class="code-line" data-line="17">    return count</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive Union-Find trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="uf-graph" viewBox="0 0 520 240" width="100%" role="img" aria-label="Union-Find graph trace">
+              <defs>
+                <style>
+                  .base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .uf-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .uf-node.visitedA { fill: #315efb; }
+                  .uf-node.visitedB { fill: #13a46b; }
+                  .uf-node.active { fill: #ff9f1c; }
+                  .uf-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .uf-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="28" class="uf-title">Current edge being processed</text>
+              <line x1="90" y1="120" x2="190" y2="120" class="base-edge" />
+              <line x1="190" y1="120" x2="290" y2="120" class="base-edge" />
+              <line x1="370" y1="120" x2="460" y2="120" class="base-edge" />
+              <line x1="90" y1="120" x2="190" y2="120" class="active-edge" data-active-edge="0-1" visibility="hidden" />
+              <line x1="190" y1="120" x2="290" y2="120" class="active-edge" data-active-edge="1-2" visibility="hidden" />
+              <line x1="370" y1="120" x2="460" y2="120" class="active-edge" data-active-edge="3-4" visibility="hidden" />
+              <circle cx="90" cy="120" r="28" class="uf-node" data-node="0" />
+              <circle cx="190" cy="120" r="28" class="uf-node" data-node="1" />
+              <circle cx="290" cy="120" r="28" class="uf-node" data-node="2" />
+              <circle cx="370" cy="120" r="28" class="uf-node" data-node="3" />
+              <circle cx="460" cy="120" r="28" class="uf-node" data-node="4" />
+              <text x="83" y="126" class="uf-label">0</text>
+              <text x="183" y="126" class="uf-label">1</text>
+              <text x="283" y="126" class="uf-label">2</text>
+              <text x="363" y="126" class="uf-label">3</text>
+              <text x="453" y="126" class="uf-label">4</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current edge or current endpoints</span>
+            <span><i class="dot dot-blue"></i> first side</span>
+            <span><i class="dot dot-green"></i> second side</span>
+            <span><i class="dot dot-gray"></i> untouched nodes</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="uf-step-title">Initial state</h3>
+          <p id="uf-step-text">Every node starts alone, so the count begins at 5.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="uf-prev">Previous</button>
+            <button type="button" id="uf-play" class="primary">Resume</button>
+            <button type="button" id="uf-next">Next</button>
+            <button type="button" id="uf-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="uf-step-counter">Step 0 / 3</span>
+            <div class="progress"><span id="uf-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Current edge</strong><div class="state-value" id="uf-edge">—</div></div>
+            <div class="state-box"><strong>Roots found</strong><div class="state-value" id="uf-roots">—</div></div>
+            <div class="state-box"><strong>Parent list</strong><div class="state-value" id="uf-parent">[0, 1, 2, 3, 4]</div></div>
+            <div class="state-box"><strong>Component count</strong><div class="state-value" id="uf-count">5</div></div>
+          </div>
+          <div class="explainer">
+            <p id="uf-detail"><strong>What changed:</strong> no edge has been processed yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="uf-trace-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Edge</th>
+              <th>find(a)</th>
+              <th>find(b)</th>
+              <th>Roots differ?</th>
+              <th>Merge applied</th>
+              <th>Parent after</th>
+              <th>Count after</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>Initial</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td><code>[0,1,2,3,4]</code></td><td><code>5</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>(0,1)</code></td><td><code>ra = 0</code></td><td><code>rb = 1</code></td><td>Yes</td><td><code>parent[0] = 1</code></td><td><code>[1,1,2,3,4]</code></td><td><code>4</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>(1,2)</code></td><td><code>ra = 1</code></td><td><code>rb = 2</code></td><td>Yes</td><td><code>parent[1] = 2</code></td><td><code>[1,2,2,3,4]</code></td><td><code>3</code></td></tr>
+            <tr data-step="3"><td>3</td><td><code>(3,4)</code></td><td><code>ra = 3</code></td><td><code>rb = 4</code></td><td>Yes</td><td><code>parent[3] = 4</code></td><td><code>[1,2,2,4,4]</code></td><td><code>2</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p><code>count</code> starts at <code>n</code>. It only goes down when two different groups become one.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common Union-Find mistake</h4>
+          <p>Do not decrement the count for every edge. Only decrement when <code>ra != rb</code>.</p>
+        </div>
+        <div class="card">
+          <h4>Why roots matter</h4>
+          <p>You compare roots, not the original nodes. Different nodes can already belong to the same component.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">No edges</button>
+        <button type="button" data-example-tab="1">Full chain</button>
+        <button type="button" data-example-tab="2">Mixed case</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: no edges</h3>
+          <p><code>n = 4, edges = []</code></p>
+          <div class="result-badge">Answer = 4</div>
+          <p class="footer-note">Each node is isolated, so each node is its own component.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: fully connected chain</h3>
+          <p><code>n = 5, edges = [[0,1],[1,2],[2,3],[3,4]]</code></p>
+          <div class="result-badge">Answer = 1</div>
+          <p class="footer-note">All nodes are reachable through the chain, so there is only one component.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: mixed connected + isolated</h3>
+          <p><code>n = 6, edges = [[0,1],[2,3]]</code></p>
+          <div class="result-badge">Answer = 4</div>
+          <p class="footer-note">Components are <code>{0,1}</code>, <code>{2,3}</code>, <code>{4}</code>, and <code>{5}</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>DFS vs BFS vs Union-Find</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Best beginner takeaway</th>
+              <th>Main structure</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>DFS</td><td>Explore one full component deeply</td><td>Stack or recursion</td></tr>
+            <tr><td>BFS</td><td>Explore one full component level by level</td><td>Queue</td></tr>
+            <tr><td>Union-Find</td><td>Merge groups efficiently</td><td>Parent list / disjoint set</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">All three methods rely on the same core truth: once nodes are connected, they belong to the same component.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>We need the number of separate groups.</p></div>
+            <div class="timeline-step"><p>A graph may be disconnected.</p></div>
+            <div class="timeline-step"><p>So we can either explore each unseen part once or keep merging connected nodes.</p></div>
+            <div class="timeline-step"><p>That gives DFS/BFS or Union-Find.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>“I need to count disconnected groups.”</li>
+            <li>“Traversal works because one DFS/BFS covers exactly one component.”</li>
+            <li>“Union-Find works because each successful merge reduces the number of groups by one.”</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>DFS mistakes</h3>
+          <ul class="mistake-list">
+            <li>Forgetting to build the graph both ways for an undirected graph.</li>
+            <li>Forgetting to loop through all nodes.</li>
+            <li>Missing isolated nodes.</li>
+            <li>Handling visited checks inconsistently.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Union-Find mistakes</h3>
+          <ul class="mistake-list">
+            <li>Decrementing count for every edge.</li>
+            <li>Comparing nodes instead of comparing roots.</li>
+            <li>Forgetting to call <code>find()</code> before union.</li>
+            <li>Thinking <code>parent</code> directly lists final components.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — <code>n = 3, edges = [[0,1]]</code></summary>
+          <p style="margin-top:10px;">Answer: <strong>2</strong>. Components are <code>{0,1}</code> and <code>{2}</code>.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — <code>n = 5, edges = []</code></summary>
+          <p style="margin-top:10px;">Answer: <strong>5</strong>. Every node is isolated.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — <code>n = 5, edges = [[0,1],[1,2],[2,0],[3,4]]</code></summary>
+          <p style="margin-top:10px;">Answer: <strong>2</strong>. One component is <code>{0,1,2}</code>, the other is <code>{3,4}</code>.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          The real question is simple: <strong>how many separate islands of nodes exist?</strong>
+          DFS solves it by exploring each island once. Union-Find solves it by merging islands. Same goal, different machinery.
+        </p>
+      </div>
+      <p class="footer-note">This version is intentionally more learning-friendly: richer reasoning, synced trace-to-code mapping, edge-case teaching, and short practice prompts.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const dfsSteps = [
+        { step: 0, title: 'Initial state', text: 'The adjacency list is built first. Nothing is visited yet.', i: '—', action: 'Build graph', stack: '[]', seen: '{}', node: '—', count: '0', detail: 'We are ready to sweep nodes from left to right.', currentNode: null, frontierNodes: [], seenNodes: [], activeEdge: null, lines: [4,6,7,8,10,11] },
+        { step: 1, title: 'Step 1: outer loop at i = 0', text: 'Node 0 is unseen, so we found a new component and push 0 onto the stack.', i: '0', action: '0 not in seen → new component, stack = [0]', stack: '[0]', seen: '{}', node: '—', count: '1', detail: 'A fresh start in the outer loop means one new component has been discovered.', currentNode: null, frontierNodes: [0], seenNodes: [], activeEdge: null, lines: [13,14,15,16] },
+        { step: 2, title: 'Step 2: pop node 0', text: 'We pop 0, mark it seen, then push its unvisited neighbor 1.', i: '—', action: 'pop 0, seen.add(0), push 1', stack: '[1]', seen: '{0}', node: '0', count: '1', detail: 'This is the flood-fill idea: once you start from one node, keep expanding through neighbors.', currentNode: 0, frontierNodes: [1], seenNodes: [0], activeEdge: '0-1', lines: [18,19,20,22,24,25,26] },
+        { step: 3, title: 'Step 3: pop node 1', text: 'We pop 1, skip already-seen 0, and push unvisited neighbor 2.', i: '—', action: 'pop 1, skip 0, push 2', stack: '[2]', seen: '{0,1}', node: '1', count: '1', detail: 'Notice the stack changes from [1] to [2]. DFS keeps walking deeper into the same component.', currentNode: 1, frontierNodes: [2], seenNodes: [0,1], activeEdge: '1-2', lines: [18,19,20,22,24,25,26] },
+        { step: 4, title: 'Step 4: pop node 2', text: 'We pop 2. Its only neighbor is 1, which is already seen, so this DFS branch ends.', i: '—', action: 'pop 2, neighbor 1 already seen', stack: '[]', seen: '{0,1,2}', node: '2', count: '1', detail: 'The whole first component is now fully explored.', currentNode: 2, frontierNodes: [], seenNodes: [0,1,2], activeEdge: '1-2', lines: [18,19,20,22,24,25] },
+        { step: 5, title: 'Step 5: outer loop at i = 1', text: 'Node 1 is already seen, so we skip it.', i: '1', action: '1 in seen → skip', stack: '[]', seen: '{0,1,2}', node: '—', count: '1', detail: 'Seen nodes never start a new component again.', currentNode: null, frontierNodes: [], seenNodes: [0,1,2], activeEdge: null, lines: [13,14] },
+        { step: 6, title: 'Step 6: outer loop at i = 2', text: 'Node 2 is already seen, so we skip it too.', i: '2', action: '2 in seen → skip', stack: '[]', seen: '{0,1,2}', node: '—', count: '1', detail: 'The first component has already been counted once, so no extra count is added.', currentNode: null, frontierNodes: [], seenNodes: [0,1,2], activeEdge: null, lines: [13,14] },
+        { step: 7, title: 'Step 7: outer loop at i = 3', text: 'Node 3 is unseen, so this is the start of a second component.', i: '3', action: '3 not in seen → new component, stack = [3]', stack: '[3]', seen: '{0,1,2}', node: '—', count: '2', detail: 'A second fresh start means component count becomes 2.', currentNode: null, frontierNodes: [3], seenNodes: [0,1,2], activeEdge: null, lines: [13,14,15,16] },
+        { step: 8, title: 'Step 8: pop node 3', text: 'We pop 3, mark it seen, and push its neighbor 4.', i: '—', action: 'pop 3, seen.add(3), push 4', stack: '[4]', seen: '{0,1,2,3}', node: '3', count: '2', detail: 'DFS now explores the second component exactly the same way.', currentNode: 3, frontierNodes: [4], seenNodes: [0,1,2,3], activeEdge: '3-4', lines: [18,19,20,22,24,25,26] },
+        { step: 9, title: 'Step 9: pop node 4', text: 'We pop 4. Its neighbor 3 is already seen, so the stack becomes empty.', i: '—', action: 'pop 4, neighbor 3 already seen', stack: '[]', seen: '{0,1,2,3,4}', node: '4', count: '2', detail: 'Now all nodes in the second component are explored.', currentNode: 4, frontierNodes: [], seenNodes: [0,1,2,3,4], activeEdge: '3-4', lines: [18,19,20,22,24,25] },
+        { step: 10, title: 'Step 10: outer loop at i = 4', text: 'Node 4 is already seen, so we skip it and finish.', i: '4', action: '4 in seen → skip', stack: '[]', seen: '{0,1,2,3,4}', node: '—', count: '2', detail: 'The loop is done. Total connected components = 2.', currentNode: null, frontierNodes: [], seenNodes: [0,1,2,3,4], activeEdge: null, lines: [13,14,28] }
+      ];
+
+      const ufSteps = [
+        { step: 0, title: 'Initial state', text: 'Every node starts as its own parent, so we begin with 5 separate groups.', edge: '—', roots: '—', parent: '[0, 1, 2, 3, 4]', count: '5', detail: 'No edge has been processed yet. Every node is alone.', activeNodes: [], blueNodes: [], greenNodes: [], activeEdge: null, lines: [2,3] },
+        { step: 1, title: 'Step 1: process edge (0,1)', text: 'Node 0 and node 1 have different roots, so we merge their groups.', edge: '(0, 1)', roots: 'ra = 0, rb = 1', parent: '[1, 1, 2, 3, 4]', count: '4', detail: 'Because root(0) and root(1) are different, this edge reduces the number of components from 5 to 4.', activeNodes: [0,1], blueNodes: [0], greenNodes: [1], activeEdge: '0-1', lines: [11,12,13,14,15] },
+        { step: 2, title: 'Step 2: process edge (1,2)', text: 'The group containing node 1 is connected to node 2, so those groups merge.', edge: '(1, 2)', roots: 'ra = 1, rb = 2', parent: '[1, 2, 2, 3, 4]', count: '3', detail: 'Now nodes 0, 1, and 2 are indirectly in one component, so the count drops from 4 to 3.', activeNodes: [1,2], blueNodes: [0,1], greenNodes: [2], activeEdge: '1-2', lines: [11,12,13,14,15] },
+        { step: 3, title: 'Step 3: process edge (3,4)', text: 'Node 3 and node 4 belong to different groups, so they merge into the second component.', edge: '(3, 4)', roots: 'ra = 3, rb = 4', parent: '[1, 2, 2, 4, 4]', count: '2', detail: 'We end with two components: {0,1,2} and {3,4}.', activeNodes: [3,4], blueNodes: [0,1,2,3], greenNodes: [4], activeEdge: '3-4', lines: [11,12,13,14,15,17] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderDFS(step, index, max) {
+        document.getElementById('dfs-step-title').textContent = step.title;
+        document.getElementById('dfs-step-text').textContent = step.text;
+        document.getElementById('dfs-i').textContent = step.i;
+        document.getElementById('dfs-action').textContent = step.action;
+        document.getElementById('dfs-stack').textContent = step.stack;
+        document.getElementById('dfs-seen').textContent = step.seen;
+        document.getElementById('dfs-node').textContent = step.node;
+        document.getElementById('dfs-count').textContent = step.count;
+        document.getElementById('dfs-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('dfs-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('dfs-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('dfs-trace-table', step.step);
+        setCodeHighlight('dfs-code', step.lines);
+
+        document.querySelectorAll('#dfs-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('seen', 'current', 'frontier');
+          if (step.seenNodes.includes(id)) node.classList.add('seen');
+          if (step.frontierNodes.includes(id)) node.classList.add('frontier');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#dfs-graph [data-dfs-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.dfsEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderUF(step, index, max) {
+        document.getElementById('uf-step-title').textContent = step.title;
+        document.getElementById('uf-step-text').textContent = step.text;
+        document.getElementById('uf-edge').textContent = step.edge;
+        document.getElementById('uf-roots').textContent = step.roots;
+        document.getElementById('uf-parent').textContent = step.parent;
+        document.getElementById('uf-count').textContent = step.count;
+        document.getElementById('uf-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('uf-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('uf-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('uf-trace-table', step.step);
+        setCodeHighlight('uf-code', step.lines);
+
+        document.querySelectorAll('#uf-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('active', 'visitedA', 'visitedB');
+          if (step.blueNodes.includes(id)) node.classList.add('visitedA');
+          if (step.greenNodes.includes(id)) node.classList.add('visitedB');
+          if (step.activeNodes.includes(id)) node.classList.add('active');
+        });
+
+        document.querySelectorAll('#uf-graph [data-active-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.activeEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
+      setupTrace({ steps: dfsSteps, prefix: 'dfs', render: renderDFS });
+      setupTrace({ steps: ufSteps, prefix: 'uf', render: renderUF });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

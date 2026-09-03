@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Topological Sort — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Graphs · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Topological Sort on a DAG</h1>
+          <p>
+            This page explains topological sort like an instructor would: what a valid order actually means, how the
+            edge list becomes an adjacency list and an in-degree map, how Kahn's algorithm peels off ready tasks one
+            by one, how DFS builds the same kind of order by finishing nodes and reversing, and how to reason about
+            cycles and non-uniqueness in an interview.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: every edge must point forward</span>
+            <span class="chip">Interactive Kahn's (BFS) trace</span>
+            <span class="chip">Interactive DFS trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>n = 5</code>, <code>edges = [(0,1),(0,2),(1,3),(2,3),(3,4)]</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 560 240" width="100%" role="img" aria-label="Directed acyclic graph: 0 points to 1 and 2, 1 and 2 both point to 3, and 3 points to 4">
+              <defs>
+                <marker id="arrowHero" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#6c7a96" />
+                </marker>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .hero-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <line x1="106.6" y1="108.5" x2="194.2" y2="70.5" class="hero-edge" marker-end="url(#arrowHero)" />
+              <line x1="106.6" y1="131.5" x2="194.2" y2="169.5" class="hero-edge" marker-end="url(#arrowHero)" />
+              <line x1="256.6" y1="66.5" x2="344.2" y2="104.5" class="hero-edge" marker-end="url(#arrowHero)" />
+              <line x1="256.6" y1="173.5" x2="344.2" y2="135.5" class="hero-edge" marker-end="url(#arrowHero)" />
+              <line x1="409.0" y1="120.0" x2="461.0" y2="120.0" class="hero-edge" marker-end="url(#arrowHero)" />
+              <circle cx="80" cy="120" r="27" class="hero-node" />
+              <circle cx="230" cy="55" r="27" class="hero-node" />
+              <circle cx="230" cy="185" r="27" class="hero-node" />
+              <circle cx="380" cy="120" r="27" class="hero-node" />
+              <circle cx="500" cy="120" r="27" class="hero-node" />
+              <text x="73" y="126" class="hero-label">0</text>
+              <text x="223" y="61" class="hero-label">1</text>
+              <text x="223" y="191" class="hero-label">2</text>
+              <text x="373" y="126" class="hero-label">3</text>
+              <text x="493" y="126" class="hero-label">4</text>
+            </svg>
+          </div>
+          <div class="result-badge">One valid order: 0, 1, 2, 3, 4 (not the only one)</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Build systems</h3>
+          <p>A source file can only compile after every file it imports has compiled. The dependency graph must be sorted before the compiler runs a single step.</p>
+        </div>
+        <div class="card">
+          <h3>Course prerequisites</h3>
+          <p>You cannot register for "Algorithms II" before "Algorithms I." A degree plan is a topological order of the prerequisite graph.</p>
+        </div>
+        <div class="card">
+          <h3>Task scheduling</h3>
+          <p>Package installers, spreadsheet recalculation, and CI pipeline stages all need "do this before that" resolved into one runnable sequence.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> the underlying question is always the same — given a set of "before" rules, is there any order that satisfies all of them, and if so, what is one? Topological sort answers both at once.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a topological sort?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>A topological sort is a linear ordering of a directed graph's vertices such that for every edge <code>u &rarr; v</code>, <code>u</code> appears <strong>before</strong> <code>v</code> in the ordering.</p>
+        </div>
+        <div class="card">
+          <h3>What you are computing</h3>
+          <p>You are not computing a shortest path or a single number. You are producing an entire sequence — one that respects every "before" constraint in the graph at once.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> lay your answer out left to right. If you can draw every edge as an arrow pointing only rightward, never backward, the order is valid. This only works at all when the graph is a <strong>DAG</strong> — Directed, Acyclic, Graph. A cycle means no valid order exists.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Confirm it's a "before" graph</h3>
+          <p>Each edge <code>u &rarr; v</code> means <code>u</code> must come before <code>v</code>. That is the signal to reach for topological sort.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Build adjacency list + in-degree map</h3>
+          <p>Every edge adds a neighbor to <code>adj[u]</code> and adds one prerequisite to <code>indeg[v]</code>.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Peel off ready nodes, or finish-then-reverse</h3>
+          <p>Kahn's algorithm repeatedly outputs any vertex with no remaining prerequisites. DFS instead finishes the deepest vertices first, then reverses.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Watch for a cycle</h3>
+          <p>Kahn: fewer than <code>n</code> vertices got output. DFS: an edge points to a vertex still on the call stack.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes a working structure</h2>
+      <p>Both algorithms below start from the exact same setup. Before any sorting logic runs, the edge list is converted into an adjacency list <em>and</em> an in-degree count for every vertex — this is the part beginners skip past too quickly.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input edges</h3>
+          <div class="code-block"><code>n = 5
+edges = [(0,1), (0,2),
+         (1,3), (2,3),
+         (3,4)]</code></div>
+        </div>
+        <div class="arrow-box">&rarr;</div>
+        <div class="mini-diagram">
+          <h3>Adjacency list + in-degree map</h3>
+          <div class="code-block"><code>adj   = {0:[1,2], 1:[3], 2:[3], 3:[4], 4:[]}
+indeg = {0:0, 1:1, 2:1, 3:2, 4:1}</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Read edges <code>(0,1)</code> and <code>(0,2)</code></h4>
+          <p>Both start at 0, so <code>adj[0] = [1, 2]</code>. Each edge also adds one prerequisite: <code>indeg[1] = 1</code> and <code>indeg[2] = 1</code>.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read edges <code>(1,3)</code> and <code>(2,3)</code></h4>
+          <p>Both point <em>into</em> 3, so <code>indeg[3]</code> becomes <code>2</code> — vertex 3 needs <strong>both</strong> 1 and 2 finished before it can run.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read edge <code>(3,4)</code></h4>
+          <p><code>adj[3] = [4]</code> and <code>indeg[4] = 1</code>. Vertex 4 has exactly one prerequisite: vertex 3.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> only vertex 0 starts with <code>indeg = 0</code>. That is not a coincidence for this example — it is the definition of "ready to run right now," and it is exactly what seeds both algorithms below.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: Kahn's algorithm (BFS-based)</h2>
+      <p>A vertex is <strong>ready</strong> the moment its in-degree hits 0 — it has no unmet prerequisites left. Kahn's algorithm keeps a queue of ready vertices, pops one, outputs it, and "removes" it by decrementing every neighbor's in-degree. Any neighbor that drops to 0 just became ready and joins the queue.</p>
+      <div class="code-block stepped">
+        <code id="kahn-code">
+<span class="code-line" data-line="1">from collections import deque</span>
+<span class="code-line" data-line="2"></span>
+<span class="code-line" data-line="3">def topo_sort_kahn(n, edges):</span>
+<span class="code-line" data-line="4">    """n vertices 0..n-1; edges = (u, v) meaning u must come before v.</span>
+<span class="code-line" data-line="5">       Returns a valid order, or None if there is a cycle."""</span>
+<span class="code-line" data-line="6">    indeg = [0] * n</span>
+<span class="code-line" data-line="7">    adj = [[] for _ in range(n)]</span>
+<span class="code-line" data-line="8">    for u, v in edges:</span>
+<span class="code-line" data-line="9">        adj[u].append(v)</span>
+<span class="code-line" data-line="10">        indeg[v] += 1                      # v gains a prerequisite</span>
+<span class="code-line" data-line="11"></span>
+<span class="code-line" data-line="12">    q = deque(i for i in range(n) if indeg[i] == 0)   # everything ready now</span>
+<span class="code-line" data-line="13">    order = []</span>
+<span class="code-line" data-line="14">    while q:</span>
+<span class="code-line" data-line="15">        u = q.popleft()</span>
+<span class="code-line" data-line="16">        order.append(u)                    # no prerequisites left -> output it</span>
+<span class="code-line" data-line="17">        for v in adj[u]:</span>
+<span class="code-line" data-line="18">            indeg[v] -= 1                  # u done -> v loses a prerequisite</span>
+<span class="code-line" data-line="19">            if indeg[v] == 0:</span>
+<span class="code-line" data-line="20">                q.append(v)                # v just became ready</span>
+<span class="code-line" data-line="21">    return order if len(order) == n else None   # short -> a cycle blocked some tasks</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive Kahn's trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="kahn-graph" viewBox="0 0 560 240" width="100%" role="img" aria-label="Kahn's algorithm trace over the DAG">
+              <defs>
+                <marker id="arrowKahnBase" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#cad3e6" />
+                </marker>
+                <marker id="arrowKahnActive" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#ff9f1c" />
+                </marker>
+                <style>
+                  .kahn-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .kahn-active-edge { stroke: #ff9f1c; stroke-width: 6; stroke-linecap: round; }
+                  .kahn-node { fill: #c8d2e7; transition: fill 0.2s ease; }
+                  .kahn-node.output { fill: #315efb; }
+                  .kahn-node.queue { fill: #13a46b; }
+                  .kahn-node.current { fill: #ff9f1c; }
+                  .kahn-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .kahn-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="16" y="24" class="kahn-title">Current pop / in-degree update</text>
+              <line x1="106.6" y1="108.5" x2="194.2" y2="70.5" class="kahn-base-edge" marker-end="url(#arrowKahnBase)" />
+              <line x1="106.6" y1="131.5" x2="194.2" y2="169.5" class="kahn-base-edge" marker-end="url(#arrowKahnBase)" />
+              <line x1="256.6" y1="66.5" x2="344.2" y2="104.5" class="kahn-base-edge" marker-end="url(#arrowKahnBase)" />
+              <line x1="256.6" y1="173.5" x2="344.2" y2="135.5" class="kahn-base-edge" marker-end="url(#arrowKahnBase)" />
+              <line x1="409.0" y1="120.0" x2="461.0" y2="120.0" class="kahn-base-edge" marker-end="url(#arrowKahnBase)" />
+              <line x1="106.6" y1="108.5" x2="194.2" y2="70.5" class="kahn-active-edge" marker-end="url(#arrowKahnActive)" data-kahn-edge="0-1" visibility="hidden" />
+              <line x1="106.6" y1="131.5" x2="194.2" y2="169.5" class="kahn-active-edge" marker-end="url(#arrowKahnActive)" data-kahn-edge="0-2" visibility="hidden" />
+              <line x1="256.6" y1="66.5" x2="344.2" y2="104.5" class="kahn-active-edge" marker-end="url(#arrowKahnActive)" data-kahn-edge="1-3" visibility="hidden" />
+              <line x1="256.6" y1="173.5" x2="344.2" y2="135.5" class="kahn-active-edge" marker-end="url(#arrowKahnActive)" data-kahn-edge="2-3" visibility="hidden" />
+              <line x1="409.0" y1="120.0" x2="461.0" y2="120.0" class="kahn-active-edge" marker-end="url(#arrowKahnActive)" data-kahn-edge="3-4" visibility="hidden" />
+              <circle cx="80" cy="120" r="27" class="kahn-node" data-node="0" />
+              <circle cx="230" cy="55" r="27" class="kahn-node" data-node="1" />
+              <circle cx="230" cy="185" r="27" class="kahn-node" data-node="2" />
+              <circle cx="380" cy="120" r="27" class="kahn-node" data-node="3" />
+              <circle cx="500" cy="120" r="27" class="kahn-node" data-node="4" />
+              <text x="73" y="126" class="kahn-label">0</text>
+              <text x="223" y="61" class="kahn-label">1</text>
+              <text x="223" y="191" class="kahn-label">2</text>
+              <text x="373" y="126" class="kahn-label">3</text>
+              <text x="493" y="126" class="kahn-label">4</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current node</span>
+            <span><i class="dot dot-green"></i> in the queue (in-degree hit zero)</span>
+            <span><i class="dot dot-blue"></i> already output</span>
+            <span><i class="dot dot-gray"></i> still has unmet prerequisites</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="kahn-step-title">Initial state</h3>
+          <p id="kahn-step-text">The adjacency list and in-degree map are built first. Only vertex 0 starts ready.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="kahn-prev">Previous</button>
+            <button type="button" id="kahn-play" class="primary">Resume</button>
+            <button type="button" id="kahn-next">Next</button>
+            <button type="button" id="kahn-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="kahn-step-counter">Step 0 / 6</span>
+            <div class="progress"><span id="kahn-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Queue (front is leftmost)</strong><div class="state-value" id="kahn-queue">[0]</div></div>
+            <div class="state-box"><strong>In-degree map (live state)</strong><div class="state-value" id="kahn-indeg">{0:0, 1:1, 2:1, 3:2, 4:1}</div></div>
+            <div class="state-box"><strong>Current node popped</strong><div class="state-value" id="kahn-current">&mdash;</div></div>
+            <div class="state-box"><strong>Output order so far</strong><div class="state-value" id="kahn-order">[]</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="kahn-action">Build adj + indeg, seed queue</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="kahn-result">&mdash;</div></div>
+          </div>
+          <div class="explainer">
+            <p id="kahn-detail"><strong>What changed:</strong> only vertex 0 starts with in-degree 0 — everything else has at least one prerequisite.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="kahn-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>Queue after</th><th>In-degree after</th><th>Order after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Build graph, seed queue with all indeg-0 vertices</td><td><code>[0]</code></td><td><code>{0:0,1:1,2:1,3:2,4:1}</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>Pop 0 &rarr; neighbors 1, 2 both hit indeg 0</td><td><code>[1, 2]</code></td><td><code>{0:0,1:0,2:0,3:2,4:1}</code></td><td><code>[0]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>Pop 1 &rarr; neighbor 3: indeg 2&rarr;1, not ready yet</td><td><code>[2]</code></td><td><code>{0:0,1:0,2:0,3:1,4:1}</code></td><td><code>[0, 1]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>Pop 2 &rarr; neighbor 3: indeg 1&rarr;0, now ready</td><td><code>[3]</code></td><td><code>{0:0,1:0,2:0,3:0,4:1}</code></td><td><code>[0, 1, 2]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>Pop 3 &rarr; neighbor 4: indeg 1&rarr;0, now ready</td><td><code>[4]</code></td><td><code>{0:0,1:0,2:0,3:0,4:0}</code></td><td><code>[0, 1, 2, 3]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>Pop 4 &rarr; no neighbors to update</td><td><code>[]</code></td><td><code>{0:0,1:0,2:0,3:0,4:0}</code></td><td><code>[0, 1, 2, 3, 4]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>Queue empty, len(order) == n &rarr; return order</td><td><code>[]</code></td><td><code>{0:0,1:0,2:0,3:0,4:0}</code></td><td><code>[0, 1, 2, 3, 4]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The in-degree map is the live state that drives everything. A vertex enters the queue the instant its count reaches exactly 0 — not before.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common Kahn mistake</h4>
+          <p>Checking cycle-freedom with anything other than <code>len(order) == n</code>. If some vertices never reach in-degree 0, they simply never get output — that shortfall <em>is</em> the cycle signal.</p>
+        </div>
+        <div class="card">
+          <h4>Why in-degree matters</h4>
+          <p>A vertex with two prerequisites, like 3 in this example, must wait for <strong>both</strong> to finish. That is exactly what "decrement, then check for zero" enforces — one decrement is not enough.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: DFS-based topological sort</h2>
+      <p>Run a normal DFS. The moment a vertex <strong>finishes</strong> — every one of its outgoing edges has been fully explored — push it onto a list. A vertex with no remaining unexplored descendants finishes before the vertex that called it, so the finish list ends up backwards. <strong>Reversing</strong> it gives a valid topological order.</p>
+      <div class="code-block stepped">
+        <code id="dfs-code">
+<span class="code-line" data-line="1">def topo_sort_dfs(n, edges):</span>
+<span class="code-line" data-line="2">    adj = [[] for _ in range(n)]</span>
+<span class="code-line" data-line="3">    for u, v in edges:</span>
+<span class="code-line" data-line="4">        adj[u].append(v)</span>
+<span class="code-line" data-line="5">    visited = [0] * n                      # 0 unseen, 1 in-progress, 2 done</span>
+<span class="code-line" data-line="6">    order, ok = [], True</span>
+<span class="code-line" data-line="7">    def dfs(u):</span>
+<span class="code-line" data-line="8">        nonlocal ok</span>
+<span class="code-line" data-line="9">        visited[u] = 1                     # on the recursion stack</span>
+<span class="code-line" data-line="10">        for v in adj[u]:</span>
+<span class="code-line" data-line="11">            if visited[v] == 1:            # edge back to an in-progress node -> cycle</span>
+<span class="code-line" data-line="12">                ok = False</span>
+<span class="code-line" data-line="13">            elif visited[v] == 0:</span>
+<span class="code-line" data-line="14">                dfs(v)</span>
+<span class="code-line" data-line="15">        visited[u] = 2                     # finished</span>
+<span class="code-line" data-line="16">        order.append(u)                    # push on finish</span>
+<span class="code-line" data-line="17">    for i in range(n):</span>
+<span class="code-line" data-line="18">        if visited[i] == 0:</span>
+<span class="code-line" data-line="19">            dfs(i)</span>
+<span class="code-line" data-line="20">    return order[::-1] if ok else None     # reverse of finish order</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive DFS trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="dfs-graph" viewBox="0 0 560 240" width="100%" role="img" aria-label="DFS trace over the DAG">
+              <defs>
+                <marker id="arrowDfsBase" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#cad3e6" />
+                </marker>
+                <marker id="arrowDfsActive" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#315efb" />
+                </marker>
+                <style>
+                  .dfsg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .dfsg-active-edge { stroke: #315efb; stroke-width: 6; stroke-linecap: round; }
+                  .dfsg-node { fill: #c8d2e7; transition: fill 0.2s ease; }
+                  .dfsg-node.done { fill: #315efb; }
+                  .dfsg-node.stacked { fill: #13a46b; }
+                  .dfsg-node.current { fill: #ff9f1c; }
+                  .dfsg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .dfsg-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="16" y="24" class="dfsg-title">Current recursion edge</text>
+              <line x1="106.6" y1="108.5" x2="194.2" y2="70.5" class="dfsg-base-edge" marker-end="url(#arrowDfsBase)" />
+              <line x1="106.6" y1="131.5" x2="194.2" y2="169.5" class="dfsg-base-edge" marker-end="url(#arrowDfsBase)" />
+              <line x1="256.6" y1="66.5" x2="344.2" y2="104.5" class="dfsg-base-edge" marker-end="url(#arrowDfsBase)" />
+              <line x1="256.6" y1="173.5" x2="344.2" y2="135.5" class="dfsg-base-edge" marker-end="url(#arrowDfsBase)" />
+              <line x1="409.0" y1="120.0" x2="461.0" y2="120.0" class="dfsg-base-edge" marker-end="url(#arrowDfsBase)" />
+              <line x1="106.6" y1="108.5" x2="194.2" y2="70.5" class="dfsg-active-edge" marker-end="url(#arrowDfsActive)" data-dfs-edge="0-1" visibility="hidden" />
+              <line x1="106.6" y1="131.5" x2="194.2" y2="169.5" class="dfsg-active-edge" marker-end="url(#arrowDfsActive)" data-dfs-edge="0-2" visibility="hidden" />
+              <line x1="256.6" y1="66.5" x2="344.2" y2="104.5" class="dfsg-active-edge" marker-end="url(#arrowDfsActive)" data-dfs-edge="1-3" visibility="hidden" />
+              <line x1="256.6" y1="173.5" x2="344.2" y2="135.5" class="dfsg-active-edge" marker-end="url(#arrowDfsActive)" data-dfs-edge="2-3" visibility="hidden" />
+              <line x1="409.0" y1="120.0" x2="461.0" y2="120.0" class="dfsg-active-edge" marker-end="url(#arrowDfsActive)" data-dfs-edge="3-4" visibility="hidden" />
+              <circle cx="80" cy="120" r="27" class="dfsg-node" data-node="0" />
+              <circle cx="230" cy="55" r="27" class="dfsg-node" data-node="1" />
+              <circle cx="230" cy="185" r="27" class="dfsg-node" data-node="2" />
+              <circle cx="380" cy="120" r="27" class="dfsg-node" data-node="3" />
+              <circle cx="500" cy="120" r="27" class="dfsg-node" data-node="4" />
+              <text x="73" y="126" class="dfsg-label">0</text>
+              <text x="223" y="61" class="dfsg-label">1</text>
+              <text x="223" y="191" class="dfsg-label">2</text>
+              <text x="373" y="126" class="dfsg-label">3</text>
+              <text x="493" y="126" class="dfsg-label">4</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current node (top of call stack)</span>
+            <span><i class="dot dot-green"></i> on the call stack, in-progress</span>
+            <span><i class="dot dot-blue"></i> finished (visited = 2)</span>
+            <span><i class="dot dot-gray"></i> unseen (visited = 0)</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="dfs-step-title">Initial state</h3>
+          <p id="dfs-step-text">The adjacency list is built. Every vertex starts unseen and the finish-order list is empty.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="dfs-prev">Previous</button>
+            <button type="button" id="dfs-play" class="primary">Resume</button>
+            <button type="button" id="dfs-next">Next</button>
+            <button type="button" id="dfs-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="dfs-step-counter">Step 0 / 12</span>
+            <div class="progress"><span id="dfs-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Call stack (top is rightmost)</strong><div class="state-value" id="dfs-stack">[]</div></div>
+            <div class="state-box"><strong>Visited map (0=unseen, 1=in-progress, 2=done)</strong><div class="state-value" id="dfs-visited">{0:0, 1:0, 2:0, 3:0, 4:0}</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="dfs-current">&mdash;</div></div>
+            <div class="state-box"><strong>Finish order so far</strong><div class="state-value" id="dfs-order">[]</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="dfs-action">adj built; visited=[0,0,0,0,0]; order=[]</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="dfs-result">&mdash;</div></div>
+          </div>
+          <div class="explainer">
+            <p id="dfs-detail"><strong>What changed:</strong> nothing has been explored yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="dfs-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>Call stack after</th><th>Finish order after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Build adj; visited all 0; order = []</td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>dfs(0) called &rarr; visited[0] = 1</td><td><code>[0]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>edge 0&rarr;1 unseen &rarr; dfs(1); visited[1] = 1</td><td><code>[0, 1]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>edge 1&rarr;3 unseen &rarr; dfs(3); visited[3] = 1</td><td><code>[0, 1, 3]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>edge 3&rarr;4 unseen &rarr; dfs(4); visited[4] = 1</td><td><code>[0, 1, 3, 4]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>dfs(4) has no edges &rarr; finish 4</td><td><code>[0, 1, 3]</code></td><td><code>[4]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>dfs(3) fully explored &rarr; finish 3</td><td><code>[0, 1]</code></td><td><code>[4, 3]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>dfs(1) fully explored &rarr; finish 1</td><td><code>[0]</code></td><td><code>[4, 3, 1]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>edge 0&rarr;2 unseen &rarr; dfs(2); visited[2] = 1</td><td><code>[0, 2]</code></td><td><code>[4, 3, 1]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>edge 2&rarr;3: visited[3]==2 (done) &rarr; skip, not a cycle</td><td><code>[0, 2]</code></td><td><code>[4, 3, 1]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>dfs(2) fully explored &rarr; finish 2</td><td><code>[0]</code></td><td><code>[4, 3, 1, 2]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>dfs(0) fully explored &rarr; finish 0</td><td><code>[]</code></td><td><code>[4, 3, 1, 2, 0]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>outer loop done &rarr; return order[::-1]</td><td><code>[]</code></td><td><code>[4, 3, 1, 2, 0]</code> reversed &rarr; <code>[0, 2, 1, 3, 4]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Vertices finish in the reverse of the order that makes sense for the answer — the deepest, most-depended-on vertex (4) finishes first. Reversing the finish list undoes that.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common DFS mistake</h4>
+          <p>Using a 2-state visited set (seen / unseen) instead of 3 states. Without a separate "in-progress" state, DFS cannot tell "currently on the stack" from "already fully done" — and cycle detection silently breaks.</p>
+        </div>
+        <div class="card">
+          <h4>Why "in-progress" matters</h4>
+          <p>Step 9 hits vertex 3 a second time via a different path, but <code>visited[3] == 2</code> (done), not <code>1</code> (in-progress) — so it is correctly recognized as safe, not a cycle.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Cycle: no valid order</button>
+        <button type="button" data-example-tab="1">Multiple valid orders</button>
+        <button type="button" data-example-tab="2">Disconnected DAG</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: a cycle means no valid order exists</h3>
+          <p><code>n = 3, edges = [(0,1), (1,2), (2,0)]</code></p>
+          <div class="result-badge">topo_sort_kahn(3, edges) = None &middot; topo_sort_dfs(3, edges) = None</div>
+          <p class="footer-note">
+            Kahn's: every vertex starts with <code>indeg = 1</code>, so the queue is <strong>empty from the very first step</strong> &mdash; nothing is ever output, and <code>len(order) = 0 &lt; n</code> confirms a cycle immediately.
+            DFS: <code>dfs(0) &rarr; dfs(1) &rarr; dfs(2)</code>, then edge <code>2 &rarr; 0</code> is checked while <code>visited[0]</code> is still <code>1</code> (in-progress, not done) &mdash; that back-edge to a node still on the call stack <em>is</em> the cycle.
+          </p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: topological order is not unique</h3>
+          <p><code>n = 5, edges = [(0,1), (0,2), (1,3), (2,3), (3,4)]</code> &mdash; the canonical example above.</p>
+          <div class="result-badge">Kahn's gives [0, 1, 2, 3, 4] &middot; DFS gives [0, 2, 1, 3, 4] &middot; both are correct</div>
+          <p class="footer-note">1 and 2 do not depend on each other, so either can legally come first &mdash; only their relationship to 0 and 3 is constrained. Kahn's processes them in the order they entered the queue (1 before 2); DFS finishes them in the opposite order it entered them (2's branch happens to finish and reverse ahead of 1's here). Both orders keep every edge pointing forward, so both are valid. There is no single "the" answer to check against &mdash; only "is every edge satisfied."</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: a disconnected DAG with several ready roots</h3>
+          <p><code>n = 5, edges = [(0,1), (1,2), (3,4)]</code></p>
+          <div class="result-badge">topo_sort_kahn(5, edges) = [0, 3, 1, 4, 2]</div>
+          <p class="footer-note">This graph is really two separate chains: <code>0&rarr;1&rarr;2</code> and <code>3&rarr;4</code>. Both 0 and 3 start at <code>indeg = 0</code>, so the queue seeds with <code>[0, 3]</code> and Kahn's naturally interleaves the two independent chains as it pops from the front. Neither algorithm needs any special handling for disconnected components &mdash; every vertex with no prerequisites, wherever it lives in the graph, is ready immediately.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Time</th><th>Space</th><th>Best for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Kahn's algorithm (BFS-based)</td><td>O(V + E)</td><td>O(V) &mdash; queue + in-degree array</td><td>Cheap, explicit cycle detection; natural "process a whole ready wave at once" scheduling</td></tr>
+            <tr><td>DFS-based (finish, then reverse)</td><td>O(V + E)</td><td>O(V) &mdash; recursion stack + visited array</td><td>When recursion is the natural fit, or when it's combined with other DFS-based graph work (e.g. cycle detection)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">Both rely on the same truth: a DAG has no cycles, so once every "before" relationship is satisfied, no vertex is ever left waiting forever.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>"Task X must happen before task Y" is a directed edge, not an undirected one.</p></div>
+            <div class="timeline-step"><p>I need one linear order where every edge points forward &mdash; that's topological sort, and it only makes sense on a DAG.</p></div>
+            <div class="timeline-step"><p>Which vertices are safe to place next? Any vertex with no remaining prerequisites &mdash; in-degree 0. Repeatedly peeling those off is Kahn's algorithm, which is really BFS.</p></div>
+            <div class="timeline-step"><p>Alternatively, I can recurse to the bottom of each chain first and push each vertex the moment it finishes, then reverse that list.</p></div>
+            <div class="timeline-step"><p>How do I know it's impossible? Kahn's: some vertices never reach in-degree 0. DFS: an edge points back to a vertex still on the call stack.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"Edges mean 'before', so I'll build an adjacency list plus an in-degree count for every vertex."</li>
+            <li>"I'll repeatedly output any vertex with in-degree 0 and decrement its neighbors &mdash; that's Kahn's algorithm, and it's basically BFS."</li>
+            <li>"If I run out of ready vertices before outputting everyone, the graph has a cycle and no valid order exists."</li>
+            <li>"Alternatively, DFS can push each vertex onto a list the instant it finishes; reversing that list also gives a valid order."</li>
+            <li>"There's no single correct answer &mdash; any order that keeps every edge pointing forward is valid."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Kahn's algorithm mistakes</h3>
+          <ul class="mistake-list">
+            <li>Forgetting to compute in-degree for every vertex before seeding the queue, so a ready vertex gets missed.</li>
+            <li>Decrementing a neighbor's in-degree but forgetting the <code>== 0</code> check before enqueueing &mdash; a vertex with two prerequisites would get enqueued twice, once too early.</li>
+            <li>Detecting a cycle by inspecting the in-degree array instead of comparing <code>len(order)</code> to <code>n</code>.</li>
+            <li>Assuming the queue's output is "the" answer instead of "a" valid answer &mdash; the order depends on tie-breaking, not just the graph.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>DFS-based mistakes</h3>
+          <ul class="mistake-list">
+            <li>Using a 2-state visited set (seen/unseen) instead of 3 states &mdash; without "in-progress," a legitimate re-visit of a finished node looks identical to a cycle.</li>
+            <li>Forgetting to reverse the finish order before returning it &mdash; the raw finish list is backwards.</li>
+            <li>Marking a vertex "done" before its neighbor loop finishes, which can hide a real cycle.</li>
+            <li>Appending to the output list before recursing into children (pre-order) instead of after (post-order) &mdash; topological order needs the push to happen on <strong>finish</strong>, not on entry.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 &mdash; <code>n = 4, edges = [(0,1), (0,2), (1,3), (2,3)]</code>. What does <code>topo_sort_kahn</code> return?</summary>
+          <p style="margin-top:10px;">Answer: <strong>[0, 1, 2, 3]</strong>. Vertex 0 seeds the queue alone. Popping it makes both 1 and 2 ready at once; they get popped in queue order (1 then 2), and only once both are done does 3's in-degree reach 0. <code>[0, 2, 1, 3]</code> would be an equally valid order &mdash; 1 and 2 don't depend on each other.</p>
+        </details>
+        <details>
+          <summary>Practice 2 &mdash; <code>edges = [(0,1), (1,2), (2,3), (3,1)]</code>, <code>n = 4</code>. Does a topological order exist?</summary>
+          <p style="margin-top:10px;">Answer: <strong>No.</strong> <code>1 &rarr; 2 &rarr; 3 &rarr; 1</code> is a cycle. Kahn's: only vertex 0 ever reaches in-degree 0 (1 needs both 0 and 3 to finish, but 3 needs 1 to finish first), so the queue empties after outputting just <code>[0]</code> &mdash; <code>len(order) = 1 &lt; 4</code>. DFS: exploring from 0 eventually reaches edge <code>3 &rarr; 1</code> while <code>visited[1]</code> is still 1 (in-progress) &mdash; cycle detected. Both return <code>None</code>.</p>
+        </details>
+        <details>
+          <summary>Practice 3 &mdash; If <code>adj[0]</code> were built as <code>[2, 1]</code> instead of <code>[1, 2]</code> for the canonical example, would the DFS-based result still be a valid topological order?</summary>
+          <p style="margin-top:10px;">Answer: <strong>Yes.</strong> The neighbor visiting order changes which branch DFS finishes first, so the finish list &mdash; and therefore the reversed output &mdash; comes out differently (e.g. a different interleaving of 1 and 2). But every edge in the graph still points forward in the new order, because neither traversal order changes what the graph's actual dependencies are. This is the same lesson as edge case B: there is no single correct output to memorize, only the property "every edge points forward" to check.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          Topological sort answers one question: <strong>is there an order that respects every "before" rule, and if so, what is one of them?</strong>
+          Kahn's algorithm answers it by repeatedly peeling off whatever has no prerequisites left &mdash; a queue-driven BFS.
+          DFS answers it by finishing the deepest dependencies first and reversing. Both detect a cycle as a side effect of trying:
+          Kahn's when vertices get stuck below in-degree 0's queue, DFS when an edge loops back onto the call stack. Neither
+          algorithm's output is <em>the</em> answer &mdash; only <em>a</em> valid one.
+        </p>
+      </div>
+      <p class="footer-note">Based on the Topological Sort README and notebook in <code>10_Topological_Sort</code> &mdash; both traces on this page were verified against the real <code>topo_sort_kahn</code> and <code>topo_sort_dfs</code> functions with neighbors iterated in sorted order.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const kahnSteps = [
+        { step: 0, title: 'Initial state: build graph, seed queue', text: 'The edge list is converted into an adjacency list and an in-degree count for every vertex. Only vertex 0 starts with in-degree 0, so it alone seeds the queue.', queue: '[0]', indeg: '{0:0, 1:1, 2:1, 3:2, 4:1}', current: '—', order: '[]', action: 'Build adj + indeg, seed queue with all indeg-0 vertices', detail: 'Only vertex 0 starts with in-degree 0 — everything else has at least one prerequisite.', outputNodes: [], queueNodes: [0], currentNode: null, activeEdges: [], lines: [6,7,8,9,10,12,13] },
+        { step: 1, title: 'Step 1: pop vertex 0', text: 'Vertex 0 has no prerequisites left, so it is output first. Removing it lowers the in-degree of both its dependents, 1 and 2, and both drop to 0 at once.', queue: '[1, 2]', indeg: '{0:0, 1:0, 2:0, 3:2, 4:1}', current: '0', order: '[0]', action: 'pop 0 -> order=[0]; neighbors [1,2] both hit indeg 0 -> enqueue both', detail: 'Two vertices become ready at the same time because both 1 and 2 depended only on 0.', outputNodes: [0], queueNodes: [1,2], currentNode: 0, activeEdges: ['0-1','0-2'], lines: [14,15,16,17,18,19,20] },
+        { step: 2, title: 'Step 2: pop vertex 1', text: "Vertex 1 is output next. Its only dependent, 3, loses one prerequisite but still has one remaining (from vertex 2), so it stays out of the queue.", queue: '[2]', indeg: '{0:0, 1:0, 2:0, 3:1, 4:1}', current: '1', order: '[0, 1]', action: 'pop 1 -> order=[0,1]; neighbor 3: indeg 2->1, not zero yet', detail: "3 needs both 1 and 2 finished before it's ready — one down, one to go.", outputNodes: [0,1], queueNodes: [2], currentNode: 1, activeEdges: ['1-3'], lines: [14,15,16,17,18,19,20] },
+        { step: 3, title: 'Step 3: pop vertex 2', text: "Vertex 2 is output. That was 3's last remaining prerequisite, so its in-degree hits 0 and it joins the queue.", queue: '[3]', indeg: '{0:0, 1:0, 2:0, 3:0, 4:1}', current: '2', order: '[0, 1, 2]', action: 'pop 2 -> order=[0,1,2]; neighbor 3: indeg 1->0 -> enqueue 3', detail: '3 only becomes ready once both of its prerequisites, 1 and 2, have been output.', outputNodes: [0,1,2], queueNodes: [3], currentNode: 2, activeEdges: ['2-3'], lines: [14,15,16,17,18,19,20] },
+        { step: 4, title: 'Step 4: pop vertex 3', text: 'Vertex 3 is output. Its only dependent, 4, loses its last prerequisite and becomes ready.', queue: '[4]', indeg: '{0:0, 1:0, 2:0, 3:0, 4:0}', current: '3', order: '[0, 1, 2, 3]', action: 'pop 3 -> order=[0,1,2,3]; neighbor 4: indeg 1->0 -> enqueue 4', detail: '3 only got here after both 1 and 2 were already output — exactly the guarantee in-degree gives us.', outputNodes: [0,1,2,3], queueNodes: [4], currentNode: 3, activeEdges: ['3-4'], lines: [14,15,16,17,18,19,20] },
+        { step: 5, title: 'Step 5: pop vertex 4', text: 'Vertex 4 has no dependents, so nothing is enqueued. The queue is now empty.', queue: '[]', indeg: '{0:0, 1:0, 2:0, 3:0, 4:0}', current: '4', order: '[0, 1, 2, 3, 4]', action: 'pop 4 -> order=[0,1,2,3,4]; no neighbors to update', detail: 'Every vertex has now been output exactly once.', outputNodes: [0,1,2,3,4], queueNodes: [], currentNode: 4, activeEdges: [], lines: [14,15,16,17] },
+        { step: 6, title: 'Step 6: queue empty, done', text: 'The while loop exits because the queue is empty. The output has all 5 vertices, which equals n, so this is a valid topological order — no cycle was found.', queue: '[]', indeg: '{0:0, 1:0, 2:0, 3:0, 4:0}', current: '—', order: '[0, 1, 2, 3, 4]', action: 'len(order) == n -> return order', detail: 'If any vertex had been left stuck at a positive in-degree, len(order) would be less than n and the function would return None instead.', outputNodes: [0,1,2,3,4], queueNodes: [], currentNode: null, activeEdges: [], lines: [14,21] }
+      ];
+
+      const dfsSteps = [
+        { step: 0, title: 'Initial state: build graph, nothing visited', text: 'The adjacency list is built once. visited starts all-0 (unseen) and the finish-order list is empty.', stack: '[]', visited: '{0:0, 1:0, 2:0, 3:0, 4:0}', current: '—', order: '[]', action: 'adj built; visited=[0,0,0,0,0]; order=[]', detail: 'Nothing has been explored yet.', doneNodes: [], stackNodes: [], currentNode: null, activeEdges: [], lines: [2,3,4,5,6] },
+        { step: 1, title: 'Step 1: dfs(0) called', text: 'Outer loop reaches vertex 0, still unseen, so DFS is called on it. It is immediately marked in-progress — it is now on the call stack.', stack: '[0]', visited: '{0:1, 1:0, 2:0, 3:0, 4:0}', current: '0', order: '[]', action: 'dfs(0): visited[0] = 1', detail: "Marking a node in-progress the moment it's entered is what lets DFS detect a cycle later — an edge to a node still marked 1 means a loop.", doneNodes: [], stackNodes: [0], currentNode: 0, activeEdges: [], lines: [17,18,19,9] },
+        { step: 2, title: 'Step 2: edge 0→1, recurse into dfs(1)', text: 'Vertex 1 is unseen, so DFS recurses into it before finishing vertex 0. dfs(0) is now paused, waiting on the call stack.', stack: '[0, 1]', visited: '{0:1, 1:1, 2:0, 3:0, 4:0}', current: '1', order: '[]', action: 'visited[1]==0 -> dfs(1); visited[1] = 1', detail: "0 stays in-progress on the stack — it can't finish until every one of its outgoing edges has been explored.", doneNodes: [], stackNodes: [0,1], currentNode: 1, activeEdges: ['0-1'], lines: [10,13,14,9] },
+        { step: 3, title: 'Step 3: edge 1→3, recurse into dfs(3)', text: 'Vertex 3 is also unseen, so DFS goes one level deeper again.', stack: '[0, 1, 3]', visited: '{0:1, 1:1, 2:0, 3:1, 4:0}', current: '3', order: '[]', action: 'visited[3]==0 -> dfs(3); visited[3] = 1', detail: 'The call stack now holds three frames: 0, 1, and 3, all still in-progress.', doneNodes: [], stackNodes: [0,1,3], currentNode: 3, activeEdges: ['1-3'], lines: [10,13,14,9] },
+        { step: 4, title: 'Step 4: edge 3→4, recurse into dfs(4)', text: 'Vertex 4 is unseen too, so DFS recurses one more level.', stack: '[0, 1, 3, 4]', visited: '{0:1, 1:1, 2:0, 3:1, 4:1}', current: '4', order: '[]', action: 'visited[4]==0 -> dfs(4); visited[4] = 1', detail: 'This is the deepest point of the recursion — vertex 4 has no outgoing edges at all.', doneNodes: [], stackNodes: [0,1,3,4], currentNode: 4, activeEdges: ['3-4'], lines: [10,13,14,9] },
+        { step: 5, title: 'Step 5: dfs(4) finishes — no outgoing edges', text: 'Vertex 4 has no dependents to visit, so its for-loop does nothing. It is marked done and pushed onto the finish-order list — the very first vertex to finish.', stack: '[0, 1, 3]', visited: '{0:1, 1:1, 2:0, 3:1, 4:2}', current: '3', order: '[4]', action: 'adj[4] is empty -> visited[4] = 2; order.append(4)', detail: 'The deepest node in a chain always finishes first. Control returns to dfs(3).', doneNodes: [4], stackNodes: [0,1,3], currentNode: 3, activeEdges: [], lines: [10,15,16] },
+        { step: 6, title: 'Step 6: dfs(3) finishes', text: "dfs(3) had only the one edge to 4, which is now finished, so 3's loop is done too. It finishes and control returns to dfs(1).", stack: '[0, 1]', visited: '{0:1, 1:1, 2:0, 3:2, 4:2}', current: '1', order: '[4, 3]', action: 'adj[3] fully explored -> visited[3] = 2; order.append(3)', detail: 'Finish order so far is [4, 3] — vertices finish in the reverse of the order they were entered.', doneNodes: [4,3], stackNodes: [0,1], currentNode: 1, activeEdges: [], lines: [10,15,16] },
+        { step: 7, title: 'Step 7: dfs(1) finishes', text: "dfs(1) had only the one edge to 3, already finished. 1 finishes and control returns to dfs(0), which still has a second edge to check: 0→2.", stack: '[0]', visited: '{0:1, 1:2, 2:0, 3:2, 4:2}', current: '0', order: '[4, 3, 1]', action: 'adj[1] fully explored -> visited[1] = 2; order.append(1)', detail: '0 is still in-progress — it has a second outgoing edge that has not been explored yet.', doneNodes: [4,3,1], stackNodes: [0], currentNode: 0, activeEdges: [], lines: [10,15,16] },
+        { step: 8, title: 'Step 8: edge 0→2, recurse into dfs(2)', text: "0's second edge leads to vertex 2, which is still unseen, so DFS recurses into it.", stack: '[0, 2]', visited: '{0:1, 1:2, 2:1, 3:2, 4:2}', current: '2', order: '[4, 3, 1]', action: 'visited[2]==0 -> dfs(2); visited[2] = 1', detail: 'This is the second and last branch out of vertex 0.', doneNodes: [4,3,1], stackNodes: [0,2], currentNode: 2, activeEdges: ['0-2'], lines: [10,13,14,9] },
+        { step: 9, title: 'Step 9: edge 2→3, already done — skip', text: "dfs(2)'s only edge points to vertex 3, which is already fully done from the first branch. Nothing happens — this is not a cycle, just a vertex reached twice through different paths.", stack: '[0, 2]', visited: '{0:1, 1:2, 2:1, 3:2, 4:2}', current: '2', order: '[4, 3, 1]', action: 'visited[3]==2 (done) -> neither branch taken, loop moves on', detail: 'If visited[3] were 1 (in-progress) instead of 2 (done), this would flag a cycle. Being 2 means it was already fully explored, just via a different route.', doneNodes: [4,3,1], stackNodes: [0,2], currentNode: 2, activeEdges: ['2-3'], lines: [10,11,12,13] },
+        { step: 10, title: 'Step 10: dfs(2) finishes', text: 'dfs(2) has nothing left to explore, so it finishes and control returns to dfs(0).', stack: '[0]', visited: '{0:1, 1:2, 2:2, 3:2, 4:2}', current: '0', order: '[4, 3, 1, 2]', action: 'adj[2] fully explored -> visited[2] = 2; order.append(2)', detail: 'Finish order is now [4, 3, 1, 2] — only vertex 0 is left in-progress.', doneNodes: [4,3,1,2], stackNodes: [0], currentNode: 0, activeEdges: [], lines: [10,15,16] },
+        { step: 11, title: 'Step 11: dfs(0) finishes', text: "Both of 0's edges have now been fully explored, so it finishes last and the call stack empties. Every vertex has been visited.", stack: '[]', visited: '{0:2, 1:2, 2:2, 3:2, 4:2}', current: '—', order: '[4, 3, 1, 2, 0]', action: 'both edges of 0 explored -> visited[0] = 2; order.append(0)', detail: '0 finishes last because it was the first vertex entered — this is exactly why the finish order needs to be reversed.', doneNodes: [4,3,1,2,0], stackNodes: [], currentNode: null, activeEdges: [], lines: [10,15,16] },
+        { step: 12, title: 'Step 12: reverse the finish order — done', text: 'The outer loop finishes without finding any more unseen vertices. Reversing [4,3,1,2,0] gives the final order [0,2,1,3,4] — a different, equally valid order from Kahn’s [0,1,2,3,4].', stack: '[]', visited: '{0:2, 1:2, 2:2, 3:2, 4:2}', current: '—', order: '[4, 3, 1, 2, 0] reversed → [0, 2, 1, 3, 4]', action: 'outer loop confirms i=1..4 already visited; return order[::-1]', detail: 'DFS naturally finishes downstream vertices first, so reversing puts vertices with no remaining prerequisites back at the front.', doneNodes: [4,3,1,2,0], stackNodes: [], currentNode: null, activeEdges: [], lines: [17,18,20] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderKahn(step, index, max) {
+        document.getElementById('kahn-step-title').textContent = step.title;
+        document.getElementById('kahn-step-text').textContent = step.text;
+        document.getElementById('kahn-queue').textContent = step.queue;
+        document.getElementById('kahn-indeg').textContent = step.indeg;
+        document.getElementById('kahn-current').textContent = step.current;
+        document.getElementById('kahn-order').textContent = step.order;
+        document.getElementById('kahn-action').textContent = step.action;
+        document.getElementById('kahn-result').textContent = step.step === 6 ? '[0, 1, 2, 3, 4]' : '—';
+        document.getElementById('kahn-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('kahn-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('kahn-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('kahn-trace-table', step.step);
+        setCodeHighlight('kahn-code', step.lines);
+
+        document.querySelectorAll('#kahn-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('output', 'queue', 'current');
+          if (step.outputNodes.includes(id)) node.classList.add('output');
+          if (step.queueNodes.includes(id)) node.classList.add('queue');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#kahn-graph [data-kahn-edge]').forEach((line) => {
+          line.setAttribute('visibility', step.activeEdges.includes(line.dataset.kahnEdge) ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderDfs(step, index, max) {
+        document.getElementById('dfs-step-title').textContent = step.title;
+        document.getElementById('dfs-step-text').textContent = step.text;
+        document.getElementById('dfs-stack').textContent = step.stack;
+        document.getElementById('dfs-visited').textContent = step.visited;
+        document.getElementById('dfs-current').textContent = step.current;
+        document.getElementById('dfs-order').textContent = step.order;
+        document.getElementById('dfs-action').textContent = step.action;
+        document.getElementById('dfs-result').textContent = step.step === 12 ? '[0, 2, 1, 3, 4]' : '—';
+        document.getElementById('dfs-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('dfs-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('dfs-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('dfs-trace-table', step.step);
+        setCodeHighlight('dfs-code', step.lines);
+
+        document.querySelectorAll('#dfs-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('done', 'stacked', 'current');
+          if (step.doneNodes.includes(id)) node.classList.add('done');
+          if (step.stackNodes.includes(id)) node.classList.add('stacked');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#dfs-graph [data-dfs-edge]').forEach((line) => {
+          line.setAttribute('visibility', step.activeEdges.includes(line.dataset.dfsEdge) ? 'visible' : 'hidden');
+        });
+      }
+
+      setupTrace({ steps: kahnSteps, prefix: 'kahn', render: renderKahn });
+      setupTrace({ steps: dfsSteps, prefix: 'dfs', render: renderDfs });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

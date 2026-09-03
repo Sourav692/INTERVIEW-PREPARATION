@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graph Traversal — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Graphs · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Graph Traversal — BFS &amp; DFS on Graphs</h1>
+          <p>
+            Trees never loop back on themselves. Graphs do — and that one fact changes everything: every
+            traversal here needs a <strong>visited set</strong>, marked the instant a vertex is discovered,
+            or the walk never terminates. This page traces the exact same six-vertex graph through both BFS
+            (a queue, finds the fewest-hop path) and DFS (a stack, finds structure), step by step, so you can
+            see exactly what the visited set is protecting you from.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: mark visited on discovery</span>
+            <span class="chip">Interactive BFS trace</span>
+            <span class="chip">Interactive DFS trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>edges = [(A,B),(A,D),(B,C),(B,E),(C,F),(D,E),(E,F)]</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 460 260" width="100%" role="img" aria-label="Six vertex graph with two overlapping cycles sharing edge B-E">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                </style>
+              </defs>
+              <line x1="90" y1="70" x2="230" y2="70" class="hero-edge" />
+              <line x1="230" y1="70" x2="370" y2="70" class="hero-edge" />
+              <line x1="90" y1="70" x2="90" y2="190" class="hero-edge" />
+              <line x1="230" y1="70" x2="230" y2="190" class="hero-edge" />
+              <line x1="370" y1="70" x2="370" y2="190" class="hero-edge" />
+              <line x1="90" y1="190" x2="230" y2="190" class="hero-edge" />
+              <line x1="230" y1="190" x2="370" y2="190" class="hero-edge" />
+              <circle cx="90" cy="70" r="26" class="hero-node" />
+              <circle cx="230" cy="70" r="26" class="hero-node" />
+              <circle cx="370" cy="70" r="26" class="hero-node" />
+              <circle cx="90" cy="190" r="26" class="hero-node" />
+              <circle cx="230" cy="190" r="26" class="hero-node" />
+              <circle cx="370" cy="190" r="26" class="hero-node" />
+              <text x="83" y="76" class="hero-label">A</text>
+              <text x="223" y="76" class="hero-label">B</text>
+              <text x="363" y="76" class="hero-label">C</text>
+              <text x="83" y="196" class="hero-label">D</text>
+              <text x="223" y="196" class="hero-label">E</text>
+              <text x="363" y="196" class="hero-label">F</text>
+            </svg>
+          </div>
+          <div class="result-badge">BFS(A) order = A, B, D, C, E, F · dist(A→F) = 3 hops</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Social graphs</h3>
+          <p>"How many people separate you from a stranger" (degrees of separation) is literally BFS's distance map — the number of hops, nothing else.</p>
+        </div>
+        <div class="card">
+          <h3>Network routing</h3>
+          <p>Roads and routers are graphs full of cycles on purpose — redundant paths mean resilience. BFS finds the fewest-hop route; DFS finds some reachable route fast.</p>
+        </div>
+        <div class="card">
+          <h3>Dependency graphs &amp; crawlers</h3>
+          <p>Package managers and web crawlers walk graphs that loop back on themselves constantly. Skip the visited set here and the program hangs, not just runs slow.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> unlike a tree, a graph can hand you the same vertex twice through two different edges. Every idea in this lesson — BFS's queue, DFS's stack, the visited set — exists to make sure that vertex still only gets processed once.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is graph traversal?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>Graph traversal means visiting every vertex reachable from a start vertex by following edges, while guaranteeing each vertex is processed exactly once — even when edges loop back on themselves.</p>
+        </div>
+        <div class="card">
+          <h3>What you are computing</h3>
+          <p>BFS computes a visit order plus the fewest-edges distance from the source to every vertex. DFS computes a visit order plus structure — reachability, connected components, or where a cycle closes.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if the question says "shortest," "fewest," "minimum hops," or "nearest," reach for BFS. If it just says "reachable," "connected," or "does a path exist," either works — DFS's stack or recursion is usually less code to write.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Build the adjacency list</h3>
+          <p>Turn the edge list into a <code>{vertex: [neighbors]}</code> map. For an undirected graph, every edge is written in both directions.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Pick a start, seed the state</h3>
+          <p>Choose a starting vertex, mark it visited, and place it in the container — a queue for BFS, a stack for DFS.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Choose the container that fits</h3>
+          <p>"Shortest / fewest hops" needs a queue (BFS). "Does a path exist / explore everything" fits a stack or recursion (DFS).</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Mark visited at discovery</h3>
+          <p>Mark a vertex the instant it is first seen, not when it is finally processed — this is what keeps a shared vertex off the queue twice.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes an adjacency list</h2>
+      <p>Before either BFS or DFS can run, the raw edge list has to become a lookup table of neighbors. Neighbor lists are sorted afterward so the traversal order below is deterministic and reproducible.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input edges</h3>
+          <div class="code-block"><code>edges = [
+  ("A","B"), ("A","D"),
+  ("B","C"), ("B","E"),
+  ("C","F"),
+  ("D","E"),
+  ("E","F"),
+]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Adjacency list</h3>
+          <div class="code-block"><code>A: [B, D]
+B: [A, C, E]
+C: [B, F]
+D: [A, E]
+E: [B, D, F]
+F: [C, E]</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Read edge <code>(A,B)</code>, then <code>(A,D)</code></h4>
+          <p>Add <code>B</code> and <code>D</code> to <code>A</code>'s list, and add <code>A</code> back onto <code>B</code>'s and <code>D</code>'s lists — every undirected edge is written twice.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read <code>(B,C)</code>, <code>(B,E)</code>, <code>(C,F)</code>, <code>(D,E)</code>, <code>(E,F)</code></h4>
+          <p>Same rule, five more times. By the time all seven edges are read, vertex <code>E</code> already has three neighbors: <code>B</code>, <code>D</code>, and <code>F</code>.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Sort every neighbor list</h4>
+          <p>Purely for reproducibility — it guarantees the exact same visit order every time this page (or the notebook) runs the traversal below.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> this is not a tree — vertex <code>E</code> can be reached from <code>A</code> two different ways (through <code>B</code>, or through <code>D</code>), and following edges from <code>E</code> long enough leads right back to <code>A</code>. That loop is exactly why the visited set below has to exist.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: BFS — fewest-hop distance from a source</h2>
+      <p>BFS explores the graph ring by ring using a <strong>queue</strong>. Every vertex is marked <code>seen</code> the moment it is <strong>enqueued</strong>, not when it is dequeued — that single ordering choice is what stops the shared vertex <code>E</code> from being queued twice by both of its cycles.</p>
+      <div class="code-block stepped">
+        <code id="bfs-code">
+<span class="code-line" data-line="1">def bfs(adj, start):</span>
+<span class="code-line" data-line="2">    seen = {start}                    # mark on ENQUEUE so nothing is queued twice</span>
+<span class="code-line" data-line="3">    dist = {start: 0}</span>
+<span class="code-line" data-line="4">    q = deque([start])</span>
+<span class="code-line" data-line="5">    order = []</span>
+<span class="code-line" data-line="6"></span>
+<span class="code-line" data-line="7">    while q:</span>
+<span class="code-line" data-line="8">        u = q.popleft()                # oldest waiting vertex (FIFO -> wide)</span>
+<span class="code-line" data-line="9">        order.append(u)</span>
+<span class="code-line" data-line="10"></span>
+<span class="code-line" data-line="11">        for v in adj[u]:</span>
+<span class="code-line" data-line="12">            if v not in seen:</span>
+<span class="code-line" data-line="13">                seen.add(v)</span>
+<span class="code-line" data-line="14">                dist[v] = dist[u] + 1  # one edge further than u</span>
+<span class="code-line" data-line="15">                q.append(v)</span>
+<span class="code-line" data-line="16"></span>
+<span class="code-line" data-line="17">    return order, dist</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive BFS trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="bfs-graph" viewBox="0 0 460 260" width="100%" role="img" aria-label="BFS trace over the six vertex graph">
+              <defs>
+                <style>
+                  .bfsg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .bfsg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .bfsg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .bfsg-node.seen { fill: #315efb; }
+                  .bfsg-node.current { fill: #ff9f1c; }
+                  .bfsg-node.frontier { fill: #13a46b; }
+                  .bfsg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .bfsg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="bfsg-title">Current dequeue</text>
+              <line x1="90" y1="70" x2="230" y2="70" class="bfsg-base-edge" />
+              <line x1="230" y1="70" x2="370" y2="70" class="bfsg-base-edge" />
+              <line x1="90" y1="70" x2="90" y2="190" class="bfsg-base-edge" />
+              <line x1="230" y1="70" x2="230" y2="190" class="bfsg-base-edge" />
+              <line x1="370" y1="70" x2="370" y2="190" class="bfsg-base-edge" />
+              <line x1="90" y1="190" x2="230" y2="190" class="bfsg-base-edge" />
+              <line x1="230" y1="190" x2="370" y2="190" class="bfsg-base-edge" />
+              <line x1="90" y1="70" x2="230" y2="70" class="bfsg-active-edge" data-bfs-edge="A-B" visibility="hidden" />
+              <line x1="90" y1="70" x2="90" y2="190" class="bfsg-active-edge" data-bfs-edge="A-D" visibility="hidden" />
+              <line x1="230" y1="70" x2="370" y2="70" class="bfsg-active-edge" data-bfs-edge="B-C" visibility="hidden" />
+              <line x1="230" y1="70" x2="230" y2="190" class="bfsg-active-edge" data-bfs-edge="B-E" visibility="hidden" />
+              <line x1="370" y1="70" x2="370" y2="190" class="bfsg-active-edge" data-bfs-edge="C-F" visibility="hidden" />
+              <line x1="90" y1="190" x2="230" y2="190" class="bfsg-active-edge" data-bfs-edge="D-E" visibility="hidden" />
+              <line x1="230" y1="190" x2="370" y2="190" class="bfsg-active-edge" data-bfs-edge="E-F" visibility="hidden" />
+              <circle cx="90" cy="70" r="26" class="bfsg-node" data-node="A" />
+              <circle cx="230" cy="70" r="26" class="bfsg-node" data-node="B" />
+              <circle cx="370" cy="70" r="26" class="bfsg-node" data-node="C" />
+              <circle cx="90" cy="190" r="26" class="bfsg-node" data-node="D" />
+              <circle cx="230" cy="190" r="26" class="bfsg-node" data-node="E" />
+              <circle cx="370" cy="190" r="26" class="bfsg-node" data-node="F" />
+              <text x="83" y="76" class="bfsg-label">A</text>
+              <text x="223" y="76" class="bfsg-label">B</text>
+              <text x="363" y="76" class="bfsg-label">C</text>
+              <text x="83" y="196" class="bfsg-label">D</text>
+              <text x="223" y="196" class="bfsg-label">E</text>
+              <text x="363" y="196" class="bfsg-label">F</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current popped vertex</span>
+            <span><i class="dot dot-green"></i> vertices sitting in the queue</span>
+            <span><i class="dot dot-blue"></i> already popped (done)</span>
+            <span><i class="dot dot-gray"></i> not seen yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="bfs-step-title">Initial state</h3>
+          <p id="bfs-step-text">The queue is seeded with A, which is marked seen before the loop even starts.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="bfs-prev">Previous</button>
+            <button type="button" id="bfs-play" class="primary">Resume</button>
+            <button type="button" id="bfs-next">Next</button>
+            <button type="button" id="bfs-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="bfs-step-counter">Step 0 / 6</span>
+            <div class="progress"><span id="bfs-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Queue (front is leftmost)</strong><div class="state-value" id="bfs-queue">[A]</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="bfs-action">Initialize: seen={A}, dist={A:0}</div></div>
+            <div class="state-box"><strong>Current vertex popped</strong><div class="state-value" id="bfs-node">—</div></div>
+            <div class="state-box"><strong>Seen set</strong><div class="state-value" id="bfs-seen">{A}</div></div>
+            <div class="state-box"><strong>dist</strong><div class="state-value" id="bfs-dist">{A: 0}</div></div>
+            <div class="state-box"><strong>Order so far</strong><div class="state-value" id="bfs-order">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="bfs-detail"><strong>What changed:</strong> nothing has been popped yet. A is already seen even though it has not been processed.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="bfs-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Popped</th><th>Newly discovered (pushed)</th><th>Queue after</th><th>dist after</th><th>Order after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>A (start, marked seen)</td><td><code>[A]</code></td><td><code>{A:0}</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>A</code></td><td><code>B</code>(1), <code>D</code>(1)</td><td><code>[B,D]</code></td><td><code>{A:0,B:1,D:1}</code></td><td><code>[A]</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>B</code></td><td><code>C</code>(2), <code>E</code>(2)</td><td><code>[D,C,E]</code></td><td><code>{A:0,B:1,D:1,C:2,E:2}</code></td><td><code>[A,B]</code></td></tr>
+            <tr data-step="3"><td>3</td><td><code>D</code></td><td>none (A, E already seen)</td><td><code>[C,E]</code></td><td>unchanged</td><td><code>[A,B,D]</code></td></tr>
+            <tr data-step="4"><td>4</td><td><code>C</code></td><td><code>F</code>(3)</td><td><code>[E,F]</code></td><td><code>{...,F:3}</code></td><td><code>[A,B,D,C]</code></td></tr>
+            <tr data-step="5"><td>5</td><td><code>E</code></td><td>none (B, D, F already seen)</td><td><code>[F]</code></td><td>unchanged</td><td><code>[A,B,D,C,E]</code></td></tr>
+            <tr data-step="6"><td>6</td><td><code>F</code></td><td>none — queue empties, return</td><td><code>[]</code></td><td>final</td><td><code>[A,B,D,C,E,F]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The first time BFS reaches any vertex, it is guaranteed to be via the fewest edges — the queue's FIFO order does that work for free, without ever comparing candidate paths.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common BFS mistake</h4>
+          <p>Marking a vertex seen when it is dequeued instead of when it is enqueued. On a cyclic graph, that lets the same vertex sit in the queue more than once before it is ever processed.</p>
+        </div>
+        <div class="card">
+          <h4>Why the queue matters</h4>
+          <p>The queue lives on the heap, not the call stack, so it is unaffected by very long or skewed graphs — see the disconnected and cycle edge cases below for what the visited set is actually preventing.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: DFS — explicit stack, marks visited on pop</h2>
+      <p>DFS follows one branch as deep as it can before backtracking, using an <strong>explicit stack</strong> instead of the queue. This version marks a vertex <code>seen</code> when it is <strong>popped</strong>, not when it is pushed — so a duplicate can sit on the stack for a while, and the <code>if u in seen: continue</code> guard is what makes that safe.</p>
+      <div class="code-block stepped">
+        <code id="dfs-code">
+<span class="code-line" data-line="1">def dfs_iterative(adj, start):</span>
+<span class="code-line" data-line="2">    seen, order, stack = set(), [], [start]</span>
+<span class="code-line" data-line="3"></span>
+<span class="code-line" data-line="4">    while stack:</span>
+<span class="code-line" data-line="5">        u = stack.pop()                # LIFO -> depth-first</span>
+<span class="code-line" data-line="6">        if u in seen:</span>
+<span class="code-line" data-line="7">            continue</span>
+<span class="code-line" data-line="8">        seen.add(u)</span>
+<span class="code-line" data-line="9">        order.append(u)</span>
+<span class="code-line" data-line="10"></span>
+<span class="code-line" data-line="11">        for v in reversed(adj[u]):     # reversed so the smallest neighbour pops first</span>
+<span class="code-line" data-line="12">            if v not in seen:</span>
+<span class="code-line" data-line="13">                stack.append(v)</span>
+<span class="code-line" data-line="14"></span>
+<span class="code-line" data-line="15">    return order</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive DFS trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="dfs-graph" viewBox="0 0 460 260" width="100%" role="img" aria-label="DFS trace over the six vertex graph">
+              <defs>
+                <style>
+                  .dfsg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .dfsg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .dfsg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .dfsg-node.seen { fill: #315efb; }
+                  .dfsg-node.current { fill: #ff9f1c; }
+                  .dfsg-node.frontier { fill: #13a46b; }
+                  .dfsg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .dfsg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="dfsg-title">Current pop</text>
+              <line x1="90" y1="70" x2="230" y2="70" class="dfsg-base-edge" />
+              <line x1="230" y1="70" x2="370" y2="70" class="dfsg-base-edge" />
+              <line x1="90" y1="70" x2="90" y2="190" class="dfsg-base-edge" />
+              <line x1="230" y1="70" x2="230" y2="190" class="dfsg-base-edge" />
+              <line x1="370" y1="70" x2="370" y2="190" class="dfsg-base-edge" />
+              <line x1="90" y1="190" x2="230" y2="190" class="dfsg-base-edge" />
+              <line x1="230" y1="190" x2="370" y2="190" class="dfsg-base-edge" />
+              <line x1="90" y1="70" x2="230" y2="70" class="dfsg-active-edge" data-dfs-edge="A-B" visibility="hidden" />
+              <line x1="90" y1="70" x2="90" y2="190" class="dfsg-active-edge" data-dfs-edge="A-D" visibility="hidden" />
+              <line x1="230" y1="70" x2="370" y2="70" class="dfsg-active-edge" data-dfs-edge="B-C" visibility="hidden" />
+              <line x1="230" y1="70" x2="230" y2="190" class="dfsg-active-edge" data-dfs-edge="B-E" visibility="hidden" />
+              <line x1="370" y1="70" x2="370" y2="190" class="dfsg-active-edge" data-dfs-edge="C-F" visibility="hidden" />
+              <line x1="90" y1="190" x2="230" y2="190" class="dfsg-active-edge" data-dfs-edge="D-E" visibility="hidden" />
+              <line x1="230" y1="190" x2="370" y2="190" class="dfsg-active-edge" data-dfs-edge="E-F" visibility="hidden" />
+              <circle cx="90" cy="70" r="26" class="dfsg-node" data-node="A" />
+              <circle cx="230" cy="70" r="26" class="dfsg-node" data-node="B" />
+              <circle cx="370" cy="70" r="26" class="dfsg-node" data-node="C" />
+              <circle cx="90" cy="190" r="26" class="dfsg-node" data-node="D" />
+              <circle cx="230" cy="190" r="26" class="dfsg-node" data-node="E" />
+              <circle cx="370" cy="190" r="26" class="dfsg-node" data-node="F" />
+              <text x="83" y="76" class="dfsg-label">A</text>
+              <text x="223" y="76" class="dfsg-label">B</text>
+              <text x="363" y="76" class="dfsg-label">C</text>
+              <text x="83" y="196" class="dfsg-label">D</text>
+              <text x="223" y="196" class="dfsg-label">E</text>
+              <text x="363" y="196" class="dfsg-label">F</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current popped vertex</span>
+            <span><i class="dot dot-green"></i> vertices sitting on the stack</span>
+            <span><i class="dot dot-blue"></i> already marked seen</span>
+            <span><i class="dot dot-gray"></i> never pushed</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="dfs-step-title">Initial state</h3>
+          <p id="dfs-step-text">A is pushed onto the stack, but seen starts empty — nothing is marked until it is popped.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="dfs-prev">Previous</button>
+            <button type="button" id="dfs-play" class="primary">Resume</button>
+            <button type="button" id="dfs-next">Next</button>
+            <button type="button" id="dfs-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="dfs-step-counter">Step 0 / 8</span>
+            <div class="progress"><span id="dfs-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Stack (top is rightmost)</strong><div class="state-value" id="dfs-stack">[A]</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="dfs-action">Initialize: seen={}, stack=[A]</div></div>
+            <div class="state-box"><strong>Current vertex popped</strong><div class="state-value" id="dfs-node">—</div></div>
+            <div class="state-box"><strong>Seen set</strong><div class="state-value" id="dfs-seen">{}</div></div>
+            <div class="state-box"><strong>Order so far</strong><div class="state-value" id="dfs-order">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="dfs-detail"><strong>What changed:</strong> seen starts empty. A is only sitting on the stack — it is not visited until it is actually popped.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="dfs-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Popped</th><th>Action</th><th>Stack after</th><th>Seen after</th><th>Order after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>Push start A</td><td><code>[A]</code></td><td><code>{}</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>A</code></td><td>mark seen, push D then B (reversed)</td><td><code>[D,B]</code></td><td><code>{A}</code></td><td><code>[A]</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>B</code></td><td>mark seen, A seen (skip), push E then C</td><td><code>[D,E,C]</code></td><td><code>{A,B}</code></td><td><code>[A,B]</code></td></tr>
+            <tr data-step="3"><td>3</td><td><code>C</code></td><td>mark seen, B seen (skip), push F</td><td><code>[D,E,F]</code></td><td><code>{A,B,C}</code></td><td><code>[A,B,C]</code></td></tr>
+            <tr data-step="4"><td>4</td><td><code>F</code></td><td>mark seen, C seen (skip), push E — duplicate</td><td><code>[D,E,E]</code></td><td><code>{A,B,C,F}</code></td><td><code>[A,B,C,F]</code></td></tr>
+            <tr data-step="5"><td>5</td><td><code>E</code></td><td>mark seen, B/F seen (skip), push D</td><td><code>[D,E,D]</code></td><td><code>{A,B,C,E,F}</code></td><td><code>[A,B,C,F,E]</code></td></tr>
+            <tr data-step="6"><td>6</td><td><code>D</code></td><td>mark seen, A/E seen — nothing to push</td><td><code>[D,E]</code></td><td><code>{A,B,C,D,E,F}</code></td><td><code>[A,B,C,F,E,D]</code></td></tr>
+            <tr data-step="7"><td>7</td><td><code>E</code> (dup)</td><td>already seen — continue (skip)</td><td><code>[D]</code></td><td>unchanged</td><td>unchanged</td></tr>
+            <tr data-step="8"><td>8</td><td><code>D</code> (dup)</td><td>already seen — continue, stack empties, return</td><td><code>[]</code></td><td>unchanged</td><td><code>[A,B,C,F,E,D]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>A stack dives one branch as deep as it goes before backing up — same six vertices as BFS, completely different order, because LIFO explores depth instead of breadth.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common DFS mistake</h4>
+          <p>Expecting <code>if v not in seen: push</code> to fully prevent duplicates. It does not — seen is not updated until pop time, so the pop-time <code>if u in seen: continue</code> guard is what actually keeps this correct (see steps 4, 7, and 8).</p>
+        </div>
+        <div class="card">
+          <h4>Why the guard matters</h4>
+          <p>Drop the <code>if u in seen: continue</code> line and this same graph — which has a real cycle — starts re-processing vertices forever instead of just wasting a little stack space on a duplicate.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Disconnected graph</button>
+        <button type="button" data-example-tab="1">Cycle without the check</button>
+        <button type="button" data-example-tab="2">Self-loop, single node</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: disconnected graph</h3>
+          <p><code>edges + [("G","H")]</code> adds a second island untouched by the rest of the graph.</p>
+          <div class="result-badge">BFS(A) never reaches G or H — dist has no entry for either</div>
+          <p class="footer-note"><code>dist</code> (or <code>seen</code>) is an honest record of what is reachable from the start — an entry simply never appears for a vertex in a different component. To cover the whole graph, restart the traversal from every still-unvisited vertex; that repeated restart is exactly how counting connected components works.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: the cycle this graph actually has</h3>
+          <p>Delete the line <code>if v not in seen:</code> from <code>bfs</code> and re-run it on this exact graph.</p>
+          <div class="result-badge">With the check: BFS finishes in 6 pops. Without it: the queue never empties.</div>
+          <p class="footer-note">Every pop of B would push A right back onto the queue (B's neighbor list includes A), and every later pop of A pushes B back again — around the A-B-E-D-A cycle forever. The queue length grows without bound and the loop never terminates. This single check is the whole difference between "graph traversal" and "tree traversal" — a tree never needs it because it has no cycle to walk back into.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: single node with a self-loop</h3>
+          <p><code>edges = [("I","I")]</code> — building the adjacency list still writes the edge in "both directions," so <code>I: [I, I]</code>.</p>
+          <div class="result-badge">order = [I], dist = {I: 0} — I is visited exactly once</div>
+          <p class="footer-note">When BFS pops I, it scans I's neighbor list <code>[I, I]</code> — but I is already in <code>seen</code>, marked the instant it was enqueued as the start vertex, so both self-references are skipped. The visited set does the same job here it does everywhere else: process each vertex exactly once, no matter how many edges point at it.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Time</th><th>Space</th><th>Best for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>BFS (queue)</td><td>O(V + E)</td><td>O(V) — queue + seen set</td><td>Shortest path / fewest hops, level-by-level info</td></tr>
+            <tr><td>DFS (recursive)</td><td>O(V + E)</td><td>O(V) worst case — call stack depth (can hit <code>RecursionError</code> on a very long, skewed graph)</td><td>Reachability, connected components, cycle detection, topological order</td></tr>
+            <tr><td>DFS (iterative, explicit stack)</td><td>O(V + E)</td><td>O(V) — explicit stack + seen set, never risks <code>RecursionError</code></td><td>Same jobs as recursive DFS, safe on very deep or skewed graphs</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">All three rely on the same truth: once a vertex is marked visited, it is never processed again — that is what turns a graph with cycles into something that finishes in O(V + E) instead of running forever.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>"shortest / fewest edges / minimum hops / nearest" → BFS.</p></div>
+            <div class="timeline-step"><p>"can I reach X" or "explore everything reachable" → either BFS or DFS; DFS's recursion is usually less code.</p></div>
+            <div class="timeline-step"><p>Graph could be very deep or skewed, worried about recursion → prefer BFS, or an explicit-stack DFS.</p></div>
+            <div class="timeline-step"><p>Does this graph have cycles? Unless told it is a tree or a DAG, assume yes — a visited set is mandatory, marked at discovery time.</p></div>
+            <div class="timeline-step"><p>For BFS specifically: mark on enqueue, not on pop — otherwise the same vertex can flood the queue before it is ever processed.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"I need the vertex with the fewest edges from the source, so I will use BFS — the first time it reaches any vertex is guaranteed to be via the shortest unweighted path."</li>
+            <li>"This graph is not a tree, so it can have cycles — I need a visited set, and for BFS I have to mark a vertex visited the moment I enqueue it, or the same vertex could get queued more than once."</li>
+            <li>"I do not need the shortest path, just reachability, so I will use DFS — recursion keeps it short, or an explicit stack if the graph could be very deep."</li>
+            <li>"If the input is a plain edge list, I build the adjacency list first, writing each undirected edge in both directions before I traverse anything."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>BFS mistakes</h3>
+          <ul class="mistake-list">
+            <li>Marking a vertex visited when it is dequeued instead of when it is enqueued — on a cyclic graph this lets the same vertex get pushed onto the queue more than once before it is ever processed.</li>
+            <li>Forgetting to build the adjacency list in both directions for an undirected graph, silently making some edges one-way.</li>
+            <li>Using <code>dist[v] = dist[u] + 1</code> correctly but not initializing the source's own distance to 0 in that same dict.</li>
+            <li>Assuming BFS gives the shortest path on a weighted graph — it only works unweighted; use Dijkstra otherwise.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>DFS mistakes</h3>
+          <ul class="mistake-list">
+            <li>Recursing on a very large or very deep graph without an explicit-stack fallback, risking <code>RecursionError</code>.</li>
+            <li>In the iterative version, expecting <code>if v not in seen: push</code> to fully prevent duplicates on the stack — it does not, since seen is not updated until pop time.</li>
+            <li>Forgetting the pop-time <code>if u in seen: continue</code> guard entirely when hand-rolling an iterative DFS, which turns a real cycle into an infinite loop.</li>
+            <li>Confusing "no shortest-path guarantee" with "wrong answer" — DFS still finds every reachable vertex correctly, it just does not guarantee the fewest-edges path to get there.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head against the same six-vertex graph. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — Run BFS starting from D instead of A. What is <code>dist[C]</code>, and what does the visit order look like?</summary>
+          <p style="margin-top:10px;">Answer: <code>dist[C] = 3</code>. D's neighbors A and E go to distance 1; from there B and F reach distance 2; C is discovered from B at distance 3 (there is also a same-length path D-E-F-C). Full order: <code>[D, A, E, B, F, C]</code>.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — Why does removing <code>if v not in seen:</code> from <code>bfs</code> turn this specific graph into an infinite loop, even though it only has six vertices?</summary>
+          <p style="margin-top:10px;">Answer: because of the cycle A-B-E-D-A (and B-C-F-E-B), a vertex like B keeps re-discovering A, and A keeps re-discovering B, every time either is popped. The queue keeps growing forever instead of shrinking to empty — a finite graph does not guarantee a finite run without the visited check, because a cycle gives the walk somewhere to go back to. A tree never has this problem, because it has no cycle to walk back into.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — Swap the queue in <code>bfs</code> for a stack (use <code>stack.pop()</code> instead of <code>q.popleft()</code>) but keep marking visited on push. Do you still get a shortest-path guarantee? What do you get instead?</summary>
+          <p style="margin-top:10px;">Answer: no shortest-path guarantee. Marking on push still keeps the traversal correct and terminating — no vertex gets processed twice — but LIFO order dives deep before spreading wide, so the first time you reach a vertex is no longer necessarily via the fewest edges. You get a valid DFS-shaped traversal, not a distance map. This is exactly why BFS specifically needs a FIFO queue, not just "any container plus a visited set."</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          Every graph traversal answers the same underlying question: starting from some vertex, what can you
+          reach, and — for BFS — how many edges does it take? The queue-versus-stack choice decides whether
+          "first reached" means "fewest edges" or just "some path." But in both cases the real engine is the
+          <strong>visited set</strong>: mark a vertex the instant it is discovered, and a graph riddled with
+          cycles becomes exactly as safe to walk as a tree.
+        </p>
+      </div>
+      <p class="footer-note">Based on <code>07_graph_traversal.ipynb</code> and the BFS &amp; DFS Pattern Playbook notebook — the same <code>bfs</code> / <code>dfs_iterative</code> functions traced here are the ones the playbook later parameterizes into <code>bfs_generic</code> for grids, word ladders, and explicit graphs alike.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const bfsSteps = [
+        { step: 0, title: 'Initial state', text: 'The queue is seeded with A, which is marked seen before the loop even starts.', queue: '[A]', action: 'Initialize: seen={A}, dist={A:0}, queue=[A]', node: '—', seen: '{A}', dist: '{A: 0}', order: '[]', detail: 'Nothing has been popped yet. A is already seen even though it has not been processed — marking happens on enqueue, not on pop.', doneNodes: [], currentNode: null, queueNodes: ['A'], activeEdges: [], lines: [2,3,4,5] },
+        { step: 1, title: 'Step 1: pop A', text: 'Pop A off the front of the queue. Its neighbors, in sorted order, are B and D — neither has been seen, so both get marked visited right now and pushed with dist = 1.', queue: '[B, D]', action: 'pop A -> B, D unseen -> mark seen, enqueue at dist 1', node: 'A', seen: '{A, B, D}', dist: '{A:0, B:1, D:1}', order: '[A]', detail: 'B and D are marked visited the moment they are discovered, before either is ever processed — that is what stops them from being queued a second time later (both sit on the shared cycle A-B-E-D-A).', doneNodes: [], currentNode: 'A', queueNodes: ['B','D'], activeEdges: ['A-B','A-D'], lines: [7,8,9,11,12,13,14,15] },
+        { step: 2, title: 'Step 2: pop B', text: 'Pop B. Neighbor A is already seen, so it is skipped. Neighbors C and E are new — mark both visited and enqueue them at dist 2.', queue: '[D, C, E]', action: 'pop B -> A seen (skip); C, E unseen -> mark seen, enqueue at dist 2', node: 'B', seen: '{A,B,C,D,E}', dist: '{A:0,B:1,D:1,C:2,E:2}', order: '[A, B]', detail: 'E is discovered here via B, a full step before D even gets its turn in the queue — this is why BFS is always the first to arrive via the shortest route.', doneNodes: ['A'], currentNode: 'B', queueNodes: ['D','C','E'], activeEdges: ['B-C','B-E'], lines: [7,8,9,11,12,13,14,15] },
+        { step: 3, title: 'Step 3: pop D', text: 'Pop D. Both of D’s neighbors, A and E, are already seen — A discovered D a step ago, and E was just discovered by B. Nothing new gets pushed.', queue: '[C, E]', action: 'pop D -> A, E both seen -> nothing to enqueue', node: 'D', seen: '{A,B,C,D,E}', dist: 'unchanged', order: '[A, B, D]', detail: 'This is the visited check earning its keep: both D and B reach E, but the check makes sure E is only ever enqueued once, from whichever of them got there first.', doneNodes: ['A','B'], currentNode: 'D', queueNodes: ['C','E'], activeEdges: [], lines: [7,8,9,11,12] },
+        { step: 4, title: 'Step 4: pop C', text: 'Pop C. Neighbor B is already seen. Neighbor F is new — mark it visited and enqueue at dist 3.', queue: '[E, F]', action: 'pop C -> B seen (skip); F unseen -> mark seen, enqueue at dist 3', node: 'C', seen: '{A,B,C,D,E,F}', dist: '{...,F:3}', order: '[A, B, D, C]', detail: 'F is three hops from A along this path (A-B-C-F). It has not been marked seen anywhere else, so this is the only enqueue F will ever get.', doneNodes: ['A','B','D'], currentNode: 'C', queueNodes: ['E','F'], activeEdges: ['C-F'], lines: [7,8,9,11,12,13,14,15] },
+        { step: 5, title: 'Step 5: pop E', text: 'Pop E. All three of E’s neighbors — B, D, F — are already seen. E sits at the junction of both 4-cycles in this graph.', queue: '[F]', action: 'pop E -> B, D, F all seen -> nothing to enqueue', node: 'E', seen: '{A,B,C,D,E,F}', dist: 'unchanged', order: '[A, B, D, C, E]', detail: 'E is exactly the vertex where the cycle closes from BFS’s point of view — both the A-B-E arm and the A-D-E arm arrive here, but the visited set makes sure E is processed exactly once.', doneNodes: ['A','B','D','C'], currentNode: 'E', queueNodes: ['F'], activeEdges: [], lines: [7,8,9,11,12] },
+        { step: 6, title: 'Step 6: pop F — queue empties', text: 'Pop F. Its neighbors C and E are both already seen. The queue is now empty, so the while loop ends and BFS returns.', queue: '[]', action: 'pop F -> C, E seen -> queue empty -> return order, dist', node: 'F', seen: '{A,B,C,D,E,F}', dist: 'final', order: '[A, B, D, C, E, F]', detail: 'Final result: order = [A, B, D, C, E, F], and dist gives the fewest-edges distance from A to every vertex — dist[F] = 3.', doneNodes: ['A','B','D','C','E'], currentNode: 'F', queueNodes: [], activeEdges: [], lines: [7,8,9,11,12,17] }
+      ];
+
+      const dfsSteps = [
+        { step: 0, title: 'Initial state', text: 'Push the start vertex A onto the stack. Nothing is marked seen yet — this version marks a vertex visited when it is popped, not when it is pushed.', stack: '[A]', action: 'Initialize: seen={}, order=[], stack=[A]', node: '—', seen: '{}', order: '[]', detail: 'Unlike the BFS trace above, seen starts empty. A is only sitting on the stack — it is not visited until it is actually popped and processed.', doneNodes: [], currentNode: null, stackNodes: ['A'], activeEdges: [], lines: [2] },
+        { step: 1, title: 'Step 1: pop A', text: 'Pop A. It is not in seen, so mark it now. Its neighbors, sorted, are B and D — pushed in reverse order (D then B) so B ends up on top and pops first.', stack: '[D, B]', action: 'pop A -> mark seen -> push D, then B (reversed)', node: 'A', seen: '{A}', order: '[A]', detail: 'Pushing in reversed order is just bookkeeping to make the walk deterministic (smallest neighbor explored first) — it does not change what DFS explores, only the order.', doneNodes: [], currentNode: 'A', stackNodes: ['D','B'], activeEdges: ['A-B','A-D'], lines: [5,6,8,9,11,12,13] },
+        { step: 2, title: 'Step 2: pop B', text: 'Pop B (top of stack). Not seen yet — mark it. Neighbors of B are A, C, E; A is seen so it is skipped, and E, C are pushed (reversed: E then C, so C ends up on top).', stack: '[D, E, C]', action: 'pop B -> mark seen -> A seen (skip) -> push E, then C', node: 'B', seen: '{A,B}', order: '[A, B]', detail: 'DFS went straight from A down into B’s branch instead of finishing A’s other neighbor D first — that is the dive-deep-before-backing-up shape a stack naturally produces.', doneNodes: ['A'], currentNode: 'B', stackNodes: ['D','E','C'], activeEdges: ['B-C','B-E'], lines: [5,6,8,9,11,12,13] },
+        { step: 3, title: 'Step 3: pop C', text: 'Pop C (top of stack). Not seen — mark it. Neighbors of C are B, F; B is seen so skip, F is pushed.', stack: '[D, E, F]', action: 'pop C -> mark seen -> B seen (skip) -> push F', node: 'C', seen: '{A,B,C}', order: '[A, B, C]', detail: 'Still descending — C leads to F next, three levels deep from A without ever backing up yet.', doneNodes: ['A','B'], currentNode: 'C', stackNodes: ['D','E','F'], activeEdges: ['C-F'], lines: [5,6,8,9,11,12,13] },
+        { step: 4, title: 'Step 4: pop F — a duplicate gets pushed', text: 'Pop F. Not seen — mark it. Neighbors of F are C, E; C is seen so skip, but E gets pushed even though E is already sitting on the stack from step 2 — E has not been marked seen yet, so the push-time check does not catch it.', stack: '[D, E, E]', action: 'pop F -> mark seen -> C seen (skip) -> push E (duplicate!)', node: 'F', seen: '{A,B,C,F}', order: '[A, B, C, F]', detail: 'This is the key difference from BFS’s mark-on-enqueue rule: because this DFS marks on pop, the same vertex can land on the stack twice before it is ever processed once. It is still correct — the pop-time guard in steps 7 and 8 catches the extra copy — it just costs a little wasted stack space.', doneNodes: ['A','B','C'], currentNode: 'F', stackNodes: ['D','E','E'], activeEdges: ['E-F'], lines: [5,6,8,9,11,12,13] },
+        { step: 5, title: 'Step 5: pop E', text: 'Pop E (the top copy). Not seen yet — mark it now. Neighbors of E are B, D, F; B and F are seen, D is not, so D gets pushed.', stack: '[D, E, D]', action: 'pop E -> mark seen -> B, F seen (skip) -> push D', node: 'E', seen: '{A,B,C,E,F}', order: '[A, B, C, F, E]', detail: 'This is the vertex where the cycle closes for DFS too — E is reachable both from F’s branch and from A’s other neighbor D — but marking on pop still guarantees E is only processed once.', doneNodes: ['A','B','C','F'], currentNode: 'E', stackNodes: ['D','E','D'], activeEdges: ['D-E'], lines: [5,6,8,9,11,12,13] },
+        { step: 6, title: 'Step 6: pop D', text: 'Pop D (top copy). Not seen — mark it. Neighbors of D are A, E — both already seen, so nothing new is pushed.', stack: '[D, E]', action: 'pop D -> mark seen -> A, E seen -> nothing to push', node: 'D', seen: '{A,B,C,D,E,F}', order: '[A, B, C, F, E, D]', detail: 'Every vertex is now marked seen. What is left on the stack (D, E) are stale duplicate entries from earlier steps that will simply get skipped next.', doneNodes: ['A','B','C','F','E'], currentNode: 'D', stackNodes: ['D','E'], activeEdges: [], lines: [5,6,8,9,11,12] },
+        { step: 7, title: 'Step 7: pop E — duplicate, skip', text: 'Pop E again — the duplicate copy pushed back in step 4. It is already in seen, so the if u in seen: continue guard fires and this pop does nothing else.', stack: '[D]', action: 'pop E -> already seen -> continue (skip)', node: 'E (duplicate)', seen: '{A,B,C,D,E,F}', order: '[A, B, C, F, E, D]', detail: 'This is exactly the cost of marking on pop instead of on push: a wasted pop that does no real work. It is harmless, because the guard is checked before anything else runs.', doneNodes: ['A','B','C','F','E','D'], currentNode: 'E', stackNodes: ['D'], activeEdges: [], lines: [5,6,7] },
+        { step: 8, title: 'Step 8: pop D — duplicate, skip, stack empties', text: 'Pop D again — the duplicate from step 1. Already seen, so it is skipped too. The stack is now empty, the while loop ends, and DFS returns.', stack: '[]', action: 'pop D -> already seen -> continue -> stack empty -> return order', node: 'D (duplicate)', seen: '{A,B,C,D,E,F}', order: '[A, B, C, F, E, D]', detail: 'Final result: order = [A, B, C, F, E, D] — the same six vertices BFS found, reached in a completely different order because a stack dives deep instead of spreading wide.', doneNodes: ['A','B','C','F','E','D'], currentNode: 'D', stackNodes: [], activeEdges: [], lines: [5,6,7,15] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderBFS(step, index, max) {
+        document.getElementById('bfs-step-title').textContent = step.title;
+        document.getElementById('bfs-step-text').textContent = step.text;
+        document.getElementById('bfs-queue').textContent = step.queue;
+        document.getElementById('bfs-action').textContent = step.action;
+        document.getElementById('bfs-node').textContent = step.node;
+        document.getElementById('bfs-seen').textContent = step.seen;
+        document.getElementById('bfs-dist').textContent = step.dist;
+        document.getElementById('bfs-order').textContent = step.order;
+        document.getElementById('bfs-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('bfs-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('bfs-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('bfs-trace-table', step.step);
+        setCodeHighlight('bfs-code', step.lines);
+
+        document.querySelectorAll('#bfs-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('seen', 'current', 'frontier');
+          if (step.doneNodes.includes(id)) node.classList.add('seen');
+          if (step.queueNodes.includes(id)) node.classList.add('frontier');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#bfs-graph [data-bfs-edge]').forEach((line) => {
+          line.setAttribute('visibility', step.activeEdges.includes(line.dataset.bfsEdge) ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderDFS(step, index, max) {
+        document.getElementById('dfs-step-title').textContent = step.title;
+        document.getElementById('dfs-step-text').textContent = step.text;
+        document.getElementById('dfs-stack').textContent = step.stack;
+        document.getElementById('dfs-action').textContent = step.action;
+        document.getElementById('dfs-node').textContent = step.node;
+        document.getElementById('dfs-seen').textContent = step.seen;
+        document.getElementById('dfs-order').textContent = step.order;
+        document.getElementById('dfs-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('dfs-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('dfs-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('dfs-trace-table', step.step);
+        setCodeHighlight('dfs-code', step.lines);
+
+        document.querySelectorAll('#dfs-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('seen', 'current', 'frontier');
+          if (step.doneNodes.includes(id)) node.classList.add('seen');
+          if (step.stackNodes.includes(id)) node.classList.add('frontier');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#dfs-graph [data-dfs-edge]').forEach((line) => {
+          line.setAttribute('visibility', step.activeEdges.includes(line.dataset.dfsEdge) ? 'visible' : 'hidden');
+        });
+      }
+
+      setupTrace({ steps: bfsSteps, prefix: 'bfs', render: renderBFS });
+      setupTrace({ steps: dfsSteps, prefix: 'dfs', render: renderDFS });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

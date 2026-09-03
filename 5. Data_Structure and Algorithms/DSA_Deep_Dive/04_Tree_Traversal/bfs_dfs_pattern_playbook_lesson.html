@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BFS &amp; DFS Pattern Playbook — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Trees · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>BFS &amp; DFS Pattern Playbook — Trees</h1>
+          <p>
+            Almost every tree problem is a small, predictable edit to one of a handful of baseline functions.
+            This page teaches you those baselines directly: one BFS walk (queue, level by level) and one DFS
+            walk (recursion, choose/recurse/un-choose), traced step by step so you can see exactly what
+            changes in memory as the code runs — and how to tell, from the wording of a problem, which one to
+            reach for.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: own one baseline, edit it</span>
+            <span class="chip">Interactive BFS trace</span>
+            <span class="chip">Interactive DFS backtracking trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>root = [3,9,20,null,null,15,7]</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 520 240" width="100%" role="img" aria-label="Binary tree with root 3, children 9 and 20, and grandchildren 15 and 7">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                </style>
+              </defs>
+              <line x1="260" y1="40" x2="140" y2="120" class="hero-edge" />
+              <line x1="260" y1="40" x2="380" y2="120" class="hero-edge" />
+              <line x1="380" y1="120" x2="300" y2="200" class="hero-edge" />
+              <line x1="380" y1="120" x2="460" y2="200" class="hero-edge" />
+              <circle cx="260" cy="40" r="26" class="hero-node" />
+              <circle cx="140" cy="120" r="26" class="hero-node" />
+              <circle cx="380" cy="120" r="26" class="hero-node" />
+              <circle cx="300" cy="200" r="26" class="hero-node" />
+              <circle cx="460" cy="200" r="26" class="hero-node" />
+              <text x="253" y="46" class="hero-label">3</text>
+              <text x="133" y="126" class="hero-label">9</text>
+              <text x="373" y="126" class="hero-label">20</text>
+              <text x="293" y="206" class="hero-label">15</text>
+              <text x="453" y="206" class="hero-label">7</text>
+            </svg>
+          </div>
+          <div class="result-badge">min_depth = 2 · binary_tree_paths = 3 paths</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>File systems</h3>
+          <p>Listing a directory tree level by level (BFS) vs. printing every full file path (DFS) are the same two shapes.</p>
+        </div>
+        <div class="card">
+          <h3>Org charts</h3>
+          <p>"Who is the nearest manager with role X" is a BFS minimum-depth question; "list every reporting chain" is a DFS path question.</p>
+        </div>
+        <div class="card">
+          <h3>Interview reuse</h3>
+          <p>Once you own <code>min_depth</code> and <code>binary_tree_paths</code>, roughly a dozen LeetCode problems become small edits, not new algorithms.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> the goal is not to memorize a generic "tree traversal engine." It is to own two concrete, complete functions well enough that you can diff a new problem against them in your head.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What are BFS and DFS on a tree?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>BFS — breadth-first search</h3>
+          <p>Explores the tree ring by ring using a <strong>queue</strong>: everything at depth 1, then everything at depth 2, and so on. The first time BFS reaches a target, that is guaranteed to be the <em>closest</em> way to reach it.</p>
+        </div>
+        <div class="card">
+          <h3>DFS — depth-first search</h3>
+          <p>Plunges down one branch as far as possible using <strong>recursion</strong> (or an explicit stack) before backing up. It naturally combines a node's answer from its children's answers, or builds up a root-to-leaf path as it goes.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if the question mentions "shortest," "minimum," or "nearest," reach for BFS. If it mentions "every path," "sum along a path," or "compute something from this node's children," reach for DFS.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Read the shape of the answer</h3>
+          <p>Does the problem want a shortest distance, a level-by-level view, an aggregated value, or a full path?</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Match it to a baseline</h3>
+          <p>"Nearest/shortest" → BFS. "Combine children" → DFS-compute. "Enumerate paths" → DFS-backtrack.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Write the baseline in full</h3>
+          <p>Don't reach for a generic template. Write the complete, concrete function for the simplest version of the problem.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Edit, don't redesign</h3>
+          <p>Most variants are a one- or two-line diff: a sentinel value, an extra piece of state, a different base case.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes a tree</h2>
+      <p>LeetCode hands you a level-order list. Before either BFS or DFS can run, that list has to become linked <code>TreeNode</code> objects.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input list</h3>
+          <div class="code-block"><code>[3, 9, 20, null, null, 15, 7]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Linked tree</h3>
+          <div class="code-block"><code>3.left  = 9
+3.right = 20
+20.left  = 15
+20.right = 7</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Read <code>3</code></h4>
+          <p>Becomes the root node and is pushed onto a build queue.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read <code>9</code>, then <code>20</code></h4>
+          <p>Attached as <code>3.left</code> and <code>3.right</code>, then each is pushed onto the build queue in turn.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read <code>15</code>, then <code>7</code></h4>
+          <p>Attached as <code>20.left</code> and <code>20.right</code>. Node <code>9</code> has no more values waiting for it, so it stays a leaf.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> this build step is itself a BFS (it uses a queue to attach children left-to-right, level by level) — you are looking at BFS before you even reach the "real" algorithm.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: BFS baseline — Minimum Depth (LC 111)</h2>
+      <p>BFS explores ring by ring, so the <strong>first</strong> leaf it dequeues is guaranteed to be the <strong>nearest</strong> one. No need to check every path and keep a running minimum the way DFS would have to — the queue order does that work for free.</p>
+      <div class="code-block stepped">
+        <code id="bfs-code">
+<span class="code-line" data-line="1">def min_depth(root):</span>
+<span class="code-line" data-line="2">    if not root:</span>
+<span class="code-line" data-line="3">        return 0</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    q = deque([(root, 1)])</span>
+<span class="code-line" data-line="6">    while q:</span>
+<span class="code-line" data-line="7">        node, depth = q.popleft()</span>
+<span class="code-line" data-line="8">        if not node.left and not node.right:</span>
+<span class="code-line" data-line="9">            return depth</span>
+<span class="code-line" data-line="10">        if node.left:</span>
+<span class="code-line" data-line="11">            q.append((node.left, depth + 1))</span>
+<span class="code-line" data-line="12">        if node.right:</span>
+<span class="code-line" data-line="13">            q.append((node.right, depth + 1))</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive BFS trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="bfs-graph" viewBox="0 0 520 240" width="100%" role="img" aria-label="BFS trace over the tree">
+              <defs>
+                <style>
+                  .bfsg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .bfsg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .bfsg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .bfsg-node.seen { fill: #315efb; }
+                  .bfsg-node.current { fill: #ff9f1c; }
+                  .bfsg-node.frontier { fill: #13a46b; }
+                  .bfsg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .bfsg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="bfsg-title">Current dequeue</text>
+              <line x1="260" y1="40" x2="140" y2="120" class="bfsg-base-edge" />
+              <line x1="260" y1="40" x2="380" y2="120" class="bfsg-base-edge" />
+              <line x1="380" y1="120" x2="300" y2="200" class="bfsg-base-edge" />
+              <line x1="380" y1="120" x2="460" y2="200" class="bfsg-base-edge" />
+              <line x1="260" y1="40" x2="140" y2="120" class="bfsg-active-edge" data-bfs-edge="3-9" visibility="hidden" />
+              <circle cx="260" cy="40" r="26" class="bfsg-node" data-node="3" />
+              <circle cx="140" cy="120" r="26" class="bfsg-node" data-node="9" />
+              <circle cx="380" cy="120" r="26" class="bfsg-node" data-node="20" />
+              <circle cx="300" cy="200" r="26" class="bfsg-node" data-node="15" />
+              <circle cx="460" cy="200" r="26" class="bfsg-node" data-node="7" />
+              <text x="253" y="46" class="bfsg-label">3</text>
+              <text x="133" y="126" class="bfsg-label">9</text>
+              <text x="373" y="126" class="bfsg-label">20</text>
+              <text x="293" y="206" class="bfsg-label">15</text>
+              <text x="453" y="206" class="bfsg-label">7</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current popped node</span>
+            <span><i class="dot dot-green"></i> nodes sitting in the queue</span>
+            <span><i class="dot dot-blue"></i> already dequeued</span>
+            <span><i class="dot dot-gray"></i> not touched yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="bfs-step-title">Initial state</h3>
+          <p id="bfs-step-text">The queue is seeded with the root at depth 1.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="bfs-prev">Previous</button>
+            <button type="button" id="bfs-play" class="primary">Resume</button>
+            <button type="button" id="bfs-next">Next</button>
+            <button type="button" id="bfs-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="bfs-step-counter">Step 0 / 2</span>
+            <div class="progress"><span id="bfs-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Queue (front is leftmost)</strong><div class="state-value" id="bfs-queue">[(3, 1)]</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="bfs-action">Seed queue with root</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="bfs-node">—</div></div>
+            <div class="state-box"><strong>Current depth</strong><div class="state-value" id="bfs-depth">—</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="bfs-result">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="bfs-detail"><strong>What changed:</strong> nothing has been dequeued yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="bfs-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>Queue after</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Queue seeded with <code>(3, 1)</code></td><td><code>[(3,1)]</code></td><td>—</td></tr>
+            <tr data-step="1"><td>1</td><td>Pop <code>(3,1)</code>: not a leaf → push <code>(9,2)</code>, <code>(20,2)</code></td><td><code>[(9,2),(20,2)]</code></td><td>—</td></tr>
+            <tr data-step="2"><td>2</td><td>Pop <code>(9,2)</code>: leaf found → return <code>2</code> immediately</td><td><code>[(20,2)]</code> (never opened)</td><td><code>2</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The very first leaf dequeued is the nearest one — BFS never has to compare candidates because the queue order already guarantees this.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common BFS mistake</h4>
+          <p>Checking <code>if not node</code> instead of <code>if not node.left and not node.right</code>. A node with exactly one child is <strong>not</strong> a leaf.</p>
+        </div>
+        <div class="card">
+          <h4>Why the queue matters</h4>
+          <p>The queue lives on the heap, not the call stack, so it never risks a <code>RecursionError</code> on a very tall tree — see the skewed-tree edge case below.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: DFS baseline — Binary Tree Paths (LC 257)</h2>
+      <p><strong>Choose</strong> a child, <strong>recurse</strong> into it with that child appended to the running path, then <strong>un-choose</strong> it (pop) once that branch is fully explored. Record the finished path only when a leaf is reached.</p>
+      <div class="code-block stepped">
+        <code id="paths-code">
+<span class="code-line" data-line="1">def binary_tree_paths(root):</span>
+<span class="code-line" data-line="2">    if not root:</span>
+<span class="code-line" data-line="3">        return []</span>
+<span class="code-line" data-line="4">    out, path = [], [str(root.val)]</span>
+<span class="code-line" data-line="5">    def backtrack(node):</span>
+<span class="code-line" data-line="6">        if not node.left and not node.right:</span>
+<span class="code-line" data-line="7">            out.append("->".join(path))</span>
+<span class="code-line" data-line="8">            return</span>
+<span class="code-line" data-line="9">        for nxt in (node.left, node.right):</span>
+<span class="code-line" data-line="10">            if nxt:</span>
+<span class="code-line" data-line="11">                path.append(str(nxt.val))</span>
+<span class="code-line" data-line="12">                backtrack(nxt)</span>
+<span class="code-line" data-line="13">                path.pop()</span>
+<span class="code-line" data-line="14">    backtrack(root)</span>
+<span class="code-line" data-line="15">    return out</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive DFS backtracking trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="paths-graph" viewBox="0 0 520 240" width="100%" role="img" aria-label="DFS backtracking trace over the tree">
+              <defs>
+                <style>
+                  .pathg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .pathg-active-edge { stroke: #315efb; stroke-width: 8; stroke-linecap: round; }
+                  .pathg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .pathg-node.onpath { fill: #315efb; }
+                  .pathg-node.current { fill: #ff9f1c; }
+                  .pathg-node.recorded { fill: #13a46b; }
+                  .pathg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .pathg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="pathg-title">Current recursion path</text>
+              <line x1="260" y1="40" x2="140" y2="120" class="pathg-base-edge" />
+              <line x1="260" y1="40" x2="380" y2="120" class="pathg-base-edge" />
+              <line x1="380" y1="120" x2="300" y2="200" class="pathg-base-edge" />
+              <line x1="380" y1="120" x2="460" y2="200" class="pathg-base-edge" />
+              <line x1="260" y1="40" x2="140" y2="120" class="pathg-active-edge" data-path-edge="3-9" visibility="hidden" />
+              <line x1="260" y1="40" x2="380" y2="120" class="pathg-active-edge" data-path-edge="3-20" visibility="hidden" />
+              <line x1="380" y1="120" x2="300" y2="200" class="pathg-active-edge" data-path-edge="20-15" visibility="hidden" />
+              <line x1="380" y1="120" x2="460" y2="200" class="pathg-active-edge" data-path-edge="20-7" visibility="hidden" />
+              <circle cx="260" cy="40" r="26" class="pathg-node" data-node="3" />
+              <circle cx="140" cy="120" r="26" class="pathg-node" data-node="9" />
+              <circle cx="380" cy="120" r="26" class="pathg-node" data-node="20" />
+              <circle cx="300" cy="200" r="26" class="pathg-node" data-node="15" />
+              <circle cx="460" cy="200" r="26" class="pathg-node" data-node="7" />
+              <text x="253" y="46" class="pathg-label">3</text>
+              <text x="133" y="126" class="pathg-label">9</text>
+              <text x="373" y="126" class="pathg-label">20</text>
+              <text x="293" y="206" class="pathg-label">15</text>
+              <text x="453" y="206" class="pathg-label">7</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> node just chosen / current call</span>
+            <span><i class="dot dot-blue"></i> on the current path</span>
+            <span><i class="dot dot-green"></i> recorded as a finished path</span>
+            <span><i class="dot dot-gray"></i> not visited this branch</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="paths-step-title">Initial state</h3>
+          <p id="paths-step-text">The path starts with just the root; nothing is recorded yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="paths-prev">Previous</button>
+            <button type="button" id="paths-play" class="primary">Resume</button>
+            <button type="button" id="paths-next">Next</button>
+            <button type="button" id="paths-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="paths-step-counter">Step 0 / 15</span>
+            <div class="progress"><span id="paths-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="paths-action">out, path = [], ["3"]</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="paths-node">—</div></div>
+            <div class="state-box"><strong>path</strong><div class="state-value" id="paths-path">["3"]</div></div>
+            <div class="state-box"><strong>out</strong><div class="state-value" id="paths-out">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="paths-detail"><strong>What changed:</strong> the path list and output list are both initialized.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="paths-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>path after</th><th>out after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Initialize</td><td><code>["3"]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>backtrack(3): not a leaf, loop children</td><td><code>["3"]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>CHOOSE 9</td><td><code>["3","9"]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>backtrack(9): leaf → RECORD "3-&gt;9"</td><td><code>["3","9"]</code></td><td><code>["3->9"]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>UN-CHOOSE 9</td><td><code>["3"]</code></td><td><code>["3->9"]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>CHOOSE 20</td><td><code>["3","20"]</code></td><td><code>["3->9"]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>backtrack(20): not a leaf, loop children</td><td><code>["3","20"]</code></td><td><code>["3->9"]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>CHOOSE 15</td><td><code>["3","20","15"]</code></td><td><code>["3->9"]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>backtrack(15): leaf → RECORD "3-&gt;20-&gt;15"</td><td><code>["3","20","15"]</code></td><td><code>["3->9","3->20->15"]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>UN-CHOOSE 15</td><td><code>["3","20"]</code></td><td><code>["3->9","3->20->15"]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>CHOOSE 7</td><td><code>["3","20","7"]</code></td><td><code>["3->9","3->20->15"]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>backtrack(7): leaf → RECORD "3-&gt;20-&gt;7"</td><td><code>["3","20","7"]</code></td><td><code>["3->9","3->20->15","3->20->7"]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>UN-CHOOSE 7</td><td><code>["3","20"]</code></td><td><code>["3->9","3->20->15","3->20->7"]</code></td></tr>
+            <tr data-step="13"><td>13</td><td>backtrack(20) loop finished, returns</td><td><code>["3","20"]</code></td><td><code>["3->9","3->20->15","3->20->7"]</code></td></tr>
+            <tr data-step="14"><td>14</td><td>UN-CHOOSE 20</td><td><code>["3"]</code></td><td><code>["3->9","3->20->15","3->20->7"]</code></td></tr>
+            <tr data-step="15"><td>15</td><td>backtrack(3) loop finished → return out</td><td><code>["3"]</code></td><td><code>["3->9","3->20->15","3->20->7"]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p><code>path</code> grows on the way down and shrinks on the way back up — at any moment it is exactly the branch currently being explored.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common DFS mistake</h4>
+          <p>Forgetting <code>path.pop()</code> after the recursive call. Without the un-choose step, a sibling branch inherits nodes from a path it was never actually on.</p>
+        </div>
+        <div class="card">
+          <h4>Why choose/recurse/un-choose matters</h4>
+          <p>This is the same skeleton behind Path Sum II, Sum Root to Leaf Numbers, and Smallest String From Leaf — only the record condition and what gets pushed onto <code>path</code> change.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Minimal</button>
+        <button type="button" data-example-tab="1">Skewed / chain</button>
+        <button type="button" data-example-tab="2">One-sided branch</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: single node</h3>
+          <p><code>root = [1]</code></p>
+          <div class="result-badge">min_depth = 1 · paths = ["1"]</div>
+          <p class="footer-note">The root itself has no children, so it is immediately a leaf. Both functions must handle "no recursion needed at all" cleanly.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: skewed / chain tree (height 5000, all left children)</h3>
+          <p><code>root = left_chain(5000)</code></p>
+          <div class="result-badge">BFS survives · naive recursive DFS raises RecursionError</div>
+          <p class="footer-note">A recursive walk adds one call-stack frame per level, so a tall skewed tree can exceed Python's recursion limit (~1000 frames). <code>min_depth</code>'s queue lives on the heap, not the call stack, so it is completely unaffected — this is why "deep/skewed tree" is its own row in the BFS-vs-DFS decision table, not about which answer is correct but about which one survives being asked at all.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: one-sided branch</h3>
+          <p><code>root = [1, null, 2]</code></p>
+          <div class="result-badge">min_depth = 2, not 1</div>
+          <p class="footer-note">Node <code>1</code> has only a right child, so it is <strong>not</strong> a leaf even though its left side is empty. The code must check <code>not node.left and not node.right</code> together — checking either side alone would wrongly report a minimum depth of 1.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Time</th><th>Space</th><th>Best for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>BFS (e.g. Minimum Depth)</td><td>O(n)</td><td>O(w) — widest level</td><td>Shortest path, nearest node, level-by-level info</td></tr>
+            <tr><td>DFS — compute a value (Max Depth, Balanced, Diameter, Path Sum)</td><td>O(n)</td><td>O(h) — call stack</td><td>Combining children's answers, or threading state downward</td></tr>
+            <tr><td>DFS — backtrack along paths (Binary Tree Paths, Path Sum II, Smallest String)</td><td>O(n) (up to O(n·h) if paths are copied)</td><td>O(h)</td><td>Enumerating or building actual root-to-leaf paths</td></tr>
+            <tr><td>DFS — inorder on a BST (Validate BST, Kth Smallest)</td><td>O(n)</td><td>O(h)</td><td>Anything that relies on sorted order</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">All four rely on the same truth: a tree has no cycles, so once you pick a walk order, every node is visited exactly once.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>"shortest / minimum depth / fewest hops" → BFS.</p></div>
+            <div class="timeline-step"><p>"level by level / nearest to root" → BFS.</p></div>
+            <div class="timeline-step"><p>A step needs a direction the tree doesn't hand you for free (e.g. parent) → still BFS/DFS, just widen the set of neighbors.</p></div>
+            <div class="timeline-step"><p>Deep/skewed tree, worried about the call stack → prefer BFS or an explicit-stack DFS.</p></div>
+            <div class="timeline-step"><p>"Combine this node's answer from its children" → DFS, compute-a-value shape.</p></div>
+            <div class="timeline-step"><p>"List every path / sum along a path" → DFS, backtracking shape.</p></div>
+            <div class="timeline-step"><p>Anything about sorted order on a BST → DFS, inorder shape.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"I need the nearest match, so I'll use BFS — the first hit at any given depth is guaranteed to be the closest."</li>
+            <li>"This node's answer depends on its children's answers, so I'll write a DFS that returns a value and combines it on the way back up."</li>
+            <li>"I need actual paths, not just an aggregate, so I'll backtrack: append before recursing, pop after."</li>
+            <li>"It's a BST question about order, so I'll do an inorder DFS and track one small piece of running state."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>BFS mistakes</h3>
+          <ul class="mistake-list">
+            <li>Forgetting to carry depth (or level) alongside each node in the queue.</li>
+            <li>Checking <code>if not node</code> instead of <code>if not node.left and not node.right</code> for "is this a leaf."</li>
+            <li>Not pushing both children when both exist — silently dropping a whole subtree.</li>
+            <li>Using recursion for a BFS "just because," and reintroducing the call-stack risk BFS was chosen to avoid.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>DFS backtracking mistakes</h3>
+          <ul class="mistake-list">
+            <li>Forgetting <code>path.pop()</code> after the recursive call, so state leaks into sibling branches.</li>
+            <li>Recording a path before actually confirming the node is a leaf.</li>
+            <li>Appending <code>path</code> by reference instead of <code>path[:]</code> when a snapshot must survive future mutation.</li>
+            <li>Popping in the wrong place — it must happen after recursion, unconditionally, whether or not a path was recorded.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — Given a target node, how would BFS find every node exactly distance <code>k</code> away in the tree?</summary>
+          <p style="margin-top:10px;">Answer: this is LC 863. A <code>TreeNode</code> only gives you <code>.left</code>/<code>.right</code>, so first do one pass building a <code>child → parent</code> map. Then run BFS starting from <code>target</code> (not the root), and at each pop explore three neighbors instead of two: <code>left</code>, <code>right</code>, and <code>parent.get(node)</code>. Instead of returning at the first match, collect every node whose distance equals <code>k</code> and keep going.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — Diameter of Binary Tree reuses the exact <code>height()</code> recursion from Max Depth. Why does it need a <code>nonlocal</code> variable if height already returns a value?</summary>
+          <p style="margin-top:10px;">Answer: the longest path in the tree doesn't have to pass through the root, so it can't be the function's <em>return value</em> (which is always "height from this node down"). Instead, at every node the code computes <code>left_height + right_height</code> and keeps a running best in a <code>nonlocal</code> variable as a side effect, while the return value keeps behaving exactly like Max Depth.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — Kth Smallest in a BST reuses the same inorder walk as Validate BST. What is the one piece of state that changes?</summary>
+          <p style="margin-top:10px;">Answer: Validate BST tracks a running <code>prev</code> value and requires it to strictly increase. Kth Smallest instead tracks a visit <code>count</code> and stops the instant <code>count == k</code>, recording that node's value — because inorder already visits a BST's values in ascending order, the k-th node visited <em>is</em> the k-th smallest value, with no sorting required.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          BFS and DFS are not two competing algorithms to memorize in the abstract — they are two concrete
+          walking orders, each with one owned baseline function. <strong>BFS's queue guarantees "first found
+          is nearest."</strong> <strong>DFS's recursion naturally combines children's answers or builds up a
+          path as it goes.</strong> Once you can write <code>min_depth</code> and <code>binary_tree_paths</code>
+          from memory, most tree problems become a diff against one of the two, not a new algorithm.
+        </p>
+      </div>
+      <p class="footer-note">Based on the BFS &amp; DFS Pattern Playbook notebook — every variant it covers is a small, callable-out edit of one of these two baselines.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const bfsSteps = [
+        { step: 0, title: 'Initial state', text: 'BFS starts at the root with depth 1. The queue holds (node, depth) pairs.', queue: '[(3, 1)]', action: 'Queue seeded with root', node: '—', depth: '—', result: '—', frontierNodes: [3], currentNode: null, seenNodes: [], activeEdge: null, detail: 'Nothing has been dequeued yet.', lines: [5] },
+        { step: 1, title: 'Step 1: pop node 3 (depth 1)', text: 'Node 3 is not a leaf (it has both children), so BFS pushes its children at depth 2 and keeps going.', queue: '[(9, 2), (20, 2)]', action: 'not leaf → push (9,2) and (20,2)', node: '3', depth: '1', result: '—', frontierNodes: [9, 20], currentNode: 3, seenNodes: [3], activeEdge: null, detail: 'Both children exist, so both get pushed onto the queue at depth 2.', lines: [7, 8, 10, 11, 12, 13] },
+        { step: 2, title: 'Step 2: pop node 9 (depth 2) — leaf found', text: 'Node 9 has no children, so it is a leaf. Because BFS explores ring by ring, this is guaranteed to be the NEAREST leaf — return immediately. Node 20 is still sitting in the queue but is never opened.', queue: '[(20, 2)] (never processed)', action: 'leaf found → return depth', node: '9', depth: '2', result: '2', frontierNodes: [20], currentNode: 9, seenNodes: [3, 9], activeEdge: '3-9', detail: 'Early stop: the answer is found without ever looking at node 20.', lines: [7, 8, 9] }
+      ];
+
+      const pathsSteps = [
+        { step: 0, title: 'Initial state', text: 'The path list starts with just the root. out is empty — nothing recorded yet.', action: 'out, path = [], ["3"]', path: '["3"]', out: '[]', node: '—', pathNodes: [3], currentNode: null, recordedSet: [], pathEdges: [], detail: 'The path list and output list are both initialized.', lines: [4] },
+        { step: 1, title: 'Step 1: backtrack(3) — check if leaf', text: 'Node 3 has both a left and right child, so it is not a leaf. Begin looping over its children.', action: 'not a leaf → for nxt in (9, 20):', path: '["3"]', out: '[]', node: '3', pathNodes: [3], currentNode: 3, recordedSet: [], pathEdges: [], detail: 'Because 3 is not a leaf, we enter the loop over its children instead of recording anything.', lines: [6, 9] },
+        { step: 2, title: 'Step 2: choose 9', text: 'CHOOSE: append "9" to path before recursing into it.', action: 'path.append("9")', path: '["3", "9"]', out: '[]', node: '9', pathNodes: [3, 9], currentNode: 9, recordedSet: [], pathEdges: ['3-9'], detail: 'The path now reflects the branch we are about to explore.', lines: [10, 11] },
+        { step: 3, title: 'Step 3: backtrack(9) — leaf found', text: 'Node 9 has no children, so it is a leaf. RECORD the joined path into out.', action: 'out.append("3->9")', path: '["3", "9"]', out: '["3->9"]', node: '9', pathNodes: [3, 9], currentNode: 9, recordedSet: [9], pathEdges: ['3-9'], detail: 'A finished root-to-leaf path is captured the moment a leaf is reached.', lines: [6, 7] },
+        { step: 4, title: 'Step 4: un-choose 9', text: 'UN-CHOOSE: pop "9" off path now that this branch is fully explored, restoring path to just the root.', action: 'path.pop()', path: '["3"]', out: '["3->9"]', node: '—', pathNodes: [3], currentNode: null, recordedSet: [9], pathEdges: [], detail: 'This pop is what keeps sibling branches from inheriting nodes that are not actually on their path.', lines: [13] },
+        { step: 5, title: 'Step 5: choose 20', text: "Back in root's loop, the next child is 20. CHOOSE: append \"20\".", action: 'path.append("20")', path: '["3", "20"]', out: '["3->9"]', node: '20', pathNodes: [3, 20], currentNode: 20, recordedSet: [9], pathEdges: ['3-20'], detail: 'Path is now ready to explore the second branch of the root.', lines: [10, 11] },
+        { step: 6, title: 'Step 6: backtrack(20) — check if leaf', text: 'Node 20 has both children, so it is not a leaf. Begin looping over its children.', action: 'not a leaf → for nxt in (15, 7):', path: '["3", "20"]', out: '["3->9"]', node: '20', pathNodes: [3, 20], currentNode: 20, recordedSet: [9], pathEdges: ['3-20'], detail: 'Same check as step 1, one level deeper.', lines: [6, 9] },
+        { step: 7, title: 'Step 7: choose 15', text: 'CHOOSE: append "15" to path.', action: 'path.append("15")', path: '["3", "20", "15"]', out: '["3->9"]', node: '15', pathNodes: [3, 20, 15], currentNode: 15, recordedSet: [9], pathEdges: ['3-20', '20-15'], detail: 'The path now has three entries, matching the depth of node 15.', lines: [10, 11] },
+        { step: 8, title: 'Step 8: backtrack(15) — leaf found', text: 'Node 15 is a leaf. RECORD "3->20->15".', action: 'out.append("3->20->15")', path: '["3", "20", "15"]', out: '["3->9", "3->20->15"]', node: '15', pathNodes: [3, 20, 15], currentNode: 15, recordedSet: [9, 15], pathEdges: ['3-20', '20-15'], detail: 'Second full path recorded.', lines: [6, 7] },
+        { step: 9, title: 'Step 9: un-choose 15', text: 'UN-CHOOSE: pop "15" off path.', action: 'path.pop()', path: '["3", "20"]', out: '["3->9", "3->20->15"]', node: '—', pathNodes: [3, 20], currentNode: null, recordedSet: [9, 15], pathEdges: ['3-20'], detail: 'Back to depth 2, ready for the last sibling.', lines: [13] },
+        { step: 10, title: 'Step 10: choose 7', text: "The next child of 20 is 7. CHOOSE: append \"7\".", action: 'path.append("7")', path: '["3", "20", "7"]', out: '["3->9", "3->20->15"]', node: '7', pathNodes: [3, 20, 7], currentNode: 7, recordedSet: [9, 15], pathEdges: ['3-20', '20-7'], detail: 'Exploring the final branch.', lines: [10, 11] },
+        { step: 11, title: 'Step 11: backtrack(7) — leaf found', text: 'Node 7 is a leaf. RECORD "3->20->7".', action: 'out.append("3->20->7")', path: '["3", "20", "7"]', out: '["3->9", "3->20->15", "3->20->7"]', node: '7', pathNodes: [3, 20, 7], currentNode: 7, recordedSet: [9, 15, 7], pathEdges: ['3-20', '20-7'], detail: 'Third and final path recorded.', lines: [6, 7] },
+        { step: 12, title: 'Step 12: un-choose 7', text: 'UN-CHOOSE: pop "7" off path.', action: 'path.pop()', path: '["3", "20"]', out: '["3->9", "3->20->15", "3->20->7"]', node: '—', pathNodes: [3, 20], currentNode: null, recordedSet: [9, 15, 7], pathEdges: ['3-20'], detail: 'No more children to try under 20.', lines: [13] },
+        { step: 13, title: "Step 13: backtrack(20) returns", text: "Both children of 20 are explored — the loop inside backtrack(20) ends and it returns to its caller.", action: "loop over 20's children finished", path: '["3", "20"]', out: '["3->9", "3->20->15", "3->20->7"]', node: '20', pathNodes: [3, 20], currentNode: 20, recordedSet: [9, 15, 7], pathEdges: ['3-20'], detail: 'Control returns up to the call that chose 20 in the first place.', lines: [9] },
+        { step: 14, title: 'Step 14: un-choose 20', text: "Back in root's loop, UN-CHOOSE: pop \"20\" off path.", action: 'path.pop()', path: '["3"]', out: '["3->9", "3->20->15", "3->20->7"]', node: '—', pathNodes: [3], currentNode: null, recordedSet: [9, 15, 7], pathEdges: [], detail: 'Path is back to just the root.', lines: [13] },
+        { step: 15, title: 'Step 15: backtrack(3) returns — done', text: 'Both children of root are explored. backtrack(root) returns, and the function returns out — all three root-to-leaf paths.', action: 'return out', path: '["3"]', out: '["3->9", "3->20->15", "3->20->7"]', node: '—', pathNodes: [3], currentNode: null, recordedSet: [9, 15, 7], pathEdges: [], detail: 'Final answer: 3 root-to-leaf paths.', lines: [15] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderBFS(step, index, max) {
+        document.getElementById('bfs-step-title').textContent = step.title;
+        document.getElementById('bfs-step-text').textContent = step.text;
+        document.getElementById('bfs-queue').textContent = step.queue;
+        document.getElementById('bfs-action').textContent = step.action;
+        document.getElementById('bfs-node').textContent = step.node;
+        document.getElementById('bfs-depth').textContent = step.depth;
+        document.getElementById('bfs-result').textContent = step.result;
+        document.getElementById('bfs-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('bfs-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('bfs-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('bfs-trace-table', step.step);
+        setCodeHighlight('bfs-code', step.lines);
+
+        document.querySelectorAll('#bfs-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('seen', 'current', 'frontier');
+          if (step.seenNodes.includes(id)) node.classList.add('seen');
+          if (step.frontierNodes.includes(id)) node.classList.add('frontier');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#bfs-graph [data-bfs-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.bfsEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderPaths(step, index, max) {
+        document.getElementById('paths-step-title').textContent = step.title;
+        document.getElementById('paths-step-text').textContent = step.text;
+        document.getElementById('paths-action').textContent = step.action;
+        document.getElementById('paths-path').textContent = step.path;
+        document.getElementById('paths-out').textContent = step.out;
+        document.getElementById('paths-node').textContent = step.node;
+        document.getElementById('paths-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('paths-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('paths-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('paths-trace-table', step.step);
+        setCodeHighlight('paths-code', step.lines);
+
+        document.querySelectorAll('#paths-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('onpath', 'current', 'recorded');
+          if (step.pathNodes.includes(id)) node.classList.add('onpath');
+          if (step.recordedSet.includes(id)) node.classList.add('recorded');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#paths-graph [data-path-edge]').forEach((line) => {
+          line.setAttribute('visibility', step.pathEdges.includes(line.dataset.pathEdge) ? 'visible' : 'hidden');
+        });
+      }
+
+      setupTrace({ steps: bfsSteps, prefix: 'bfs', render: renderBFS });
+      setupTrace({ steps: pathsSteps, prefix: 'paths', render: renderPaths });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

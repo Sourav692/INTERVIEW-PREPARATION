@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Binary Search — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Searching &amp; divide-and-conquer · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Binary Search</h1>
+          <p>
+            Binary search finds a target in a sorted sequence — or the flip point of any monotonic yes/no
+            question — by repeatedly comparing the middle of what's left and throwing away the half that can't
+            hold the answer. This page traces the classic index search and the more general "binary search on
+            the answer" pattern step by step, and makes the invariant that keeps both of them correct explicit.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: halve the search space</span>
+            <span class="chip">Interactive classic search trace</span>
+            <span class="chip">Interactive search-on-the-answer trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>arr = [1, 3, 5, 7, 9, 11, 13]</code>, <code>target = 11</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 520 200" width="100%" role="img" aria-label="Sorted array with lo, mid, hi markers before the first comparison">
+              <defs>
+                <style>
+                  .hero-cell { fill: #315efb; }
+                  .hero-cell-mid { fill: #ff9f1c; }
+                  .hero-val { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .hero-idx { font: 600 12px Inter, Arial, sans-serif; fill: #5d677d; }
+                  .hero-ptr { font: 800 13px Inter, Arial, sans-serif; }
+                  .hero-ptr-lo { fill: #17366c; }
+                  .hero-ptr-hi { fill: #17366c; }
+                  .hero-ptr-mid { fill: #c97a10; }
+                  .hero-tri { fill: #17366c; }
+                  .hero-tri-mid { fill: #c97a10; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="hero-idx" style="font-size:13px;fill:#172033;font-weight:700;">Initial window: lo=0, hi=6</text>
+
+              <text x="50" y="46" text-anchor="middle" class="hero-ptr hero-ptr-lo">lo</text>
+              <polygon points="44,52 56,52 50,64" class="hero-tri" />
+
+              <text x="254" y="46" text-anchor="middle" class="hero-ptr hero-ptr-mid">mid</text>
+              <polygon points="244,52 264,52 254,64" class="hero-tri-mid" />
+
+              <text x="458" y="46" text-anchor="middle" class="hero-ptr hero-ptr-hi">hi</text>
+              <polygon points="452,52 464,52 458,64" class="hero-tri" />
+
+              <rect x="20" y="72" width="60" height="60" rx="10" class="hero-cell" />
+              <rect x="88" y="72" width="60" height="60" rx="10" class="hero-cell" />
+              <rect x="156" y="72" width="60" height="60" rx="10" class="hero-cell" />
+              <rect x="224" y="72" width="60" height="60" rx="10" class="hero-cell-mid" />
+              <rect x="292" y="72" width="60" height="60" rx="10" class="hero-cell" />
+              <rect x="360" y="72" width="60" height="60" rx="10" class="hero-cell" />
+              <rect x="428" y="72" width="60" height="60" rx="10" class="hero-cell" />
+
+              <text x="50" y="108" text-anchor="middle" class="hero-val">1</text>
+              <text x="118" y="108" text-anchor="middle" class="hero-val">3</text>
+              <text x="186" y="108" text-anchor="middle" class="hero-val">5</text>
+              <text x="254" y="108" text-anchor="middle" class="hero-val">7</text>
+              <text x="322" y="108" text-anchor="middle" class="hero-val">9</text>
+              <text x="390" y="108" text-anchor="middle" class="hero-val">11</text>
+              <text x="458" y="108" text-anchor="middle" class="hero-val">13</text>
+
+              <text x="50" y="152" text-anchor="middle" class="hero-idx">idx 0</text>
+              <text x="118" y="152" text-anchor="middle" class="hero-idx">idx 1</text>
+              <text x="186" y="152" text-anchor="middle" class="hero-idx">idx 2</text>
+              <text x="254" y="152" text-anchor="middle" class="hero-idx">idx 3</text>
+              <text x="322" y="152" text-anchor="middle" class="hero-idx">idx 4</text>
+              <text x="390" y="152" text-anchor="middle" class="hero-idx">idx 5</text>
+              <text x="458" y="152" text-anchor="middle" class="hero-idx">idx 6</text>
+
+              <text x="20" y="178" class="hero-idx">7 &lt; 11, so lo moves right of index 3, then mid=5 matches.</text>
+            </svg>
+          </div>
+          <div class="result-badge">Answer = index 5 (arr[5] = 11)</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Database and index lookups</h3>
+          <p>B-tree and B+tree nodes are searched with binary search internally — every key lookup in a sorted index is this exact loop, run at every level of the tree.</p>
+        </div>
+        <div class="card">
+          <h3>git bisect</h3>
+          <p><code>git bisect</code> finds the first bad commit by asking "good or bad?" at a candidate commit and halving the range — it is literally binary search on the answer, with commits as the sorted axis.</p>
+        </div>
+        <div class="card">
+          <h3>Resource-allocation interview questions</h3>
+          <p>"Minimum capacity to ship packages in D days," "Koko eating bananas," "split array to minimize the largest sum" — all of these are binary search on the answer wearing a word-problem costume.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> most candidates can recite the classic array search. Far fewer can recognize when a completely array-free word problem is secretly the same algorithm. That recognition — not the loop syntax — is the actual skill being tested.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is binary search?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>Binary search repeatedly looks at the middle of what's left, compares it to what it's looking for, and discards the half that provably cannot contain the answer. Repeat until the window closes.</p>
+        </div>
+        <div class="card">
+          <h3>The only real requirement</h3>
+          <p>It does not require a literal array. It requires the search space to be <strong>monotonic</strong>: a sorted sequence, or a yes/no predicate whose answer flips from false to true (or true to false) at most once as you scan candidates in order.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if you can promise "once this becomes true, it stays true" (or the false/true mirror of that) as you move through candidates in order, you can binary search it — even with no array anywhere in sight.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Confirm the space is monotonic</h3>
+          <p>Sorted array, or a predicate that flips at most once. Binary search on non-monotonic data runs to completion and returns a confidently wrong answer.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Define lo and hi</h3>
+          <p>They must bound every possible answer — array indices for the classic search, or the smallest and largest candidate value for an answer search.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Compute mid and compare</h3>
+          <p><code>mid = lo + (hi - lo) // 2</code>, then compare <code>arr[mid]</code> to the target, or call <code>predicate(mid)</code>.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Shrink toward the half that can still be right</h3>
+          <p>Move <code>lo</code> or <code>hi</code> based on the comparison — never leave <code>mid</code> sitting unchanged inside the new window — and repeat.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes the working structure</h2>
+      <p>Beginners picture binary search as "an array with two fingers." That's only half the picture. What actually drives the algorithm is <code>lo</code> and <code>hi</code> — two numbers that bound the space of possible answers. For the classic search that space is array indices; for binary search on the answer, it's candidate values themselves.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input array</h3>
+          <div class="code-block"><code>arr = [1, 3, 5, 7, 9, 11, 13]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Index window</h3>
+          <div class="code-block"><code>lo = 0
+hi = len(arr) - 1   # 6
+# window = arr[lo..hi] = whole array</code></div>
+        </div>
+      </div>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input predicate</h3>
+          <div class="code-block"><code>is_bad_version(v) = v &gt;= 37
+# candidates: versions 1..100</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Answer range</h3>
+          <div class="code-block"><code>lo = 1
+hi = 100
+# window = every version that
+# could still be the first bad one</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Decide what "index" means</h4>
+          <p>An array position, or a candidate answer value. This decision determines everything else.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Set lo to the smallest possible answer, hi to the largest</h4>
+          <p>Too narrow silently rules out the real answer. Too wide only costs one extra comparison — when in doubt, go wide.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>mid always sits inside [lo, hi]</h4>
+          <p><code>mid = lo + (hi - lo) // 2</code> can never point outside the window you just built.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Every shrink step must remove at least one candidate</h4>
+          <p>If a shrink step can leave <code>lo</code> and <code>hi</code> unchanged, the loop never terminates.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> binary search's entire correctness rests on <code>lo</code> and <code>hi</code> describing a space that shrinks by roughly half every iteration. Building that space correctly — and confirming it's sorted or monotonic — is the real first step, before any comparison happens.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: the classic index search</h2>
+      <p>The classic version answers a concrete question about a literal array: does <code>target</code> exist, and if so at which index? At every iteration, one invariant holds: <strong>if the target is present in the array, it is always somewhere inside <code>arr[lo..hi]</code></strong>. The loop condition (<code>lo &lt;= hi</code>), the mid formula, and the shrink step (<code>mid ± 1</code>) all exist to keep that promise true.</p>
+      <div class="code-block stepped">
+        <code id="bs1-code">
+<span class="code-line" data-line="1">def binary_search(arr, target):</span>
+<span class="code-line" data-line="2">    lo, hi = 0, len(arr) - 1</span>
+<span class="code-line" data-line="3">    while lo &lt;= hi:</span>
+<span class="code-line" data-line="4">        mid = lo + (hi - lo) // 2</span>
+<span class="code-line" data-line="5">        if arr[mid] == target:</span>
+<span class="code-line" data-line="6">            return mid</span>
+<span class="code-line" data-line="7">        elif arr[mid] &lt; target:</span>
+<span class="code-line" data-line="8">            lo = mid + 1</span>
+<span class="code-line" data-line="9">        else:</span>
+<span class="code-line" data-line="10">            hi = mid - 1</span>
+<span class="code-line" data-line="11">    return -1</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive classic search trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="bs1-graph" viewBox="0 0 520 200" width="100%" role="img" aria-label="Classic binary search trace over the array">
+              <defs>
+                <style>
+                  .bs1-cell { transition: fill 0.2s ease; }
+                  .bs1-cell.window { fill: #315efb; }
+                  .bs1-cell.elim { fill: #c8d2e7; }
+                  .bs1-cell.mid { fill: #ff9f1c; }
+                  .bs1-cell.found { fill: #13a46b; }
+                  .bs1-val { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .bs1-idx { font: 600 12px Inter, Arial, sans-serif; fill: #5d677d; }
+                  .bs1-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                  .bs1-ptr-text { font: 800 13px Inter, Arial, sans-serif; }
+                  .bs1-ptr-lo-text { fill: #17366c; }
+                  .bs1-ptr-hi-text { fill: #17366c; }
+                  .bs1-ptr-mid-text { fill: #c97a10; }
+                  .bs1-tri { fill: #17366c; }
+                  .bs1-tri-mid { fill: #c97a10; }
+                </style>
+              </defs>
+              <text x="20" y="20" class="bs1-title">Current search window</text>
+
+              <g id="bs1-ptr-lo" transform="translate(50,0)">
+                <text y="40" text-anchor="middle" class="bs1-ptr-text bs1-ptr-lo-text">lo</text>
+                <polygon points="-6,46 6,46 0,58" class="bs1-tri" />
+              </g>
+              <g id="bs1-ptr-mid" transform="translate(254,0)" visibility="hidden">
+                <text y="40" text-anchor="middle" class="bs1-ptr-text bs1-ptr-mid-text">mid</text>
+                <polygon points="-8,46 8,46 0,58" class="bs1-tri-mid" />
+              </g>
+              <g id="bs1-ptr-hi" transform="translate(458,0)">
+                <text y="40" text-anchor="middle" class="bs1-ptr-text bs1-ptr-hi-text">hi</text>
+                <polygon points="-6,46 6,46 0,58" class="bs1-tri" />
+              </g>
+
+              <rect data-idx="0" x="20" y="66" width="60" height="60" rx="10" class="bs1-cell" />
+              <rect data-idx="1" x="88" y="66" width="60" height="60" rx="10" class="bs1-cell" />
+              <rect data-idx="2" x="156" y="66" width="60" height="60" rx="10" class="bs1-cell" />
+              <rect data-idx="3" x="224" y="66" width="60" height="60" rx="10" class="bs1-cell" />
+              <rect data-idx="4" x="292" y="66" width="60" height="60" rx="10" class="bs1-cell" />
+              <rect data-idx="5" x="360" y="66" width="60" height="60" rx="10" class="bs1-cell" />
+              <rect data-idx="6" x="428" y="66" width="60" height="60" rx="10" class="bs1-cell" />
+
+              <text x="50" y="102" text-anchor="middle" class="bs1-val">1</text>
+              <text x="118" y="102" text-anchor="middle" class="bs1-val">3</text>
+              <text x="186" y="102" text-anchor="middle" class="bs1-val">5</text>
+              <text x="254" y="102" text-anchor="middle" class="bs1-val">7</text>
+              <text x="322" y="102" text-anchor="middle" class="bs1-val">9</text>
+              <text x="390" y="102" text-anchor="middle" class="bs1-val">11</text>
+              <text x="458" y="102" text-anchor="middle" class="bs1-val">13</text>
+
+              <text x="50" y="146" text-anchor="middle" class="bs1-idx">idx 0</text>
+              <text x="118" y="146" text-anchor="middle" class="bs1-idx">idx 1</text>
+              <text x="186" y="146" text-anchor="middle" class="bs1-idx">idx 2</text>
+              <text x="254" y="146" text-anchor="middle" class="bs1-idx">idx 3</text>
+              <text x="322" y="146" text-anchor="middle" class="bs1-idx">idx 4</text>
+              <text x="390" y="146" text-anchor="middle" class="bs1-idx">idx 5</text>
+              <text x="458" y="146" text-anchor="middle" class="bs1-idx">idx 6</text>
+
+              <text x="20" y="176" class="bs1-idx" id="bs1-window-caption" style="font-size:13px;fill:#172033;">Target = 11</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-blue"></i> inside current window [lo, hi]</span>
+            <span><i class="dot dot-orange"></i> mid being tested</span>
+            <span><i class="dot dot-green"></i> found</span>
+            <span><i class="dot dot-gray"></i> eliminated</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="bs1-step-title">Initial state</h3>
+          <p id="bs1-step-text">The full array is the search window: lo=0 and hi=6.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="bs1-prev">Previous</button>
+            <button type="button" id="bs1-play" class="primary">Resume</button>
+            <button type="button" id="bs1-next">Next</button>
+            <button type="button" id="bs1-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="bs1-step-counter">Step 0 / 2</span>
+            <div class="progress"><span id="bs1-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>lo</strong><div class="state-value" id="bs1-lo">0</div></div>
+            <div class="state-box"><strong>hi</strong><div class="state-value" id="bs1-hi">6</div></div>
+            <div class="state-box"><strong>mid</strong><div class="state-value" id="bs1-mid">—</div></div>
+            <div class="state-box"><strong>arr[mid]</strong><div class="state-value" id="bs1-arrmid">—</div></div>
+            <div class="state-box"><strong>Comparison</strong><div class="state-value" id="bs1-cmp">—</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="bs1-result">searching…</div></div>
+          </div>
+          <div class="explainer">
+            <p id="bs1-detail"><strong>What changed:</strong> before the loop runs, lo and hi bound the entire array.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="bs1-trace-table">
+          <thead>
+            <tr><th>Step</th><th>lo</th><th>hi</th><th>mid</th><th>arr[mid]</th><th>Comparison</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td><code>0</code></td><td><code>6</code></td><td>—</td><td>—</td><td>—</td><td>Initial window is the whole array</td></tr>
+            <tr data-step="1"><td>1</td><td><code>0</code></td><td><code>6</code></td><td><code>3</code></td><td><code>7</code></td><td><code>7 &lt; 11</code> → go right</td><td><code>lo = mid + 1 = 4</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>4</code></td><td><code>6</code></td><td><code>5</code></td><td><code>11</code></td><td><code>11 == 11</code> → match</td><td><code>return mid = 5</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Every comparison eliminates exactly the half of the array that provably cannot contain the target — that's why 7 elements take at most 3 comparisons, and a million elements take at most 20.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Writing <code>lo = mid</code> or <code>hi = mid</code> instead of <code>mid + 1</code> / <code>mid - 1</code>. If <code>mid</code> is never excluded from the new window, the loop can revisit the same <code>lo</code>/<code>hi</code> pair forever.</p>
+        </div>
+        <div class="card">
+          <h4>Why the invariant matters</h4>
+          <p>At every iteration, if the target exists, it is guaranteed to be inside <code>[lo, hi]</code>. The loop condition, the mid formula, and the shrink step are all written specifically to preserve that one promise.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: binary search on the answer</h2>
+      <p>This is the generalization interviews actually test. There is no array — <code>lo</code> and <code>hi</code> are candidate <em>answers</em> themselves, and <code>predicate(mid)</code> replaces <code>arr[mid] == target</code>. The invariant shifts too: <strong>predicate(hi) is always true (or the initial bound), and everything strictly below <code>lo</code> is provably false</strong> — the loop is squeezing that flip point from both sides until <code>lo == hi</code>.</p>
+      <div class="code-block stepped">
+        <code id="bs2-code">
+<span class="code-line" data-line="1">def binary_search_answer(lo, hi, predicate):</span>
+<span class="code-line" data-line="2">    while lo &lt; hi:</span>
+<span class="code-line" data-line="3">        mid = lo + (hi - lo) // 2</span>
+<span class="code-line" data-line="4">        if predicate(mid):</span>
+<span class="code-line" data-line="5">            hi = mid</span>
+<span class="code-line" data-line="6">        else:</span>
+<span class="code-line" data-line="7">            lo = mid + 1</span>
+<span class="code-line" data-line="8">    return lo</span>
+        </code>
+      </div>
+      <p class="footer-note">Applied here to the "first bad version" pattern: <code>FIRST_BAD = 37</code>, <code>is_bad_version(v) = v &gt;= 37</code>, searched over the range <code>[1, 100]</code>.</p>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive search-on-the-answer trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="bs2-graph" viewBox="0 0 520 190" width="100%" role="img" aria-label="Binary search on the answer trace over the candidate range 1 to 100">
+              <defs>
+                <style>
+                  .bs2-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                  .bs2-track { fill: #edf2fa; }
+                  .bs2-elim { fill: #c8d2e7; }
+                  .bs2-window { fill: #315efb; fill-opacity: 0.55; }
+                  .bs2-mid-line { stroke: #ff9f1c; stroke-width: 4; }
+                  .bs2-mid-dot { fill: #ff9f1c; }
+                  .bs2-mid-dot.verdict-true { fill: #13a46b; }
+                  .bs2-mid-line.verdict-true { stroke: #13a46b; }
+                  .bs2-mid-text { font: 800 13px Inter, Arial, sans-serif; fill: #17366c; }
+                  .bs2-found-line { stroke: #13a46b; stroke-width: 4; }
+                  .bs2-found-dot { fill: #13a46b; }
+                  .bs2-found-text { font: 800 13px Inter, Arial, sans-serif; fill: #0f9d58; }
+                  .bs2-bound-text { font: 600 13px Inter, Arial, sans-serif; fill: #5d677d; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="bs2-title">Candidate range [lo, hi] over versions 1–100</text>
+
+              <rect x="20" y="70" width="480" height="30" rx="6" class="bs2-track" />
+              <rect id="bs2-elim-left" x="20" y="70" width="0" height="30" rx="6" class="bs2-elim" />
+              <rect id="bs2-elim-right" x="500" y="70" width="0" height="30" rx="6" class="bs2-elim" />
+              <rect id="bs2-window" x="20" y="70" width="480" height="30" rx="6" class="bs2-window" />
+
+              <g id="bs2-mid-marker" visibility="hidden">
+                <line x1="0" y1="52" x2="0" y2="108" class="bs2-mid-line" />
+                <circle cx="0" cy="60" r="6" class="bs2-mid-dot" />
+                <text x="0" y="44" text-anchor="middle" class="bs2-mid-text" id="bs2-mid-label">mid</text>
+              </g>
+
+              <g id="bs2-found-marker" visibility="hidden">
+                <line x1="0" y1="52" x2="0" y2="108" class="bs2-found-line" />
+                <circle cx="0" cy="100" r="7" class="bs2-found-dot" />
+                <text x="0" y="128" text-anchor="middle" class="bs2-found-text">answer = 37</text>
+              </g>
+
+              <text id="bs2-lo-label" x="20" y="122" class="bs2-bound-text">lo = 1</text>
+              <text id="bs2-hi-label" x="500" y="122" text-anchor="end" class="bs2-bound-text">hi = 100</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-blue"></i> inside current window [lo, hi]</span>
+            <span><i class="dot dot-orange"></i> mid being tested (predicate false)</span>
+            <span><i class="dot dot-green"></i> mid is the current best candidate / final answer</span>
+            <span><i class="dot dot-gray"></i> eliminated</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="bs2-step-title">Initial state</h3>
+          <p id="bs2-step-text">Candidates are versions 1 through 100.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="bs2-prev">Previous</button>
+            <button type="button" id="bs2-play" class="primary">Resume</button>
+            <button type="button" id="bs2-next">Next</button>
+            <button type="button" id="bs2-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="bs2-step-counter">Step 0 / 8</span>
+            <div class="progress"><span id="bs2-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>lo</strong><div class="state-value" id="bs2-lo">1</div></div>
+            <div class="state-box"><strong>hi</strong><div class="state-value" id="bs2-hi">100</div></div>
+            <div class="state-box"><strong>mid</strong><div class="state-value" id="bs2-mid">—</div></div>
+            <div class="state-box"><strong>is_bad_version(mid)</strong><div class="state-value" id="bs2-verdict">—</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="bs2-action">Set lo=1, hi=100</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="bs2-result">searching…</div></div>
+          </div>
+          <div class="explainer">
+            <p id="bs2-detail"><strong>What changed:</strong> nothing has been tested yet — the whole range is still in play.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="bs2-trace-table">
+          <thead>
+            <tr><th>Step</th><th>lo</th><th>hi</th><th>mid</th><th>is_bad_version(mid)</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td><code>1</code></td><td><code>100</code></td><td>—</td><td>—</td><td>Initial candidate range is versions 1–100</td></tr>
+            <tr data-step="1"><td>1</td><td><code>1</code></td><td><code>100</code></td><td><code>50</code></td><td><code>True</code></td><td><code>hi = mid = 50</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>1</code></td><td><code>50</code></td><td><code>25</code></td><td><code>False</code></td><td><code>lo = mid + 1 = 26</code></td></tr>
+            <tr data-step="3"><td>3</td><td><code>26</code></td><td><code>50</code></td><td><code>38</code></td><td><code>True</code></td><td><code>hi = mid = 38</code></td></tr>
+            <tr data-step="4"><td>4</td><td><code>26</code></td><td><code>38</code></td><td><code>32</code></td><td><code>False</code></td><td><code>lo = mid + 1 = 33</code></td></tr>
+            <tr data-step="5"><td>5</td><td><code>33</code></td><td><code>38</code></td><td><code>35</code></td><td><code>False</code></td><td><code>lo = mid + 1 = 36</code></td></tr>
+            <tr data-step="6"><td>6</td><td><code>36</code></td><td><code>38</code></td><td><code>37</code></td><td><code>True</code></td><td><code>hi = mid = 37</code></td></tr>
+            <tr data-step="7"><td>7</td><td><code>36</code></td><td><code>37</code></td><td><code>36</code></td><td><code>False</code></td><td><code>lo = mid + 1 = 37</code></td></tr>
+            <tr data-step="8"><td>8</td><td><code>37</code></td><td><code>37</code></td><td>—</td><td>—</td><td><code>lo == hi</code> → return 37</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p><code>hi</code> always holds a value known to satisfy the predicate (or the initial upper bound); <code>lo</code> always holds the smallest value not yet ruled out. When <code>lo == hi</code>, that single point is the answer.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Copy-pasting the classic template's <code>hi = mid - 1</code> into this shape. If <code>predicate(mid)</code> is true, <code>mid</code> might be the answer — excluding it throws away a value that still works.</p>
+        </div>
+        <div class="card">
+          <h4>Why <code>hi = mid</code> (not <code>mid - 1</code>) matters</h4>
+          <p>Because <code>mid</code> itself could be the final answer, it has to stay inside the next window. <code>hi = mid</code> keeps it as a live candidate while the window still shrinks.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Target absent</button>
+        <button type="button" data-example-tab="1">Target at the last index</button>
+        <button type="button" data-example-tab="2">Duplicates</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: target absent</h3>
+          <p><code>arr = [1, 3, 5, 7, 9, 11, 13]</code>, <code>target = 4</code></p>
+          <div class="result-badge">Answer = -1 (not found)</div>
+          <p class="footer-note">
+            <code>mid=3</code> (<code>7&gt;4</code>) → <code>hi=2</code>. <code>mid=1</code> (<code>3&lt;4</code>) → <code>lo=2</code>.
+            <code>mid=2</code> (<code>5&gt;4</code>) → <code>hi=1</code>. Now <code>lo=2 &gt; hi=1</code>, the loop condition
+            <code>lo &lt;= hi</code> fails, and the function returns <code>-1</code>. This is exactly why the loop condition
+            must be <code>lo &lt;= hi</code> and not <code>lo &lt; hi</code> — a single-element window (<code>lo == hi</code>)
+            still needs to be checked before giving up.
+          </p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: target at the last index</h3>
+          <p><code>arr = [1, 3, 5, 7, 9, 11, 13]</code>, <code>target = 13</code></p>
+          <div class="result-badge">Answer = index 6</div>
+          <p class="footer-note">
+            <code>mid=3</code> (<code>7&lt;13</code>) → <code>lo=4</code>. <code>mid=5</code> (<code>11&lt;13</code>) →
+            <code>lo=6</code>. <code>mid=6</code> (<code>13==13</code>) → found. Boundary elements are not a special case
+            here — <code>hi</code> starting at <code>len(arr)-1</code> guarantees the last index is always reachable.
+          </p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: duplicates — bisect_left vs bisect_right</h3>
+          <p><code>a = [1, 3, 3, 3, 7]</code>, <code>target = 3</code></p>
+          <div class="result-badge">bisect_left = 1 · bisect_right = 4</div>
+          <p class="footer-note">
+            The classic <code>binary_search</code> above would return <em>some</em> index equal to <code>3</code> — which
+            one depends on how the window happens to shrink, and it is not guaranteed to be the first or last one.
+            <code>bisect_left(a, 3)</code> always returns the leftmost valid insertion point (<code>1</code>, before all
+            the 3s); <code>bisect_right(a, 3)</code> always returns the rightmost (<code>4</code>, after all the 3s).
+            <code>bisect_right(a, x) - 1</code> is therefore the pattern for "the latest entry <code>&lt;= x</code>" —
+            useful for checkpoint-style queries where you want the most recent record at or before a given point.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Time</th><th>Space</th><th>When to use</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Linear scan</td><td>O(n)</td><td>O(1)</td><td>Unsorted data, or a single lookup where sorting first isn't worth it</td></tr>
+            <tr><td>Classic binary search (hand-rolled)</td><td>O(log n)</td><td>O(1) iterative</td><td>Need the exact index, or full control over the comparison</td></tr>
+            <tr><td>Python <code>bisect</code> (<code>bisect_left</code> / <code>bisect_right</code>)</td><td>O(log n)</td><td>O(1)</td><td>Need a precise insertion point or duplicate boundaries — implemented in C, faster in practice than a hand-rolled loop</td></tr>
+            <tr><td>Binary search on the answer</td><td>O(log(range) × cost of predicate)</td><td>O(1) plus whatever the predicate needs</td><td>"Smallest/largest value such that a condition holds" — no literal array involved</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">
+        <strong>Why <code>mid = lo + (hi - lo) // 2</code>?</strong> In Python, <code>(lo + hi) // 2</code> gives the exact
+        same value, because Python integers never overflow. But in a fixed-width-integer language, <code>lo + hi</code>
+        can overflow before the division happens, silently wrapping into a negative number and corrupting the search —
+        <code>lo + (hi - lo) // 2</code> never adds two large numbers together, so it is safe everywhere. It's worth
+        writing this form from muscle memory even in Python.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>Is the thing I'm searching sorted, or is there a monotonic predicate hiding in the wording? If neither, binary search doesn't apply yet.</p></div>
+            <div class="timeline-step"><p>Am I looking for an exact index/value in real data, or the smallest/largest value where some condition holds? The first is the classic template; the second is binary search on the answer.</p></div>
+            <div class="timeline-step"><p>What are the tightest correct <code>lo</code> and <code>hi</code>? Too narrow silently misses the answer; too wide only costs one extra comparison.</p></div>
+            <div class="timeline-step"><p>What does "true" mean at <code>mid</code>, and which side does it eliminate? Write this down in one sentence before coding — it decides every shrink step.</p></div>
+            <div class="timeline-step"><p>Does my shrink step always make progress? Match <code>mid ± 1</code> to <code>lo &lt;= hi</code>, or <code>hi = mid</code> / <code>lo = mid + 1</code> to <code>lo &lt; hi</code> — never mix the two shapes.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"Is the thing I'm searching monotonic? If yes, I don't need a literal sorted array — I need lo/hi bounding the possible answers."</li>
+            <li>"I'll compute mid as lo + (hi - lo) // 2 to avoid overflow, even though it doesn't matter in Python."</li>
+            <li>"My invariant is: if the answer exists, it's always inside [lo, hi]. Every line I write has to preserve that."</li>
+            <li>"For an exact match I use lo &lt;= hi with mid ± 1; for a boundary search I use lo &lt; hi with hi = mid, so I never accidentally step over a valid answer."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Classic search mistakes</h3>
+          <ul class="mistake-list">
+            <li>Writing <code>hi = mid</code> instead of <code>hi = mid - 1</code> (or <code>lo = mid</code> instead of <code>lo = mid + 1</code>) — mid stays inside the new window forever, causing an infinite loop.</li>
+            <li>Using <code>while lo &lt; hi</code> for an exact-match search — this can exit one comparison too early and miss a target sitting exactly at <code>lo == hi</code>.</li>
+            <li>Computing <code>mid</code> once outside the loop instead of re-deriving it every iteration — a stale <code>mid</code> silently breaks the comparison.</li>
+            <li>Forgetting the array must actually be sorted first — binary search does not check; it runs to completion and returns a confidently wrong answer.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Binary search on the answer mistakes</h3>
+          <ul class="mistake-list">
+            <li>Copy-pasting the classic template's <code>hi = mid - 1</code> into an answer search — this excludes <code>mid</code> even when <code>predicate(mid)</code> is true, skipping past a valid answer.</li>
+            <li>Using <code>while lo &lt;= hi</code> in a <code>while lo &lt; hi</code> shaped problem — <code>lo</code> and <code>hi</code> cross instead of converging, and the loop either infinite-loops or reads a stale <code>mid</code>.</li>
+            <li>Bounding <code>lo</code>/<code>hi</code> on the wrong axis — e.g. searching over array positions when the problem actually wants candidate capacities or values.</li>
+            <li>Forgetting to double-check the predicate is actually monotonic — if it isn't, binary search still converges to some flip point, just not necessarily the one you wanted.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — Trace <code>binary_search([2, 4, 6, 8, 10, 12], 10)</code> by hand. What are lo, hi, and mid at each iteration, and what does it return?</summary>
+          <p style="margin-top:10px;">
+            Answer: Iteration 1 — <code>lo=0, hi=5, mid=2</code>, <code>arr[2]=6 &lt; 10</code> → <code>lo=3</code>.
+            Iteration 2 — <code>lo=3, hi=5, mid=4</code>, <code>arr[4]=10 == 10</code> → match. The function returns
+            <strong>4</strong>.
+          </p>
+        </details>
+        <details>
+          <summary>Practice 2 — A sorted array has duplicates: <code>[5, 7, 7, 7, 7, 9]</code>. Using only the classic <code>binary_search</code> template (no <code>bisect</code>), how would you find the leftmost index containing 7?</summary>
+          <p style="margin-top:10px;">
+            Answer: Change the found-case. When <code>arr[mid] == target</code>, don't return immediately — record
+            <code>mid</code> as a candidate answer, then keep searching the <strong>left</strong> half
+            (<code>hi = mid - 1</code>) to see whether an even earlier index also equals <code>7</code>. Return the last
+            recorded candidate once the loop ends. This is exactly the computation <code>bisect_left</code> performs
+            internally.
+          </p>
+        </details>
+        <details>
+          <summary>Practice 3 — Given package weights and D days, find the minimum ship capacity so all packages are delivered within D days. What are lo, hi, and the predicate — and which template do you use?</summary>
+          <p style="margin-top:10px;">
+            Answer: This is binary search on the answer. <code>lo = max(weights)</code> (capacity must fit the single
+            heaviest package), <code>hi = sum(weights)</code> (one day, ship everything at once).
+            <code>predicate(capacity)</code> greedily packs a running day-load and starts a new day whenever the next
+            package would exceed <code>capacity</code>, returning whether the whole shipment finishes within D days.
+            Call <code>binary_search_answer(lo, hi, predicate)</code> — it returns the smallest capacity where the
+            predicate is true.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          Binary search is one invariant wearing two costumes. <strong>Classic search:</strong> if the target exists,
+          it's always inside <code>[lo, hi]</code> — so <code>lo &lt;= hi</code>, <code>mid ± 1</code>, and an exact-match
+          return all follow from that promise. <strong>Binary search on the answer:</strong> the flip point is always
+          inside <code>[lo, hi]</code> — so <code>lo &lt; hi</code>, <code>hi = mid</code> / <code>lo = mid + 1</code>, and
+          <code>return lo</code> all follow from that one instead. Once you can state the invariant out loud, the loop
+          condition, the mid formula, and the shrink step stop being things to memorize — they become the only lines
+          that could possibly be correct.
+        </p>
+      </div>
+      <p class="footer-note">Based on the Binary Search deep-dive notebook — the classic search, <code>bisect_left</code>/<code>bisect_right</code>, and binary search on the answer are all traced from the real, runnable code.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const bs1Steps = [
+        { step: 0, title: 'Initial state', text: 'The full array is the search window: lo=0 and hi=6 (the last valid index). No comparison has happened yet.', lo: '0', hi: '6', mid: '—', arrMid: '—', cmp: '—', result: 'searching…', detail: 'Before the loop runs, lo and hi bound the entire array — every index from 0 to 6 is still a candidate.', loIdx: 0, hiIdx: 6, midIdx: null, foundIdx: null, lines: [1, 2, 3] },
+        { step: 1, title: 'Iteration 1 — test mid = 3', text: 'mid = 0 + (6-0)//2 = 3. arr[3] = 7, and 7 is less than the target 11, so the answer (if it exists) must be in the right half.', lo: '0', hi: '6', mid: '3', arrMid: '7', cmp: '7 < 11 → go right', result: 'searching…', detail: 'Because arr[3]=7 is smaller than the target, everything at or before index 3 can be discarded — lo becomes mid+1 = 4.', loIdx: 0, hiIdx: 6, midIdx: 3, foundIdx: null, lines: [4, 5, 7, 8] },
+        { step: 2, title: 'Iteration 2 — test mid = 5 — match', text: 'mid = 4 + (6-4)//2 = 5. arr[5] = 11, which equals the target, so the search ends here.', lo: '4', hi: '6', mid: '5', arrMid: '11', cmp: '11 == 11 → found', result: 'index 5', detail: 'The target is found at index 5 after only 2 comparisons on a 7-element array — that is the O(log n) win in action.', loIdx: 4, hiIdx: 6, midIdx: 5, foundIdx: 5, lines: [4, 5, 6] }
+      ];
+
+      const bs2Steps = [
+        { step: 0, title: 'Initial state', text: 'The candidate answers are versions 1 through 100. lo=1 and hi=100 bound every version that could possibly be the first bad one.', lo: '1', hi: '100', mid: '—', verdict: '—', action: 'Set lo=1, hi=100', result: 'searching…', detail: 'Nothing has been tested yet — the whole range is still in play.', loV: 1, hiV: 100, midV: null, verdictBool: null, lines: [1, 2] },
+        { step: 1, title: 'Iteration 1 — test mid = 50', text: 'mid = 1 + (100-1)//2 = 50. is_bad_version(50) is True (50 >= 37), so version 50 is bad — but an earlier version might also be bad. Keep 50 as a candidate and search the left half.', lo: '1', hi: '100', mid: '50', verdict: 'True', action: 'hi = mid = 50', result: 'searching…', detail: 'True means mid still works as an answer, so it stays inside the window (hi = mid, not mid-1) while we look for something even smaller.', loV: 1, hiV: 100, midV: 50, verdictBool: true, lines: [2, 3, 4, 5] },
+        { step: 2, title: 'Iteration 2 — test mid = 25', text: 'mid = 1 + (50-1)//2 = 25. is_bad_version(25) is False, so version 25 is good — the first bad version must be higher than 25.', lo: '1', hi: '50', mid: '25', verdict: 'False', action: 'lo = mid+1 = 26', result: 'searching…', detail: 'False means mid is provably not the answer, so it is fully excluded: lo jumps past it to mid+1.', loV: 1, hiV: 50, midV: 25, verdictBool: false, lines: [2, 3, 4, 6, 7] },
+        { step: 3, title: 'Iteration 3 — test mid = 38', text: 'mid = 26 + (50-26)//2 = 38. is_bad_version(38) is True, so 38 becomes the new best candidate.', lo: '26', hi: '50', mid: '38', verdict: 'True', action: 'hi = mid = 38', result: 'searching…', detail: 'The window shrinks to [26, 38] — 12 versions eliminated in one comparison.', loV: 26, hiV: 50, midV: 38, verdictBool: true, lines: [2, 3, 4, 5] },
+        { step: 4, title: 'Iteration 4 — test mid = 32', text: 'mid = 26 + (38-26)//2 = 32. is_bad_version(32) is False, so the answer is above 32.', lo: '26', hi: '38', mid: '32', verdict: 'False', action: 'lo = mid+1 = 33', result: 'searching…', detail: 'Window narrows to [33, 38].', loV: 26, hiV: 38, midV: 32, verdictBool: false, lines: [2, 3, 4, 6, 7] },
+        { step: 5, title: 'Iteration 5 — test mid = 35', text: 'mid = 33 + (38-33)//2 = 35. is_bad_version(35) is False.', lo: '33', hi: '38', mid: '35', verdict: 'False', action: 'lo = mid+1 = 36', result: 'searching…', detail: 'Window narrows to [36, 38].', loV: 33, hiV: 38, midV: 35, verdictBool: false, lines: [2, 3, 4, 6, 7] },
+        { step: 6, title: 'Iteration 6 — test mid = 37', text: 'mid = 36 + (38-36)//2 = 37. is_bad_version(37) is True — 37 becomes the new best candidate.', lo: '36', hi: '38', mid: '37', verdict: 'True', action: 'hi = mid = 37', result: 'searching…', detail: 'Window narrows to [36, 37]. The true answer, 37, is now inside the window.', loV: 36, hiV: 38, midV: 37, verdictBool: true, lines: [2, 3, 4, 5] },
+        { step: 7, title: 'Iteration 7 — test mid = 36', text: 'mid = 36 + (37-36)//2 = 36. is_bad_version(36) is False.', lo: '36', hi: '37', mid: '36', verdict: 'False', action: 'lo = mid+1 = 37', result: 'searching…', detail: 'lo now equals hi (both 37), so the loop condition lo < hi becomes False and the loop ends.', loV: 36, hiV: 37, midV: 36, verdictBool: false, lines: [2, 3, 4, 6, 7] },
+        { step: 8, title: 'Loop ends — lo == hi', text: 'lo and hi have converged to 37. The function returns lo, which is 37 — the first bad version.', lo: '37', hi: '37', mid: '—', verdict: '—', action: 'return lo = 37', result: '37', detail: 'This is the invariant paying off: predicate(lo-1) is guaranteed False and predicate(hi) is guaranteed True at every step, so when lo==hi that single point is exactly the flip point.', loV: 37, hiV: 37, midV: null, verdictBool: null, lines: [2, 8] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function bs1CellX(i) { return 20 + i * 68; }
+      function bs1PtrX(i) { return bs1CellX(i) + 30; }
+
+      function renderBS1(step, index, max) {
+        document.getElementById('bs1-step-title').textContent = step.title;
+        document.getElementById('bs1-step-text').textContent = step.text;
+        document.getElementById('bs1-lo').textContent = step.lo;
+        document.getElementById('bs1-hi').textContent = step.hi;
+        document.getElementById('bs1-mid').textContent = step.mid;
+        document.getElementById('bs1-arrmid').textContent = step.arrMid;
+        document.getElementById('bs1-cmp').textContent = step.cmp;
+        document.getElementById('bs1-result').textContent = step.result;
+        document.getElementById('bs1-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('bs1-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('bs1-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('bs1-trace-table', step.step);
+        setCodeHighlight('bs1-code', step.lines);
+
+        document.querySelectorAll('#bs1-graph [data-idx]').forEach((cell) => {
+          const idx = Number(cell.dataset.idx);
+          cell.classList.remove('window', 'elim', 'mid', 'found');
+          if (idx === step.foundIdx) {
+            cell.classList.add('found');
+          } else if (idx === step.midIdx) {
+            cell.classList.add('mid');
+          } else if (idx < step.loIdx || idx > step.hiIdx) {
+            cell.classList.add('elim');
+          } else {
+            cell.classList.add('window');
+          }
+        });
+
+        document.getElementById('bs1-ptr-lo').setAttribute('transform', `translate(${bs1PtrX(step.loIdx)},0)`);
+        document.getElementById('bs1-ptr-hi').setAttribute('transform', `translate(${bs1PtrX(step.hiIdx)},0)`);
+        const midPtr = document.getElementById('bs1-ptr-mid');
+        if (step.midIdx === null) {
+          midPtr.setAttribute('visibility', 'hidden');
+        } else {
+          midPtr.setAttribute('visibility', 'visible');
+          midPtr.setAttribute('transform', `translate(${bs1PtrX(step.midIdx)},0)`);
+        }
+      }
+
+      function bs2X(v) { return 20 + ((v - 1) / 99) * 480; }
+
+      function renderBS2(step, index, max) {
+        document.getElementById('bs2-step-title').textContent = step.title;
+        document.getElementById('bs2-step-text').textContent = step.text;
+        document.getElementById('bs2-lo').textContent = step.lo;
+        document.getElementById('bs2-hi').textContent = step.hi;
+        document.getElementById('bs2-mid').textContent = step.mid;
+        document.getElementById('bs2-verdict').textContent = step.verdict;
+        document.getElementById('bs2-action').textContent = step.action;
+        document.getElementById('bs2-result').textContent = step.result;
+        document.getElementById('bs2-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('bs2-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('bs2-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('bs2-trace-table', step.step);
+        setCodeHighlight('bs2-code', step.lines);
+
+        const loX = bs2X(step.loV);
+        const hiX = bs2X(step.hiV);
+
+        const elimLeft = document.getElementById('bs2-elim-left');
+        elimLeft.setAttribute('x', '20');
+        elimLeft.setAttribute('width', String(Math.max(loX - 20, 0)));
+
+        const elimRight = document.getElementById('bs2-elim-right');
+        elimRight.setAttribute('x', String(hiX));
+        elimRight.setAttribute('width', String(Math.max(500 - hiX, 0)));
+
+        const windowRect = document.getElementById('bs2-window');
+        windowRect.setAttribute('x', String(loX));
+        windowRect.setAttribute('width', String(Math.max(hiX - loX, 4)));
+
+        document.getElementById('bs2-lo-label').textContent = `lo = ${step.loV}`;
+        document.getElementById('bs2-lo-label').setAttribute('x', String(loX));
+        document.getElementById('bs2-hi-label').textContent = `hi = ${step.hiV}`;
+        document.getElementById('bs2-hi-label').setAttribute('x', String(hiX));
+
+        const midMarker = document.getElementById('bs2-mid-marker');
+        const foundMarker = document.getElementById('bs2-found-marker');
+
+        if (step.midV === null) {
+          midMarker.setAttribute('visibility', 'hidden');
+        } else {
+          midMarker.setAttribute('visibility', 'visible');
+          midMarker.setAttribute('transform', `translate(${bs2X(step.midV)},0)`);
+          document.getElementById('bs2-mid-label').textContent = `mid=${step.midV}`;
+          const dot = midMarker.querySelector('.bs2-mid-dot');
+          const line = midMarker.querySelector('.bs2-mid-line');
+          dot.classList.toggle('verdict-true', step.verdictBool === true);
+          line.classList.toggle('verdict-true', step.verdictBool === true);
+        }
+
+        if (step.step === 8) {
+          foundMarker.setAttribute('visibility', 'visible');
+          foundMarker.setAttribute('transform', `translate(${bs2X(step.loV)},0)`);
+        } else {
+          foundMarker.setAttribute('visibility', 'hidden');
+        }
+      }
+
+      setupTrace({ steps: bs1Steps, prefix: 'bs1', render: renderBS1 });
+      setupTrace({ steps: bs2Steps, prefix: 'bs2', render: renderBS2 });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

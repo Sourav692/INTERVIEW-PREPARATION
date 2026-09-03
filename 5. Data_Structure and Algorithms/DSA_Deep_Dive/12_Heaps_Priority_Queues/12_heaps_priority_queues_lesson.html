@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heaps and Priority Queues — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Heaps · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Heaps and Priority Queues</h1>
+          <p>
+            A priority queue always hands you the most important item next — the smallest or the largest —
+            no matter what order things were added in. A heap is the specific structure that makes both
+            "add an item" and "remove the best item" cost only <code>O(log n)</code>, by giving up full sorted
+            order in exchange for just enough order to guarantee the root is always correct. This page traces
+            the sift-up / sift-down mechanics on a real array, then the bounded min-heap pattern that solves
+            top-K problems in interviews.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: the array IS the tree</span>
+            <span class="chip">Interactive push / pop trace</span>
+            <span class="chip">Interactive top-K trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p>Push <code>5, 1, 8, 3, 9, 2, 7</code> one at a time into an empty min-heap.</p>
+          <div class="diagram">
+            <svg viewBox="0 0 560 230" width="100%" role="img" aria-label="Min-heap tree after pushing 5, 1, 8, 3, 9, 2, 7">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-node.root { fill: #13a46b; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                </style>
+              </defs>
+              <line x1="280" y1="45" x2="140" y2="125" class="hero-edge" />
+              <line x1="280" y1="45" x2="420" y2="125" class="hero-edge" />
+              <line x1="140" y1="125" x2="70" y2="205" class="hero-edge" />
+              <line x1="140" y1="125" x2="210" y2="205" class="hero-edge" />
+              <line x1="420" y1="125" x2="350" y2="205" class="hero-edge" />
+              <line x1="420" y1="125" x2="490" y2="205" class="hero-edge" />
+              <circle cx="280" cy="45" r="24" class="hero-node root" />
+              <circle cx="140" cy="125" r="24" class="hero-node" />
+              <circle cx="420" cy="125" r="24" class="hero-node" />
+              <circle cx="70" cy="205" r="24" class="hero-node" />
+              <circle cx="210" cy="205" r="24" class="hero-node" />
+              <circle cx="350" cy="205" r="24" class="hero-node" />
+              <circle cx="490" cy="205" r="24" class="hero-node" />
+              <text x="274" y="51" class="hero-label">1</text>
+              <text x="134" y="131" class="hero-label">3</text>
+              <text x="414" y="131" class="hero-label">2</text>
+              <text x="64" y="211" class="hero-label">5</text>
+              <text x="204" y="211" class="hero-label">9</text>
+              <text x="344" y="211" class="hero-label">8</text>
+              <text x="484" y="211" class="hero-label">7</text>
+            </svg>
+          </div>
+          <div class="result-badge">array = [1, 3, 2, 5, 9, 8, 7] · root = 1 (the minimum)</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Schedulers &amp; event queues</h3>
+          <p>An OS scheduler or timer system always needs "what runs next" — the soonest deadline, not a fully sorted list of every future event.</p>
+        </div>
+        <div class="card">
+          <h3>Dijkstra &amp; Prim</h3>
+          <p>Both algorithms repeatedly ask "which unvisited vertex is cheapest to reach right now?" A heap answers that in <code>O(log n)</code> every time a distance improves.</p>
+        </div>
+        <div class="card">
+          <h3>Top-K &amp; streaming medians</h3>
+          <p>Keep only the K best items — or a running middle value — seen so far in a stream, without ever re-sorting everything on every new arrival.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> a heap is deliberately <em>not</em> a sorted array. That trade is the entire idea: give up full order, keep only "parent is at least as good as its children," and that weaker guarantee is still enough to make the root always correct in <code>O(1)</code> and to restore it in <code>O(log n)</code> after any change.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a heap?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Priority queue — the interface</h3>
+          <p>A contract with three operations: <code>push(x)</code> add an item, <code>pop()</code> remove and return the best item, <code>peek()</code> look at the best item without removing it. Nothing here says how it's built.</p>
+        </div>
+        <div class="card">
+          <h3>Heap — the implementation</h3>
+          <p>A <strong>complete binary tree</strong> (every level full, last level filled left-to-right) obeying the <strong>heap property</strong>: in a min-heap, every parent is <code>&le;</code> both of its children, so the smallest value always sits at the root.</p>
+        </div>
+      </div>
+      <p style="margin-top:16px;">Because the tree is complete, it packs perfectly into a plain array with <strong>no pointers at all</strong>. For any node at index <code>i</code>:</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Index math</h3>
+          <div class="code-block"><code>parent(i) = (i - 1) // 2
+left(i)   = 2*i + 1
+right(i)  = 2*i + 2</code></div>
+        </div>
+        <div class="arrow-box">↔</div>
+        <div class="mini-diagram">
+          <h3>Array = tree</h3>
+          <div class="code-block"><code>index:  0  1  2  3  4  5  6
+value: [1, 3, 2, 5, 9, 8, 7]</code></div>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if you can compute an index, you already know its parent and both children. There is nothing to "follow" — a heap has no <code>.left</code> / <code>.right</code> / <code>.parent</code> references, just arithmetic on a position in a list.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Decide min or max</h3>
+          <p>What counts as "best" here — the smallest distance, the soonest deadline, the largest score? That decides whether the parent rule is <code>&le;</code> or <code>&ge;</code>.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Keep it complete</h3>
+          <p>Always insert at the very end and always remove by pulling the last element into the empty root slot — never leave a hole anywhere else in the array.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Restore the property</h3>
+          <p>A single insert or removal can only break the heap property along one root-to-leaf path. Sift that one element up or down until parent <code>&le;</code> children holds again.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Trust index math, not pointers</h3>
+          <p><code>i</code>, <code>2i+1</code>, <code>2i+2</code>, <code>(i-1)//2</code> replace every <code>.left</code> / <code>.right</code> / <code>.parent</code> lookup you'd write for a linked tree.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes a heap array</h2>
+      <p>You don't always build a heap by pushing one item at a time. Given a whole unordered list up front, <code>heapify</code> converts it into a valid heap in-place in <code>O(n)</code> — faster than <code>n</code> individual pushes, which would cost <code>O(n log n)</code>.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Raw list</h3>
+          <div class="code-block"><code>[9, 4, 7, 1, 3, 8, 2]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Heapified array</h3>
+          <div class="code-block"><code>[1, 3, 2, 4, 9, 8, 7]</code></div>
+        </div>
+      </div>
+      <p style="margin-top:14px;"><code>heapify</code> walks every <strong>internal</strong> node from the bottom up (starting at index <code>n // 2 - 1</code>) and sifts each one down. Leaves need no work — a single value is already a valid heap of size one.</p>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>i = 2, value 7</h4>
+          <p>Children are index 5 (value 8) and index 6 (value 2). The smaller child is 2, and <code>2 &lt; 7</code>, so swap: <code>[9, 4, 2, 1, 3, 8, 7]</code>. Index 6 has no children, so this node stops.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>i = 1, value 4</h4>
+          <p>Children are index 3 (value 1) and index 4 (value 3). The smaller child is 1, and <code>1 &lt; 4</code>, so swap: <code>[9, 1, 2, 4, 3, 8, 7]</code>. Index 3 has no children, so this node stops.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>i = 0, value 9</h4>
+          <p>Children are index 1 (value 1) and index 2 (value 2). The smaller is 1, so swap: <code>[1, 9, 2, 4, 3, 8, 7]</code>. Now at index 1, value 9: children are index 3 (value 4) and index 4 (value 3); smaller is 3, so swap: <code>[1, 3, 2, 4, 9, 8, 7]</code>. Index 4 has no children — done.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> <code>heapify</code> never even looks at the leaves (roughly half the array) as a starting point for sifting — only internal nodes can possibly violate the heap property, since a leaf has no children to compare against. That's why the total work is <code>O(n)</code>, not <code>O(n log n)</code>.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: push and pop mechanics — sift-up and sift-down</h2>
+      <p>This is the engine underneath every heap operation. <code>push</code> appends at the end (keeps the tree complete) and bubbles the new value <strong>up</strong> past parents that are bigger than it. <code>pop</code> removes the root, moves the very last element into the empty root slot (keeps the tree complete), and bubbles that value <strong>down</strong> past children that are smaller than it. Watch the tree and the array below — they are always showing the exact same object, just two views of it.</p>
+      <div class="code-block stepped">
+        <code id="mech-code">
+<span class="code-line" data-line="1">def push(heap, x):</span>
+<span class="code-line" data-line="2">    heap.append(x)</span>
+<span class="code-line" data-line="3">    i = len(heap) - 1</span>
+<span class="code-line" data-line="4">    while i > 0:</span>
+<span class="code-line" data-line="5">        parent = (i - 1) // 2</span>
+<span class="code-line" data-line="6">        if heap[i] < heap[parent]:</span>
+<span class="code-line" data-line="7">            heap[i], heap[parent] = heap[parent], heap[i]</span>
+<span class="code-line" data-line="8">            i = parent</span>
+<span class="code-line" data-line="9">        else:</span>
+<span class="code-line" data-line="10">            break</span>
+<span class="code-line" data-line="11"></span>
+<span class="code-line" data-line="12">def pop(heap):</span>
+<span class="code-line" data-line="13">    top = heap[0]</span>
+<span class="code-line" data-line="14">    last = heap.pop()</span>
+<span class="code-line" data-line="15">    if heap:</span>
+<span class="code-line" data-line="16">        heap[0] = last</span>
+<span class="code-line" data-line="17">        i, n = 0, len(heap)</span>
+<span class="code-line" data-line="18">        while True:</span>
+<span class="code-line" data-line="19">            small, l, r = i, 2*i + 1, 2*i + 2</span>
+<span class="code-line" data-line="20">            if l < n and heap[l] < heap[small]: small = l</span>
+<span class="code-line" data-line="21">            if r < n and heap[r] < heap[small]: small = r</span>
+<span class="code-line" data-line="22">            if small == i:</span>
+<span class="code-line" data-line="23">                break</span>
+<span class="code-line" data-line="24">            heap[i], heap[small] = heap[small], heap[i]</span>
+<span class="code-line" data-line="25">            i = small</span>
+<span class="code-line" data-line="26">    return top</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive push / pop trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="mech-diagram" viewBox="0 0 560 320" width="100%" role="img" aria-label="Heap tree and its backing array, kept in sync">
+              <defs>
+                <style>
+                  .mech-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .mech-blue { fill: #315efb; }
+                  .mech-green { fill: #13a46b; }
+                  .mech-orange { fill: #ff9f1c; }
+                  .mech-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .mech-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                  .mech-idx { font: 700 11px ui-monospace, Consolas, monospace; fill: #5d677d; }
+                  .mech-cell { stroke: #cad3e6; stroke-width: 2; }
+                </style>
+              </defs>
+              <text x="12" y="20" class="mech-title">Tree view</text>
+              <line x1="280" y1="45" x2="140" y2="125" class="mech-edge" data-child="1" />
+              <line x1="280" y1="45" x2="420" y2="125" class="mech-edge" data-child="2" />
+              <line x1="140" y1="125" x2="70" y2="205" class="mech-edge" data-child="3" />
+              <line x1="140" y1="125" x2="210" y2="205" class="mech-edge" data-child="4" />
+              <line x1="420" y1="125" x2="350" y2="205" class="mech-edge" data-child="5" />
+              <line x1="420" y1="125" x2="490" y2="205" class="mech-edge" data-child="6" />
+              <circle cx="280" cy="45" r="24" class="mech-blue" data-idx="0" />
+              <circle cx="140" cy="125" r="24" class="mech-blue" data-idx="1" />
+              <circle cx="420" cy="125" r="24" class="mech-blue" data-idx="2" />
+              <circle cx="70" cy="205" r="24" class="mech-blue" data-idx="3" />
+              <circle cx="210" cy="205" r="24" class="mech-blue" data-idx="4" />
+              <circle cx="350" cy="205" r="24" class="mech-blue" data-idx="5" />
+              <circle cx="490" cy="205" r="24" class="mech-blue" data-idx="6" />
+              <text x="280" y="51" text-anchor="middle" class="mech-label" data-idx="0"></text>
+              <text x="140" y="131" text-anchor="middle" class="mech-label" data-idx="1"></text>
+              <text x="420" y="131" text-anchor="middle" class="mech-label" data-idx="2"></text>
+              <text x="70" y="211" text-anchor="middle" class="mech-label" data-idx="3"></text>
+              <text x="210" y="211" text-anchor="middle" class="mech-label" data-idx="4"></text>
+              <text x="350" y="211" text-anchor="middle" class="mech-label" data-idx="5"></text>
+              <text x="490" y="211" text-anchor="middle" class="mech-label" data-idx="6"></text>
+
+              <text x="12" y="248" class="mech-title">Array view (the same object)</text>
+              <g>
+                <rect x="40" y="260" width="58" height="46" rx="8" class="mech-blue mech-cell" data-idx="0" />
+                <rect x="114" y="260" width="58" height="46" rx="8" class="mech-blue mech-cell" data-idx="1" />
+                <rect x="188" y="260" width="58" height="46" rx="8" class="mech-blue mech-cell" data-idx="2" />
+                <rect x="262" y="260" width="58" height="46" rx="8" class="mech-blue mech-cell" data-idx="3" />
+                <rect x="336" y="260" width="58" height="46" rx="8" class="mech-blue mech-cell" data-idx="4" />
+                <rect x="410" y="260" width="58" height="46" rx="8" class="mech-blue mech-cell" data-idx="5" />
+                <rect x="484" y="260" width="58" height="46" rx="8" class="mech-blue mech-cell" data-idx="6" />
+                <text x="69" y="255" text-anchor="middle" class="mech-idx">i=0</text>
+                <text x="143" y="255" text-anchor="middle" class="mech-idx">i=1</text>
+                <text x="217" y="255" text-anchor="middle" class="mech-idx">i=2</text>
+                <text x="291" y="255" text-anchor="middle" class="mech-idx">i=3</text>
+                <text x="365" y="255" text-anchor="middle" class="mech-idx">i=4</text>
+                <text x="439" y="255" text-anchor="middle" class="mech-idx">i=5</text>
+                <text x="513" y="255" text-anchor="middle" class="mech-idx">i=6</text>
+                <text x="69" y="289" text-anchor="middle" class="mech-label mech-array-val" data-idx="0"></text>
+                <text x="143" y="289" text-anchor="middle" class="mech-label mech-array-val" data-idx="1"></text>
+                <text x="217" y="289" text-anchor="middle" class="mech-label mech-array-val" data-idx="2"></text>
+                <text x="291" y="289" text-anchor="middle" class="mech-label mech-array-val" data-idx="3"></text>
+                <text x="365" y="289" text-anchor="middle" class="mech-label mech-array-val" data-idx="4"></text>
+                <text x="439" y="289" text-anchor="middle" class="mech-label mech-array-val" data-idx="5"></text>
+                <text x="513" y="289" text-anchor="middle" class="mech-label mech-array-val" data-idx="6"></text>
+              </g>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> element currently sifting</span>
+            <span><i class="dot dot-green"></i> element it's compared against</span>
+            <span><i class="dot dot-blue"></i> settled / in place</span>
+            <span><i class="dot dot-gray"></i> not part of the heap yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="mech-step-title">Initial state</h3>
+          <p id="mech-step-text">The heap array starts empty.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="mech-prev">Previous</button>
+            <button type="button" id="mech-play" class="primary">Resume</button>
+            <button type="button" id="mech-next">Next</button>
+            <button type="button" id="mech-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="mech-step-counter">Step 0 / 24</span>
+            <div class="progress"><span id="mech-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Phase</strong><div class="state-value" id="mech-phase">Setup</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="mech-action">heap = []</div></div>
+            <div class="state-box"><strong>Array now</strong><div class="state-value" id="mech-array">[]</div></div>
+            <div class="state-box"><strong>Sifting element</strong><div class="state-value" id="mech-sift">—</div></div>
+            <div class="state-box"><strong>Compared against</strong><div class="state-value" id="mech-compare">—</div></div>
+            <div class="state-box"><strong>Returned by pop()</strong><div class="state-value" id="mech-returned">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="mech-detail"><strong>What changed:</strong> nothing yet — this is the starting point.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="mech-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Phase</th><th>Action</th><th>Sifting</th><th>Compared vs</th><th>Array after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Setup</td><td>heap = []</td><td>—</td><td>—</td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>push(5)</td><td>append at index 0, root — no parent</td><td>5</td><td>—</td><td><code>[5]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>push(1)</td><td>append at index 1</td><td>1</td><td>—</td><td><code>[5, 1]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>push(1)</td><td>1 &lt; 5 → swap, i=0, stop</td><td>1</td><td>5</td><td><code>[1, 5]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>push(8)</td><td>append at index 2</td><td>8</td><td>—</td><td><code>[1, 5, 8]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>push(8)</td><td>8 &lt; 1? no → stop</td><td>8</td><td>1</td><td><code>[1, 5, 8]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>push(3)</td><td>append at index 3</td><td>3</td><td>—</td><td><code>[1, 5, 8, 3]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>push(3)</td><td>3 &lt; 5 → swap, i=1, continue</td><td>3</td><td>5</td><td><code>[1, 3, 8, 5]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>push(3)</td><td>3 &lt; 1? no → stop</td><td>3</td><td>1</td><td><code>[1, 3, 8, 5]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>push(9)</td><td>append at index 4</td><td>9</td><td>—</td><td><code>[1, 3, 8, 5, 9]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>push(9)</td><td>9 &lt; 3? no → stop</td><td>9</td><td>3</td><td><code>[1, 3, 8, 5, 9]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>push(2)</td><td>append at index 5</td><td>2</td><td>—</td><td><code>[1, 3, 8, 5, 9, 2]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>push(2)</td><td>2 &lt; 8 → swap, i=2, continue</td><td>2</td><td>8</td><td><code>[1, 3, 2, 5, 9, 8]</code></td></tr>
+            <tr data-step="13"><td>13</td><td>push(2)</td><td>2 &lt; 1? no → stop</td><td>2</td><td>1</td><td><code>[1, 3, 2, 5, 9, 8]</code></td></tr>
+            <tr data-step="14"><td>14</td><td>push(7)</td><td>append at index 6</td><td>7</td><td>—</td><td><code>[1, 3, 2, 5, 9, 8, 7]</code></td></tr>
+            <tr data-step="15"><td>15</td><td>push(7)</td><td>7 &lt; 2? no → stop, all pushes done</td><td>7</td><td>2</td><td><code>[1, 3, 2, 5, 9, 8, 7]</code></td></tr>
+            <tr data-step="16"><td>16</td><td>pop() #1</td><td>top = heap[0] = 1; remove last (7)</td><td>1</td><td>—</td><td><code>[1, 3, 2, 5, 9, 8]</code></td></tr>
+            <tr data-step="17"><td>17</td><td>pop() #1</td><td>move last (7) to root</td><td>7</td><td>—</td><td><code>[7, 3, 2, 5, 9, 8]</code></td></tr>
+            <tr data-step="18"><td>18</td><td>pop() #1</td><td>smaller child is 2 → swap, i=2</td><td>7</td><td>3, 2</td><td><code>[2, 3, 7, 5, 9, 8]</code></td></tr>
+            <tr data-step="19"><td>19</td><td>pop() #1</td><td>only child 8, not smaller → stop, returns 1</td><td>7</td><td>8</td><td><code>[2, 3, 7, 5, 9, 8]</code></td></tr>
+            <tr data-step="20"><td>20</td><td>pop() #2</td><td>top = heap[0] = 2; remove last (8)</td><td>2</td><td>—</td><td><code>[2, 3, 7, 5, 9]</code></td></tr>
+            <tr data-step="21"><td>21</td><td>pop() #2</td><td>move last (8) to root</td><td>8</td><td>—</td><td><code>[8, 3, 7, 5, 9]</code></td></tr>
+            <tr data-step="22"><td>22</td><td>pop() #2</td><td>smaller child is 3 → swap, i=1</td><td>8</td><td>3, 7</td><td><code>[3, 8, 7, 5, 9]</code></td></tr>
+            <tr data-step="23"><td>23</td><td>pop() #2</td><td>smaller child is 5 → swap, i=3</td><td>8</td><td>5, 9</td><td><code>[3, 5, 7, 8, 9]</code></td></tr>
+            <tr data-step="24"><td>24</td><td>pop() #2</td><td>no children left → stop, returns 2</td><td>8</td><td>—</td><td><code>[3, 5, 7, 8, 9]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The tree diagram and the array diagram above are not two representations of two different things — they are one object drawn twice. Index <code>i</code> in the array <strong>is</strong> the node at that position in the tree.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Forgetting to guard child indices with <code>l &lt; n</code> / <code>r &lt; n</code> before comparing — on the last level a node may have zero, one, or two children, and indexing past the end crashes.</p>
+        </div>
+        <div class="card">
+          <h4>Why sifting stops early</h4>
+          <p>Both loops break the instant the heap property holds locally. A value never has to travel further than the tree's height, which is why push and pop are <code>O(log n)</code>, not <code>O(n)</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: bounded min-heap for top-K</h2>
+      <p>You only need the <code>K</code> largest values out of <code>n</code>, not a full sort of everything. Keep a min-heap capped at size <code>K</code>: push every value, and the instant the heap grows past <code>K</code>, pop the smallest. Whatever survives is always "the <code>K</code> largest seen so far," because the weakest candidate is discarded the moment a stronger one arrives. This is the exact pattern behind Confluence Word Count's <code>topWords_heap</code> and File System's <code>top_collections</code>.</p>
+      <div class="code-block stepped">
+        <code id="topk-code">
+<span class="code-line" data-line="1">def top_k(nums, k):</span>
+<span class="code-line" data-line="2">    h = []</span>
+<span class="code-line" data-line="3">    for x in nums:</span>
+<span class="code-line" data-line="4">        heapq.heappush(h, x)</span>
+<span class="code-line" data-line="5">        if len(h) > k:</span>
+<span class="code-line" data-line="6">            heapq.heappop(h)</span>
+<span class="code-line" data-line="7">    return sorted(h, reverse=True)</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive top-K trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="topk-diagram" viewBox="0 0 560 220" width="100%" role="img" aria-label="Incoming stream and the bounded heap array">
+              <defs>
+                <style>
+                  .topk-blue { fill: #315efb; }
+                  .topk-green { fill: #13a46b; }
+                  .topk-orange { fill: #ff9f1c; }
+                  .topk-gray { fill: #c8d2e7; }
+                  .topk-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .topk-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                  .topk-idx { font: 700 11px ui-monospace, Consolas, monospace; fill: #5d677d; }
+                </style>
+              </defs>
+              <text x="12" y="20" class="topk-title">Incoming stream: [4, 1, 7, 3, 9, 2, 8]</text>
+              <g>
+                <rect x="20" y="30" width="54" height="44" rx="8" class="topk-gray" data-stream="0" />
+                <rect x="96" y="30" width="54" height="44" rx="8" class="topk-gray" data-stream="1" />
+                <rect x="172" y="30" width="54" height="44" rx="8" class="topk-gray" data-stream="2" />
+                <rect x="248" y="30" width="54" height="44" rx="8" class="topk-gray" data-stream="3" />
+                <rect x="324" y="30" width="54" height="44" rx="8" class="topk-gray" data-stream="4" />
+                <rect x="400" y="30" width="54" height="44" rx="8" class="topk-gray" data-stream="5" />
+                <rect x="476" y="30" width="54" height="44" rx="8" class="topk-gray" data-stream="6" />
+                <text x="47" y="57" text-anchor="middle" class="topk-label">4</text>
+                <text x="123" y="57" text-anchor="middle" class="topk-label">1</text>
+                <text x="199" y="57" text-anchor="middle" class="topk-label">7</text>
+                <text x="275" y="57" text-anchor="middle" class="topk-label">3</text>
+                <text x="351" y="57" text-anchor="middle" class="topk-label">9</text>
+                <text x="427" y="57" text-anchor="middle" class="topk-label">2</text>
+                <text x="503" y="57" text-anchor="middle" class="topk-label">8</text>
+              </g>
+              <text x="12" y="112" class="topk-title">Bounded heap array (capacity k = 3, briefly 4 mid-push)</text>
+              <g>
+                <rect x="150" y="124" width="60" height="48" rx="8" class="topk-blue" data-heap="0" />
+                <rect x="226" y="124" width="60" height="48" rx="8" class="topk-blue" data-heap="1" />
+                <rect x="302" y="124" width="60" height="48" rx="8" class="topk-blue" data-heap="2" />
+                <rect x="378" y="124" width="60" height="48" rx="8" class="topk-blue" data-heap="3" />
+                <text x="180" y="118" text-anchor="middle" class="topk-idx">i=0</text>
+                <text x="256" y="118" text-anchor="middle" class="topk-idx">i=1</text>
+                <text x="332" y="118" text-anchor="middle" class="topk-idx">i=2</text>
+                <text x="408" y="118" text-anchor="middle" class="topk-idx">i=3</text>
+                <text x="180" y="154" text-anchor="middle" class="topk-label" data-heap-val="0"></text>
+                <text x="256" y="154" text-anchor="middle" class="topk-label" data-heap-val="1"></text>
+                <text x="332" y="154" text-anchor="middle" class="topk-label" data-heap-val="2"></text>
+                <text x="408" y="154" text-anchor="middle" class="topk-label" data-heap-val="3"></text>
+              </g>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> value just processed</span>
+            <span><i class="dot dot-blue"></i> in the heap now</span>
+            <span><i class="dot dot-green"></i> already processed (stream)</span>
+            <span><i class="dot dot-gray"></i> not reached yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="topk-step-title">Initial state</h3>
+          <p id="topk-step-text">The heap starts empty.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="topk-prev">Previous</button>
+            <button type="button" id="topk-play" class="primary">Resume</button>
+            <button type="button" id="topk-next">Next</button>
+            <button type="button" id="topk-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="topk-step-counter">Step 0 / 12</span>
+            <div class="progress"><span id="topk-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>k (capacity)</strong><div class="state-value" id="topk-k">3</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="topk-action">h = []</div></div>
+            <div class="state-box"><strong>Heap array now</strong><div class="state-value" id="topk-array">[]</div></div>
+            <div class="state-box"><strong>Popped (discarded)</strong><div class="state-value" id="topk-popped">—</div></div>
+            <div class="state-box"><strong>Value processed</strong><div class="state-value" id="topk-value">—</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="topk-result">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="topk-detail"><strong>What changed:</strong> nothing yet — this is the starting point.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="topk-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Value</th><th>Action</th><th>Heap array after</th><th>Popped</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>h = []</td><td><code>[]</code></td><td>—</td></tr>
+            <tr data-step="1"><td>1</td><td>4</td><td>push, len 1 &le; k, no pop</td><td><code>[4]</code></td><td>—</td></tr>
+            <tr data-step="2"><td>2</td><td>1</td><td>push, len 2 &le; k, no pop</td><td><code>[1, 4]</code></td><td>—</td></tr>
+            <tr data-step="3"><td>3</td><td>7</td><td>push, len 3 &le; k, no pop</td><td><code>[1, 4, 7]</code></td><td>—</td></tr>
+            <tr data-step="4"><td>4</td><td>3</td><td>push → len 4 &gt; k</td><td><code>[1, 3, 7, 4]</code></td><td>—</td></tr>
+            <tr data-step="5"><td>5</td><td>3</td><td>len(h) &gt; k → pop smallest</td><td><code>[3, 4, 7]</code></td><td>1</td></tr>
+            <tr data-step="6"><td>6</td><td>9</td><td>push → len 4 &gt; k</td><td><code>[3, 4, 7, 9]</code></td><td>—</td></tr>
+            <tr data-step="7"><td>7</td><td>9</td><td>len(h) &gt; k → pop smallest</td><td><code>[4, 9, 7]</code></td><td>3</td></tr>
+            <tr data-step="8"><td>8</td><td>2</td><td>push → len 4 &gt; k</td><td><code>[2, 4, 7, 9]</code></td><td>—</td></tr>
+            <tr data-step="9"><td>9</td><td>2</td><td>len(h) &gt; k → pop smallest (itself)</td><td><code>[4, 9, 7]</code></td><td>2</td></tr>
+            <tr data-step="10"><td>10</td><td>8</td><td>push → len 4 &gt; k</td><td><code>[4, 8, 7, 9]</code></td><td>—</td></tr>
+            <tr data-step="11"><td>11</td><td>8</td><td>len(h) &gt; k → pop smallest</td><td><code>[7, 8, 9]</code></td><td>4</td></tr>
+            <tr data-step="12"><td>12</td><td>—</td><td>return sorted(h, reverse=True)</td><td><code>[7, 8, 9]</code></td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The heap always holds "the best <code>K</code> candidates seen so far, in no particular order beyond the heap property." Its root is always the <em>weakest</em> of those <code>K</code> — exactly the one to evict next.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Using a max-heap here. A max-heap puts the <em>strongest</em> candidate at the root, which tells you nothing about who to evict — you'd need <code>O(k)</code> to find the weakest instead of <code>O(1)</code>.</p>
+        </div>
+        <div class="card">
+          <h4>Why this beats sorting</h4>
+          <p>Sorting all <code>n</code> values costs <code>O(n log n)</code> and needs <code>O(n)</code> memory. The bounded heap costs <code>O(n log k)</code> and only ever holds <code>k</code> items — a real win when <code>k</code> is small and <code>n</code> is huge.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Max-heap trick</button>
+        <button type="button" data-example-tab="1">Duplicate priorities</button>
+        <button type="button" data-example-tab="2">Updating a priority</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: Python's heapq is min-only</h3>
+          <p><code>heapq.heappush(h, -x)</code> then <code>-heapq.heappop(h)</code></p>
+          <div class="result-badge">largest of [5, 1, 3] → push [-5, -1, -3] → pop returns -5 → negate → 5</div>
+          <p class="footer-note">There is no built-in max-heap in Python. Negating every value on the way in flips "smallest" and "largest," so the most negative number (the original largest) always surfaces first. Negate again on the way out to get the real value back. This is purely a comparison trick — no new data structure is needed.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: duplicate priorities and tuple tie-breaking</h3>
+          <p><code>heapq.heappush(pq, (2, "task-B")); heapq.heappush(pq, (2, "task-A"))</code></p>
+          <div class="result-badge">Same priority 2 → heapq compares the next tuple element to break the tie</div>
+          <p class="footer-note">When two entries share a priority, <code>heapq</code> falls back to comparing the rest of the tuple — here, the strings, so <code>"task-A"</code> would sort before <code>"task-B"</code>. That's harmless for strings and numbers, but if the second element is an object without <code>&lt;</code> defined (or another tuple that can't be compared), Python raises a <code>TypeError</code> the moment two priorities tie. The fix is to add a strictly increasing counter as a middle tiebreaker: <code>(priority, counter, item)</code> — the counter is always unique, so the comparison never has to look at <code>item</code> at all.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: heapq cannot update an arbitrary entry's priority</h3>
+          <p>A leaderboard entry's score changes — you cannot fix its position in <code>O(log n)</code>.</p>
+          <div class="result-badge">No decrease-key in heapq → use lazy deletion</div>
+          <p class="footer-note"><code>heapq</code> gives no way to find an arbitrary entry's index or re-sift it in place. The standard workaround, <strong>lazy deletion</strong>: push a brand-new entry with the updated priority and leave the stale one sitting in the heap. Keep a side dictionary of each key's current, authoritative value. When an entry is popped, check it against the dictionary — if it's stale (doesn't match), silently discard it and pop again. This is exactly why a heap is the <em>wrong</em> tool for something like Content Popularity Tracker, where scores change constantly.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Time</th><th>Space</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>push</td><td>O(log n)</td><td>O(1) extra</td><td>One sift-up, at most the height of the tree</td></tr>
+            <tr><td>pop</td><td>O(log n)</td><td>O(1) extra</td><td>One sift-down, at most the height of the tree</td></tr>
+            <tr><td>peek</td><td>O(1)</td><td>O(1)</td><td>The best item is always <code>heap[0]</code></td></tr>
+            <tr><td>heapify (build from n items)</td><td>O(n)</td><td>O(1) extra</td><td>Bottom-up sift-down — beats n individual pushes</td></tr>
+            <tr><td>top-K via bounded heap</td><td>O(n log k)</td><td>O(k)</td><td>Only k items are ever in memory at once</td></tr>
+            <tr><td>top-K via full sort</td><td>O(n log n)</td><td>O(n)</td><td>Sorts every value just to read the first k</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">Every row relies on the same fact: a heap only guarantees parent-vs-children order along one path at a time, never full order — that partial guarantee is what makes push and pop cheap.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>"I need the current best item repeatedly, not a one-time answer."</p></div>
+            <div class="timeline-step"><p>A sorted array gives fast peek but slow insert; an unsorted array gives fast insert but slow peek — I need both to be fast.</p></div>
+            <div class="timeline-step"><p>A heap trades full order for the minimum guarantee that still makes the root correct: parent ≤ children.</p></div>
+            <div class="timeline-step"><p>Because the tree is complete, I can pack it into a plain array with index math instead of pointers.</p></div>
+            <div class="timeline-step"><p>If I only need the best K, not a full ranking, I bound the heap to size K instead of letting it grow to n.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"I don't need a full sort — a heap gets me O(log n) insert and remove for the price of just enough ordering."</li>
+            <li>"Because the tree is complete, I don't need TreeNode objects — index i, 2i+1, 2i+2, (i-1)//2 give me the whole structure in a plain list."</li>
+            <li>"For top-K, I'll bound the heap to size K and pop the weakest whenever it overflows — O(n log k) instead of sorting everything."</li>
+            <li>"heapq is min-only, so for a max-heap I'll negate values on the way in and out."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>push / pop mechanics mistakes</h3>
+          <ul class="mistake-list">
+            <li>Computing the parent as <code>i - 1</code> instead of <code>(i - 1) // 2</code>.</li>
+            <li>Indexing a child without checking <code>l &lt; n</code> / <code>r &lt; n</code> first — crashes once the array runs out of that level.</li>
+            <li>Swapping values but forgetting to update <code>i</code> to the new position, so the loop keeps comparing at the old spot.</li>
+            <li>Assuming the array is fully sorted after building a heap — it isn't; only parent ≤ children holds.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>top-K bounded heap mistakes</h3>
+          <ul class="mistake-list">
+            <li>Using a max-heap to find the K largest — you want a min-heap so the weakest survivor is disposable at the root.</li>
+            <li>Popping unconditionally instead of only when <code>len(h) &gt; k</code>, which throws away a value that should have stayed.</li>
+            <li>Sorting the entire input first "to be safe," which throws away the whole <code>O(n log k)</code> benefit.</li>
+            <li>Forgetting that the surviving heap is not itself sorted — you still need one final <code>sorted()</code> call if the output order matters.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — Starting from <code>[1, 3, 2, 5, 9, 8, 7]</code> (the array after all seven pushes above), what does the array look like after <code>push(6)</code>?</summary>
+          <p style="margin-top:10px;">Answer: <strong>[1, 3, 2, 5, 9, 8, 7, 6]</strong>. 6 is appended at index 7. Its parent is <code>(7-1)//2 = 3</code>, which holds 5. Since <code>6 &lt; 5</code> is false, the sift-up stops immediately — no swap happens at all.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — Why does the top-K pattern use a MIN-heap to find the K LARGEST values, not a MAX-heap?</summary>
+          <p style="margin-top:10px;">Answer: a min-heap of size K keeps the <em>weakest</em> of the current K survivors at the root, visible in O(1). The moment a new value arrives, you compare it against that weakest survivor and evict it if the new value is bigger — an O(log K) operation. A max-heap of size K would put the <em>strongest</em> value at the root, which is useless for deciding who to evict; you'd have to scan all K items to find the weakest one instead.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — A leaderboard needs to re-prioritize a player whose score just changed. Why can't you just update their existing heap entry?</summary>
+          <p style="margin-top:10px;">Answer: <code>heapq</code> has no way to locate an arbitrary entry's index or fix its position in O(log n) — there's no index-by-value lookup, and moving one entry can require sifting through unrelated ones. The standard fix is <strong>lazy deletion</strong>: push a fresh <code>(new_score, player)</code> entry and leave the stale one sitting in the heap. Keep a side dictionary mapping each player to their current score; when a popped entry's score doesn't match the dictionary, it's stale — discard it and pop again instead of using it.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          A heap is one array wearing a tree costume. <strong>The array and the tree are the same object</strong> —
+          index <code>i</code> is a node, <code>2i+1</code>/<code>2i+2</code> are its children, <code>(i-1)//2</code>
+          is its parent, and no pointer is ever needed. <code>push</code> restores order by sifting <strong>up</strong>;
+          <code>pop</code> restores it by sifting <strong>down</strong>. Bound the heap to size <code>K</code> and the
+          same machinery solves top-K in <code>O(n log k)</code> instead of sorting everything.
+        </p>
+      </div>
+      <p class="footer-note">Based on the Heaps &amp; Priority Queues notebook and README — every trace on this page was verified by running the real <code>push</code>/<code>pop</code>/<code>top_k</code> code in Python and transcribing the printed output.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const mechSteps = [
+        { step: 0, title: 'Initial state', text: 'The heap array starts empty. We will push 5, 1, 8, 3, 9, 2, 7 one at a time — watch the newly appended value sift up past its parent. Then we will call pop() twice and watch the last element sift down to take its place.', phase: 'Setup', action: 'heap = []', heap: [], sift: null, compare: [], returned: '—', detail: 'Nothing has happened yet — this is the starting point.', lines: [] },
+        { step: 1, title: 'push(5): appended at the root', text: 'Append 5 at index 0. Since it lands at index 0 — the root — there is no parent to compare against, so push finishes immediately.', phase: 'push(5)', action: 'heap.append(5) → index 0; root, no parent to compare', heap: [5], sift: 5, compare: [], returned: '—', detail: 'The very first value always becomes the root with no comparisons.', lines: [2, 3, 4] },
+        { step: 2, title: 'push(1): appended at index 1', text: 'Append 1 at index 1, the next free slot at the end of the array. Now compare it with its parent.', phase: 'push(1)', action: 'heap.append(1) → index 1', heap: [5, 1], sift: 1, compare: [], returned: '—', detail: 'The tree stays complete because we always append at the very end.', lines: [2, 3] },
+        { step: 3, title: 'push(1): sift up, swap with root', text: '1 is smaller than its parent 5, so swap them. The new index is 0, the root, so the loop condition i > 0 is false — push stops. 1 has bubbled all the way up.', phase: 'push(1)', action: 'compare heap[1]=1 vs parent heap[0]=5 → 1 < 5 → swap', heap: [1, 5], sift: 1, compare: [5], returned: '—', detail: '1 travelled from index 1 to index 0 in a single swap.', lines: [4, 5, 6, 7, 8] },
+        { step: 4, title: 'push(8): appended at index 2', text: 'Append 8 at index 2.', phase: 'push(8)', action: 'heap.append(8) → index 2', heap: [1, 5, 8], sift: 8, compare: [], returned: '—', detail: 'Index 2 is the next free slot after index 1.', lines: [2, 3] },
+        { step: 5, title: 'push(8): compares clean, no swap', text: '8 is not smaller than its parent 1, so the heap property already holds. Stop immediately — no swap.', phase: 'push(8)', action: 'compare heap[2]=8 vs parent heap[0]=1 → not smaller → break', heap: [1, 5, 8], sift: 8, compare: [1], returned: '—', detail: '8 stays exactly where it landed.', lines: [4, 5, 6, 9, 10] },
+        { step: 6, title: 'push(3): appended at index 3', text: 'Append 3 at index 3.', phase: 'push(3)', action: 'heap.append(3) → index 3', heap: [1, 5, 8, 3], sift: 3, compare: [], returned: '—', detail: 'Index 3 begins the tree\'s third level.', lines: [2, 3] },
+        { step: 7, title: 'push(3): sift up, first swap', text: '3 is smaller than its parent 5 (index 1), so swap. The new index is 1, which is still greater than 0, so the loop continues.', phase: 'push(3)', action: 'compare heap[3]=3 vs parent heap[1]=5 → swap, i=1', heap: [1, 3, 8, 5], sift: 3, compare: [5], returned: '—', detail: 'One swap is not always enough — the loop keeps going while i > 0.', lines: [4, 5, 6, 7, 8] },
+        { step: 8, title: 'push(3): settles at index 1', text: '3 is not smaller than the new parent, 1 (the root). Stop — 3 settles at index 1.', phase: 'push(3)', action: 'compare heap[1]=3 vs parent heap[0]=1 → not smaller → break', heap: [1, 3, 8, 5], sift: 3, compare: [1], returned: '—', detail: '3 needed two comparisons and one swap to find its place.', lines: [4, 5, 6, 9, 10] },
+        { step: 9, title: 'push(9): appended at index 4', text: 'Append 9 at index 4.', phase: 'push(9)', action: 'heap.append(9) → index 4', heap: [1, 3, 8, 5, 9], sift: 9, compare: [], returned: '—', detail: 'Index 4 is the right child of index 1.', lines: [2, 3] },
+        { step: 10, title: 'push(9): compares clean, no swap', text: '9 is bigger than its parent 3, so stop — no swap needed.', phase: 'push(9)', action: 'compare heap[4]=9 vs parent heap[1]=3 → not smaller → break', heap: [1, 3, 8, 5, 9], sift: 9, compare: [3], returned: '—', detail: 'Large values pushed late often need zero swaps.', lines: [4, 5, 6, 9, 10] },
+        { step: 11, title: 'push(2): appended at index 5', text: 'Append 2 at index 5.', phase: 'push(2)', action: 'heap.append(2) → index 5', heap: [1, 3, 8, 5, 9, 2], sift: 2, compare: [], returned: '—', detail: 'Index 5 is the left child of index 2.', lines: [2, 3] },
+        { step: 12, title: 'push(2): sift up, first swap', text: '2 is smaller than its parent 8 (index 2), so swap. The new index is 2, still greater than 0, so the loop continues.', phase: 'push(2)', action: 'compare heap[5]=2 vs parent heap[2]=8 → swap, i=2', heap: [1, 3, 2, 5, 9, 8], sift: 2, compare: [8], returned: '—', detail: '2 now sits where 8 used to be.', lines: [4, 5, 6, 7, 8] },
+        { step: 13, title: 'push(2): settles at index 2', text: '2 is not smaller than the root, 1. Stop — 2 settles at index 2.', phase: 'push(2)', action: 'compare heap[2]=2 vs parent heap[0]=1 → not smaller → break', heap: [1, 3, 2, 5, 9, 8], sift: 2, compare: [1], returned: '—', detail: 'Only the root, 1, can ever refuse to be beaten.', lines: [4, 5, 6, 9, 10] },
+        { step: 14, title: 'push(7): appended at index 6', text: 'Append 7 at index 6. The array now holds all seven pushed values.', phase: 'push(7)', action: 'heap.append(7) → index 6', heap: [1, 3, 2, 5, 9, 8, 7], sift: 7, compare: [], returned: '—', detail: 'Index 6 is the right child of index 2 — the last free slot at this level.', lines: [2, 3] },
+        { step: 15, title: 'push(7): final state after all pushes', text: '7 is bigger than its parent 2, so stop. Final array after all seven pushes: [1, 3, 2, 5, 9, 8, 7] — exactly matching the notebook, with the minimum, 1, sitting at the root.', phase: 'push(7)', action: 'compare heap[6]=7 vs parent heap[2]=2 → not smaller → break', heap: [1, 3, 2, 5, 9, 8, 7], sift: 7, compare: [2], returned: '—', detail: 'All seven pushes are done. Only the root is guaranteed minimum — the rest is not fully sorted.', lines: [4, 5, 6, 9, 10] },
+        { step: 16, title: 'pop() #1: save the root, remove the last leaf', text: 'Save top = heap[0] = 1 — this is the value pop() will return. Remove the last element, 7, so the tree stays complete; it will be reused as the new root next.', phase: 'pop() #1', action: 'top = heap[0] = 1; last = heap.pop() removes 7', heap: [1, 3, 2, 5, 9, 8], sift: 1, compare: [], returned: '1 (pending)', detail: 'The array temporarily still shows a stale 1 at index 0 — it gets overwritten next step.', lines: [13, 14] },
+        { step: 17, title: 'pop() #1: move the last element to the root', text: 'Move the removed value, 7, into the root slot (index 0), overwriting the stale 1. The tree is complete again, but 7 is probably too big for the root — sift it down.', phase: 'pop() #1', action: 'heap[0] = last (7); i, n = 0, 6', heap: [7, 3, 2, 5, 9, 8], sift: 7, compare: [], returned: '—', detail: 'This is the mirror image of push: instead of the new value entering at a leaf, it enters at the root.', lines: [15, 16, 17] },
+        { step: 18, title: 'pop() #1: sift down, first swap', text: 'At index 0 (value 7), compare both children: left index 1 = 3, right index 2 = 2. The smaller child is 2, and 2 < 7, so swap 7 down into index 2. i becomes 2.', phase: 'pop() #1', action: 'children of index 0: left=3, right=2 → smaller is 2 → swap', heap: [2, 3, 7, 5, 9, 8], sift: 7, compare: [3, 2], returned: '—', detail: 'Sift-down always compares against the smaller child, never both blindly.', lines: [19, 20, 21, 22, 24, 25] },
+        { step: 19, title: 'pop() #1: settles, returns 1', text: 'At index 2 (value 7), only a left child exists at index 5 (value 8); 8 is not smaller than 7, so no swap. Sift-down stops — 7 settles at index 2. pop() returns 1. Array is now [2, 3, 7, 5, 9, 8].', phase: 'pop() #1', action: 'index 2 only has a left child (idx 5 = 8), not smaller → stop', heap: [2, 3, 7, 5, 9, 8], sift: 7, compare: [8], returned: '1', detail: 'pop() #1 is complete. The heap is valid again with 6 elements.', lines: [19, 20, 21, 22, 23, 26] },
+        { step: 20, title: 'pop() #2: save the root, remove the last leaf', text: 'Save top = heap[0] = 2. Remove the last element, 8, leaving [2, 3, 7, 5, 9] — 8 will become the new root next.', phase: 'pop() #2', action: 'top = heap[0] = 2; last = heap.pop() removes 8', heap: [2, 3, 7, 5, 9], sift: 2, compare: [], returned: '2 (pending)', detail: 'Same two-step pattern as pop #1: save the root, then shrink the array from the end.', lines: [13, 14] },
+        { step: 21, title: 'pop() #2: move the last element to the root', text: 'Move 8 into the root slot, replacing the stale 2. Now sift 8 down.', phase: 'pop() #2', action: 'heap[0] = last (8); i, n = 0, 5', heap: [8, 3, 7, 5, 9], sift: 8, compare: [], returned: '—', detail: 'With only 5 elements left, the tree is shorter, so sift-down has less far to travel.', lines: [15, 16, 17] },
+        { step: 22, title: 'pop() #2: sift down, first swap', text: 'At index 0 (value 8), compare children: left index 1 = 3, right index 2 = 7. Smaller child is 3, and 3 < 8, so swap. i becomes 1.', phase: 'pop() #2', action: 'children of index 0: left=3, right=7 → smaller is 3 → swap', heap: [3, 8, 7, 5, 9], sift: 8, compare: [3, 7], returned: '—', detail: '8 is clearly too big for the root, so it keeps sinking.', lines: [19, 20, 21, 22, 24, 25] },
+        { step: 23, title: 'pop() #2: sift down, second swap', text: 'At index 1 (value 8), compare children: left index 3 = 5, right index 4 = 9. Smaller child is 5, and 5 < 8, so swap. i becomes 3.', phase: 'pop() #2', action: 'children of index 1: left=5, right=9 → smaller is 5 → swap', heap: [3, 5, 7, 8, 9], sift: 8, compare: [5, 9], returned: '—', detail: 'A single sift-down can require more than one swap — it travels level by level.', lines: [19, 20, 21, 22, 24, 25] },
+        { step: 24, title: 'pop() #2: settles, returns 2 — done', text: 'At index 3 (value 8), 2·3+1 = 7 is past the end of a 5-element array, so there are no children to compare. Sift-down stops immediately. pop() returns 2. Final array: [3, 5, 7, 8, 9] — a valid heap again, matching the notebook trace exactly.', phase: 'pop() #2', action: 'index 3 has no children → stop', heap: [3, 5, 7, 8, 9], sift: 8, compare: [], returned: '2', detail: 'Both pops are complete. Every trace on this page was verified against real Python output.', lines: [19, 20, 21, 22, 23, 26] }
+      ];
+
+      const topkSteps = [
+        { step: 0, title: 'Initial state', text: 'The heap starts empty. We will scan [4, 1, 7, 3, 9, 2, 8] left to right, pushing every value, and popping the smallest whenever the heap grows past k = 3.', action: 'h = []', heap: [], streamIndex: -1, value: '—', popped: '—', result: '—', detail: 'Nothing has been processed yet.', lines: [1, 2] },
+        { step: 1, title: 'Process 4: push, under capacity', text: 'Push 4. The heap now holds 1 item, which is at or below k = 3, so nothing is popped.', action: 'heappush(h, 4) → [4]; len(h)=1 ≤ k, no pop', heap: [4], streamIndex: 0, value: '4', popped: '—', result: '—', detail: 'Below capacity — every pushed value survives so far.', lines: [3, 4, 5] },
+        { step: 2, title: 'Process 1: push, under capacity', text: 'Push 1. heapq keeps the smallest at index 0, so the array becomes [1, 4]. Still under capacity.', action: 'heappush(h, 1) → [1, 4]; len(h)=2 ≤ k, no pop', heap: [1, 4], streamIndex: 1, value: '1', popped: '—', result: '—', detail: 'heapq automatically keeps the minimum at index 0.', lines: [3, 4, 5] },
+        { step: 3, title: 'Process 7: push, now exactly at capacity', text: 'Push 7. The heap now holds exactly k = 3 items — full, but not yet over capacity.', action: 'heappush(h, 7) → [1, 4, 7]; len(h)=3 ≤ k, no pop', heap: [1, 4, 7], streamIndex: 2, value: '7', popped: '—', result: '—', detail: 'The heap is now full; the next push will trigger a pop.', lines: [3, 4, 5] },
+        { step: 4, title: 'Process 3: push, heap overflows to 4', text: 'Push 3. heapq inserts it and re-sifts, giving [1, 3, 7, 4] — 4 items, one past capacity k = 3. This is the moment the array view briefly shows a 4th cell.', action: 'heappush(h, 3) → [1, 3, 7, 4]; len(h)=4 > k', heap: [1, 3, 7, 4], streamIndex: 3, value: '3', popped: '—', result: '—', detail: 'The heap always accepts the push first — the size check happens afterward.', lines: [3, 4, 5] },
+        { step: 5, title: 'Process 3: pop the smallest (1)', text: 'len(h) > k, so pop the smallest, 1, and discard it — 1 can never be one of the 3 largest values seen so far. Heap shrinks back to [3, 4, 7].', action: 'heappop(h) removes 1 → [3, 4, 7]', heap: [3, 4, 7], streamIndex: 3, value: '3', popped: '1', result: '—', detail: 'The weakest candidate is evicted the instant a stronger set forms.', lines: [5, 6] },
+        { step: 6, title: 'Process 9: push, heap overflows to 4', text: 'Push 9. Array becomes [3, 4, 7, 9] — 4 items again, past capacity.', action: 'heappush(h, 9) → [3, 4, 7, 9]; len(h)=4 > k', heap: [3, 4, 7, 9], streamIndex: 4, value: '9', popped: '—', result: '—', detail: '9 is clearly a strong candidate — watch which value gets evicted next.', lines: [3, 4, 5] },
+        { step: 7, title: 'Process 9: pop the smallest (3)', text: 'Pop the smallest, 3, and discard it. Heap becomes [4, 9, 7] — 9 has displaced a weaker candidate.', action: 'heappop(h) removes 3 → [4, 9, 7]', heap: [4, 9, 7], streamIndex: 4, value: '9', popped: '3', result: '—', detail: '9 survives; 3 is now permanently gone from consideration.', lines: [5, 6] },
+        { step: 8, title: 'Process 2: push, heap overflows to 4', text: 'Push 2. Array becomes [2, 4, 7, 9] — 4 items, past capacity.', action: 'heappush(h, 2) → [2, 4, 7, 9]; len(h)=4 > k', heap: [2, 4, 7, 9], streamIndex: 5, value: '2', popped: '—', result: '—', detail: '2 is weak, so it is likely to be the very value popped next.', lines: [3, 4, 5] },
+        { step: 9, title: 'Process 2: pop the smallest (2, itself)', text: 'Pop the smallest — this time it is 2 itself, the value just pushed. 2 is not one of the 3 largest, so it is discarded immediately, and the heap returns to [4, 9, 7].', action: 'heappop(h) removes 2 → [4, 9, 7]', heap: [4, 9, 7], streamIndex: 5, value: '2', popped: '2', result: '—', detail: 'A weak value can be pushed and popped in the very same iteration — still O(log k) either way.', lines: [5, 6] },
+        { step: 10, title: 'Process 8: push, heap overflows to 4', text: 'Push 8. Array becomes [4, 8, 7, 9] — 4 items, past capacity.', action: 'heappush(h, 8) → [4, 8, 7, 9]; len(h)=4 > k', heap: [4, 8, 7, 9], streamIndex: 6, value: '8', popped: '—', result: '—', detail: 'This is the last value in the stream.', lines: [3, 4, 5] },
+        { step: 11, title: 'Process 8: pop the smallest (4)', text: 'Pop the smallest, 4, and discard it. Heap becomes [7, 8, 9] — the three largest values seen in the entire stream.', action: 'heappop(h) removes 4 → [7, 8, 9]', heap: [7, 8, 9], streamIndex: 6, value: '8', popped: '4', result: '—', detail: 'This is the final heap state — every remaining value belongs in the top 3.', lines: [5, 6] },
+        { step: 12, title: 'Done: return the sorted top-3', text: 'The stream is exhausted. The heap holds exactly the 3 largest values, in heap order. Sort just those 3 for a clean answer: [9, 8, 7]. Notice the full input was never sorted — only k items ever lived in memory at once.', action: 'return sorted(h, reverse=True)', heap: [7, 8, 9], streamIndex: 6, value: '—', popped: '—', result: '[9, 8, 7]', detail: 'O(n log k) total — never O(n log n).', lines: [7] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderMech(step, index, max) {
+        document.getElementById('mech-step-title').textContent = step.title;
+        document.getElementById('mech-step-text').textContent = step.text;
+        document.getElementById('mech-phase').textContent = step.phase;
+        document.getElementById('mech-action').textContent = step.action;
+        document.getElementById('mech-array').textContent = `[${step.heap.join(', ')}]`;
+        document.getElementById('mech-sift').textContent = step.sift === null ? '—' : step.sift;
+        document.getElementById('mech-compare').textContent = step.compare.length ? step.compare.join(', ') : '—';
+        document.getElementById('mech-returned').textContent = step.returned;
+        document.getElementById('mech-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('mech-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('mech-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('mech-trace-table', step.step);
+        setCodeHighlight('mech-code', step.lines);
+
+        const heap = step.heap;
+        for (let idx = 0; idx < 7; idx += 1) {
+          const active = idx < heap.length;
+          const val = active ? heap[idx] : null;
+          let cls = 'mech-blue';
+          if (active) {
+            if (val === step.sift) cls = 'mech-orange';
+            else if (step.compare.includes(val)) cls = 'mech-green';
+          }
+
+          const circle = document.querySelector(`#mech-diagram circle[data-idx="${idx}"]`);
+          const treeLabel = document.querySelector(`#mech-diagram .mech-label[data-idx="${idx}"]`);
+          circle.setAttribute('visibility', active ? 'visible' : 'hidden');
+          treeLabel.setAttribute('visibility', active ? 'visible' : 'hidden');
+          circle.classList.remove('mech-blue', 'mech-orange', 'mech-green');
+          if (active) {
+            circle.classList.add(cls);
+            treeLabel.textContent = val;
+          }
+
+          const rect = document.querySelector(`#mech-diagram rect[data-idx="${idx}"]`);
+          const arrLabel = document.querySelector(`#mech-diagram .mech-array-val[data-idx="${idx}"]`);
+          rect.setAttribute('visibility', active ? 'visible' : 'hidden');
+          arrLabel.setAttribute('visibility', active ? 'visible' : 'hidden');
+          rect.classList.remove('mech-blue', 'mech-orange', 'mech-green');
+          if (active) {
+            rect.classList.add(cls);
+            arrLabel.textContent = val;
+          }
+        }
+
+        document.querySelectorAll('#mech-diagram line[data-child]').forEach((line) => {
+          const child = Number(line.dataset.child);
+          line.setAttribute('visibility', child < heap.length ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderTopk(step, index, max) {
+        document.getElementById('topk-step-title').textContent = step.title;
+        document.getElementById('topk-step-text').textContent = step.text;
+        document.getElementById('topk-k').textContent = '3';
+        document.getElementById('topk-action').textContent = step.action;
+        document.getElementById('topk-array').textContent = `[${step.heap.join(', ')}]`;
+        document.getElementById('topk-popped').textContent = step.popped;
+        document.getElementById('topk-value').textContent = step.value;
+        document.getElementById('topk-result').textContent = step.result;
+        document.getElementById('topk-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('topk-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('topk-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('topk-trace-table', step.step);
+        setCodeHighlight('topk-code', step.lines);
+
+        document.querySelectorAll('#topk-diagram rect[data-stream]').forEach((rect) => {
+          const i = Number(rect.dataset.stream);
+          rect.classList.remove('topk-gray', 'topk-orange', 'topk-green');
+          if (i === step.streamIndex) rect.classList.add('topk-orange');
+          else if (i < step.streamIndex) rect.classList.add('topk-green');
+          else rect.classList.add('topk-gray');
+        });
+
+        const heap = step.heap;
+        for (let idx = 0; idx < 4; idx += 1) {
+          const active = idx < heap.length;
+          const rect = document.querySelector(`#topk-diagram rect[data-heap="${idx}"]`);
+          const label = document.querySelector(`#topk-diagram [data-heap-val="${idx}"]`);
+          rect.setAttribute('visibility', active ? 'visible' : 'hidden');
+          label.setAttribute('visibility', active ? 'visible' : 'hidden');
+          rect.classList.remove('topk-blue');
+          if (active) {
+            rect.classList.add('topk-blue');
+            label.textContent = heap[idx];
+          }
+        }
+      }
+
+      setupTrace({ steps: mechSteps, prefix: 'mech', render: renderMech });
+      setupTrace({ steps: topkSteps, prefix: 'topk', render: renderTopk });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

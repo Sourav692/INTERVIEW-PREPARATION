@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A* and Floyd-Warshall — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Graph algorithms · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>A* Search and Floyd-Warshall Shortest Paths</h1>
+          <p>
+            Dijkstra is the baseline every shortest-path algorithm builds on. This page covers its two most useful
+            relatives: <strong>A*</strong>, which adds a heuristic so a single-source, single-goal search stops
+            wasting time exploring the wrong direction, and <strong>Floyd-Warshall</strong>, which throws away the
+            single-source idea entirely and computes the shortest distance between <em>every</em> pair of vertices
+            in one triple loop. Both are traced step by step against the real notebook code, not a simplified
+            re-write.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: relax edges smarter</span>
+            <span class="chip">Interactive A* trace</span>
+            <span class="chip">Interactive Floyd-Warshall matrix trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>adj = {0:[(1,1),(2,4)], 1:[(2,1),(3,5)], 2:[(3,1)], 3:[(4,2)], 4:[]}</code>, start = <code>0</code>, goal = <code>4</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 560 300" width="100%" role="img" aria-label="Weighted directed graph with five nodes, edges labeled with weights, and a heuristic estimate below each node">
+              <defs>
+                <marker id="arrow-hero" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#6c7a96" />
+                </marker>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 3.5; marker-end: url(#arrow-hero); }
+                  .hero-node { fill: #315efb; }
+                  .hero-node.goal { fill: #13a46b; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .hero-weight { font: 700 14px Inter, Arial, sans-serif; fill: #17366c; }
+                  .hero-h { font: 600 12px Inter, Arial, sans-serif; fill: #5d677d; }
+                  .hero-goal-ring { fill: none; stroke: #13a46b; stroke-width: 2; stroke-dasharray: 4 4; }
+                </style>
+              </defs>
+              <line x1="70" y1="150" x2="200" y2="66" class="hero-edge" />
+              <line x1="70" y1="150" x2="200" y2="234" class="hero-edge" />
+              <line x1="220" y1="80" x2="220" y2="220" class="hero-edge" />
+              <line x1="238" y1="68" x2="365" y2="142" class="hero-edge" />
+              <line x1="238" y1="232" x2="365" y2="158" class="hero-edge" />
+              <line x1="406" y1="150" x2="494" y2="150" class="hero-edge" />
+              <text x="120" y="95" class="hero-weight">1</text>
+              <text x="112" y="215" class="hero-weight">4</text>
+              <text x="230" y="155" class="hero-weight">1</text>
+              <text x="290" y="90" class="hero-weight">5</text>
+              <text x="290" y="222" class="hero-weight">1</text>
+              <text x="440" y="140" class="hero-weight">2</text>
+              <circle cx="70" cy="150" r="26" class="hero-node" />
+              <circle cx="220" cy="60" r="26" class="hero-node" />
+              <circle cx="220" cy="240" r="26" class="hero-node" />
+              <circle cx="380" cy="150" r="26" class="hero-node" />
+              <circle cx="520" cy="150" r="30" class="hero-goal-ring" />
+              <circle cx="520" cy="150" r="26" class="hero-node goal" />
+              <text x="63" y="156" class="hero-label">0</text>
+              <text x="213" y="66" class="hero-label">1</text>
+              <text x="213" y="246" class="hero-label">2</text>
+              <text x="373" y="156" class="hero-label">3</text>
+              <text x="513" y="156" class="hero-label">4</text>
+              <text x="58" y="196" class="hero-h">h=4</text>
+              <text x="220" y="18" class="hero-h">h=3</text>
+              <text x="208" y="288" class="hero-h">h=2</text>
+              <text x="368" y="196" class="hero-h">h=1</text>
+              <text x="508" y="196" class="hero-h">h=0 (goal)</text>
+            </svg>
+          </div>
+          <div class="result-badge">A* finds 0 &rarr; 4 = 5 (identical to Dijkstra)</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Game pathfinding &amp; maps</h3>
+          <p>An NPC walking to a target tile and a GPS routing you to one address are the same problem: one start, one goal, and a cheap way to estimate remaining distance (straight-line distance on the map). That's exactly what A* is built for.</p>
+        </div>
+        <div class="card">
+          <h3>Small dense all-pairs tables</h3>
+          <p>A flight network's layover-cost table, or any small graph where you'll repeatedly ask "what's the cost from X to Y" for many different X and Y — precompute the whole table once with Floyd-Warshall instead of re-running a single-source search over and over.</p>
+        </div>
+        <div class="card">
+          <h3>Transitive closure &amp; reachability</h3>
+          <p>Swap "min" and "+" for "OR" and "AND" in the same triple loop and Floyd-Warshall answers "can i reach j at all?" for every pair at once — used in dependency graphs, permission systems, and compiler reachability analysis.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> both algorithms are Dijkstra's core relaxation idea (<code>if a candidate distance beats the current one, take it</code>) wearing a different hat — A* narrows Dijkstra's search with a heuristic, Floyd-Warshall repeats it for every possible intermediate vertex instead of every possible source.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What are A* and Floyd-Warshall?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>A* — Dijkstra with a sense of direction</h3>
+          <p>Dijkstra always expands the node with the smallest cost-so-far, <code>g</code>, so it grows outward equally in every direction. A* instead expands the node with the smallest <code>f = g + h</code>, where <code>h(n)</code> is a heuristic guess of the remaining distance from <code>n</code> to the goal. Nodes that look both cheap-so-far and close-to-the-goal get explored first.</p>
+        </div>
+        <div class="card">
+          <h3>Floyd-Warshall — every pair, one triple loop</h3>
+          <p>Instead of one source, Floyd-Warshall builds an <code>n x n</code> distance matrix and asks, for every pair <code>(i, j)</code> and every possible intermediate vertex <code>k</code>: "is routing i &rarr; k &rarr; j cheaper than what I already have for i &rarr; j?" After trying every <code>k</code> as an intermediate, the matrix holds the true shortest distance between every pair.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if the question says "from here to there" and gives you some way to estimate distance (coordinates, straight-line distance) — reach for A*. If the question says "between every pair" or hands you a small dense weight table — reach for Floyd-Warshall.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Identify the scope</h3>
+          <p>One source to one specific goal, or the distance between every pair of vertices? That single question decides which algorithm family you're in.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>One goal + a distance estimate</h3>
+          <p>If you can cheaply estimate "how far is <code>n</code> from the goal" (grid distance, straight-line distance) — that's A*. Priority becomes <code>f = g + h</code> instead of just <code>g</code>.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Every pair, or negative edges</h3>
+          <p>If you need all-pairs distances, or the graph has negative edges (but no negative cycle) — that's Floyd-Warshall's triple loop over <code>k, i, j</code>.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Sanity-check the tool</h3>
+          <p>For A*, confirm <code>h</code> never overestimates (admissible). For Floyd-Warshall, confirm <code>k</code> is the outermost loop and check the diagonal for negative cycles afterward.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes the working structure</h2>
+      <p>Neither algorithm runs directly on a raw edge list. Each needs its own transformation first — this is exactly where beginners lose the thread, so walk through both explicitly.</p>
+
+      <h3 style="margin-top:18px;">A*: weighted graph &rarr; adjacency list</h3>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input edges</h3>
+          <div class="code-block"><code>0 -> 1 (w=1)
+0 -> 2 (w=4)
+1 -> 2 (w=1)
+1 -> 3 (w=5)
+2 -> 3 (w=1)
+3 -> 4 (w=2)</code></div>
+        </div>
+        <div class="arrow-box">&rarr;</div>
+        <div class="mini-diagram">
+          <h3>Adjacency list</h3>
+          <div class="code-block"><code>adj = {
+  0: [(1,1), (2,4)],
+  1: [(2,1), (3,5)],
+  2: [(3,1)],
+  3: [(4,2)],
+  4: []
+}</code></div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:22px;">Floyd-Warshall: edge weights &rarr; initialized distance matrix</h3>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input edges (4 vertices)</h3>
+          <div class="code-block"><code>0 -> 1 (w=3)
+0 -> 2 (w=8)
+1 -> 2 (w=-2)
+2 -> 3 (w=2)</code></div>
+        </div>
+        <div class="arrow-box">&rarr;</div>
+        <div class="mini-diagram">
+          <h3>dist matrix (dist[i][j])</h3>
+          <div class="code-block"><code>      0    1    2    3
+  0 [ 0,   3,   8, INF]
+  1 [INF,  0,  -2, INF]
+  2 [INF, INF,  0,   2]
+  3 [INF, INF, INF,  0]</code></div>
+        </div>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Build A*'s adjacency list</h4>
+          <p>Each directed edge <code>(u, v, w)</code> is appended to <code>adj[u]</code> as the pair <code>(v, w)</code> — one direction only, because this graph is directed.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Attach A*'s heuristic table</h4>
+          <p>A separate lookup <code>h(n)</code> is defined alongside the graph — it never changes during the search, it's just consulted every time a node's priority is computed.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Build Floyd-Warshall's distance matrix</h4>
+          <p><code>dist[i][j] = 0</code> on the diagonal (a vertex is zero distance from itself), <code>dist[i][j] = weight</code> where an edge exists, and <code>dist[i][j] = infinity</code> everywhere else — <code>infinity</code> literally means "no path found yet."</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> A*'s heuristic is external information you supply about the goal; Floyd-Warshall's matrix has no concept of a goal at all — it improves every cell simultaneously as more intermediate vertices become available.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: A* search</h2>
+      <p>A* is Dijkstra with one change: the priority queue is ordered by <code>f = g + h</code> instead of just <code>g</code>. <code>g</code> is the real cost so far (exactly Dijkstra's <code>dist</code>); <code>h</code> is a guess of what's left. As long as <code>h</code> never overestimates, sorting by <code>f</code> still guarantees the goal is reached optimally — it just gets there having explored far fewer irrelevant nodes.</p>
+      <div class="code-block stepped">
+        <code id="astar-code">
+<span class="code-line" data-line="1">import heapq</span>
+<span class="code-line" data-line="2"></span>
+<span class="code-line" data-line="3">def a_star(adj, start, goal, h):</span>
+<span class="code-line" data-line="4">    g = {start: 0}</span>
+<span class="code-line" data-line="5">    pq = [(h(start), start)]              # ordered by f = g + h</span>
+<span class="code-line" data-line="6">    while pq:</span>
+<span class="code-line" data-line="7">        _f, u = heapq.heappop(pq)</span>
+<span class="code-line" data-line="8">        if u == goal:</span>
+<span class="code-line" data-line="9">            return g[u]                    # reached the goal, cheapest-first</span>
+<span class="code-line" data-line="10">        for v, w in adj[u]:</span>
+<span class="code-line" data-line="11">            ng = g[u] + w                   # actual cost to v through u</span>
+<span class="code-line" data-line="12">            if ng < g.get(v, float("inf")):</span>
+<span class="code-line" data-line="13">                g[v] = ng</span>
+<span class="code-line" data-line="14">                heapq.heappush(pq, (ng + h(v), v))   # priority uses the heuristic</span>
+<span class="code-line" data-line="15">    return float("inf")</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive A* trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="astar-graph" viewBox="0 0 560 300" width="100%" role="img" aria-label="A* trace over the weighted graph">
+              <defs>
+                <marker id="arrow-astar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#9aa6bd" />
+                </marker>
+                <style>
+                  .ag-base-edge { stroke: #cad3e6; stroke-width: 3.5; marker-end: url(#arrow-astar); }
+                  .ag-active-edge { stroke: #ff9f1c; stroke-width: 6; opacity: 0; transition: opacity 0.2s ease; }
+                  .ag-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .ag-node.popped { fill: #315efb; }
+                  .ag-node.open { fill: #13a46b; }
+                  .ag-node.current { fill: #ff9f1c; }
+                  .ag-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .ag-weight { font: 700 13px Inter, Arial, sans-serif; fill: #17366c; }
+                  .ag-h { font: 600 11px Inter, Arial, sans-serif; fill: #5d677d; }
+                  .ag-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="ag-title">Current pop / relax</text>
+              <line x1="70" y1="150" x2="200" y2="66" class="ag-base-edge" />
+              <line x1="70" y1="150" x2="200" y2="234" class="ag-base-edge" />
+              <line x1="220" y1="80" x2="220" y2="220" class="ag-base-edge" />
+              <line x1="238" y1="68" x2="365" y2="142" class="ag-base-edge" />
+              <line x1="238" y1="232" x2="365" y2="158" class="ag-base-edge" />
+              <line x1="406" y1="150" x2="494" y2="150" class="ag-base-edge" />
+              <line x1="70" y1="150" x2="200" y2="66" class="ag-active-edge" data-edge="0-1" />
+              <line x1="70" y1="150" x2="200" y2="234" class="ag-active-edge" data-edge="0-2" />
+              <line x1="220" y1="80" x2="220" y2="220" class="ag-active-edge" data-edge="1-2" />
+              <line x1="238" y1="68" x2="365" y2="142" class="ag-active-edge" data-edge="1-3" />
+              <line x1="238" y1="232" x2="365" y2="158" class="ag-active-edge" data-edge="2-3" />
+              <line x1="406" y1="150" x2="494" y2="150" class="ag-active-edge" data-edge="3-4" />
+              <text x="120" y="95" class="ag-weight">1</text>
+              <text x="112" y="215" class="ag-weight">4</text>
+              <text x="230" y="155" class="ag-weight">1</text>
+              <text x="290" y="90" class="ag-weight">5</text>
+              <text x="290" y="222" class="ag-weight">1</text>
+              <text x="440" y="140" class="ag-weight">2</text>
+              <circle cx="70" cy="150" r="26" class="ag-node" data-node="0" />
+              <circle cx="220" cy="60" r="26" class="ag-node" data-node="1" />
+              <circle cx="220" cy="240" r="26" class="ag-node" data-node="2" />
+              <circle cx="380" cy="150" r="26" class="ag-node" data-node="3" />
+              <circle cx="520" cy="150" r="26" class="ag-node" data-node="4" />
+              <text x="63" y="156" class="ag-label">0</text>
+              <text x="213" y="66" class="ag-label">1</text>
+              <text x="213" y="246" class="ag-label">2</text>
+              <text x="373" y="156" class="ag-label">3</text>
+              <text x="513" y="156" class="ag-label">4</text>
+              <text x="58" y="196" class="ag-h">h=4</text>
+              <text x="220" y="18" class="ag-h">h=3</text>
+              <text x="208" y="288" class="ag-h">h=2</text>
+              <text x="368" y="196" class="ag-h">h=1</text>
+              <text x="508" y="196" class="ag-h">h=0 (goal)</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current popped / just relaxed from</span>
+            <span><i class="dot dot-green"></i> in the open set (heap)</span>
+            <span><i class="dot dot-blue"></i> already popped (settled)</span>
+            <span><i class="dot dot-gray"></i> not reached yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="astar-step-title">Initial state</h3>
+          <p id="astar-step-text">The open set starts with just the start node.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="astar-prev">Previous</button>
+            <button type="button" id="astar-play" class="primary">Resume</button>
+            <button type="button" id="astar-next">Next</button>
+            <button type="button" id="astar-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="astar-step-counter">Step 0 / 10</span>
+            <div class="progress"><span id="astar-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Popped node (f = g + h)</strong><div class="state-value" id="astar-popped">—</div></div>
+            <div class="state-box"><strong>g — cost so far</strong><div class="state-value" id="astar-g">{0: 0}</div></div>
+            <div class="state-box"><strong>h — heuristic to goal (fixed)</strong><div class="state-value" id="astar-h">{0:4, 1:3, 2:2, 3:1, 4:0}</div></div>
+            <div class="state-box"><strong>Open set (f, node)</strong><div class="state-value" id="astar-open">[(4, 0)]</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="astar-action">g = {0: 0}; push (4, 0)</div></div>
+          </div>
+          <div class="explainer">
+            <p id="astar-detail"><strong>What changed:</strong> nothing has been popped yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="astar-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>Popped (f,g,h)</th><th>g after</th><th>Open set after</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Init: <code>g={0:0}</code>, push <code>(4,0)</code></td><td>—</td><td><code>{0:0}</code></td><td><code>[(4,0)]</code></td><td>—</td></tr>
+            <tr data-step="1"><td>1</td><td>Pop <code>(4,0)</code>: f=4=g0+h4; not goal</td><td><code>0 (f4,g0,h4)</code></td><td><code>{0:0}</code></td><td><code>[]</code></td><td>—</td></tr>
+            <tr data-step="2"><td>2</td><td>Relax 0's neighbors: <code>g[1]=1</code> push <code>(4,1)</code>; <code>g[2]=4</code> push <code>(6,2)</code></td><td><code>0 (f4,g0,h4)</code></td><td><code>{0:0,1:1,2:4}</code></td><td><code>[(4,1),(6,2)]</code></td><td>—</td></tr>
+            <tr data-step="3"><td>3</td><td>Pop <code>(4,1)</code>: f=4=g1+h3; not goal</td><td><code>1 (f4,g1,h3)</code></td><td><code>{0:0,1:1,2:4}</code></td><td><code>[(6,2)]</code></td><td>—</td></tr>
+            <tr data-step="4"><td>4</td><td>Relax 1's neighbors: <code>g[2]</code> 4&rarr;2 push <code>(4,2)</code>; <code>g[3]=6</code> push <code>(7,3)</code></td><td><code>1 (f4,g1,h3)</code></td><td><code>{0:0,1:1,2:2,3:6}</code></td><td><code>[(4,2),(6,2),(7,3)]</code></td><td>—</td></tr>
+            <tr data-step="5"><td>5</td><td>Pop <code>(4,2)</code>: f=4=g2+h2; not goal</td><td><code>2 (f4,g2,h2)</code></td><td><code>{0:0,1:1,2:2,3:6}</code></td><td><code>[(6,2),(7,3)]</code></td><td>—</td></tr>
+            <tr data-step="6"><td>6</td><td>Relax 2's neighbors: <code>g[3]</code> 6&rarr;3 push <code>(4,3)</code></td><td><code>2 (f4,g2,h2)</code></td><td><code>{0:0,1:1,2:2,3:3}</code></td><td><code>[(4,3),(6,2),(7,3)]</code></td><td>—</td></tr>
+            <tr data-step="7"><td>7</td><td>Pop <code>(4,3)</code>: f=4=g3+h1; not goal</td><td><code>3 (f4,g3,h1)</code></td><td><code>{0:0,1:1,2:2,3:3}</code></td><td><code>[(6,2),(7,3)]</code></td><td>—</td></tr>
+            <tr data-step="8"><td>8</td><td>Relax 3's neighbors: <code>g[4]=5</code> push <code>(5,4)</code></td><td><code>3 (f4,g3,h1)</code></td><td><code>{0:0,1:1,2:2,3:3,4:5}</code></td><td><code>[(5,4),(6,2),(7,3)]</code></td><td>—</td></tr>
+            <tr data-step="9"><td>9</td><td>Pop <code>(5,4)</code>: f=5=g5+h0; 4 == goal</td><td><code>4 (f5,g5,h0)</code></td><td><code>{...,4:5}</code></td><td><code>[(6,2),(7,3)]</code> never processed</td><td>—</td></tr>
+            <tr data-step="10"><td>10</td><td><code>return g[4]</code></td><td><code>4 (f5,g5,h0)</code></td><td><code>{...,4:5}</code></td><td><code>[(6,2),(7,3)]</code> never processed</td><td><code>5</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p><code>f = g + h</code> means "the best total cost through this node, if the heuristic's guess is right." Sorting the heap by <code>f</code> instead of <code>g</code> is the entire difference from Dijkstra — it biases exploration toward the goal instead of outward in every direction.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common A* mistake</h4>
+          <p>Popping by <code>g</code> instead of <code>f = g + h</code>. That silently turns A* back into Dijkstra with extra bookkeeping — the heuristic never gets a chance to steer the search.</p>
+        </div>
+        <div class="card">
+          <h4>Why stale heap entries are fine</h4>
+          <p>Notice <code>(6,2)</code> and <code>(7,3)</code> stay in the heap unprocessed at the end. That's cheaper than searching the heap to remove outdated entries — the next pop for that node would just find a worse-or-equal <code>g</code> and skip it (or, as here, the algorithm returns before ever reaching them).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Floyd-Warshall</h2>
+      <p>Floyd-Warshall asks the same relaxation question Dijkstra asks — "does routing through some vertex beat what I already have?" — but for every pair <code>(i, j)</code>, trying every vertex <code>k</code> as the allowed intermediate stop, one <code>k</code> at a time. The trick is entirely in the loop order: <code>k</code> must be outermost.</p>
+      <div class="code-block stepped">
+        <code id="fw-code">
+<span class="code-line" data-line="1">def floyd_warshall(n, weight):</span>
+<span class="code-line" data-line="2">    """weight[i][j] = edge cost (INF if none, 0 on the diagonal)."""</span>
+<span class="code-line" data-line="3">    INF = float("inf")</span>
+<span class="code-line" data-line="4">    dist = [row[:] for row in weight]        # copy initial edge weights</span>
+<span class="code-line" data-line="5">    for k in range(n):                       # allow k as an intermediate...</span>
+<span class="code-line" data-line="6">        for i in range(n):                   # ...for every pair (i, j)</span>
+<span class="code-line" data-line="7">            for j in range(n):</span>
+<span class="code-line" data-line="8">                if dist[i][k] + dist[k][j] < dist[i][j]:</span>
+<span class="code-line" data-line="9">                    dist[i][j] = dist[i][k] + dist[k][j]</span>
+<span class="code-line" data-line="10">    return dist</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive Floyd-Warshall matrix trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="fw-matrix" viewBox="0 0 350 350" width="100%" role="img" aria-label="Distance matrix grid for Floyd-Warshall trace">
+              <defs>
+                <style>
+                  .fwm-cell { fill: #ffffff; stroke: #d9e1ef; stroke-width: 2; transition: fill 0.25s ease; }
+                  .fwm-cell.hl { fill: #eaf0ff; }
+                  .fwm-cell.flash { fill: #ff9f1c; }
+                  .fwm-text { font: 700 20px ui-monospace, Consolas, monospace; fill: #182132; transition: fill 0.25s ease; }
+                  .fwm-text.flash-text { fill: #ffffff; }
+                  .fwm-header { font: 700 16px Inter, Arial, sans-serif; fill: #5d677d; transition: fill 0.25s ease; }
+                  .fwm-header.hl { fill: #315efb; }
+                  .fwm-corner { font: 600 13px Inter, Arial, sans-serif; fill: #9aa6bd; }
+                </style>
+              </defs>
+              <text x="35" y="35" class="fwm-corner" text-anchor="middle">i \ j</text>
+              <text id="fw-colhead-0" x="95" y="35" class="fwm-header" text-anchor="middle">0</text>
+              <text id="fw-colhead-1" x="165" y="35" class="fwm-header" text-anchor="middle">1</text>
+              <text id="fw-colhead-2" x="235" y="35" class="fwm-header" text-anchor="middle">2</text>
+              <text id="fw-colhead-3" x="305" y="35" class="fwm-header" text-anchor="middle">3</text>
+              <text id="fw-rowhead-0" x="35" y="100" class="fwm-header" text-anchor="middle">0</text>
+              <text id="fw-rowhead-1" x="35" y="170" class="fwm-header" text-anchor="middle">1</text>
+              <text id="fw-rowhead-2" x="35" y="240" class="fwm-header" text-anchor="middle">2</text>
+              <text id="fw-rowhead-3" x="35" y="310" class="fwm-header" text-anchor="middle">3</text>
+
+              <rect id="fw-cell-0-0" class="fwm-cell" x="60" y="60" width="70" height="70" />
+              <rect id="fw-cell-0-1" class="fwm-cell" x="130" y="60" width="70" height="70" />
+              <rect id="fw-cell-0-2" class="fwm-cell" x="200" y="60" width="70" height="70" />
+              <rect id="fw-cell-0-3" class="fwm-cell" x="270" y="60" width="70" height="70" />
+              <rect id="fw-cell-1-0" class="fwm-cell" x="60" y="130" width="70" height="70" />
+              <rect id="fw-cell-1-1" class="fwm-cell" x="130" y="130" width="70" height="70" />
+              <rect id="fw-cell-1-2" class="fwm-cell" x="200" y="130" width="70" height="70" />
+              <rect id="fw-cell-1-3" class="fwm-cell" x="270" y="130" width="70" height="70" />
+              <rect id="fw-cell-2-0" class="fwm-cell" x="60" y="200" width="70" height="70" />
+              <rect id="fw-cell-2-1" class="fwm-cell" x="130" y="200" width="70" height="70" />
+              <rect id="fw-cell-2-2" class="fwm-cell" x="200" y="200" width="70" height="70" />
+              <rect id="fw-cell-2-3" class="fwm-cell" x="270" y="200" width="70" height="70" />
+              <rect id="fw-cell-3-0" class="fwm-cell" x="60" y="270" width="70" height="70" />
+              <rect id="fw-cell-3-1" class="fwm-cell" x="130" y="270" width="70" height="70" />
+              <rect id="fw-cell-3-2" class="fwm-cell" x="200" y="270" width="70" height="70" />
+              <rect id="fw-cell-3-3" class="fwm-cell" x="270" y="270" width="70" height="70" />
+
+              <text id="fw-val-0-0" x="95" y="100" class="fwm-text" text-anchor="middle">0</text>
+              <text id="fw-val-0-1" x="165" y="100" class="fwm-text" text-anchor="middle">3</text>
+              <text id="fw-val-0-2" x="235" y="100" class="fwm-text" text-anchor="middle">8</text>
+              <text id="fw-val-0-3" x="305" y="100" class="fwm-text" text-anchor="middle">INF</text>
+              <text id="fw-val-1-0" x="95" y="170" class="fwm-text" text-anchor="middle">INF</text>
+              <text id="fw-val-1-1" x="165" y="170" class="fwm-text" text-anchor="middle">0</text>
+              <text id="fw-val-1-2" x="235" y="170" class="fwm-text" text-anchor="middle">-2</text>
+              <text id="fw-val-1-3" x="305" y="170" class="fwm-text" text-anchor="middle">INF</text>
+              <text id="fw-val-2-0" x="95" y="240" class="fwm-text" text-anchor="middle">INF</text>
+              <text id="fw-val-2-1" x="165" y="240" class="fwm-text" text-anchor="middle">INF</text>
+              <text id="fw-val-2-2" x="235" y="240" class="fwm-text" text-anchor="middle">0</text>
+              <text id="fw-val-2-3" x="305" y="240" class="fwm-text" text-anchor="middle">2</text>
+              <text id="fw-val-3-0" x="95" y="310" class="fwm-text" text-anchor="middle">INF</text>
+              <text id="fw-val-3-1" x="165" y="310" class="fwm-text" text-anchor="middle">INF</text>
+              <text id="fw-val-3-2" x="235" y="310" class="fwm-text" text-anchor="middle">INF</text>
+              <text id="fw-val-3-3" x="305" y="310" class="fwm-text" text-anchor="middle">0</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-blue"></i> highlighted k row / column</span>
+            <span><i class="dot dot-orange"></i> cell being updated this step</span>
+            <span><i class="dot dot-gray"></i> untouched / still infinity</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="fw-step-title">Initial state</h3>
+          <p id="fw-step-text">dist starts as a direct copy of the weight matrix.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="fw-prev">Previous</button>
+            <button type="button" id="fw-play" class="primary">Resume</button>
+            <button type="button" id="fw-next">Next</button>
+            <button type="button" id="fw-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="fw-step-counter">Step 0 / 8</span>
+            <div class="progress"><span id="fw-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Current k (intermediate vertex)</strong><div class="state-value" id="fw-k">—</div></div>
+            <div class="state-box"><strong>Cell being checked (i, j)</strong><div class="state-value" id="fw-check">—</div></div>
+            <div class="state-box"><strong>Comparison</strong><div class="state-value" id="fw-compare">—</div></div>
+            <div class="state-box"><strong>Updated?</strong><div class="state-value" id="fw-result">—</div></div>
+            <div class="state-box"><strong>Meaningful updates so far</strong><div class="state-value" id="fw-updates">0</div></div>
+          </div>
+          <div class="explainer">
+            <p id="fw-detail"><strong>What changed:</strong> dist has just been copied from the input weight matrix.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="fw-trace-table">
+          <thead>
+            <tr><th>Step</th><th>k</th><th>Check (i,j)</th><th>Comparison</th><th>Updated?</th><th>dist after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>—</td><td>—</td><td>—</td><td>copied from weight matrix</td></tr>
+            <tr data-step="1"><td>1</td><td>0</td><td>all (i,j)</td><td><code>dist[i][0]+dist[0][j]</code> never beats <code>dist[i][j]</code></td><td>No (whole round)</td><td>unchanged</td></tr>
+            <tr data-step="2"><td>2</td><td>1</td><td>scanning</td><td><code>dist[i][1]+dist[1][j]</code> vs <code>dist[i][j]</code></td><td>checking...</td><td>unchanged (yet)</td></tr>
+            <tr data-step="3"><td>3</td><td>1</td><td>(0,2)</td><td><code>3+(-2)=1 &lt; 8</code></td><td>Yes</td><td><code>dist[0][2]</code>: 8 &rarr; 1</td></tr>
+            <tr data-step="4"><td>4</td><td>2</td><td>scanning</td><td><code>dist[i][2]+dist[2][j]</code> vs <code>dist[i][j]</code></td><td>checking...</td><td>unchanged (yet)</td></tr>
+            <tr data-step="5"><td>5</td><td>2</td><td>(0,3)</td><td><code>1+2=3 &lt; INF</code></td><td>Yes</td><td><code>dist[0][3]</code>: INF &rarr; 3</td></tr>
+            <tr data-step="6"><td>6</td><td>2</td><td>(1,3)</td><td><code>-2+2=0 &lt; INF</code></td><td>Yes</td><td><code>dist[1][3]</code>: INF &rarr; 0</td></tr>
+            <tr data-step="7"><td>7</td><td>3</td><td>all (i,j)</td><td><code>dist[i][3]</code> only finite at j=3</td><td>No (whole round)</td><td>unchanged</td></tr>
+            <tr data-step="8"><td>8</td><td>—</td><td>—</td><td>—</td><td>Final</td><td><code>dist[0][2]=1, dist[0][3]=3, dist[1][3]=0</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>By the time the <code>k</code> loop finishes vertex <code>k</code>, <code>dist[i][j]</code> is guaranteed correct for every path that only uses intermediates from <code>0..k</code>. That invariant only holds if <code>k</code> moves slowest — hence "outermost."</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common Floyd-Warshall mistake</h4>
+          <p>Swapping the loop order (<code>i</code> or <code>j</code> outermost). It still runs, still returns <em>an</em> answer — just occasionally the wrong one, because the DP invariant is gone. This is a silent bug, not a crash.</p>
+        </div>
+        <div class="card">
+          <h4>Why we only traced 3 of 64 comparisons</h4>
+          <p><code>n=4</code> means <code>4x4x4=64</code> total <code>(k,i,j)</code> triples get checked, but only 3 ever improve <code>dist</code>. Tracing every no-op would be 61 nearly-identical "no update" steps — this page shows the meaningful ones and states plainly where whole rounds produced nothing.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Zero heuristic</button>
+        <button type="button" data-example-tab="1">Inadmissible heuristic</button>
+        <button type="button" data-example-tab="2">Negative edges / cycle</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: h(n) = 0 everywhere</h3>
+          <p><code>a_star(adj, 0, 4, lambda n: 0)</code></p>
+          <div class="result-badge">Still returns 5 — but A* degenerates into plain Dijkstra</div>
+          <p class="footer-note">With no heuristic signal, <code>f = g + h</code> reduces to <code>f = g</code>, which is exactly Dijkstra's ordering. The answer is still correct (a heuristic of 0 is technically admissible — it never overestimates), but the search explores in every direction instead of toward the goal. This is the useful mental check: <strong>A* with h=0 IS Dijkstra.</strong></p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: an inadmissible heuristic returns the WRONG answer</h3>
+          <p><code>adj = {'A':[('B',1),('C',100)], 'B':[('C',1)], 'C':[]}</code>, <code>h = {'A':0, 'B':200, 'C':0}</code></p>
+          <div class="result-badge">A* returns 100 — the true shortest path is 2</div>
+          <p class="footer-note">The true shortest path is A &rarr; B &rarr; C, costing <code>1+1=2</code>. But <code>h(B)=200</code> wildly overestimates the true remaining distance from B to C (which is only 1). That inflates B's priority to <code>f = g(B)+h(B) = 1+200 = 201</code>, so the direct edge A &rarr; C (<code>f = 100+0 = 100</code>) gets popped first, hits the goal, and A* returns immediately with the wrong, more expensive answer. Confirmed by running both versions: with an admissible <code>h = {'A':1,'B':1,'C':0}</code>, A* correctly returns <code>2</code>. <strong>This is exactly why h must never overestimate.</strong></p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: negative edges are fine; a negative cycle shows as a negative diagonal</h3>
+          <p><code>0-&gt;1 (1), 1-&gt;2 (-1), 2-&gt;0 (-1)</code> — the cycle sums to <code>1 + (-1) + (-1) = -1</code></p>
+          <div class="result-badge">After Floyd-Warshall: dist[0][0]=-1, dist[1][1]=-1, dist[2][2]=-2</div>
+          <p class="footer-note">Floyd-Warshall handles individual negative edges without any special casing — the recurrence <code>dist[i][j] = min(dist[i][j], dist[i][k]+dist[k][j])</code> doesn't care about sign. But when a cycle's total weight is negative, a vertex can "cheapen a path back to itself" indefinitely. That shows up as <code>dist[i][i] &lt; 0</code> on the diagonal after the algorithm finishes — check <code>any(dist[i][i] &lt; 0 for i in range(n))</code> to detect it. (Confirmed by running the notebook's own example: <code>diagonal = [-1, -1, -2]</code>, <code>negative cycle? True</code>.)</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Algorithm</th><th>Scope</th><th>Negative edges</th><th>Time</th><th>Space</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>A*</td><td>single source &rarr; single goal</td><td>No (needs non-negative + admissible <code>h</code>)</td><td>&le; Dijkstra's worst case, <code>O((V+E) log V)</code> — often far less in practice</td><td><code>O(V)</code> (g map + open set)</td></tr>
+            <tr><td>Dijkstra</td><td>single source &rarr; all reachable</td><td>No</td><td><code>O((V+E) log V)</code></td><td><code>O(V)</code></td></tr>
+            <tr><td>Floyd-Warshall</td><td>all pairs</td><td>Yes (no negative cycle)</td><td><code>O(V&sup3;)</code></td><td><code>O(V&sup2;)</code></td></tr>
+            <tr><td>Dijkstra from every source</td><td>all pairs</td><td>No</td><td><code>O(V &middot; (V+E) log V)</code></td><td><code>O(V&sup2;)</code> to store every result</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">All four are the same relaxation idea at different scopes. For all-pairs on a large, sparse, non-negative graph, <code>V</code> calls to Dijkstra (<code>O(V&middot;(V+E) log V)</code>) usually beats Floyd-Warshall's flat <code>O(V&sup3;)</code>, since <code>E &lt;&lt; V&sup2;</code>. Floyd-Warshall wins when the graph is small/dense, has negative edges, or when the triple loop's simplicity is worth more than shaving constants.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>"Do I need one path to one specific goal, or distances between every pair?"</p></div>
+            <div class="timeline-step"><p>One goal, and I can cheaply estimate remaining distance (coordinates, grid distance) &rarr; A*.</p></div>
+            <div class="timeline-step"><p>One goal, no good estimate available &rarr; plain Dijkstra (equivalent to A* with <code>h=0</code>).</p></div>
+            <div class="timeline-step"><p>Every pair, small/dense graph, or negative edges possible &rarr; Floyd-Warshall.</p></div>
+            <div class="timeline-step"><p>Every pair, large/sparse graph, no negative edges &rarr; <code>V</code> calls to Dijkstra is usually cheaper than <code>O(V&sup3;)</code>.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"Dijkstra explores equally in every direction; if I only care about one destination and can estimate how far away it is, I can bias the search toward it with A* by sorting on f = g + h instead of g."</li>
+            <li>"The heuristic has to never overestimate the true remaining distance, or A* can lock in a path that only looked cheapest — that's why admissibility is the one non-negotiable property."</li>
+            <li>"If I need distances between every pair, not just one, and the graph is small enough, Floyd-Warshall's triple loop does it in one pass and handles negative edges for free."</li>
+            <li>"The correctness of Floyd-Warshall depends entirely on k being the outermost loop — that's what lets each round of k assume everything found with smaller intermediates is already final."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>A* mistakes</h3>
+          <ul class="mistake-list">
+            <li>Popping by <code>g</code> instead of <code>f = g + h</code> — quietly turns A* into Dijkstra.</li>
+            <li>Using an inadmissible heuristic that overestimates — can return a wrong, suboptimal path without any error or warning.</li>
+            <li>Checking <code>u == goal</code> at push time instead of pop time — a node can be pushed multiple times with different <code>g</code> values before the best one is ever popped.</li>
+            <li>Forgetting that "no path exists" just means the loop drains and falls through to <code>return float("inf")</code> — make sure that path is actually reachable in your test.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Floyd-Warshall mistakes</h3>
+          <ul class="mistake-list">
+            <li>Looping <code>i</code> or <code>j</code> outermost instead of <code>k</code> — breaks the DP invariant silently; the code still runs and still returns numbers.</li>
+            <li>Forgetting to initialize the diagonal to <code>0</code> — without <code>dist[i][i] = 0</code>, a vertex can look unreachable from itself.</li>
+            <li>Assuming Floyd-Warshall detects negative cycles automatically — it doesn't error or hang, it just silently produces a corrupted answer; you must explicitly check the diagonal afterward.</li>
+            <li>Reaching for Floyd-Warshall on a huge sparse graph — <code>O(V&sup3;)</code> will badly lose to <code>V</code> rounds of Dijkstra there.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — Given <code>adj = {0:[(1,2)], 1:[(2,2)], 2:[]}</code> and <code>h = {0:4, 1:2, 2:0}</code>, trace A* from 0 to 2 by hand. What does it return, and is <code>h</code> admissible?</summary>
+          <p style="margin-top:10px;">Answer: <strong>4</strong>. <code>g={0:0}</code>, pop 0 (f=4), relax 1: <code>g[1]=2</code>, push f=2+2=4. Pop 1 (f=4), relax 2: <code>g[2]=4</code>, push f=4+0=4. Pop 2 (f=4) — goal, return <code>g[2]=4</code>. <code>h</code> is admissible: the true remaining distance from 0 is 4 (matches <code>h(0)=4</code> exactly), from 1 is 2 (matches <code>h(1)=2</code>), from 2 is 0. Since it never exceeds the true remaining distance (here it's exactly equal — a "perfect" heuristic), it is admissible. Verified by running the real code.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — Run Floyd-Warshall on 2 vertices with one directed edge <code>0 -&gt; 1</code> (weight 5) and no edge <code>1 -&gt; 0</code>. What is <code>dist[1][0]</code> after it finishes?</summary>
+          <p style="margin-top:10px;">Answer: still <strong>infinity</strong>. Floyd-Warshall only finds a path if one actually exists somewhere in the graph — it never invents a reverse edge. With <code>dist = [[0,5],[INF,0]]</code>, no choice of intermediate <code>k</code> can ever produce a route from vertex 1 back to vertex 0, so <code>dist[1][0]</code> stays <code>INF</code>. Verified by running the real code.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — An interviewer gives you Manhattan distance as the heuristic for grid pathfinding, but the character can move diagonally at the same cost as a horizontal/vertical step. Is Manhattan distance still admissible?</summary>
+          <p style="margin-top:10px;">Answer: <strong>No.</strong> Manhattan distance sums horizontal and vertical distance separately (e.g. 3 right + 3 up = 6 "moves"), but a mover who can also step diagonally could cover the same displacement in only 3 moves. Manhattan distance therefore <em>overestimates</em> the true remaining cost whenever diagonal movement is allowed, which violates admissibility — A* can then return a suboptimal path, the same failure mode as the inadmissible-heuristic edge case above. The fix is Chebyshev distance (<code>max(dx, dy)</code>) or octile distance, both of which correctly account for diagonal movement.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          Both algorithms are the same relaxation idea Dijkstra introduced, aimed at a different scope.
+          <strong>A* narrows the search</strong> by sorting on <code>f = g + h</code> instead of <code>g</code> alone —
+          correct as long as <code>h</code> never overestimates. <strong>Floyd-Warshall widens the search</strong> by
+          trying every vertex as a possible intermediate stop for every pair, one <code>k</code> at a time — correct
+          only because <code>k</code> is the outermost loop. Pick by scope: one goal with a usable estimate reaches
+          for A*; every pair (especially with negative edges) reaches for Floyd-Warshall.
+        </p>
+      </div>
+      <p class="footer-note">Based on the A* &amp; Floyd-Warshall notebook and README in <code>14_AStar_Floyd_Warshall</code> — every traced value on this page was produced by running the real <code>a_star</code> and <code>floyd_warshall</code> functions, not hand-simulated.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const H = { 0: 4, 1: 3, 2: 2, 3: 1, 4: 0 };
+
+      const astarSteps = [
+        { step: 0, title: 'Initial state', text: 'The open set (a min-heap) starts with just the start node, 0. Its priority is f = g + h = 0 + h(0) = 0 + 4 = 4.', popped: '—', g: '{0: 0}', h: '{0:4, 1:3, 2:2, 3:1, 4:0}', open: '[(4, 0)]', action: 'g = {0: 0}; push (h(0), 0) = (4, 0)', detail: 'Nothing has been popped yet.', currentNode: null, poppedSet: [], openNodes: [0], activeEdges: [], lines: [4, 5] },
+        { step: 1, title: 'Step 1: pop node 0', text: 'Pop the smallest f from the heap: (4, 0). f = g(0)+h(0) = 0+4 = 4. Node 0 is not the goal (4), so we expand its neighbors next.', popped: '0 (f=4, g=0, h=4)', g: '{0: 0}', h: '{0:4, 1:3, 2:2, 3:1, 4:0}', open: '[]  (heap emptied by the pop)', action: 'heapq.heappop(pq) -> (4, 0); 0 != goal(4)', detail: 'Node 0 is popped and checked against the goal.', currentNode: 0, poppedSet: [], openNodes: [], activeEdges: [], lines: [6, 7, 8] },
+        { step: 2, title: 'Step 1 continued: relax neighbors of 0', text: "Neighbor 1 (w=1): tentative g = 0+1 = 1, beats infinity, so push f = 1+h(1) = 1+3 = 4. Neighbor 2 (w=4): tentative g = 0+4 = 4, beats infinity, push f = 4+h(2) = 4+2 = 6.", popped: '0 (f=4, g=0, h=4)', g: '{0:0, 1:1, 2:4}', h: '{0:4, 1:3, 2:2, 3:1, 4:0}', open: '[(4, 1), (6, 2)]', action: 'g[1]=1, push (4,1); g[2]=4, push (6,2)', detail: 'Both of node 0\'s neighbors improve on their previous (infinite) g, so both enter the open set.', currentNode: 0, poppedSet: [0], openNodes: [1, 2], activeEdges: ['0-1', '0-2'], lines: [10, 11, 12, 13, 14] },
+        { step: 3, title: 'Step 2: pop node 1', text: 'Smallest f in the heap is (4, 1) — node 2 also has an entry (6, 2), but 4 < 6, so node 1 goes first. f = g(1)+h(1) = 1+3 = 4. Not the goal.', popped: '1 (f=4, g=1, h=3)', g: '{0:0, 1:1, 2:4}', h: '{0:4, 1:3, 2:2, 3:1, 4:0}', open: '[(6, 2)]', action: 'heapq.heappop(pq) -> (4, 1); 1 != goal(4)', detail: 'The heap always pops the smallest f first, which is why 1 (f=4) beats 2 (f=6) even though 2 was pushed with a smaller g.', currentNode: 1, poppedSet: [0], openNodes: [2], activeEdges: [], lines: [6, 7, 8] },
+        { step: 4, title: 'Step 2 continued: relax neighbors of 1', text: 'Neighbor 2 (w=1): tentative g = 1+1 = 2, beats its current g=4 — improved! Push (4, 2) = (2+h(2), 2) = (4, 2). Neighbor 3 (w=5): tentative g = 1+5 = 6, beats infinity, push f = 6+h(3) = 6+1 = 7.', popped: '1 (f=4, g=1, h=3)', g: '{0:0, 1:1, 2:2, 3:6}', h: '{0:4, 1:3, 2:2, 3:1, 4:0}', open: '[(4, 2), (6, 2), (7, 3)]', action: 'g[2]: 4 -> 2 (improved), push (4,2); g[3]=6, push (7,3)', detail: 'Node 2 now has two heap entries — the stale (6,2) and the fresh (4,2). The fresh one sorts first, so the stale one is simply never useful.', currentNode: 1, poppedSet: [0, 1], openNodes: [2, 3], activeEdges: ['1-2', '1-3'], lines: [10, 11, 12, 13, 14] },
+        { step: 5, title: 'Step 3: pop node 2', text: 'Smallest f is (4, 2) — the fresh, improved entry. f = g(2)+h(2) = 2+2 = 4. Not the goal.', popped: '2 (f=4, g=2, h=2)', g: '{0:0, 1:1, 2:2, 3:6}', h: '{0:4, 1:3, 2:2, 3:1, 4:0}', open: '[(6, 2), (7, 3)]', action: 'heapq.heappop(pq) -> (4, 2); 2 != goal(4)', detail: 'g[2] is already 2 by the time this pop happens — the improved value from the last step.', currentNode: 2, poppedSet: [0, 1], openNodes: [3], activeEdges: [], lines: [6, 7, 8] },
+        { step: 6, title: 'Step 3 continued: relax neighbors of 2', text: 'Neighbor 3 (w=1): tentative g = 2+1 = 3, beats its current g=6 — improved! Push (4, 3) = (3+h(3), 3) = (4, 3).', popped: '2 (f=4, g=2, h=2)', g: '{0:0, 1:1, 2:2, 3:3}', h: '{0:4, 1:3, 2:2, 3:1, 4:0}', open: '[(4, 3), (6, 2), (7, 3)]', action: 'g[3]: 6 -> 3 (improved), push (4,3)', detail: 'Node 3 now has two stale-vs-fresh entries too — same pattern as node 2 earlier.', currentNode: 2, poppedSet: [0, 1, 2], openNodes: [3], activeEdges: ['2-3'], lines: [10, 11, 12, 13, 14] },
+        { step: 7, title: 'Step 4: pop node 3', text: 'Smallest f is (4, 3) — the fresh entry. f = g(3)+h(3) = 3+1 = 4. Not the goal.', popped: '3 (f=4, g=3, h=1)', g: '{0:0, 1:1, 2:2, 3:3}', h: '{0:4, 1:3, 2:2, 3:1, 4:0}', open: '[(6, 2), (7, 3)]', action: 'heapq.heappop(pq) -> (4, 3); 3 != goal(4)', detail: 'g[3] is already 3 by now, the improved value from the last step.', currentNode: 3, poppedSet: [0, 1, 2], openNodes: [], activeEdges: [], lines: [6, 7, 8] },
+        { step: 8, title: 'Step 4 continued: relax neighbors of 3', text: 'Neighbor 4 (w=2): tentative g = 3+2 = 5, beats infinity. Push (5, 4) = (5+h(4), 4) = (5, 4). Node 4 is the goal, and it now holds the smallest f in the heap.', popped: '3 (f=4, g=3, h=1)', g: '{0:0, 1:1, 2:2, 3:3, 4:5}', h: '{0:4, 1:3, 2:2, 3:1, 4:0}', open: '[(5, 4), (6, 2), (7, 3)]', action: 'g[4]=5, push (5,4)', detail: 'This is the final relax — the goal is now reachable and it is about to become the smallest-f entry.', currentNode: 3, poppedSet: [0, 1, 2, 3], openNodes: [4], activeEdges: ['3-4'], lines: [10, 11, 12, 13, 14] },
+        { step: 9, title: 'Step 5: pop node 4', text: 'Smallest f is (5, 4). f = g(4)+h(4) = 5+0 = 5. Node 4 IS the goal.', popped: '4 (f=5, g=5, h=0)', g: '{0:0, 1:1, 2:2, 3:3, 4:5}', h: '{0:4, 1:3, 2:2, 3:1, 4:0}', open: '[(6, 2), (7, 3)]  (never processed)', action: 'heapq.heappop(pq) -> (5, 4); 4 == goal(4)', detail: 'The two stale entries (6,2) and (7,3) are still sitting in the heap, unused, because the search stops the instant the goal is popped.', currentNode: 4, poppedSet: [0, 1, 2, 3], openNodes: [], activeEdges: [], lines: [6, 7, 8] },
+        { step: 10, title: 'Step 5 continued: return the answer', text: 'Because 4 == goal, return g[4] = 5 immediately. This matches plain Dijkstra\'s result exactly (dist[4] = 5) — the heuristic only changed the ORDER nodes were explored in, not the final answer, because h was admissible.', popped: '4 (f=5, g=5, h=0)', g: '{0:0, 1:1, 2:2, 3:3, 4:5}', h: '{0:4, 1:3, 2:2, 3:1, 4:0}', open: '[(6, 2), (7, 3)]  (never processed)', action: 'return g[4] -> 5', detail: 'Final answer: 5, identical to running plain Dijkstra on the same graph.', currentNode: 4, poppedSet: [0, 1, 2, 3, 4], openNodes: [], activeEdges: [], lines: [8, 9] }
+      ];
+
+      const INF = 'INF';
+      const M_INIT = [[0, 3, 8, INF], [INF, 0, -2, INF], [INF, INF, 0, 2], [INF, INF, INF, 0]];
+      const M_AFTER_K1 = [[0, 3, 1, INF], [INF, 0, -2, INF], [INF, INF, 0, 2], [INF, INF, INF, 0]];
+      const M_AFTER_K2_UPD1 = [[0, 3, 1, 3], [INF, 0, -2, INF], [INF, INF, 0, 2], [INF, INF, INF, 0]];
+      const M_FINAL = [[0, 3, 1, 3], [INF, 0, -2, 0], [INF, INF, 0, 2], [INF, INF, INF, 0]];
+
+      const fwSteps = [
+        { step: 0, title: 'Initial state: build the distance matrix', text: 'dist starts as a direct copy of the weight matrix: 0 on the diagonal, the edge weight where an edge exists, and infinity everywhere else. This is the input-to-structure transformation for Floyd-Warshall.', k: '—', check: '—', compare: '—', result: '—', updates: 0, matrix: M_INIT, kHighlight: null, flashCell: null, detail: 'dist has just been copied from the input weight matrix.', lines: [3, 4] },
+        { step: 1, title: 'k = 0: try routing every pair through vertex 0', text: 'Row 0 and column 0 are highlighted — those are the only distances that could act as a bridge through vertex 0. But dist[1][0], dist[2][0], and dist[3][0] are all infinity (nothing routes back to vertex 0), so nothing improves. We are not tracing all 16 (i,j) comparisons here, only the meaningful ones — this whole k=0 round produces zero updates.', k: '0', check: 'all (i,j), e.g. i=1,j=1: dist[1][0]+dist[0][1] = INF+3 = INF', compare: 'INF < dist[1][1]=0 ? No', result: 'No update (whole round)', updates: 0, matrix: M_INIT, kHighlight: 0, flashCell: null, detail: 'Every (i,j) comparison this round fails because dist[i][0] is infinity for every i != 0.', lines: [5, 6, 7, 8] },
+        { step: 2, title: 'k = 1: try routing every pair through vertex 1', text: 'Row 1 and column 1 are now highlighted. Vertex 1 has a real outgoing distance to reach 2 (dist[1][2] = -2), so it might act as a useful shortcut for anyone who can reach vertex 1.', k: '1', check: 'scanning (i,j) for i=0..3, j=0..3', compare: 'looking for dist[i][1] + dist[1][j] < dist[i][j]', result: 'checking...', updates: 0, matrix: M_INIT, kHighlight: 1, flashCell: null, detail: 'The scan begins; the one real improvement in this round comes at (i=0, j=2).', lines: [5, 6, 7, 8] },
+        { step: 3, title: 'k = 1: update found at (i=0, j=2)', text: 'dist[0][1] + dist[1][2] = 3 + (-2) = 1. That beats the current dist[0][2] = 8, so routing 0 -> 1 -> 2 is cheaper than the direct edge 0 -> 2. Update dist[0][2] = 1. This is the only update in the entire k=1 round.', k: '1', check: '(i=0, j=2)', compare: 'dist[0][1]+dist[1][2] = 3+(-2) = 1  <  dist[0][2] = 8', result: 'Updated: dist[0][2] = 1', updates: 1, matrix: M_AFTER_K1, kHighlight: 1, flashCell: [0, 2], detail: 'The negative edge weight (-2) is exactly what makes routing through 1 pay off here.', lines: [8, 9] },
+        { step: 4, title: 'k = 2: try routing every pair through vertex 2', text: 'Row 2 and column 2 are highlighted. Vertex 2 can now be reached cheaply from 0 (dist[0][2] = 1, thanks to the last update) and it reaches 3 directly (dist[2][3] = 2) — a promising bridge.', k: '2', check: 'scanning (i,j) for i=0..3, j=0..3', compare: 'looking for dist[i][2] + dist[2][j] < dist[i][j]', result: 'checking...', updates: 1, matrix: M_AFTER_K1, kHighlight: 2, flashCell: null, detail: 'This round produces two updates, both involving vertex 3.', lines: [5, 6, 7, 8] },
+        { step: 5, title: 'k = 2: update found at (i=0, j=3)', text: 'dist[0][2] + dist[2][3] = 1 + 2 = 3. That beats the current dist[0][3] = infinity (no direct edge exists at all), so update dist[0][3] = 3.', k: '2', check: '(i=0, j=3)', compare: 'dist[0][2]+dist[2][3] = 1+2 = 3  <  dist[0][3] = INF', result: 'Updated: dist[0][3] = 3', updates: 2, matrix: M_AFTER_K2_UPD1, kHighlight: 2, flashCell: [0, 3], detail: 'This update depends on the k=1 update from two rounds ago — dist[0][2] had to become 1 first.', lines: [8, 9] },
+        { step: 6, title: 'k = 2: update found at (i=1, j=3)', text: 'dist[1][2] + dist[2][3] = -2 + 2 = 0. That beats the current dist[1][3] = infinity, so update dist[1][3] = 0. This reuses the original negative edge weight (-2) directly — Floyd-Warshall handles negative edges without any special-casing, as long as there is no negative cycle.', k: '2', check: '(i=1, j=3)', compare: 'dist[1][2]+dist[2][3] = -2+2 = 0  <  dist[1][3] = INF', result: 'Updated: dist[1][3] = 0', updates: 3, matrix: M_FINAL, kHighlight: 2, flashCell: [1, 3], detail: 'This is the third and last meaningful update in the whole run.', lines: [8, 9] },
+        { step: 7, title: 'k = 3: try routing every pair through vertex 3', text: 'Row 3 and column 3 are highlighted. But dist[3][j] is infinity for every j except the diagonal (vertex 3 has no outgoing edges in this graph), so dist[i][3] + dist[3][j] can never beat an existing dist[i][j]. Zero updates in this final round.', k: '3', check: 'all (i,j)', compare: 'dist[i][3] is only finite when j=3, so no improvement is possible', result: 'No update (whole round)', updates: 3, matrix: M_FINAL, kHighlight: 3, flashCell: null, detail: 'Vertex 3 is a dead end (out-degree 0), so it can never serve as a useful intermediate.', lines: [5, 6, 7, 8] },
+        { step: 8, title: 'Done: all-pairs shortest distances', text: 'After k = 0..3, dist holds the true shortest distance between every pair. dist[0][2]=1 (not the direct edge weight 8), dist[0][3]=3, dist[1][3]=0 — exactly matching floyd_warshall(4, W) run in Python. Only 3 of the 64 (k,i,j) triples produced a real update; the rest were no-ops, which is why only the meaningful ones were traced.', k: '—', check: '—', compare: '—', result: 'Final matrix', updates: 3, matrix: M_FINAL, kHighlight: null, flashCell: null, detail: 'Every remaining cell either kept its original edge weight, its 0 on the diagonal, or stayed at infinity because no path exists.', lines: [10] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderAstar(step, index, max) {
+        document.getElementById('astar-step-title').textContent = step.title;
+        document.getElementById('astar-step-text').textContent = step.text;
+        document.getElementById('astar-popped').textContent = step.popped;
+        document.getElementById('astar-g').textContent = step.g;
+        document.getElementById('astar-h').textContent = step.h;
+        document.getElementById('astar-open').textContent = step.open;
+        document.getElementById('astar-action').textContent = step.action;
+        document.getElementById('astar-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('astar-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('astar-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('astar-trace-table', step.step);
+        setCodeHighlight('astar-code', step.lines);
+
+        document.querySelectorAll('#astar-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('popped', 'open', 'current');
+          if (step.poppedSet.includes(id)) node.classList.add('popped');
+          if (step.openNodes.includes(id)) node.classList.add('open');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#astar-graph [data-edge]').forEach((line) => {
+          line.style.opacity = step.activeEdges.includes(line.dataset.edge) ? '1' : '0';
+        });
+      }
+
+      function fmtCell(v) {
+        return v === INF ? 'INF' : String(v);
+      }
+
+      function renderFW(step, index, max) {
+        document.getElementById('fw-step-title').textContent = step.title;
+        document.getElementById('fw-step-text').textContent = step.text;
+        document.getElementById('fw-k').textContent = step.k;
+        document.getElementById('fw-check').textContent = step.check;
+        document.getElementById('fw-compare').textContent = step.compare;
+        document.getElementById('fw-result').textContent = step.result;
+        document.getElementById('fw-updates').textContent = String(step.updates);
+        document.getElementById('fw-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('fw-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('fw-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('fw-trace-table', step.step);
+        setCodeHighlight('fw-code', step.lines);
+
+        for (let i = 0; i < 4; i += 1) {
+          for (let j = 0; j < 4; j += 1) {
+            const rect = document.getElementById(`fw-cell-${i}-${j}`);
+            const text = document.getElementById(`fw-val-${i}-${j}`);
+            text.textContent = fmtCell(step.matrix[i][j]);
+            const isRowCol = step.kHighlight !== null && (i === step.kHighlight || j === step.kHighlight);
+            const isFlash = step.flashCell && step.flashCell[0] === i && step.flashCell[1] === j;
+            rect.classList.toggle('hl', Boolean(isRowCol) && !isFlash);
+            rect.classList.toggle('flash', Boolean(isFlash));
+            text.classList.toggle('flash-text', Boolean(isFlash));
+          }
+        }
+        for (let i = 0; i < 4; i += 1) {
+          const rowHead = document.getElementById(`fw-rowhead-${i}`);
+          const colHead = document.getElementById(`fw-colhead-${i}`);
+          rowHead.classList.toggle('hl', step.kHighlight === i);
+          colHead.classList.toggle('hl', step.kHighlight === i);
+        }
+      }
+
+      setupTrace({ steps: astarSteps, prefix: 'astar', render: renderAstar });
+      setupTrace({ steps: fwSteps, prefix: 'fw', render: renderFW });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tree Traversal Orders — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Trees · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Tree Traversal Orders — Preorder, Inorder, Postorder &amp; Level-Order</h1>
+          <p>
+            This page is about the walk orders themselves, not about which one to pick for a given problem
+            (that's the companion BFS/DFS Pattern Playbook page). Here you watch preorder, inorder and postorder
+            fall out of the <strong>exact same three-line recursive body</strong> just by moving one statement —
+            and then you watch the iterative inorder version make the call stack, which was invisible the whole
+            time, into something you can actually see change.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: same walk, different visit point</span>
+            <span class="chip">Interactive combined DFS trace</span>
+            <span class="chip">Interactive explicit-stack trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>root = [1, 2, 3, 4, 5, 6, 7]</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 560 240" width="100%" role="img" aria-label="Perfect binary tree with root 1, children 2 and 3, and grandchildren 4, 5, 6, 7">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                </style>
+              </defs>
+              <line x1="280" y1="40" x2="160" y2="120" class="hero-edge" />
+              <line x1="280" y1="40" x2="400" y2="120" class="hero-edge" />
+              <line x1="160" y1="120" x2="100" y2="200" class="hero-edge" />
+              <line x1="160" y1="120" x2="220" y2="200" class="hero-edge" />
+              <line x1="400" y1="120" x2="340" y2="200" class="hero-edge" />
+              <line x1="400" y1="120" x2="460" y2="200" class="hero-edge" />
+              <circle cx="280" cy="40" r="26" class="hero-node" />
+              <circle cx="160" cy="120" r="26" class="hero-node" />
+              <circle cx="400" cy="120" r="26" class="hero-node" />
+              <circle cx="100" cy="200" r="26" class="hero-node" />
+              <circle cx="220" cy="200" r="26" class="hero-node" />
+              <circle cx="340" cy="200" r="26" class="hero-node" />
+              <circle cx="460" cy="200" r="26" class="hero-node" />
+              <text x="273" y="46" class="hero-label">1</text>
+              <text x="153" y="126" class="hero-label">2</text>
+              <text x="393" y="126" class="hero-label">3</text>
+              <text x="93" y="206" class="hero-label">4</text>
+              <text x="213" y="206" class="hero-label">5</text>
+              <text x="333" y="206" class="hero-label">6</text>
+              <text x="453" y="206" class="hero-label">7</text>
+            </svg>
+          </div>
+          <div class="result-badge">pre=[1,2,4,5,3,6,7] · in=[4,2,5,1,6,3,7] · post=[4,5,2,6,7,3,1] · level=[1,2,3,4,5,6,7]</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Serialize or copy a tree</h3>
+          <p>Preorder's first value is always the root, so a preorder list is a self-describing build order — read it left to right and you can reconstruct or clone the exact same tree.</p>
+        </div>
+        <div class="card">
+          <h3>Sorted output from a BST</h3>
+          <p>On a binary <strong>search</strong> tree, inorder emits values already sorted. That one fact powers validate-BST, kth-smallest, and BST-to-sorted-array.</p>
+        </div>
+        <div class="card">
+          <h3>Bottom-up computation and cleanup</h3>
+          <p>Postorder finishes both children before touching the parent, so it's the only safe order to free/delete nodes, and the natural order to compute height, sum, or "is this balanced" from the bottom up.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> preorder, inorder, and postorder are not three algorithms to memorize separately. They are one algorithm with the visit statement in three different places. Level-order (BFS) is the one genuinely different shape — it answers anything about <em>depth</em>: shortest path to a node, level-by-level view, minimum depth.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a traversal order?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>A traversal order is the rule that decides, out of the three things a recursive call can do at a node — visit it, recurse left, recurse right — <strong>which one happens first</strong>.</p>
+        </div>
+        <div class="card">
+          <h3>What actually changes between them</h3>
+          <p>Every DFS order runs the same base case (<code>if not node: return</code>) and makes the same two recursive calls. The only difference is <strong>where the one "record this node" line sits</strong> relative to those two calls.</p>
+        </div>
+      </div>
+      <div class="note-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 18px;">
+        <div class="card">
+          <h4>Preorder — N L R</h4>
+          <p>Visit <strong>before</strong> either recursive call. The node is recorded the instant its frame starts.</p>
+        </div>
+        <div class="card">
+          <h4>Inorder — L N R</h4>
+          <p>Visit <strong>between</strong> the two calls. The node waits until its left subtree is fully done.</p>
+        </div>
+        <div class="card">
+          <h4>Postorder — L R N</h4>
+          <p>Visit <strong>after</strong> both calls. The node waits until both children are completely finished.</p>
+        </div>
+        <div class="card">
+          <h4>Level-order — BFS</h4>
+          <p>Not a variant of the same body at all — no recursion, a <strong>queue</strong> instead of a stack, visiting ring by ring.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> the name already tells you the answer. "<strong>N</strong>" is spelled where it is visited relative to "L" and "R" — pre<strong>N</strong> means N first, i<strong>N</strong> the middle means N between, post<strong>N</strong> means N last. You never have to memorize which is which; read the name.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Recognize the shared skeleton</h3>
+          <p>Base case, then a call on <code>node.left</code>, a call on <code>node.right</code>, and one "record" line — always these four pieces.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Decide where "record" goes</h3>
+          <p>Need root first for rebuilding? Preorder. Need sorted order on a BST? Inorder. Need children finished first? Postorder.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Write it recursively first</h3>
+          <p>Get correctness with the natural call-stack version before worrying about converting it to a loop.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Convert to iterative if needed</h3>
+          <p>If the tree could be deep/skewed, or you need to watch the walk happen, swap the call stack for an explicit one.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes the working structure</h2>
+      <p>LeetCode hands you a level-order list. <code>build_tree</code> turns that flat list into linked <code>TreeNode</code> objects using a queue — itself a small BFS — before any DFS or BFS traversal can run on it.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input list</h3>
+          <div class="code-block"><code>[1, 2, 3, 4, 5, 6, 7]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Linked tree</h3>
+          <div class="code-block"><code>1.left  = 2
+1.right = 3
+2.left  = 4
+2.right = 5
+3.left  = 6
+3.right = 7</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Read <code>1</code></h4>
+          <p>Becomes the root and is pushed onto a build queue.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read <code>2</code>, then <code>3</code></h4>
+          <p>Attached as <code>1.left</code> and <code>1.right</code>, then each is pushed onto the build queue in turn.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read <code>4</code>, <code>5</code>, <code>6</code>, <code>7</code></h4>
+          <p>Dequeue <code>2</code>, attach <code>4</code> and <code>5</code> as its children. Dequeue <code>3</code>, attach <code>6</code> and <code>7</code>. The build queue is now empty and the tree is complete.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> the level-order <em>input</em> list and the level-order <em>traversal output</em> (BFS below) are the same shape but not automatically identical — the input list can contain <code>null</code> gaps for missing children; the traversal output only ever contains real nodes.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: recursive DFS — one walk, three orders</h2>
+      <p>Instead of writing three separate functions, this single <code>dfs</code> appends to all three output lists in one pass — to <code>preorder</code> on arrival, to <code>inorder</code> between the two recursive calls, and to <code>postorder</code> after both return. Watch how the three lists fill at different moments even though the walk itself only happens once.</p>
+      <div class="code-block stepped">
+        <code id="m1-code">
+<span class="code-line" data-line="1">def preorder_inorder_postorder(root):</span>
+<span class="code-line" data-line="2">    preorder, inorder, postorder = [], [], []</span>
+<span class="code-line" data-line="3"></span>
+<span class="code-line" data-line="4">    def dfs(node):</span>
+<span class="code-line" data-line="5">        if not node:</span>
+<span class="code-line" data-line="6">            return</span>
+<span class="code-line" data-line="7">        preorder.append(node.val)      # N first</span>
+<span class="code-line" data-line="8">        dfs(node.left)                 # L</span>
+<span class="code-line" data-line="9">        inorder.append(node.val)       # N middle</span>
+<span class="code-line" data-line="10">        dfs(node.right)                # R</span>
+<span class="code-line" data-line="11">        postorder.append(node.val)     # N last</span>
+<span class="code-line" data-line="12"></span>
+<span class="code-line" data-line="13">    dfs(root)</span>
+<span class="code-line" data-line="14">    return preorder, inorder, postorder</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive combined DFS trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="m1-graph" viewBox="0 0 560 240" width="100%" role="img" aria-label="Combined preorder/inorder/postorder trace over the tree">
+              <defs>
+                <style>
+                  .m1-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .m1-active-edge { stroke: #13a46b; stroke-width: 6; stroke-linecap: round; }
+                  .m1-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .m1-node.done { fill: #315efb; }
+                  .m1-node.onstack { fill: #13a46b; }
+                  .m1-node.current { fill: #ff9f1c; }
+                  .m1-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .m1-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="16" y="22" class="m1-title">Recursion call-stack path (root to current)</text>
+              <line x1="280" y1="60" x2="160" y2="130" class="m1-base-edge" />
+              <line x1="280" y1="60" x2="400" y2="130" class="m1-base-edge" />
+              <line x1="160" y1="130" x2="100" y2="200" class="m1-base-edge" />
+              <line x1="160" y1="130" x2="220" y2="200" class="m1-base-edge" />
+              <line x1="400" y1="130" x2="340" y2="200" class="m1-base-edge" />
+              <line x1="400" y1="130" x2="460" y2="200" class="m1-base-edge" />
+              <line x1="280" y1="60" x2="160" y2="130" class="m1-active-edge" data-m1-edge="1-2" visibility="hidden" />
+              <line x1="280" y1="60" x2="400" y2="130" class="m1-active-edge" data-m1-edge="1-3" visibility="hidden" />
+              <line x1="160" y1="130" x2="100" y2="200" class="m1-active-edge" data-m1-edge="2-4" visibility="hidden" />
+              <line x1="160" y1="130" x2="220" y2="200" class="m1-active-edge" data-m1-edge="2-5" visibility="hidden" />
+              <line x1="400" y1="130" x2="340" y2="200" class="m1-active-edge" data-m1-edge="3-6" visibility="hidden" />
+              <line x1="400" y1="130" x2="460" y2="200" class="m1-active-edge" data-m1-edge="3-7" visibility="hidden" />
+              <circle cx="280" cy="60" r="25" class="m1-node" data-node="1" />
+              <circle cx="160" cy="130" r="25" class="m1-node" data-node="2" />
+              <circle cx="400" cy="130" r="25" class="m1-node" data-node="3" />
+              <circle cx="100" cy="200" r="25" class="m1-node" data-node="4" />
+              <circle cx="220" cy="200" r="25" class="m1-node" data-node="5" />
+              <circle cx="340" cy="200" r="25" class="m1-node" data-node="6" />
+              <circle cx="460" cy="200" r="25" class="m1-node" data-node="7" />
+              <text x="273" y="66" class="m1-label">1</text>
+              <text x="153" y="136" class="m1-label">2</text>
+              <text x="393" y="136" class="m1-label">3</text>
+              <text x="93" y="206" class="m1-label">4</text>
+              <text x="213" y="206" class="m1-label">5</text>
+              <text x="333" y="206" class="m1-label">6</text>
+              <text x="453" y="206" class="m1-label">7</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> node being visited right now</span>
+            <span><i class="dot dot-green"></i> on the call stack (frame open)</span>
+            <span><i class="dot dot-blue"></i> fully done (postorder recorded)</span>
+            <span><i class="dot dot-gray"></i> not reached yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="m1-step-title">Initial state</h3>
+          <p id="m1-step-text">All three output lists start empty.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="m1-prev">Previous</button>
+            <button type="button" id="m1-play" class="primary">Resume</button>
+            <button type="button" id="m1-next">Next</button>
+            <button type="button" id="m1-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="m1-step-counter">Step 0 / 21</span>
+            <div class="progress"><span id="m1-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="m1-node">—</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="m1-action">Call dfs(1)</div></div>
+            <div class="state-box"><strong>Call stack (root → current)</strong><div class="state-value" id="m1-stack">[]</div></div>
+            <div class="state-box"><strong>preorder</strong><div class="state-value" id="m1-pre">[]</div></div>
+            <div class="state-box"><strong>inorder</strong><div class="state-value" id="m1-ino">[]</div></div>
+            <div class="state-box"><strong>postorder</strong><div class="state-value" id="m1-post">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="m1-detail"><strong>What changed:</strong> nothing has been visited yet — this is the state right before the first call.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="m1-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Node</th><th>Event</th><th>Call stack</th><th>preorder</th><th>inorder</th><th>postorder</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>Start</td><td><code>[]</code></td><td><code>[]</code></td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>1</td><td>record → preorder</td><td><code>[1]</code></td><td><code>[1]</code></td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>2</td><td>record → preorder</td><td><code>[1,2]</code></td><td><code>[1,2]</code></td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>4</td><td>record → preorder</td><td><code>[1,2,4]</code></td><td><code>[1,2,4]</code></td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>4</td><td>record → inorder</td><td><code>[1,2,4]</code></td><td><code>[1,2,4]</code></td><td><code>[4]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>4</td><td>record → postorder</td><td><code>[1,2,4]</code></td><td><code>[1,2,4]</code></td><td><code>[4]</code></td><td><code>[4]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>2</td><td>record → inorder</td><td><code>[1,2]</code></td><td><code>[1,2,4]</code></td><td><code>[4,2]</code></td><td><code>[4]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>5</td><td>record → preorder</td><td><code>[1,2,5]</code></td><td><code>[1,2,4,5]</code></td><td><code>[4,2]</code></td><td><code>[4]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>5</td><td>record → inorder</td><td><code>[1,2,5]</code></td><td><code>[1,2,4,5]</code></td><td><code>[4,2,5]</code></td><td><code>[4]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>5</td><td>record → postorder</td><td><code>[1,2,5]</code></td><td><code>[1,2,4,5]</code></td><td><code>[4,2,5]</code></td><td><code>[4,5]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>2</td><td>record → postorder</td><td><code>[1,2]</code></td><td><code>[1,2,4,5]</code></td><td><code>[4,2,5]</code></td><td><code>[4,5,2]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>1</td><td>record → inorder</td><td><code>[1]</code></td><td><code>[1,2,4,5]</code></td><td><code>[4,2,5,1]</code></td><td><code>[4,5,2]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>3</td><td>record → preorder</td><td><code>[1,3]</code></td><td><code>[1,2,4,5,3]</code></td><td><code>[4,2,5,1]</code></td><td><code>[4,5,2]</code></td></tr>
+            <tr data-step="13"><td>13</td><td>6</td><td>record → preorder</td><td><code>[1,3,6]</code></td><td><code>[1,2,4,5,3,6]</code></td><td><code>[4,2,5,1]</code></td><td><code>[4,5,2]</code></td></tr>
+            <tr data-step="14"><td>14</td><td>6</td><td>record → inorder</td><td><code>[1,3,6]</code></td><td><code>[1,2,4,5,3,6]</code></td><td><code>[4,2,5,1,6]</code></td><td><code>[4,5,2]</code></td></tr>
+            <tr data-step="15"><td>15</td><td>6</td><td>record → postorder</td><td><code>[1,3,6]</code></td><td><code>[1,2,4,5,3,6]</code></td><td><code>[4,2,5,1,6]</code></td><td><code>[4,5,2,6]</code></td></tr>
+            <tr data-step="16"><td>16</td><td>3</td><td>record → inorder</td><td><code>[1,3]</code></td><td><code>[1,2,4,5,3,6]</code></td><td><code>[4,2,5,1,6,3]</code></td><td><code>[4,5,2,6]</code></td></tr>
+            <tr data-step="17"><td>17</td><td>7</td><td>record → preorder</td><td><code>[1,3,7]</code></td><td><code>[1,2,4,5,3,6,7]</code></td><td><code>[4,2,5,1,6,3]</code></td><td><code>[4,5,2,6]</code></td></tr>
+            <tr data-step="18"><td>18</td><td>7</td><td>record → inorder</td><td><code>[1,3,7]</code></td><td><code>[1,2,4,5,3,6,7]</code></td><td><code>[4,2,5,1,6,3,7]</code></td><td><code>[4,5,2,6]</code></td></tr>
+            <tr data-step="19"><td>19</td><td>7</td><td>record → postorder</td><td><code>[1,3,7]</code></td><td><code>[1,2,4,5,3,6,7]</code></td><td><code>[4,2,5,1,6,3,7]</code></td><td><code>[4,5,2,6,7]</code></td></tr>
+            <tr data-step="20"><td>20</td><td>3</td><td>record → postorder</td><td><code>[1,3]</code></td><td><code>[1,2,4,5,3,6,7]</code></td><td><code>[4,2,5,1,6,3,7]</code></td><td><code>[4,5,2,6,7,3]</code></td></tr>
+            <tr data-step="21"><td>21</td><td>1</td><td>record → postorder</td><td><code>[1]</code></td><td><code>[1,2,4,5,3,6,7]</code></td><td><code>[4,2,5,1,6,3,7]</code></td><td><code>[4,5,2,6,7,3,1]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The call stack column is the ancestor path from the root to whatever node is active. Every recursive traversal is secretly maintaining that exact list for you — you just can't see it.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Assuming the append position doesn't matter. Moving <code>postorder.append</code> to before the two recursive calls doesn't give you "postorder a bit early" — it silently turns the function into preorder.</p>
+        </div>
+        <div class="card">
+          <h4>Why this matters for Method 2</h4>
+          <p>The "call stack" column above is exactly what Method 2 makes explicit. Watch it shrink from <code>[1,2,4]</code> back to <code>[1,2]</code> at step 6 — that's a frame returning, the same event an explicit stack's <code>pop()</code> represents.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: iterative inorder — the stack made visible</h2>
+      <p>Same result as recursive inorder, but the ancestor path that recursion tracked for free is now an explicit list you push and pop by hand: <strong>dive left</strong> (push every node on the way down), <strong>pop</strong> (its left subtree is now provably finished), <strong>record</strong>, then <strong>go right</strong> and repeat.</p>
+      <div class="code-block stepped">
+        <code id="m2-code">
+<span class="code-line" data-line="1">def inorder_iterative(root):</span>
+<span class="code-line" data-line="2">    out, stack = [], []</span>
+<span class="code-line" data-line="3">    node = root</span>
+<span class="code-line" data-line="4">    while node or stack:</span>
+<span class="code-line" data-line="5">        while node:</span>
+<span class="code-line" data-line="6">            stack.append(node)</span>
+<span class="code-line" data-line="7">            node = node.left</span>
+<span class="code-line" data-line="8">        node = stack.pop()</span>
+<span class="code-line" data-line="9">        out.append(node.val)</span>
+<span class="code-line" data-line="10">        node = node.right</span>
+<span class="code-line" data-line="11">    return out</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive explicit-stack trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="m2-graph" viewBox="0 0 560 240" width="100%" role="img" aria-label="Iterative inorder trace over the tree">
+              <defs>
+                <style>
+                  .m2-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .m2-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .m2-node.done { fill: #315efb; }
+                  .m2-node.onstack { fill: #13a46b; }
+                  .m2-node.current { fill: #ff9f1c; }
+                  .m2-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .m2-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="16" y="22" class="m2-title">Explicit stack contents</text>
+              <line x1="280" y1="60" x2="160" y2="130" class="m2-base-edge" />
+              <line x1="280" y1="60" x2="400" y2="130" class="m2-base-edge" />
+              <line x1="160" y1="130" x2="100" y2="200" class="m2-base-edge" />
+              <line x1="160" y1="130" x2="220" y2="200" class="m2-base-edge" />
+              <line x1="400" y1="130" x2="340" y2="200" class="m2-base-edge" />
+              <line x1="400" y1="130" x2="460" y2="200" class="m2-base-edge" />
+              <circle cx="280" cy="60" r="25" class="m2-node" data-node="1" />
+              <circle cx="160" cy="130" r="25" class="m2-node" data-node="2" />
+              <circle cx="400" cy="130" r="25" class="m2-node" data-node="3" />
+              <circle cx="100" cy="200" r="25" class="m2-node" data-node="4" />
+              <circle cx="220" cy="200" r="25" class="m2-node" data-node="5" />
+              <circle cx="340" cy="200" r="25" class="m2-node" data-node="6" />
+              <circle cx="460" cy="200" r="25" class="m2-node" data-node="7" />
+              <text x="273" y="66" class="m2-label">1</text>
+              <text x="153" y="136" class="m2-label">2</text>
+              <text x="393" y="136" class="m2-label">3</text>
+              <text x="93" y="206" class="m2-label">4</text>
+              <text x="213" y="206" class="m2-label">5</text>
+              <text x="333" y="206" class="m2-label">6</text>
+              <text x="453" y="206" class="m2-label">7</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> node just pushed or popped</span>
+            <span><i class="dot dot-green"></i> sitting on the explicit stack</span>
+            <span><i class="dot dot-blue"></i> already recorded to output</span>
+            <span><i class="dot dot-gray"></i> not touched yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="m2-step-title">Initial state</h3>
+          <p id="m2-step-text"><code>node</code> points at the root; the stack is empty.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="m2-prev">Previous</button>
+            <button type="button" id="m2-play" class="primary">Resume</button>
+            <button type="button" id="m2-next">Next</button>
+            <button type="button" id="m2-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="m2-step-counter">Step 0 / 14</span>
+            <div class="progress"><span id="m2-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>node pointer</strong><div class="state-value" id="m2-node">1</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="m2-action">node = root</div></div>
+            <div class="state-box"><strong>Stack (top is rightmost)</strong><div class="state-value" id="m2-stack">[]</div></div>
+            <div class="state-box"><strong>out</strong><div class="state-value" id="m2-out">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="m2-detail"><strong>What changed:</strong> nothing has been pushed, popped, or recorded yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="m2-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>Node</th><th>Stack after</th><th>out after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Start: node = root</td><td>1</td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>push 1, go left</td><td>1</td><td><code>[1]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>push 2, go left</td><td>2</td><td><code>[1,2]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>push 4, go left</td><td>4</td><td><code>[1,2,4]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>pop 4 → record</td><td>4</td><td><code>[1,2]</code></td><td><code>[4]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>pop 2 → record</td><td>2</td><td><code>[1]</code></td><td><code>[4,2]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>push 5, go left</td><td>5</td><td><code>[1,5]</code></td><td><code>[4,2]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>pop 5 → record</td><td>5</td><td><code>[1]</code></td><td><code>[4,2,5]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>pop 1 → record</td><td>1</td><td><code>[]</code></td><td><code>[4,2,5,1]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>push 3, go left</td><td>3</td><td><code>[3]</code></td><td><code>[4,2,5,1]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>push 6, go left</td><td>6</td><td><code>[3,6]</code></td><td><code>[4,2,5,1]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>pop 6 → record</td><td>6</td><td><code>[3]</code></td><td><code>[4,2,5,1,6]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>pop 3 → record</td><td>3</td><td><code>[]</code></td><td><code>[4,2,5,1,6,3]</code></td></tr>
+            <tr data-step="13"><td>13</td><td>push 7, go left</td><td>7</td><td><code>[7]</code></td><td><code>[4,2,5,1,6,3]</code></td></tr>
+            <tr data-step="14"><td>14</td><td>pop 7 → record</td><td>7</td><td><code>[]</code></td><td><code>[4,2,5,1,6,3,7]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The stack always holds nodes whose <strong>left</strong> subtree is not yet provably finished. Popping one is the code's way of saying "your left side is done, your turn."</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Writing <code>while stack:</code> instead of <code>while node or stack:</code>. Once the stack empties mid-walk (it does, at step 8 and step 12 above), that drops every remaining right subtree silently.</p>
+        </div>
+        <div class="card">
+          <h4>Why this survives a deep tree</h4>
+          <p><code>stack</code> is a Python list living on the heap. Recursion instead consumes one call-stack frame per level and can hit Python's ~1000-frame <code>RecursionError</code> limit on a very tall tree — see the skewed-tree edge case below.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Single node</button>
+        <button type="button" data-example-tab="1">Left-skewed chain</button>
+        <button type="button" data-example-tab="2">Empty tree</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: single node</h3>
+          <p><code>root = build_tree([5])</code></p>
+          <div class="result-badge">pre = in = post = level = [5]</div>
+          <p class="footer-note">With no children, all four orders visit exactly one node and produce the same one-element list. This is the case that proves the base case (<code>if not node: return</code>) is correct: no recursion beyond it is ever needed.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: left-skewed chain</h3>
+          <p><code>root = left_chain(3)</code> — <code>1.left = 2</code>, <code>2.left = 3</code>, no right children anywhere</p>
+          <div class="result-badge">preorder = [1,2,3] · inorder = postorder = [3,2,1]</div>
+          <p class="footer-note">With every right child empty, postorder's <code>L R N</code> collapses to just <code>L N</code> — identical to inorder. And because the walk only ever goes one direction, inorder is exactly preorder reversed. At <code>left_chain(5000)</code> — the notebook's actual stress test — recursive inorder raises <code>RecursionError</code> while the iterative version, whose stack lives on the heap, returns cleanly. Depth is the real danger here, not correctness.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: empty tree</h3>
+          <p><code>root = build_tree([])</code> → <code>root = None</code></p>
+          <div class="result-badge">pre = in = post = level = []</div>
+          <p class="footer-note">Every function must check for <code>None</code> before touching <code>.val</code>, <code>.left</code>, or <code>.right</code>. Recursive versions do it with <code>if not node: return</code>; iterative versions do it with <code>if not root: return []</code> before the loop even starts.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Order</th><th>What it's for</th><th>Time</th><th>Space (recursive)</th><th>Space (iterative)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Preorder</td><td>Serialize / clone a tree — the root is always first</td><td>O(n)</td><td>O(h) call stack</td><td>O(h) explicit stack</td></tr>
+            <tr><td>Inorder</td><td>Sorted order on a BST — validate-BST, kth-smallest</td><td>O(n)</td><td>O(h) call stack</td><td>O(h) explicit stack (O(1) with Morris threading)</td></tr>
+            <tr><td>Postorder</td><td>Compute a value bottom-up from children; the only safe order to free/delete nodes</td><td>O(n)</td><td>O(h) call stack</td><td>O(h) explicit stack</td></tr>
+            <tr><td>Level-order (BFS)</td><td>Anything about depth: shortest hops to a node, level-by-level view, minimum depth</td><td>O(n)</td><td>N/A — no natural recursive form</td><td>O(w) queue, widest level</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note"><code>h</code> = tree height (worst case <code>n</code> on a skewed tree, <code>log n</code> balanced). <code>w</code> = widest level (up to <code>~n/2</code> on a perfect tree). All four still touch every node exactly once — they only differ in when/how.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>Does a node's answer depend on its children, or do I just need to walk in a specific value order?</p></div>
+            <div class="timeline-step"><p>If it's about sorted VALUE order on a BST → inorder, sorted for free.</p></div>
+            <div class="timeline-step"><p>If I need to rebuild, serialize, or clone → root has to come first → preorder.</p></div>
+            <div class="timeline-step"><p>If I'm computing something from children (height, sum, balance) or freeing memory → children before parent → postorder.</p></div>
+            <div class="timeline-step"><p>If the question says nearest / shortest / level-by-level → none of the three DFS orders fit; I need a queue, not a stack → BFS.</p></div>
+            <div class="timeline-step"><p>If the tree could be very deep or skewed → say out loud that recursion risks <code>RecursionError</code>, and I'd use the explicit-stack version instead.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"All three DFS orders are the same body — I just need to decide where the visit line goes relative to the two recursive calls."</li>
+            <li>"This is a BST and I need sorted order, so inorder gives me that for free — no separate sort step."</li>
+            <li>"I need every child fully resolved before the parent, so I'll record the node after both recursive calls — that's postorder."</li>
+            <li>"If I'm worried about a deep or skewed input, I'll convert to the iterative version so the walk lives on the heap, not the call stack."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Recursive DFS mistakes</h3>
+          <ul class="mistake-list">
+            <li>Assuming the append position doesn't matter — swapping it changes which traversal you actually have, silently.</li>
+            <li>Forgetting the base case (<code>if not node: return</code>) — leads to an <code>AttributeError</code> on <code>None.val</code>, not infinite recursion (Python trees terminate at leaves regardless).</li>
+            <li>Believing "inorder is sorted" applies to any binary tree — it is only true on a binary <strong>search</strong> tree.</li>
+            <li>Returning a value from the inner helper instead of appending to a closure list, then losing results between recursive calls.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Iterative stack mistakes</h3>
+          <ul class="mistake-list">
+            <li>Using <code>while stack:</code> instead of <code>while node or stack:</code> — the walk stops the moment the stack empties mid-tree, silently dropping whatever comes next.</li>
+            <li>Pushing left before right for preorder — a stack reverses whatever you push, so right must go on first to make left pop next.</li>
+            <li>Popping and recording immediately in inorder the way preorder does it — inorder can only record a node once its left subtree is provably finished, which is exactly when the dive-left loop pops it.</li>
+            <li>Forgetting <code>node = popped.right</code> after recording in inorder — without it the loop never explores right subtrees and the walk ends early.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — Given <code>preorder = [1, 2, 4, 5, 3, 6, 7]</code>, what is the very first element guaranteed to be, and why?</summary>
+          <p style="margin-top:10px;">Answer: the <strong>root</strong>. Preorder appends <code>node.val</code> before either recursive call runs, so the outermost call — the one on the root — is always the first thing recorded, no matter the tree's shape.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — Trace <code>inorder_iterative</code> by hand on a right-skewed chain <code>1 → 2 → 3</code> (all right children, no left children anywhere). How does the stack behave differently than on the left-skewed case above?</summary>
+          <p style="margin-top:10px;">Answer: the stack never holds more than one element. Each node has no left child, so the inner "dive left" loop pushes it and immediately falls through (<code>node.left</code> is <code>None</code>); the very next line pops it right back off and records it, then moves to <code>node.right</code> and repeats. Compare that to the left-skewed case, where the whole chain piles onto the stack before a single pop happens — the stack's peak size <em>is</em> the tree's height, and that height is entirely determined by how many <code>left</code> pointers are chained together.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — In <code>preorder_inorder_postorder</code>, what happens if you move <code>postorder.append(node.val)</code> from after both recursive calls to <em>before</em> both of them?</summary>
+          <p style="margin-top:10px;">Answer: you get <strong>preorder</strong> again — a second copy of it, appended before <code>dfs(node.left)</code>. This is the whole point of the "one skeleton, three positions" idea: there is nothing structurally special about postorder's code, only about where its one line sits. Move the line, and you've moved the traversal.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          Preorder, inorder, and postorder are <strong>one walk</strong>, not three. The base case and the two
+          recursive calls never change — only where the "record this node" line sits relative to them. Recursion
+          gives you that walk for free by using the call stack as scratch space; the iterative inorder version
+          just takes that same scratch space and hands it to you as a Python list you can inspect at every step.
+          Level-order breaks the pattern on purpose: swap the stack for a queue and you get a completely different
+          question answered — depth, not subtree structure.
+        </p>
+      </div>
+      <p class="footer-note">Based on <code>0. tree_traversals_dfs_and_bfs.ipynb</code> in this folder — every trace on this page was produced by running the notebook's actual functions and recording their real state.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const m1Steps = [
+        { step: 0, title: 'Initial state', text: 'All three output lists start empty. The walk always begins at the root.', node: '—', action: 'Call dfs(1)', stack: '[]', pre: '[]', ino: '[]', post: '[]', detail: 'Nothing has been visited yet — this is the state right before the first call.', currentNode: null, stackNodes: [], doneNodes: [], pathEdges: [], lines: [1, 2, 13] },
+        { step: 1, title: 'Step 1: dfs(1) — arrive at the root', text: 'The very first thing dfs(1) does is append 1 to preorder, before either child has been visited. This is what "N first" means.', node: '1', action: 'preorder.append(1)', stack: '[1]', pre: '[1]', ino: '[]', post: '[]', detail: 'preorder gets its first value the instant the root\'s frame starts — this is why preorder always starts with the root.', currentNode: 1, stackNodes: [1], doneNodes: [], pathEdges: [], lines: [7] },
+        { step: 2, title: 'Step 2: dfs(2) — arrive at node 2', text: 'dfs(1) calls dfs(node.left) = dfs(2). Node 2\'s frame starts and immediately appends 2 to preorder — the same rule, one level deeper.', node: '2', action: 'preorder.append(2)', stack: '[1, 2]', pre: '[1, 2]', ino: '[]', post: '[]', detail: 'Call stack now holds [1, 2]: node 2\'s frame is nested inside node 1\'s, exactly like Method 2\'s explicit stack will be.', currentNode: 2, stackNodes: [1, 2], doneNodes: [], pathEdges: ['1-2'], lines: [7] },
+        { step: 3, title: 'Step 3: dfs(4) — arrive at node 4', text: 'dfs(2) calls dfs(node.left) = dfs(4). Node 4 is a leaf, but the code doesn\'t know that yet — it appends to preorder unconditionally on arrival.', node: '4', action: 'preorder.append(4)', stack: '[1, 2, 4]', pre: '[1, 2, 4]', ino: '[]', post: '[]', detail: 'Call stack: [1, 2, 4] — three nested frames deep, matching node 4\'s depth in the tree.', currentNode: 4, stackNodes: [1, 2, 4], doneNodes: [], pathEdges: ['1-2', '2-4'], lines: [7] },
+        { step: 4, title: 'Step 4: dfs(4) — after the left call returns', text: 'dfs(4) calls dfs(node.left), but node 4 has no left child, so that call returns instantly. The code is now between the two recursive calls — this is where inorder appends.', node: '4', action: 'inorder.append(4)', stack: '[1, 2, 4]', pre: '[1, 2, 4]', ino: '[4]', post: '[]', detail: 'Node 4 is added to inorder now, not on arrival. Its left subtree (empty) is "done", so it is inorder\'s turn.', currentNode: 4, stackNodes: [1, 2, 4], doneNodes: [], pathEdges: ['1-2', '2-4'], lines: [8, 9] },
+        { step: 5, title: 'Step 5: dfs(4) — frame closes', text: 'dfs(4) calls dfs(node.right) (also empty, returns instantly), then appends 4 to postorder. Both children are done, so node 4\'s frame is finished and about to pop.', node: '4', action: 'postorder.append(4)', stack: '[1, 2, 4]', pre: '[1, 2, 4]', ino: '[4]', post: '[4]', detail: 'Node 4 turns blue: preorder, inorder, and postorder have all recorded it. Its frame returns control to dfs(2).', currentNode: 4, stackNodes: [1, 2, 4], doneNodes: [4], pathEdges: ['1-2', '2-4'], lines: [10, 11] },
+        { step: 6, title: 'Step 6: back in dfs(2) — after the left call returns', text: 'dfs(4) returned. Control is back in dfs(2), right after dfs(node.left). Node 2 goes into inorder now — its whole left subtree (node 4) is finished.', node: '2', action: 'inorder.append(2)', stack: '[1, 2]', pre: '[1, 2, 4]', ino: '[4, 2]', post: '[4]', detail: 'Call stack shrank back to [1, 2] — node 4\'s frame is gone. This shrink is exactly what an explicit stack\'s pop() will do in Method 2.', currentNode: 2, stackNodes: [1, 2], doneNodes: [4], pathEdges: ['1-2'], lines: [8, 9] },
+        { step: 7, title: 'Step 7: dfs(2) calls dfs(node.right) = dfs(5)', text: 'Node 5\'s frame starts and appends to preorder on arrival, same as every node.', node: '5', action: 'preorder.append(5)', stack: '[1, 2, 5]', pre: '[1, 2, 4, 5]', ino: '[4, 2]', post: '[4]', detail: 'Call stack: [1, 2, 5].', currentNode: 5, stackNodes: [1, 2, 5], doneNodes: [4], pathEdges: ['1-2', '2-5'], lines: [7] },
+        { step: 8, title: 'Step 8: dfs(5) — after its (empty) left call returns', text: 'Node 5 has no children, so both its recursive calls return instantly. It is added to inorder right between them.', node: '5', action: 'inorder.append(5)', stack: '[1, 2, 5]', pre: '[1, 2, 4, 5]', ino: '[4, 2, 5]', post: '[4]', detail: 'Same rule as node 4: no children just means both recursive calls are no-ops.', currentNode: 5, stackNodes: [1, 2, 5], doneNodes: [4], pathEdges: ['1-2', '2-5'], lines: [8, 9] },
+        { step: 9, title: 'Step 9: dfs(5) — frame closes', text: 'Node 5\'s right call also returns instantly. Postorder gets 5. Node 5 turns blue — fully finished.', node: '5', action: 'postorder.append(5)', stack: '[1, 2, 5]', pre: '[1, 2, 4, 5]', ino: '[4, 2, 5]', post: '[4, 5]', detail: 'dfs(5) returns control to dfs(2).', currentNode: 5, stackNodes: [1, 2, 5], doneNodes: [4, 5], pathEdges: ['1-2', '2-5'], lines: [10, 11] },
+        { step: 10, title: 'Step 10: back in dfs(2) — frame closes', text: 'Both dfs(node.left)=dfs(4) and dfs(node.right)=dfs(5) have returned. Node 2 is appended to postorder last — after both of its children.', node: '2', action: 'postorder.append(2)', stack: '[1, 2]', pre: '[1, 2, 4, 5]', ino: '[4, 2, 5]', post: '[4, 5, 2]', detail: 'Node 2 turns blue. dfs(2) returns control to dfs(1).', currentNode: 2, stackNodes: [1, 2], doneNodes: [4, 5, 2], pathEdges: ['1-2'], lines: [10, 11] },
+        { step: 11, title: 'Step 11: back in dfs(1) — after the left call returns', text: 'The entire left subtree of the root (everything under node 2) is done. Node 1 — the root — goes into inorder now, dead center of the output.', node: '1', action: 'inorder.append(1)', stack: '[1]', pre: '[1, 2, 4, 5]', ino: '[4, 2, 5, 1]', post: '[4, 5, 2]', detail: 'Call stack is back to just [1]. inorder is not finished with node 1 yet — postorder still needs it, and that only happens after the right subtree too.', currentNode: 1, stackNodes: [1], doneNodes: [4, 5, 2], pathEdges: [], lines: [8, 9] },
+        { step: 12, title: 'Step 12: dfs(1) calls dfs(node.right) = dfs(3)', text: 'The whole left subtree is done; now the walk starts the right subtree. Node 3 appends to preorder on arrival, same as every node so far.', node: '3', action: 'preorder.append(3)', stack: '[1, 3]', pre: '[1, 2, 4, 5, 3]', ino: '[4, 2, 5, 1]', post: '[4, 5, 2]', detail: 'Call stack: [1, 3].', currentNode: 3, stackNodes: [1, 3], doneNodes: [4, 5, 2], pathEdges: ['1-3'], lines: [7] },
+        { step: 13, title: 'Step 13: dfs(3) calls dfs(node.left) = dfs(6)', text: 'Node 6 appends to preorder immediately on arrival.', node: '6', action: 'preorder.append(6)', stack: '[1, 3, 6]', pre: '[1, 2, 4, 5, 3, 6]', ino: '[4, 2, 5, 1]', post: '[4, 5, 2]', detail: 'Call stack: [1, 3, 6].', currentNode: 6, stackNodes: [1, 3, 6], doneNodes: [4, 5, 2], pathEdges: ['1-3', '3-6'], lines: [7] },
+        { step: 14, title: 'Step 14: dfs(6) — between its two (empty) calls', text: 'Node 6 is a leaf; both recursive calls return instantly, so it is recorded to inorder right away.', node: '6', action: 'inorder.append(6)', stack: '[1, 3, 6]', pre: '[1, 2, 4, 5, 3, 6]', ino: '[4, 2, 5, 1, 6]', post: '[4, 5, 2]', detail: 'Same shape as every leaf: N-first and N-middle happen back to back with nothing between them.', currentNode: 6, stackNodes: [1, 3, 6], doneNodes: [4, 5, 2], pathEdges: ['1-3', '3-6'], lines: [8, 9] },
+        { step: 15, title: 'Step 15: dfs(6) — frame closes', text: 'Node 6 is appended to postorder and turns blue. dfs(6) returns to dfs(3).', node: '6', action: 'postorder.append(6)', stack: '[1, 3, 6]', pre: '[1, 2, 4, 5, 3, 6]', ino: '[4, 2, 5, 1, 6]', post: '[4, 5, 2, 6]', detail: 'Call stack about to shrink back to [1, 3].', currentNode: 6, stackNodes: [1, 3, 6], doneNodes: [4, 5, 2, 6], pathEdges: ['1-3', '3-6'], lines: [10, 11] },
+        { step: 16, title: 'Step 16: back in dfs(3) — after the left call returns', text: 'Node 6\'s subtree is fully done. Node 3 goes into inorder now, between its left and right children.', node: '3', action: 'inorder.append(3)', stack: '[1, 3]', pre: '[1, 2, 4, 5, 3, 6]', ino: '[4, 2, 5, 1, 6, 3]', post: '[4, 5, 2, 6]', detail: 'Call stack: [1, 3].', currentNode: 3, stackNodes: [1, 3], doneNodes: [4, 5, 2, 6], pathEdges: ['1-3'], lines: [8, 9] },
+        { step: 17, title: 'Step 17: dfs(3) calls dfs(node.right) = dfs(7)', text: 'Node 7 appends to preorder on arrival.', node: '7', action: 'preorder.append(7)', stack: '[1, 3, 7]', pre: '[1, 2, 4, 5, 3, 6, 7]', ino: '[4, 2, 5, 1, 6, 3]', post: '[4, 5, 2, 6]', detail: 'Call stack: [1, 3, 7].', currentNode: 7, stackNodes: [1, 3, 7], doneNodes: [4, 5, 2, 6], pathEdges: ['1-3', '3-7'], lines: [7] },
+        { step: 18, title: 'Step 18: dfs(7) — between its two (empty) calls', text: 'Node 7 is a leaf; recorded to inorder immediately.', node: '7', action: 'inorder.append(7)', stack: '[1, 3, 7]', pre: '[1, 2, 4, 5, 3, 6, 7]', ino: '[4, 2, 5, 1, 6, 3, 7]', post: '[4, 5, 2, 6]', detail: 'inorder is now complete — 7 values, matching the tree size.', currentNode: 7, stackNodes: [1, 3, 7], doneNodes: [4, 5, 2, 6], pathEdges: ['1-3', '3-7'], lines: [8, 9] },
+        { step: 19, title: 'Step 19: dfs(7) — frame closes', text: 'Node 7 appended to postorder, turns blue. dfs(7) returns to dfs(3).', node: '7', action: 'postorder.append(7)', stack: '[1, 3, 7]', pre: '[1, 2, 4, 5, 3, 6, 7]', ino: '[4, 2, 5, 1, 6, 3, 7]', post: '[4, 5, 2, 6, 7]', detail: 'This is the last leaf. Only the two ancestors\' postorder entries remain.', currentNode: 7, stackNodes: [1, 3, 7], doneNodes: [4, 5, 2, 6, 7], pathEdges: ['1-3', '3-7'], lines: [10, 11] },
+        { step: 20, title: 'Step 20: back in dfs(3) — frame closes', text: 'Both children of node 3 are done. Node 3 is appended to postorder and turns blue. dfs(3) returns to dfs(1).', node: '3', action: 'postorder.append(3)', stack: '[1, 3]', pre: '[1, 2, 4, 5, 3, 6, 7]', ino: '[4, 2, 5, 1, 6, 3, 7]', post: '[4, 5, 2, 6, 7, 3]', detail: 'Call stack about to shrink back to [1].', currentNode: 3, stackNodes: [1, 3], doneNodes: [4, 5, 2, 6, 7, 3], pathEdges: ['1-3'], lines: [10, 11] },
+        { step: 21, title: 'Step 21: back in dfs(1) — the whole walk finishes', text: 'Both subtrees of the root are done. Node 1 — the root — is appended to postorder last, exactly as guaranteed: postorder always ends at the root. All three lists are complete.', node: '1', action: 'postorder.append(1); return', stack: '[1]', pre: '[1, 2, 4, 5, 3, 6, 7]', ino: '[4, 2, 5, 1, 6, 3, 7]', post: '[4, 5, 2, 6, 7, 3, 1]', detail: 'preorder=[1,2,4,5,3,6,7], inorder=[4,2,5,1,6,3,7], postorder=[4,5,2,6,7,3,1] — one walk, three orders.', currentNode: 1, stackNodes: [1], doneNodes: [4, 5, 2, 6, 7, 3, 1], pathEdges: [], lines: [10, 11, 14] }
+      ];
+
+      const m2Steps = [
+        { step: 0, title: 'Initial state', text: 'node points at the root; the stack is empty. Nothing has been recorded yet.', node: '1', action: 'node = root', stack: '[]', out: '[]', detail: 'This is the state right before the outer while loop\'s first check.', currentNode: null, stackNodes: [], doneNodes: [], lines: [2, 3, 4] },
+        { step: 1, title: 'Step 1: push 1, dive left', text: 'node = 1 is not None, so the inner loop pushes it and moves node to node.left (2).', node: '1', action: 'stack.append(1); node = node.left', stack: '[1]', out: '[]', detail: 'The stack now holds the ancestor path to wherever node ends up next — the same job the call stack was doing in Method 1.', currentNode: 1, stackNodes: [1], doneNodes: [], lines: [5, 6, 7] },
+        { step: 2, title: 'Step 2: push 2, dive left', text: 'node = 2 is still not None, so push it too and move to node.left (4).', node: '2', action: 'stack.append(2); node = node.left', stack: '[1, 2]', out: '[]', detail: 'Stack: [1, 2].', currentNode: 2, stackNodes: [1, 2], doneNodes: [], lines: [5, 6, 7] },
+        { step: 3, title: 'Step 3: push 4, dive left', text: 'node = 4 is not None, push it and move to node.left (None) — the dive hits bottom.', node: '4', action: 'stack.append(4); node = node.left', stack: '[1, 2, 4]', out: '[]', detail: 'Stack: [1, 2, 4] — the whole left spine from the root down to node 4. Compare this to call_stack = [1, 2, 4] at the matching moment in Method 1.', currentNode: 4, stackNodes: [1, 2, 4], doneNodes: [], lines: [5, 6, 7] },
+        { step: 4, title: 'Step 4: pop 4, record', text: 'node is now None, so the inner while stops. Pop the top of the stack (4) — its left subtree is provably empty, so it is safe to record. Append 4 to out, then move to node.right (None).', node: '4', action: 'node = stack.pop(); out.append(4); node = node.right', stack: '[1, 2]', out: '[4]', detail: 'out = [4]. This is inorder\'s first value — the deepest-left node, exactly as expected.', currentNode: 4, stackNodes: [1, 2], doneNodes: [4], lines: [8, 9, 10] },
+        { step: 5, title: 'Step 5: pop 2, record', text: 'node is None again (4\'s right was None), so pop again. Node 2\'s left subtree (node 4) is now fully recorded, so it is safe to append 2.', node: '2', action: 'node = stack.pop(); out.append(2); node = node.right', stack: '[1]', out: '[4, 2]', detail: 'out = [4, 2]. Stack: [1].', currentNode: 2, stackNodes: [1], doneNodes: [4, 2], lines: [8, 9, 10] },
+        { step: 6, title: 'Step 6: push 5, dive left', text: 'node = 2.right = 5. Not None, so push it and move to node.left (None).', node: '5', action: 'stack.append(5); node = node.left', stack: '[1, 5]', out: '[4, 2]', detail: 'Stack: [1, 5].', currentNode: 5, stackNodes: [1, 5], doneNodes: [4, 2], lines: [5, 6, 7] },
+        { step: 7, title: 'Step 7: pop 5, record', text: 'node is None, pop 5 and append it — its (empty) left subtree is done.', node: '5', action: 'node = stack.pop(); out.append(5); node = node.right', stack: '[1]', out: '[4, 2, 5]', detail: 'out = [4, 2, 5]. Stack: [1].', currentNode: 5, stackNodes: [1], doneNodes: [4, 2, 5], lines: [8, 9, 10] },
+        { step: 8, title: 'Step 8: pop 1, record', text: 'node is None (5\'s right was None), pop the last item: 1, the root. Its entire left subtree (2, 4, 5) is now fully recorded, so it is finally safe to append it.', node: '1', action: 'node = stack.pop(); out.append(1); node = node.right', stack: '[]', out: '[4, 2, 5, 1]', detail: 'out = [4, 2, 5, 1]. Stack: []. Node 1 lands in the exact middle of the 7-value output — the signature of inorder.', currentNode: 1, stackNodes: [], doneNodes: [4, 2, 5, 1], lines: [8, 9, 10] },
+        { step: 9, title: 'Step 9: push 3, dive left', text: 'node = 1.right = 3. Push it and move to node.left (6).', node: '3', action: 'stack.append(3); node = node.left', stack: '[3]', out: '[4, 2, 5, 1]', detail: 'Stack: [3]. The walk now starts the entire right subtree of the root.', currentNode: 3, stackNodes: [3], doneNodes: [4, 2, 5, 1], lines: [5, 6, 7] },
+        { step: 10, title: 'Step 10: push 6, dive left', text: 'Still inside the same inner dive: node = 3.left = 6 is not None, so push it too and move to node.left (None) — bottom of this spine.', node: '6', action: 'stack.append(6); node = node.left', stack: '[3, 6]', out: '[4, 2, 5, 1]', detail: 'Stack: [3, 6].', currentNode: 6, stackNodes: [3, 6], doneNodes: [4, 2, 5, 1], lines: [5, 6, 7] },
+        { step: 11, title: 'Step 11: pop 6, record', text: 'node is None, pop 6 (its empty left subtree is done) and append it.', node: '6', action: 'node = stack.pop(); out.append(6); node = node.right', stack: '[3]', out: '[4, 2, 5, 1, 6]', detail: 'out = [4, 2, 5, 1, 6]. Stack: [3].', currentNode: 6, stackNodes: [3], doneNodes: [4, 2, 5, 1, 6], lines: [8, 9, 10] },
+        { step: 12, title: 'Step 12: pop 3, record', text: 'node is None (6\'s right was None), pop 3 — its left subtree (node 6) is fully recorded — and append it.', node: '3', action: 'node = stack.pop(); out.append(3); node = node.right', stack: '[]', out: '[4, 2, 5, 1, 6, 3]', detail: 'out = [4, 2, 5, 1, 6, 3]. Stack: [].', currentNode: 3, stackNodes: [], doneNodes: [4, 2, 5, 1, 6, 3], lines: [8, 9, 10] },
+        { step: 13, title: 'Step 13: push 7, dive left', text: 'node = 3.right = 7. Push it and move to node.left (None).', node: '7', action: 'stack.append(7); node = node.left', stack: '[7]', out: '[4, 2, 5, 1, 6, 3]', detail: 'Stack: [7].', currentNode: 7, stackNodes: [7], doneNodes: [4, 2, 5, 1, 6, 3], lines: [5, 6, 7] },
+        { step: 14, title: 'Step 14: pop 7, record — done', text: 'node is None, pop 7 (last node) and append it. Both node and stack are now empty/None, so the outer while loop ends.', node: '7', action: 'node = stack.pop(); out.append(7); return out', stack: '[]', out: '[4, 2, 5, 1, 6, 3, 7]', detail: 'out = [4, 2, 5, 1, 6, 3, 7] — matches the recursive inorder exactly. Final answer.', currentNode: 7, stackNodes: [], doneNodes: [4, 2, 5, 1, 6, 3, 7], lines: [8, 9, 11] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderM1(step, index, max) {
+        document.getElementById('m1-step-title').textContent = step.title;
+        document.getElementById('m1-step-text').textContent = step.text;
+        document.getElementById('m1-node').textContent = step.node;
+        document.getElementById('m1-action').textContent = step.action;
+        document.getElementById('m1-stack').textContent = step.stack;
+        document.getElementById('m1-pre').textContent = step.pre;
+        document.getElementById('m1-ino').textContent = step.ino;
+        document.getElementById('m1-post').textContent = step.post;
+        document.getElementById('m1-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('m1-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('m1-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('m1-trace-table', step.step);
+        setCodeHighlight('m1-code', step.lines);
+
+        document.querySelectorAll('#m1-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('done', 'onstack', 'current');
+          if (step.currentNode === id) {
+            node.classList.add('current');
+          } else if (step.doneNodes.includes(id)) {
+            node.classList.add('done');
+          } else if (step.stackNodes.includes(id)) {
+            node.classList.add('onstack');
+          }
+        });
+
+        document.querySelectorAll('#m1-graph [data-m1-edge]').forEach((line) => {
+          line.setAttribute('visibility', step.pathEdges.includes(line.dataset.m1Edge) ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderM2(step, index, max) {
+        document.getElementById('m2-step-title').textContent = step.title;
+        document.getElementById('m2-step-text').textContent = step.text;
+        document.getElementById('m2-node').textContent = step.node;
+        document.getElementById('m2-action').textContent = step.action;
+        document.getElementById('m2-stack').textContent = step.stack;
+        document.getElementById('m2-out').textContent = step.out;
+        document.getElementById('m2-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('m2-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('m2-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('m2-trace-table', step.step);
+        setCodeHighlight('m2-code', step.lines);
+
+        document.querySelectorAll('#m2-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('done', 'onstack', 'current');
+          if (step.currentNode === id) {
+            node.classList.add('current');
+          } else if (step.doneNodes.includes(id)) {
+            node.classList.add('done');
+          } else if (step.stackNodes.includes(id)) {
+            node.classList.add('onstack');
+          }
+        });
+      }
+
+      setupTrace({ steps: m1Steps, prefix: 'm1', render: renderM1 });
+      setupTrace({ steps: m2Steps, prefix: 'm2', render: renderM2 });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

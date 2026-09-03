@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graph Representation — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Graph basics · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Graph Representation — Adjacency List vs Adjacency Matrix</h1>
+          <p>
+            A graph is an idea; to compute with it, you must <strong>store</strong> it. This page builds the exact
+            same graph two ways — as an adjacency list and as an adjacency matrix — and traces both, step by step,
+            so you can see with your own eyes why one gives you an instant <code>O(1)</code> edge check while the
+            other gives you a cheap <code>O(degree)</code> neighbour walk, and why you can't have both for free.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: storage shape drives complexity</span>
+            <span class="chip">Interactive adjacency-list trace</span>
+            <span class="chip">Interactive adjacency-matrix trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>vertices = A..F (0..5)</code><br /><code>edges = [(0,1),(0,3),(1,2),(1,4),(2,5),(3,4),(4,5)]</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 520 260" width="100%" role="img" aria-label="Undirected graph with six vertices A through F and seven edges">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                </style>
+              </defs>
+              <line x1="260" y1="30" x2="346" y2="80" class="hero-edge" />
+              <line x1="260" y1="30" x2="174" y2="80" class="hero-edge" />
+              <line x1="346" y1="80" x2="346" y2="180" class="hero-edge" />
+              <line x1="346" y1="80" x2="174" y2="180" class="hero-edge" />
+              <line x1="346" y1="180" x2="260" y2="230" class="hero-edge" />
+              <line x1="174" y1="80" x2="174" y2="180" class="hero-edge" />
+              <line x1="174" y1="180" x2="260" y2="230" class="hero-edge" />
+              <circle cx="260" cy="30" r="24" class="hero-node" />
+              <circle cx="346" cy="80" r="24" class="hero-node" />
+              <circle cx="346" cy="180" r="24" class="hero-node" />
+              <circle cx="174" cy="80" r="24" class="hero-node" />
+              <circle cx="174" cy="180" r="24" class="hero-node" />
+              <circle cx="260" cy="230" r="24" class="hero-node" />
+              <text x="253" y="37" class="hero-label">A</text>
+              <text x="339" y="87" class="hero-label">B</text>
+              <text x="339" y="187" class="hero-label">C</text>
+              <text x="167" y="87" class="hero-label">D</text>
+              <text x="167" y="187" class="hero-label">E</text>
+              <text x="253" y="237" class="hero-label">F</text>
+            </svg>
+          </div>
+          <div class="result-badge">list = 14 entries → O(V+E) · matrix = 36 cells, 22 wasted → O(V²)</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Social networks</h3>
+          <p>A billion users with a few hundred friends each is a wildly sparse graph. A matrix would need exabytes; a list needs roughly one entry per friendship.</p>
+        </div>
+        <div class="card">
+          <h3>Dense, small graphs</h3>
+          <p>Flight connections between a small set of hub airports, or a game board's adjacency — when almost every pair is connected, a matrix's O(1) lookup pays for itself.</p>
+        </div>
+        <div class="card">
+          <h3>Interview reuse</h3>
+          <p>BFS/DFS are usually written against an adjacency list. Kruskal's MST and Union-Find are usually fed an edge list. Picking the right shape up front saves a rewrite later.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> this is not a trivia question about two data structures. It is the first design decision in almost every graph problem, and it silently sets the ceiling on every operation you write afterward.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is graph representation?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>Graph representation is the concrete data structure you choose to store a graph's vertices and edges in memory, so code — not just a diagram — can query and traverse it.</p>
+        </div>
+        <div class="card">
+          <h3>What you're actually building</h3>
+          <p>You are not computing an answer yet. You are choosing a container whose shape determines how expensive every later operation — edge checks, neighbour walks, full traversals — will be.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if you're unsure, default to the adjacency list. Most real-world graphs are sparse (<code>E</code> close to <code>V</code>, not <code>V²</code>), and BFS/DFS are written against a list's <code>O(V+E)</code> shape.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Count V and E</h3>
+          <p>Note the vertex count, the edge count, and whether the graph is directed or undirected.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Name the dominant operation</h3>
+          <p>Will you mostly ask "is u adjacent to v?", or mostly walk "give me all of u's neighbours"?</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Match to a shape</h3>
+          <p>Frequent edge checks + dense graph → matrix. Frequent neighbour walks + sparse graph → list.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Build it, both directions</h3>
+          <p>Add each edge; for an undirected graph, write BOTH directions — this is the "mirror" step beginners forget.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes the working structure</h2>
+      <p>An edge list is just the raw pairs. Neither representation exists until you loop over those pairs and write into a container — and the two containers end up looking nothing alike.</p>
+      <div class="diagram-row" style="grid-template-columns: 0.85fr auto 1.6fr;">
+        <div class="mini-diagram">
+          <h3>Input: edge list</h3>
+          <div class="code-block"><code>edges = [
+  (0,1), (0,3), (1,2),
+  (1,4), (2,5), (3,4),
+  (4,5)
+]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="two-col">
+          <div class="mini-diagram">
+            <h3>Adjacency list</h3>
+            <div class="code-block"><code>0: [1, 3]
+1: [0, 2, 4]
+2: [1, 5]
+3: [0, 4]
+4: [1, 3, 5]
+5: [2, 4]</code></div>
+          </div>
+          <div class="mini-diagram">
+            <h3>Adjacency matrix</h3>
+            <div class="code-block"><code>   0 1 2 3 4 5
+0 [0 1 0 1 0 0]
+1 [1 0 1 0 1 0]
+2 [0 1 0 0 0 1]
+3 [1 0 0 0 1 0]
+4 [0 1 0 1 0 1]
+5 [0 0 1 0 1 0]</code></div>
+          </div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Read edge <code>(0,1)</code></h4>
+          <p>List: append <code>1</code> to <code>adj[0]</code>, append <code>0</code> to <code>adj[1]</code>. Matrix: set <code>m[0][1]=1</code> and <code>m[1][0]=1</code>.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read edges <code>(0,3)</code> through <code>(3,4)</code></h4>
+          <p>Same two writes, repeated for each of the next five edges — one pair of list appends, or one pair of mirrored matrix cells.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read the last edge <code>(4,5)</code></h4>
+          <p>After all 7 edges: the list holds exactly 14 entries. The matrix has 14 of its 36 cells set to 1 — the other 22 were allocated but never used.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> because the graph is undirected, every edge is written in <strong>both directions</strong> in both representations — that mirrored write is where an asymmetric bug usually comes from if you skip it.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: Adjacency list — <code>ListGraph</code></h2>
+      <p>Store, per vertex, only the neighbours that actually exist. Building costs <code>O(1)</code> per edge (an append). Checking a specific edge means scanning one vertex's own list — <code>O(degree(u))</code>, not <code>O(1)</code>.</p>
+      <div class="code-block stepped">
+        <code id="list-code">
+<span class="code-line" data-line="1">from collections import defaultdict</span>
+<span class="code-line" data-line="2"></span>
+<span class="code-line" data-line="3">class ListGraph:</span>
+<span class="code-line" data-line="4">    def __init__(self, directed=False):</span>
+<span class="code-line" data-line="5">        self.directed = directed</span>
+<span class="code-line" data-line="6">        self.adj = defaultdict(list)</span>
+<span class="code-line" data-line="7"></span>
+<span class="code-line" data-line="8">    def add_edge(self, u, v):</span>
+<span class="code-line" data-line="9">        self.adj[u].append(v)</span>
+<span class="code-line" data-line="10">        if not self.directed:</span>
+<span class="code-line" data-line="11">            self.adj[v].append(u)</span>
+<span class="code-line" data-line="12"></span>
+<span class="code-line" data-line="13">    def has_edge(self, u, v):</span>
+<span class="code-line" data-line="14">        return v in self.adj[u]</span>
+<span class="code-line" data-line="15"></span>
+<span class="code-line" data-line="16">    def neighbours(self, u):</span>
+<span class="code-line" data-line="17">        return self.adj[u]</span>
+<span class="code-line" data-line="18"></span>
+<span class="code-line" data-line="19">lg = ListGraph()</span>
+<span class="code-line" data-line="20">for u, v in edges:</span>
+<span class="code-line" data-line="21">    lg.add_edge(u, v)</span>
+<span class="code-line" data-line="22"></span>
+<span class="code-line" data-line="23">lg.has_edge(0, 2)</span>
+<span class="code-line" data-line="24">lg.has_edge(2, 5)</span>
+<span class="code-line" data-line="25">lg.neighbours(1)</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive adjacency-list trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="list-graph" viewBox="0 0 520 260" width="100%" role="img" aria-label="Adjacency list build and query trace over the graph">
+              <defs>
+                <style>
+                  .list-skeleton { stroke: #e2e7f2; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 8; }
+                  .list-edge-dyn { stroke-linecap: round; visibility: hidden; }
+                  .list-edge-dyn.blue { stroke: #315efb; stroke-width: 6; visibility: visible; }
+                  .list-edge-dyn.green { stroke: #13a46b; stroke-width: 8; visibility: visible; }
+                  .list-edge-dyn.orange { stroke: #ff9f1c; stroke-width: 8; visibility: visible; }
+                  .list-node { fill: #c8d2e7; transition: fill 0.2s ease; }
+                  .list-node.blue { fill: #315efb; }
+                  .list-node.green { fill: #13a46b; }
+                  .list-node.orange { fill: #ff9f1c; }
+                  .list-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .list-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="16" y="20" class="list-title">Build then query</text>
+              <line x1="260" y1="30" x2="346" y2="80" class="list-skeleton" />
+              <line x1="260" y1="30" x2="174" y2="80" class="list-skeleton" />
+              <line x1="346" y1="80" x2="346" y2="180" class="list-skeleton" />
+              <line x1="346" y1="80" x2="174" y2="180" class="list-skeleton" />
+              <line x1="346" y1="180" x2="260" y2="230" class="list-skeleton" />
+              <line x1="174" y1="80" x2="174" y2="180" class="list-skeleton" />
+              <line x1="174" y1="180" x2="260" y2="230" class="list-skeleton" />
+              <line x1="260" y1="30" x2="346" y2="80" class="list-edge-dyn" data-edge="0-1" />
+              <line x1="260" y1="30" x2="174" y2="80" class="list-edge-dyn" data-edge="0-3" />
+              <line x1="346" y1="80" x2="346" y2="180" class="list-edge-dyn" data-edge="1-2" />
+              <line x1="346" y1="80" x2="174" y2="180" class="list-edge-dyn" data-edge="1-4" />
+              <line x1="346" y1="180" x2="260" y2="230" class="list-edge-dyn" data-edge="2-5" />
+              <line x1="174" y1="80" x2="174" y2="180" class="list-edge-dyn" data-edge="3-4" />
+              <line x1="174" y1="180" x2="260" y2="230" class="list-edge-dyn" data-edge="4-5" />
+              <circle cx="260" cy="30" r="24" class="list-node" data-node="0" />
+              <circle cx="346" cy="80" r="24" class="list-node" data-node="1" />
+              <circle cx="346" cy="180" r="24" class="list-node" data-node="2" />
+              <circle cx="174" cy="80" r="24" class="list-node" data-node="3" />
+              <circle cx="174" cy="180" r="24" class="list-node" data-node="4" />
+              <circle cx="260" cy="230" r="24" class="list-node" data-node="5" />
+              <text x="253" y="37" class="list-label">A</text>
+              <text x="339" y="87" class="list-label">B</text>
+              <text x="339" y="187" class="list-label">C</text>
+              <text x="167" y="87" class="list-label">D</text>
+              <text x="167" y="187" class="list-label">E</text>
+              <text x="253" y="237" class="list-label">F</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-blue"></i> filled / stable</span>
+            <span><i class="dot dot-green"></i> just added (mirrored write)</span>
+            <span><i class="dot dot-orange"></i> current cell or edge</span>
+            <span><i class="dot dot-gray"></i> empty / untouched</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="list-step-title">Initial state</h3>
+          <p id="list-step-text">The adjacency list starts empty. All six vertices exist, but none has a recorded neighbour yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="list-prev">Previous</button>
+            <button type="button" id="list-play" class="primary">Resume</button>
+            <button type="button" id="list-next">Next</button>
+            <button type="button" id="list-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="list-step-counter">Step 0 / 17</span>
+            <div class="progress"><span id="list-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Adjacency list</strong><div class="state-value" id="list-adj">0:[] 1:[] 2:[] 3:[] 4:[] 5:[]</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="list-action">Create adj = defaultdict(list)</div></div>
+            <div class="state-box"><strong>Query</strong><div class="state-value" id="list-query">—</div></div>
+            <div class="state-box"><strong>Scan detail</strong><div class="state-value" id="list-scan">—</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="list-result">—</div></div>
+            <div class="state-box"><strong>Cost so far</strong><div class="state-value" id="list-complexity">0 entries written</div></div>
+          </div>
+          <div class="explainer">
+            <p id="list-detail"><strong>What changed:</strong> six vertices are declared but nothing has been linked yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="list-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Phase</th><th>Action</th><th>Adjacency list after</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Init</td><td>adj = defaultdict(list)</td><td><code>0:[] 1:[] 2:[] 3:[] 4:[] 5:[]</code></td><td>—</td></tr>
+            <tr data-step="1"><td>1</td><td>Build</td><td>add_edge(0,1)</td><td><code>0:[1] 1:[0] 2:[] 3:[] 4:[] 5:[]</code></td><td>—</td></tr>
+            <tr data-step="2"><td>2</td><td>Build</td><td>add_edge(0,3)</td><td><code>0:[1,3] 1:[0] 2:[] 3:[0] 4:[] 5:[]</code></td><td>—</td></tr>
+            <tr data-step="3"><td>3</td><td>Build</td><td>add_edge(1,2)</td><td><code>0:[1,3] 1:[0,2] 2:[1] 3:[0] 4:[] 5:[]</code></td><td>—</td></tr>
+            <tr data-step="4"><td>4</td><td>Build</td><td>add_edge(1,4)</td><td><code>0:[1,3] 1:[0,2,4] 2:[1] 3:[0] 4:[1] 5:[]</code></td><td>—</td></tr>
+            <tr data-step="5"><td>5</td><td>Build</td><td>add_edge(2,5)</td><td><code>0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0] 4:[1] 5:[2]</code></td><td>—</td></tr>
+            <tr data-step="6"><td>6</td><td>Build</td><td>add_edge(3,4)</td><td><code>0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3] 5:[2]</code></td><td>—</td></tr>
+            <tr data-step="7"><td>7</td><td>Build</td><td>add_edge(4,5)</td><td><code>0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]</code></td><td>14 entries total</td></tr>
+            <tr data-step="8"><td>8</td><td>Query</td><td>has_edge(0,2) called, about to scan adj[0]=[1,3]</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="9"><td>9</td><td>Query</td><td>compare adj[0][0]=1 vs 2 → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="10"><td>10</td><td>Query</td><td>compare adj[0][1]=3 vs 2 → no, exhausted</td><td><code>(unchanged)</code></td><td>False</td></tr>
+            <tr data-step="11"><td>11</td><td>Query</td><td>has_edge(2,5) called, about to scan adj[2]=[1,5]</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="12"><td>12</td><td>Query</td><td>compare adj[2][0]=1 vs 5 → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="13"><td>13</td><td>Query</td><td>compare adj[2][1]=5 vs 5 → match</td><td><code>(unchanged)</code></td><td>True</td></tr>
+            <tr data-step="14"><td>14</td><td>Query</td><td>neighbours(1) returns adj[1] by reference</td><td><code>(unchanged)</code></td><td>[0,2,4]</td></tr>
+            <tr data-step="15"><td>15</td><td>Query</td><td>visit adj[1][0] = 0 (A)</td><td><code>(unchanged)</code></td><td>visited [0]</td></tr>
+            <tr data-step="16"><td>16</td><td>Query</td><td>visit adj[1][1] = 2 (C)</td><td><code>(unchanged)</code></td><td>visited [0,2]</td></tr>
+            <tr data-step="17"><td>17</td><td>Query</td><td>visit adj[1][2] = 4 (E) — done</td><td><code>(unchanged)</code></td><td>visited [0,2,4]</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The list only ever stores what actually exists. Its total size after all 7 edges is exactly 14 entries — <code>2 × E</code>, never <code>V²</code>.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common list mistake</h4>
+          <p>Treating <code>has_edge</code> as free. <code>v in self.adj[u]</code> is a linear scan — it costs <code>O(degree(u))</code>, which can be as bad as <code>O(V)</code> on a hub vertex.</p>
+        </div>
+        <div class="card">
+          <h4>Why the scan matters</h4>
+          <p>Both queries above scanned every entry in <code>u</code>'s list before answering — even the one that returned <code>True</code> had to walk past a non-match first.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Adjacency matrix — <code>MatrixGraph</code></h2>
+      <p>Allocate a full <code>V × V</code> grid up front. Every cell already exists before a single edge is added, so checking "is there an edge?" is a direct array lookup — no loop, no scanning, always <code>O(1)</code>.</p>
+      <div class="code-block stepped">
+        <code id="matrix-code">
+<span class="code-line" data-line="1">class MatrixGraph:</span>
+<span class="code-line" data-line="2">    def __init__(self, n, directed=False):</span>
+<span class="code-line" data-line="3">        self.n = n</span>
+<span class="code-line" data-line="4">        self.directed = directed</span>
+<span class="code-line" data-line="5">        self.m = [[0] * n for _ in range(n)]</span>
+<span class="code-line" data-line="6"></span>
+<span class="code-line" data-line="7">    def add_edge(self, u, v):</span>
+<span class="code-line" data-line="8">        self.m[u][v] = 1</span>
+<span class="code-line" data-line="9">        if not self.directed:</span>
+<span class="code-line" data-line="10">            self.m[v][u] = 1</span>
+<span class="code-line" data-line="11"></span>
+<span class="code-line" data-line="12">    def has_edge(self, u, v):</span>
+<span class="code-line" data-line="13">        return self.m[u][v] == 1</span>
+<span class="code-line" data-line="14"></span>
+<span class="code-line" data-line="15">    def neighbours(self, u):</span>
+<span class="code-line" data-line="16">        return [v for v in range(self.n) if self.m[u][v]]</span>
+<span class="code-line" data-line="17"></span>
+<span class="code-line" data-line="18">mg = MatrixGraph(6)</span>
+<span class="code-line" data-line="19">for u, v in edges:</span>
+<span class="code-line" data-line="20">    mg.add_edge(u, v)</span>
+<span class="code-line" data-line="21"></span>
+<span class="code-line" data-line="22">mg.has_edge(0, 2)</span>
+<span class="code-line" data-line="23">mg.has_edge(2, 5)</span>
+<span class="code-line" data-line="24">mg.neighbours(1)</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive adjacency-matrix trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="matrix-grid" viewBox="0 0 380 360" width="100%" role="img" aria-label="Adjacency matrix build and query trace as a 6 by 6 grid">
+              <defs>
+                <style>
+                  .mcell { fill: #c8d2e7; stroke: #ffffff; stroke-width: 2; transition: fill 0.2s ease; }
+                  .mcell.blue { fill: #315efb; }
+                  .mcell.green { fill: #13a46b; }
+                  .mcell.orange { fill: #ff9f1c; }
+                  .mhead { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                  .mtitle { font: 700 14px Inter, Arial, sans-serif; fill: #5d677d; }
+                </style>
+              </defs>
+              <text x="8" y="16" class="mtitle">rows = u · columns = v</text>
+              <text x="92" y="40" class="mhead" text-anchor="middle">A</text>
+              <text x="140" y="40" class="mhead" text-anchor="middle">B</text>
+              <text x="188" y="40" class="mhead" text-anchor="middle">C</text>
+              <text x="236" y="40" class="mhead" text-anchor="middle">D</text>
+              <text x="284" y="40" class="mhead" text-anchor="middle">E</text>
+              <text x="332" y="40" class="mhead" text-anchor="middle">F</text>
+              <text x="50" y="81" class="mhead" text-anchor="middle">A</text>
+              <text x="50" y="129" class="mhead" text-anchor="middle">B</text>
+              <text x="50" y="177" class="mhead" text-anchor="middle">C</text>
+              <text x="50" y="225" class="mhead" text-anchor="middle">D</text>
+              <text x="50" y="273" class="mhead" text-anchor="middle">E</text>
+              <text x="50" y="321" class="mhead" text-anchor="middle">F</text>
+              <rect class="mcell" data-cell="0-0" x="70" y="54" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="0-1" x="118" y="54" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="0-2" x="166" y="54" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="0-3" x="214" y="54" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="0-4" x="262" y="54" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="0-5" x="310" y="54" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="1-0" x="70" y="102" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="1-1" x="118" y="102" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="1-2" x="166" y="102" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="1-3" x="214" y="102" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="1-4" x="262" y="102" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="1-5" x="310" y="102" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="2-0" x="70" y="150" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="2-1" x="118" y="150" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="2-2" x="166" y="150" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="2-3" x="214" y="150" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="2-4" x="262" y="150" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="2-5" x="310" y="150" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="3-0" x="70" y="198" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="3-1" x="118" y="198" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="3-2" x="166" y="198" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="3-3" x="214" y="198" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="3-4" x="262" y="198" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="3-5" x="310" y="198" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="4-0" x="70" y="246" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="4-1" x="118" y="246" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="4-2" x="166" y="246" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="4-3" x="214" y="246" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="4-4" x="262" y="246" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="4-5" x="310" y="246" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="5-0" x="70" y="294" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="5-1" x="118" y="294" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="5-2" x="166" y="294" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="5-3" x="214" y="294" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="5-4" x="262" y="294" width="44" height="44" rx="6" />
+              <rect class="mcell" data-cell="5-5" x="310" y="294" width="44" height="44" rx="6" />
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-blue"></i> filled / stable</span>
+            <span><i class="dot dot-green"></i> just added (mirrored cell)</span>
+            <span><i class="dot dot-orange"></i> current cell</span>
+            <span><i class="dot dot-gray"></i> empty / untouched</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="matrix-step-title">Initial state</h3>
+          <p id="matrix-step-text">Create a 6x6 grid of zeros. All 36 cells exist immediately, before any edge is known.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="matrix-prev">Previous</button>
+            <button type="button" id="matrix-play" class="primary">Resume</button>
+            <button type="button" id="matrix-next">Next</button>
+            <button type="button" id="matrix-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="matrix-step-counter">Step 0 / 15</span>
+            <div class="progress"><span id="matrix-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="matrix-action">m = [[0]*6 for _ in range(6)]</div></div>
+            <div class="state-box"><strong>Current cell(s)</strong><div class="state-value" id="matrix-cell">—</div></div>
+            <div class="state-box"><strong>Value</strong><div class="state-value" id="matrix-value">—</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="matrix-result">—</div></div>
+            <div class="state-box"><strong>Filled cells</strong><div class="state-value" id="matrix-filled">0 / 36</div></div>
+            <div class="state-box"><strong>Cost so far</strong><div class="state-value" id="matrix-complexity">O(V²) space allocated</div></div>
+          </div>
+          <div class="explainer">
+            <p id="matrix-detail"><strong>What changed:</strong> the grid exists, but every cell is still zero.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="matrix-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Phase</th><th>Action</th><th>Cell(s)</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Init</td><td>m = [[0]*6 for _ in range(6)]</td><td>—</td><td>—</td></tr>
+            <tr data-step="1"><td>1</td><td>Build</td><td>add_edge(0,1): mirror write</td><td><code>(0,1) &amp; (1,0)</code></td><td>0 → 1</td></tr>
+            <tr data-step="2"><td>2</td><td>Build</td><td>add_edge(0,3): mirror write</td><td><code>(0,3) &amp; (3,0)</code></td><td>0 → 1</td></tr>
+            <tr data-step="3"><td>3</td><td>Build</td><td>add_edge(1,2): mirror write</td><td><code>(1,2) &amp; (2,1)</code></td><td>0 → 1</td></tr>
+            <tr data-step="4"><td>4</td><td>Build</td><td>add_edge(1,4): mirror write</td><td><code>(1,4) &amp; (4,1)</code></td><td>0 → 1</td></tr>
+            <tr data-step="5"><td>5</td><td>Build</td><td>add_edge(2,5): mirror write</td><td><code>(2,5) &amp; (5,2)</code></td><td>0 → 1</td></tr>
+            <tr data-step="6"><td>6</td><td>Build</td><td>add_edge(3,4): mirror write</td><td><code>(3,4) &amp; (4,3)</code></td><td>0 → 1</td></tr>
+            <tr data-step="7"><td>7</td><td>Build</td><td>add_edge(4,5): mirror write</td><td><code>(4,5) &amp; (5,4)</code></td><td>14 of 36 filled</td></tr>
+            <tr data-step="8"><td>8</td><td>Query</td><td>has_edge(0,2): m[0][2]</td><td><code>(0,2)</code></td><td>False</td></tr>
+            <tr data-step="9"><td>9</td><td>Query</td><td>has_edge(2,5): m[2][5]</td><td><code>(2,5)</code></td><td>True</td></tr>
+            <tr data-step="10"><td>10</td><td>Query</td><td>neighbours(1): check m[1][0]</td><td><code>(1,0)</code></td><td>include 0 (A)</td></tr>
+            <tr data-step="11"><td>11</td><td>Query</td><td>neighbours(1): check m[1][1]</td><td><code>(1,1)</code></td><td>skip (self)</td></tr>
+            <tr data-step="12"><td>12</td><td>Query</td><td>neighbours(1): check m[1][2]</td><td><code>(1,2)</code></td><td>include 2 (C)</td></tr>
+            <tr data-step="13"><td>13</td><td>Query</td><td>neighbours(1): check m[1][3]</td><td><code>(1,3)</code></td><td>skip</td></tr>
+            <tr data-step="14"><td>14</td><td>Query</td><td>neighbours(1): check m[1][4]</td><td><code>(1,4)</code></td><td>include 4 (E)</td></tr>
+            <tr data-step="15"><td>15</td><td>Query</td><td>neighbours(1): check m[1][5] — done</td><td><code>(1,5)</code></td><td>skip → [0,2,4]</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Every cell already exists at step 0. Adding an edge never grows the structure — it only flips two of the 36 cells that were always there.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common matrix mistake</h4>
+          <p>Using <code>neighbours()</code> the same way you would on a list. It scans all 6 columns of a row even though only 3 hold real neighbours — <code>O(V)</code>, not <code>O(degree)</code>.</p>
+        </div>
+        <div class="card">
+          <h4>Why O(1) matters</h4>
+          <p>Both <code>has_edge</code> queries above cost the same single lookup, whether the edge exists or not — the list can never promise that.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Dense graph</button>
+        <button type="button" data-example-tab="1">Sparse graph</button>
+        <button type="button" data-example-tab="2">Self-loop &amp; parallel edge</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: dense graph (complete graph K4)</h3>
+          <p><code>n = 4, edges = [(0,1),(0,2),(0,3),(1,2),(1,3),(2,3)]</code> — every pair is connected.</p>
+          <div class="result-badge">matrix: 16 cells, 12 filled (25% wasted) · list: 12 entries — nearly tied</div>
+          <p class="footer-note">When <code>E</code> approaches <code>V²</code>, the matrix's space overhead shrinks to almost nothing, and its <code>O(1)</code> edge check wins outright. This is the one regime where the matrix is the better default.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: sparse graph</h3>
+          <p><code>n = 8, edges = [(0,1),(2,3),(4,5)]</code> — three disjoint pairs, two isolated vertices.</p>
+          <div class="result-badge">matrix: 64 cells, only 6 filled (91% wasted) · list: 6 entries</div>
+          <p class="footer-note">This is the common case for real graphs. The matrix allocates 64 cells to describe 3 edges; the list uses exactly 6 entries. There is no argument for a matrix here.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: self-loop and a parallel edge</h3>
+          <p><code>n = 3, edges = [(0,1), (0,1), (1,1)]</code> — edge (0,1) added twice, plus a self-loop at 1.</p>
+          <div class="result-badge">list adj = {0:[1,1], 1:[0,0,1,1]} · matrix row 1 = [1,1,0] with m[1][1]=1</div>
+          <p class="footer-note">The list preserves both duplicates as a genuine multiset — <code>add_edge(1,1)</code> appends <code>1</code> to <code>adj[1]</code> twice because the undirected mirror step writes to the same list. The matrix silently collapses the repeated <code>(0,1)</code> edge into a single <code>1</code> (setting an already-set cell is a no-op), and the self-loop sets <code>m[1][1]=1</code>, breaking the "diagonal is always 0" assumption a simple-graph matrix normally relies on.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Adjacency Matrix</th><th>Adjacency List</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Space</td><td><code>O(V²)</code> always</td><td><code>O(V + E)</code></td></tr>
+            <tr><td>Add an edge</td><td><code>O(1)</code></td><td><code>O(1)</code></td></tr>
+            <tr><td>Remove an edge</td><td><code>O(1)</code></td><td><code>O(degree)</code> — must find it first</td></tr>
+            <tr><td>Check edge <code>u–v</code>?</td><td><strong><code>O(1)</code></strong></td><td><code>O(degree(u))</code></td></tr>
+            <tr><td>List <code>u</code>'s neighbours</td><td><code>O(V)</code> — scan the row</td><td><strong><code>O(degree(u))</code></strong></td></tr>
+            <tr><td>Iterate ALL edges</td><td><code>O(V²)</code></td><td><strong><code>O(V + E)</code></strong></td></tr>
+            <tr><td>Best when…</td><td>dense (<code>E ≈ V²</code>) or many edge-existence checks</td><td>sparse (<code>E ≈ V</code>) — most real graphs</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">A third option, the edge list — just <code>[(u,v), ...]</code> — is not built for either query. It exists to feed edge-centric algorithms like Kruskal's MST or Union-Find, and is usually converted to a list or matrix before traversal.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>A graph is abstract; I need to store it before I can compute anything.</p></div>
+            <div class="timeline-step"><p>What will I ask most often — "is this edge here?" or "give me this vertex's neighbours"?</p></div>
+            <div class="timeline-step"><p>Is <code>E</code> close to <code>V</code> (sparse) or close to <code>V²</code> (dense)?</p></div>
+            <div class="timeline-step"><p>Sparse + neighbour walks → adjacency list. Dense + edge checks → adjacency matrix.</p></div>
+            <div class="timeline-step"><p>If the algorithm just consumes edges one at a time (Kruskal, Union-Find), an edge list may be all I need.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"Before I write any traversal, I need to decide how this graph is stored — that choice sets the complexity of everything downstream."</li>
+            <li>"This graph is sparse, so I'll default to an adjacency list — O(V+E) space, and BFS/DFS are O(V+E) against it."</li>
+            <li>"I need to check adjacency between arbitrary pairs a lot, and the graph is small and dense, so a matrix's O(1) lookup is worth the O(V²) memory."</li>
+            <li>"Since it's undirected, I'll write every edge in both directions — that's what keeps the matrix symmetric and the list correct."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Adjacency list mistakes</h3>
+          <ul class="mistake-list">
+            <li>Forgetting the mirror write — adding <code>v</code> to <code>u</code>'s list but not <code>u</code> to <code>v</code>'s list for an undirected graph.</li>
+            <li>Assuming <code>has_edge</code> is O(1). It's a linear scan of one vertex's list — O(degree(u)).</li>
+            <li>Using a plain <code>dict</code> instead of <code>defaultdict(list)</code> and hitting a <code>KeyError</code> on an isolated vertex.</li>
+            <li>Not deduplicating parallel edges when the problem assumes a simple graph.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Adjacency matrix mistakes</h3>
+          <ul class="mistake-list">
+            <li>Allocating a <code>V × V</code> grid for a graph with <code>V</code> in the millions — the memory blows up long before the algorithm runs.</li>
+            <li>Writing <code>neighbours()</code> as a full row scan and calling it "fast" — it's O(V), not O(degree), even when the vertex has one neighbour.</li>
+            <li>Forgetting the mirror write, producing an asymmetric matrix for what should be an undirected graph.</li>
+            <li>Assuming the diagonal is always 0 — a self-loop breaks that assumption, and code that relies on it silently misbehaves.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — With <code>V = 1000</code> vertices and <code>E = 2000</code> edges, which representation would you pick, and what is the total space cost?</summary>
+          <p style="margin-top:10px;">Answer: <strong>adjacency list</strong>. Total space is <code>O(V + E) ≈ 3000</code> entries. A matrix would need <code>V² = 1,000,000</code> cells for the same graph — over 300x more space to describe the same 2000 edges.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — You must answer 1,000,000 "is u adjacent to v?" queries on a dense graph with <code>V = 500</code> (roughly <code>E ≈ V²/2</code>). Which structure minimizes total query time?</summary>
+          <p style="margin-top:10px;">Answer: <strong>adjacency matrix</strong>. Each query is <code>O(1)</code>, so 1,000,000 queries cost 1,000,000 lookups regardless of degree. On a list, a high-degree vertex could make each query cost close to <code>O(V) = 500</code> comparisons — the one-time <code>O(V²) = 250,000</code> cell build pays for itself almost immediately.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — After edges <code>[(0,1),(1,2)]</code> are added to an empty adjacency LIST on 3 vertices, what exactly does <code>has_edge(0,2)</code> scan, and what would the same call cost on an adjacency MATRIX instead?</summary>
+          <p style="margin-top:10px;">Answer: on the list, <code>adj[0] = [1]</code>, so <code>has_edge(0,2)</code> scans that one entry (<code>1 != 2</code>) and returns <strong>False</strong> after <code>O(degree(0)) = 1</code> comparison. On a matrix built from the same edges, <code>has_edge(0,2)</code> is a single direct lookup, <code>m[0][2] = 0 → False</code>, in <strong>O(1)</strong> — no comparisons at all, regardless of how many edges vertex 0 actually has.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          The same graph, stored two ways, behaves completely differently under the hood. <strong>The adjacency list
+          pays only for edges that exist</strong> and makes neighbour iteration cheap. <strong>The adjacency matrix
+          pays for every possible pair up front</strong> and makes edge existence checks instant. Neither is "better"
+          in the abstract — the right choice is whichever operation your algorithm actually calls the most, on a graph
+          whose density you already know.
+        </p>
+      </div>
+      <p class="footer-note">Based on the Graph Representation notebook (<code>06_graph_representation.ipynb</code>) and its companion README — every number and state above was produced by running the notebook's own <code>ListGraph</code> and <code>MatrixGraph</code> classes on the canonical 6-vertex, 7-edge graph.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const ALL_MATRIX_CELLS = [
+        [0,1],[1,0],[0,3],[3,0],[1,2],[2,1],[1,4],[4,1],
+        [2,5],[5,2],[3,4],[4,3],[4,5],[5,4]
+      ];
+
+      function cellKey(pair) { return `${pair[0]}-${pair[1]}`; }
+
+      const listSteps = [
+        { step: 0, title: 'Initial state', text: 'The adjacency list starts empty. All six vertices exist, but none has a recorded neighbour yet.',
+          adj: '0:[] 1:[] 2:[] 3:[] 4:[] 5:[]', action: 'Create adj = defaultdict(list)', query: '—', scan: '—', result: '—', complexity: '0 entries written',
+          detail: 'Six vertices are declared but nothing has been linked yet.',
+          blueNodes: [], greenNodes: [], orangeNodes: [], blueEdges: [], greenEdge: null, orangeEdge: null, lines: [3,4,5,6,19] },
+        { step: 1, title: 'Step 1: add_edge(0,1)', text: 'Undirected edge, so we write BOTH directions — A gets B appended to its list, and B gets A appended to its list.',
+          adj: '0:[1] 1:[0] 2:[] 3:[] 4:[] 5:[]', action: 'adj[0].append(1); adj[1].append(0)', query: '—', scan: '—', result: '—', complexity: '2 entries written for 1 edge',
+          detail: 'This mirrored append is exactly what an undirected edge requires — one direction each.',
+          blueNodes: [], greenNodes: [0,1], orangeNodes: [], blueEdges: [], greenEdge: '0-1', orangeEdge: null, lines: [8,9,10,11,20,21] },
+        { step: 2, title: 'Step 2: add_edge(0,3)', text: "A's list grows to two entries; D gets its first entry.",
+          adj: '0:[1,3] 1:[0] 2:[] 3:[0] 4:[] 5:[]', action: 'adj[0].append(3); adj[3].append(0)', query: '—', scan: '—', result: '—', complexity: '4 entries written so far',
+          detail: 'Vertex 0 now has two neighbours; vertex 3 has its first.',
+          blueNodes: [1], greenNodes: [0,3], orangeNodes: [], blueEdges: ['0-1'], greenEdge: '0-3', orangeEdge: null, lines: [8,9,10,11,20,21] },
+        { step: 3, title: 'Step 3: add_edge(1,2)', text: "B's list grows; C gets its first entry.",
+          adj: '0:[1,3] 1:[0,2] 2:[1] 3:[0] 4:[] 5:[]', action: 'adj[1].append(2); adj[2].append(1)', query: '—', scan: '—', result: '—', complexity: '6 entries written so far',
+          detail: 'Vertex 1 (B) now has two neighbours: A and C.',
+          blueNodes: [0,3], greenNodes: [1,2], orangeNodes: [], blueEdges: ['0-1','0-3'], greenEdge: '1-2', orangeEdge: null, lines: [8,9,10,11,20,21] },
+        { step: 4, title: 'Step 4: add_edge(1,4)', text: 'This is the chord edge — B now has three neighbours, and E gets its first entry.',
+          adj: '0:[1,3] 1:[0,2,4] 2:[1] 3:[0] 4:[1] 5:[]', action: 'adj[1].append(4); adj[4].append(1)', query: '—', scan: '—', result: '—', complexity: '8 entries written so far',
+          detail: 'Vertex 1 (B) is becoming a hub — it will end with 3 neighbours.',
+          blueNodes: [0,2,3], greenNodes: [1,4], orangeNodes: [], blueEdges: ['0-1','0-3','1-2'], greenEdge: '1-4', orangeEdge: null, lines: [8,9,10,11,20,21] },
+        { step: 5, title: 'Step 5: add_edge(2,5)', text: "C's list grows; F gets its first entry. All six vertices now have at least one neighbour.",
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0] 4:[1] 5:[2]', action: 'adj[2].append(5); adj[5].append(2)', query: '—', scan: '—', result: '—', complexity: '10 entries written so far',
+          detail: 'Every vertex has now been touched at least once.',
+          blueNodes: [0,1,3,4], greenNodes: [2,5], orangeNodes: [], blueEdges: ['0-1','0-3','1-2','1-4'], greenEdge: '2-5', orangeEdge: null, lines: [8,9,10,11,20,21] },
+        { step: 6, title: 'Step 6: add_edge(3,4)', text: "D's list grows to two entries; E's list grows to two entries.",
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3] 5:[2]', action: 'adj[3].append(4); adj[4].append(3)', query: '—', scan: '—', result: '—', complexity: '12 entries written so far',
+          detail: 'We are closing the hexagon cycle: D and E are now directly linked.',
+          blueNodes: [0,1,2,5], greenNodes: [3,4], orangeNodes: [], blueEdges: ['0-1','0-3','1-2','1-4','2-5'], greenEdge: '3-4', orangeEdge: null, lines: [8,9,10,11,20,21] },
+        { step: 7, title: 'Step 7: add_edge(4,5)', text: 'All 7 edges processed. Final size = 14 entries total = O(V+E), matching the notebook exactly.',
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]', action: 'adj[4].append(5); adj[5].append(4)', query: '—', scan: '—', result: '—', complexity: 'Build done: 14 entries = O(V+E)',
+          detail: 'Build phase complete. Every entry stored corresponds to a real edge — nothing is wasted.',
+          blueNodes: [0,1,2,3], greenNodes: [4,5], orangeNodes: [], blueEdges: ['0-1','0-3','1-2','1-4','2-5','3-4'], greenEdge: '4-5', orangeEdge: null, lines: [8,9,10,11,20,21] },
+        { step: 8, title: 'Query: has_edge(0,2) — is A adjacent to C?', text: 'We must scan A\'s own list to answer this — a plain adjacency list has no shortcut.',
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]', action: 'return 2 in self.adj[0]', query: 'u=0 (A), v=2 (C)', scan: 'about to scan adj[0] = [1,3]', result: 'pending', complexity: 'O(1) so far — just entered the function',
+          detail: 'Unlike the matrix, checking a specific pair means walking a list, not a single lookup.',
+          blueNodes: [1,2,3,4,5], greenNodes: [], orangeNodes: [0], blueEdges: ['0-1','0-3','1-2','1-4','2-5','3-4','4-5'], greenEdge: null, orangeEdge: null, lines: [13,14,23] },
+        { step: 9, title: 'Step 9: scanning adj[0]', text: 'Compare the first entry: 1 vs the target 2. No match, keep scanning.',
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]', action: 'compare adj[0][0] = 1 vs 2', query: 'u=0, v=2', scan: 'adj[0][0]=1 vs 2 → no match', result: 'pending', complexity: '1 of 2 entries checked',
+          detail: 'Every entry in a linear scan has to be visited until a match is found or the list runs out.',
+          blueNodes: [2,3,4,5], greenNodes: [], orangeNodes: [0,1], blueEdges: ['0-3','1-2','1-4','2-5','3-4','4-5'], greenEdge: null, orangeEdge: '0-1', lines: [13,14,23] },
+        { step: 10, title: 'Step 10: scanning adj[0] — exhausted', text: 'Compare the second entry: 3 vs the target 2. Still no match, and the list is exhausted, so the answer is False.',
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]', action: 'compare adj[0][1] = 3 vs 2', query: 'u=0, v=2', scan: 'adj[0][1]=3 vs 2 → no match, list exhausted', result: 'False — not adjacent', complexity: 'scanned all degree(0)=2 entries → O(degree(0))',
+          detail: 'has_edge(0,2) cost 2 comparisons here — proportional to A\'s degree, not a constant.',
+          blueNodes: [1,2,4,5], greenNodes: [], orangeNodes: [0,3], blueEdges: ['0-1','1-2','1-4','2-5','3-4','4-5'], greenEdge: null, orangeEdge: '0-3', lines: [13,14,23] },
+        { step: 11, title: 'Query: has_edge(2,5) — is C adjacent to F?', text: "We scan C's own list this time.",
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]', action: 'return 5 in self.adj[2]', query: 'u=2 (C), v=5 (F)', scan: 'about to scan adj[2] = [1,5]', result: 'pending', complexity: 'O(1) so far — just entered the function',
+          detail: 'Same cost model applies whether the eventual answer is True or False.',
+          blueNodes: [0,1,3,4,5], greenNodes: [], orangeNodes: [2], blueEdges: ['0-1','0-3','1-2','1-4','2-5','3-4','4-5'], greenEdge: null, orangeEdge: null, lines: [13,14,24] },
+        { step: 12, title: 'Step 12: scanning adj[2]', text: 'Compare the first entry: 1 vs the target 5. No match, keep scanning.',
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]', action: 'compare adj[2][0] = 1 vs 5', query: 'u=2, v=5', scan: 'adj[2][0]=1 vs 5 → no match', result: 'pending', complexity: '1 of 2 entries checked',
+          detail: 'Even a query that will eventually succeed has to pay for every miss before the hit.',
+          blueNodes: [0,3,4,5], greenNodes: [], orangeNodes: [2,1], blueEdges: ['0-3','1-2','1-4','2-5','3-4','4-5'], greenEdge: null, orangeEdge: '1-2', lines: [13,14,24] },
+        { step: 13, title: 'Step 13: scanning adj[2] — match found', text: 'Compare the second entry: 5 vs the target 5. Match — return True immediately.',
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]', action: 'compare adj[2][1] = 5 vs 5', query: 'u=2, v=5', scan: 'adj[2][1]=5 vs 5 → match!', result: 'True — adjacent', complexity: 'scanned 2 of degree(2)=2 entries → O(degree(2))',
+          detail: 'This is a real edge in our diagram (C-F), so the highlighted edge line lights up to confirm it.',
+          blueNodes: [0,1,3,4], greenNodes: [], orangeNodes: [2,5], blueEdges: ['0-1','0-3','1-2','1-4','3-4','4-5'], greenEdge: null, orangeEdge: '2-5', lines: [13,14,24] },
+        { step: 14, title: 'Query: neighbours(1) — get B\'s neighbours', text: 'This just returns a reference to adj[1] — no scanning happens yet.',
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]', action: 'return self.adj[1]', query: 'u=1 (B)', scan: 'adj[1] = [0,2,4] (reference, no copy)', result: '[0,2,4]', complexity: 'getting the list itself is O(1)',
+          detail: 'The cost only shows up once you actually iterate the returned list.',
+          blueNodes: [0,2,3,4,5], greenNodes: [], orangeNodes: [1], blueEdges: ['0-1','0-3','1-2','1-4','2-5','3-4','4-5'], greenEdge: null, orangeEdge: null, lines: [16,17,25] },
+        { step: 15, title: 'Step 15: visit neighbour 0 (A)', text: 'Iterating the returned list: first entry is 0 (A).',
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]', action: 'for n in neighbours(1): visit(n)', query: 'u=1', scan: 'visit adj[1][0] = 0 (A)', result: 'visited so far: [0]', complexity: '1 of degree(1)=3 visited',
+          detail: 'Each visited neighbour costs one step — this is where O(degree) is actually spent.',
+          blueNodes: [2,3,4,5], greenNodes: [], orangeNodes: [1,0], blueEdges: ['1-2','1-4','2-5','3-4','4-5'], greenEdge: null, orangeEdge: '0-1', lines: [16,17,25] },
+        { step: 16, title: 'Step 16: visit neighbour 2 (C)', text: 'Second entry: 2 (C).',
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]', action: 'for n in neighbours(1): visit(n)', query: 'u=1', scan: 'visit adj[1][1] = 2 (C)', result: 'visited so far: [0,2]', complexity: '2 of degree(1)=3 visited',
+          detail: 'The scan only ever touches real neighbours — never a wasted check.',
+          blueNodes: [0,3,4,5], greenNodes: [], orangeNodes: [1,2], blueEdges: ['0-1','1-4','2-5','3-4','4-5'], greenEdge: null, orangeEdge: '1-2', lines: [16,17,25] },
+        { step: 17, title: 'Step 17: visit neighbour 4 (E) — done', text: 'Third and final entry: 4 (E). Iteration is complete.',
+          adj: '0:[1,3] 1:[0,2,4] 2:[1,5] 3:[0,4] 4:[1,3,5] 5:[2,4]', action: 'for n in neighbours(1): visit(n)', query: 'u=1', scan: 'visit adj[1][2] = 4 (E)', result: 'visited so far: [0,2,4] — done', complexity: 'walked all degree(1)=3 entries → O(degree(1))',
+          detail: 'Total work for this call: exactly 3 steps, matching B\'s true degree — the list never scans more than it must.',
+          blueNodes: [0,2,3,5], greenNodes: [], orangeNodes: [1,4], blueEdges: ['0-1','1-2','2-5','3-4','4-5'], greenEdge: null, orangeEdge: '1-4', lines: [16,17,25] }
+      ];
+
+      const matrixSteps = [
+        { step: 0, title: 'Initial state', text: 'Create a 6x6 grid of zeros — all 36 cells exist immediately, before any edge is known.',
+          action: 'm = [[0]*6 for _ in range(6)]', cell: '—', value: '—', result: '—', filled: '0 / 36', complexity: 'O(V²) space allocated up front',
+          detail: 'Unlike the list, the matrix\'s size depends only on V, not on how many edges actually exist.',
+          blue: [], green: [], orange: [], lines: [1,2,3,4,5,18] },
+        { step: 1, title: 'Step 1: add_edge(0,1)', text: 'Mark A-B as connected by setting BOTH m[0][1] and m[1][0] — the mirror write undirected graphs require.',
+          action: 'm[0][1] = 1; m[1][0] = 1', cell: '(0,1) and (1,0)', value: '0 → 1', result: '—', filled: '2 / 36', complexity: '2 cells written for 1 edge',
+          detail: 'This mirrored write is exactly why an undirected adjacency matrix is symmetric across its diagonal.',
+          blue: [], green: [[0,1],[1,0]], orange: [], lines: [7,8,9,10,19,20] },
+        { step: 2, title: 'Step 2: add_edge(0,3)', text: 'Set m[0][3] and m[3][0].',
+          action: 'm[0][3] = 1; m[3][0] = 1', cell: '(0,3) and (3,0)', value: '0 → 1', result: '—', filled: '4 / 36', complexity: '4 cells filled so far',
+          detail: 'A now connects to two vertices; D gets its first connection.',
+          blue: [[0,1],[1,0]], green: [[0,3],[3,0]], orange: [], lines: [7,8,9,10,19,20] },
+        { step: 3, title: 'Step 3: add_edge(1,2)', text: 'Set m[1][2] and m[2][1].',
+          action: 'm[1][2] = 1; m[2][1] = 1', cell: '(1,2) and (2,1)', value: '0 → 1', result: '—', filled: '6 / 36', complexity: '6 cells filled so far',
+          detail: 'B connects to C; C gets its first connection.',
+          blue: [[0,1],[1,0],[0,3],[3,0]], green: [[1,2],[2,1]], orange: [], lines: [7,8,9,10,19,20] },
+        { step: 4, title: 'Step 4: add_edge(1,4)', text: 'Set m[1][4] and m[4][1] — the chord of the hexagon.',
+          action: 'm[1][4] = 1; m[4][1] = 1', cell: '(1,4) and (4,1)', value: '0 → 1', result: '—', filled: '8 / 36', complexity: '8 cells filled so far',
+          detail: 'B now has three connections; row B is becoming the densest row.',
+          blue: [[0,1],[1,0],[0,3],[3,0],[1,2],[2,1]], green: [[1,4],[4,1]], orange: [], lines: [7,8,9,10,19,20] },
+        { step: 5, title: 'Step 5: add_edge(2,5)', text: 'Set m[2][5] and m[5][2].',
+          action: 'm[2][5] = 1; m[5][2] = 1', cell: '(2,5) and (5,2)', value: '0 → 1', result: '—', filled: '10 / 36', complexity: '10 cells filled so far',
+          detail: 'C connects to F; F gets its first connection.',
+          blue: [[0,1],[1,0],[0,3],[3,0],[1,2],[2,1],[1,4],[4,1]], green: [[2,5],[5,2]], orange: [], lines: [7,8,9,10,19,20] },
+        { step: 6, title: 'Step 6: add_edge(3,4)', text: 'Set m[3][4] and m[4][3] — closing the hexagon cycle.',
+          action: 'm[3][4] = 1; m[4][3] = 1', cell: '(3,4) and (4,3)', value: '0 → 1', result: '—', filled: '12 / 36', complexity: '12 cells filled so far',
+          detail: 'D connects to E; both now have two connections.',
+          blue: [[0,1],[1,0],[0,3],[3,0],[1,2],[2,1],[1,4],[4,1],[2,5],[5,2]], green: [[3,4],[4,3]], orange: [], lines: [7,8,9,10,19,20] },
+        { step: 7, title: 'Step 7: add_edge(4,5)', text: 'Set m[4][5] and m[5][4] — the final edge.',
+          action: 'm[4][5] = 1; m[5][4] = 1', cell: '(4,5) and (5,4)', value: '0 → 1', result: '—', filled: '14 / 36', complexity: 'Build done: 14 of 36 filled, 22 wasted',
+          detail: 'All 7 edges processed. 14 of 36 cells are 1; the other 22 are zeros this graph paid for but never uses — matches the notebook exactly.',
+          blue: [[0,1],[1,0],[0,3],[3,0],[1,2],[2,1],[1,4],[4,1],[2,5],[5,2],[3,4],[4,3]], green: [[4,5],[5,4]], orange: [], lines: [7,8,9,10,19,20] },
+        { step: 8, title: 'Query: has_edge(0,2) — is A adjacent to C?', text: 'A single direct lookup: m[0][2]. No loop, no scanning.',
+          action: 'return m[0][2] == 1', cell: '(0,2)', value: '0', result: 'False', filled: '14 / 36', complexity: 'O(1) — one array lookup, no loop',
+          detail: 'There is nothing to scan: the answer was already sitting at a known address.',
+          blue: ALL_MATRIX_CELLS, green: [], orange: [[0,2]], lines: [12,13,22] },
+        { step: 9, title: 'Query: has_edge(2,5) — is C adjacent to F?', text: 'Same cost as the previous query, even though this one is True.',
+          action: 'return m[2][5] == 1', cell: '(2,5)', value: '1', result: 'True', filled: '14 / 36', complexity: 'O(1) — same cost as the previous query, win or lose',
+          detail: 'Whether the edge exists or not, the lookup takes exactly the same amount of work.',
+          blue: ALL_MATRIX_CELLS, green: [], orange: [[2,5]], lines: [12,13,23] },
+        { step: 10, title: 'Query: neighbours(1) — check column 0', text: "Scanning row B left to right. m[1][0] = 1, so vertex 0 (A) is included.",
+          action: 'check m[1][0]', cell: '(1,0)', value: '1', result: 'include 0 (A)', filled: '14 / 36', complexity: '1 of 6 columns checked',
+          detail: 'Even though we already know A is a neighbour from the list, the matrix has to check this cell explicitly.',
+          blue: ALL_MATRIX_CELLS, green: [], orange: [[1,0]], lines: [15,16,24] },
+        { step: 11, title: 'Query: neighbours(1) — check column 1', text: 'm[1][1] = 0 — this is the diagonal (self), correctly skipped.',
+          action: 'check m[1][1]', cell: '(1,1)', value: '0', result: 'skip (self, diagonal)', filled: '14 / 36', complexity: '2 of 6 columns checked',
+          detail: 'This is a wasted check — vertex 1 was never going to be its own neighbour, but the row scan still visits the cell.',
+          blue: ALL_MATRIX_CELLS, green: [], orange: [[1,1]], lines: [15,16,24] },
+        { step: 12, title: 'Query: neighbours(1) — check column 2', text: 'm[1][2] = 1, so vertex 2 (C) is included.',
+          action: 'check m[1][2]', cell: '(1,2)', value: '1', result: 'include 2 (C)', filled: '14 / 36', complexity: '3 of 6 columns checked',
+          detail: 'Second real neighbour found.',
+          blue: ALL_MATRIX_CELLS, green: [], orange: [[1,2]], lines: [15,16,24] },
+        { step: 13, title: 'Query: neighbours(1) — check column 3', text: 'm[1][3] = 0 — another wasted check, correctly skipped.',
+          action: 'check m[1][3]', cell: '(1,3)', value: '0', result: 'skip', filled: '14 / 36', complexity: '4 of 6 columns checked',
+          detail: 'B and D are not directly connected, so this cell was always going to be 0.',
+          blue: ALL_MATRIX_CELLS, green: [], orange: [[1,3]], lines: [15,16,24] },
+        { step: 14, title: 'Query: neighbours(1) — check column 4', text: 'm[1][4] = 1, so vertex 4 (E) is included — the third and final real neighbour.',
+          action: 'check m[1][4]', cell: '(1,4)', value: '1', result: 'include 4 (E)', filled: '14 / 36', complexity: '5 of 6 columns checked',
+          detail: 'This is the chord edge from the build phase, confirmed again during the scan.',
+          blue: ALL_MATRIX_CELLS, green: [], orange: [[1,4]], lines: [15,16,24] },
+        { step: 15, title: 'Query: neighbours(1) — check column 5, done', text: 'm[1][5] = 0 — the row scan is complete: neighbours(1) = [0, 2, 4].',
+          action: 'check m[1][5]', cell: '(1,5)', value: '0', result: 'skip → done: [0,2,4]', filled: '14 / 36', complexity: 'all 6 of V columns checked, even though degree(1)=3 — O(V), not O(degree)',
+          detail: "This is the matrix's weak spot: neighbour iteration always costs O(V), checking every column whether or not it holds a real neighbour.",
+          blue: ALL_MATRIX_CELLS, green: [], orange: [[1,5]], lines: [15,16,24] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderList(step, index, max) {
+        document.getElementById('list-step-title').textContent = step.title;
+        document.getElementById('list-step-text').textContent = step.text;
+        document.getElementById('list-adj').textContent = step.adj;
+        document.getElementById('list-action').textContent = step.action;
+        document.getElementById('list-query').textContent = step.query;
+        document.getElementById('list-scan').textContent = step.scan;
+        document.getElementById('list-result').textContent = step.result;
+        document.getElementById('list-complexity').textContent = step.complexity;
+        document.getElementById('list-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('list-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('list-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('list-trace-table', step.step);
+        setCodeHighlight('list-code', step.lines);
+
+        document.querySelectorAll('#list-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('blue', 'green', 'orange');
+          if (step.greenNodes.includes(id)) node.classList.add('green');
+          else if (step.orangeNodes.includes(id)) node.classList.add('orange');
+          else if (step.blueNodes.includes(id)) node.classList.add('blue');
+        });
+
+        document.querySelectorAll('#list-graph [data-edge]').forEach((line) => {
+          const key = line.dataset.edge;
+          line.classList.remove('blue', 'green', 'orange');
+          if (step.greenEdge === key) line.classList.add('green');
+          else if (step.orangeEdge === key) line.classList.add('orange');
+          else if (step.blueEdges.includes(key)) line.classList.add('blue');
+        });
+      }
+
+      function renderMatrix(step, index, max) {
+        document.getElementById('matrix-step-title').textContent = step.title;
+        document.getElementById('matrix-step-text').textContent = step.text;
+        document.getElementById('matrix-action').textContent = step.action;
+        document.getElementById('matrix-cell').textContent = step.cell;
+        document.getElementById('matrix-value').textContent = step.value;
+        document.getElementById('matrix-result').textContent = step.result;
+        document.getElementById('matrix-filled').textContent = step.filled;
+        document.getElementById('matrix-complexity').textContent = step.complexity;
+        document.getElementById('matrix-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('matrix-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('matrix-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('matrix-trace-table', step.step);
+        setCodeHighlight('matrix-code', step.lines);
+
+        const greenKeys = step.green.map(cellKey);
+        const orangeKeys = step.orange.map(cellKey);
+        const blueKeys = step.blue.map(cellKey);
+
+        document.querySelectorAll('#matrix-grid [data-cell]').forEach((rect) => {
+          const key = rect.dataset.cell;
+          rect.classList.remove('blue', 'green', 'orange');
+          if (greenKeys.includes(key)) rect.classList.add('green');
+          else if (orangeKeys.includes(key)) rect.classList.add('orange');
+          else if (blueKeys.includes(key)) rect.classList.add('blue');
+        });
+      }
+
+      setupTrace({ steps: listSteps, prefix: 'list', render: renderList });
+      setupTrace({ steps: matrixSteps, prefix: 'matrix', render: renderMatrix });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

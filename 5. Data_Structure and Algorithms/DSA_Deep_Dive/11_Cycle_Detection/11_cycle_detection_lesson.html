@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cycle Detection — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+
+    /* Undirected trace graph (Method 1) */
+    .ud-node { fill: #c8d2e7; transition: fill 0.2s ease; }
+    .ud-node.onstack { fill: #13a46b; }
+    .ud-node.finished { fill: #315efb; }
+    .ud-node.current { fill: #ff9f1c; }
+    .ud-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+    .ud-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+    .ud-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+    .ud-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+
+    /* Directed trace graph (Method 2) */
+    .dc-node { fill: #c8d2e7; transition: fill 0.2s ease; }
+    .dc-node.grey { fill: #13a46b; }
+    .dc-node.black { fill: #315efb; }
+    .dc-node.current { fill: #ff9f1c; }
+    .dc-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+    .dc-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+    .dc-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+    .dc-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Graphs · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Cycle Detection in Graphs</h1>
+          <p>
+            A cycle is a path that returns to where it started. Finding one sounds like a single algorithm, but it
+            is actually two different rules wearing the same DFS costume: an undirected graph needs you to
+            remember your <strong>parent</strong>, and a directed graph needs you to remember what is still
+            <strong>on the recursion stack</strong>. Confuse the two and you get false positives or false
+            negatives on almost every graph you test.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: not every revisit is a cycle</span>
+            <span class="chip">Interactive undirected DFS + parent trace</span>
+            <span class="chip">Interactive directed 3-colour DFS trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>edges = [(0,1), (1,2), (2,0)]</code> — a triangle</p>
+          <div class="diagram">
+            <svg viewBox="0 0 520 220" width="100%" role="img" aria-label="Triangle graph with three nodes 0, 1, 2 all connected to each other">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .hero-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="28" class="hero-title">Same three edges, two different questions</text>
+              <line x1="140" y1="160" x2="380" y2="160" class="hero-edge" />
+              <line x1="380" y1="160" x2="260" y2="60" class="hero-edge" />
+              <line x1="260" y1="60" x2="140" y2="160" class="hero-edge" />
+              <circle cx="140" cy="160" r="26" class="hero-node" />
+              <circle cx="380" cy="160" r="26" class="hero-node" />
+              <circle cx="260" cy="60" r="26" class="hero-node" />
+              <text x="133" y="166" class="hero-label">0</text>
+              <text x="373" y="166" class="hero-label">1</text>
+              <text x="253" y="66" class="hero-label">2</text>
+            </svg>
+          </div>
+          <div class="result-badge">Undirected 0–1–2–0: cycle · Directed 0→1→2→0: cycle</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Deadlock detection</h3>
+          <p>Process A waits on a lock held by B, B waits on C, C waits on A. That "waits-for" graph is directed, and a deadlock is exactly a directed cycle in it.</p>
+        </div>
+        <div class="card">
+          <h3>Dependency loops</h3>
+          <p>Package managers and build systems (npm, Bazel, Make) model "depends on" as a directed edge. A circular dependency is a cycle that makes the build unschedulable.</p>
+        </div>
+        <div class="card">
+          <h3>Spreadsheet circular references</h3>
+          <p>Cell A references B, B references C, C references A. Spreadsheet engines run cycle detection on the formula graph before they can compute anything.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> notice all three examples are directed. That is not an accident — in practice, directed-cycle detection (deadlocks, dependencies, references) comes up far more often than the undirected version, which mostly shows up as a helper inside Union-Find and Kruskal's MST. Learn both, but expect directed to be the one you reach for most.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is cycle detection?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>A cycle is a path of one or more edges that starts and ends at the same vertex, without immediately retracing the single edge you just walked.</p>
+        </div>
+        <div class="card">
+          <h3>What you are computing</h3>
+          <p>Just a yes/no answer: does <strong>any</strong> cycle exist anywhere in the graph? You are not counting cycles, and you are not finding the shortest one — the first one you confirm is enough to return <code>True</code>.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut — the one idea this whole page is built around:</strong> during a DFS, running into an already-visited vertex is <em>not automatically a cycle</em>, in either graph type. In an undirected graph it might just be the parent you arrived from. In a directed graph it might be a vertex that finished through a completely different branch. Each direction needs one extra piece of state — a parent pointer, or an on-stack flag — before "visited" can be trusted to mean "cycle."</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Check: directed or undirected?</h3>
+          <p>This single fact decides which extra state you need to carry. Get it wrong and the whole algorithm gives wrong answers.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Pick the extra state</h3>
+          <p>Undirected → carry the <code>parent</code> you came from. Directed → carry a three-way colour (or an explicit on-stack set).</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>DFS every unvisited vertex</h3>
+          <p>Loop over all vertices from the outside, not just vertex 0 — a graph can have several disconnected pieces, each needing its own DFS.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Apply the direction-specific check</h3>
+          <p>Only when you hit an already-seen vertex: is it the parent (undirected, skip) or still on the stack (directed, cycle)?</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes an adjacency list</h2>
+      <p>Before any DFS can run, the raw edge list has to become an adjacency list. For an <strong>undirected</strong> graph, every edge is added in <strong>both</strong> directions, because you can walk it either way.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input edges</h3>
+          <div class="code-block"><code>edges = [(0,1), (1,2), (2,0)]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Undirected adjacency list</h3>
+          <div class="code-block"><code>0: [1, 2]
+1: [0, 2]
+2: [0, 1]</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Read edge <code>(0,1)</code></h4>
+          <p>Add <code>1</code> to node <code>0</code>'s list, and add <code>0</code> to node <code>1</code>'s list — both directions.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read edge <code>(1,2)</code></h4>
+          <p>Add <code>2</code> to node <code>1</code>'s list, and add <code>1</code> to node <code>2</code>'s list.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read edge <code>(2,0)</code></h4>
+          <p>Add <code>0</code> to node <code>2</code>'s list, and add <code>2</code> to node <code>0</code>'s list. Node 0 now lists both of its triangle neighbours.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> for a <strong>directed</strong> graph, the same edge <code>(0,1)</code> would only add <code>1</code> to node <code>0</code>'s list — never the reverse. That one-line difference in the build step is the entire reason the two DFS traversals need different cycle rules: the undirected adjacency list secretly contains a "fake" edge back to the parent that was never really a second connection.</p>
+      </div>
+      <p class="footer-note">Both traces below iterate each vertex's neighbour list in <strong>sorted (ascending) order</strong>, so the walk order is fully deterministic and reproducible.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: Undirected — DFS remembering your parent</h2>
+      <p>In an undirected graph, the edge <code>u–v</code> lets you walk straight back from <code>v</code> to <code>u</code>. That backward step is not a new connection — it is the same edge, seen from the other side. So while exploring from <code>u</code>, DFS carries along the vertex it just came from (<code>parent</code>) and ignores exactly that one neighbour. Any <em>other</em> already-visited neighbour is a real, second way back to that vertex — a genuine cycle.</p>
+      <div class="code-block stepped">
+        <code id="ud-code">
+<span class="code-line" data-line="1">def has_cycle_undirected(n, adj):</span>
+<span class="code-line" data-line="2">    seen = [False] * n</span>
+<span class="code-line" data-line="3"></span>
+<span class="code-line" data-line="4">    def dfs(u, parent):</span>
+<span class="code-line" data-line="5">        seen[u] = True</span>
+<span class="code-line" data-line="6">        for v in sorted(adj[u]):</span>
+<span class="code-line" data-line="7">            if not seen[v]:</span>
+<span class="code-line" data-line="8">                if dfs(v, u):</span>
+<span class="code-line" data-line="9">                    return True</span>
+<span class="code-line" data-line="10">            elif v != parent:</span>
+<span class="code-line" data-line="11">                return True</span>
+<span class="code-line" data-line="12">        return False</span>
+<span class="code-line" data-line="13"></span>
+<span class="code-line" data-line="14">    for s in range(n):</span>
+<span class="code-line" data-line="15">        if not seen[s] and dfs(s, -1):</span>
+<span class="code-line" data-line="16">            return True</span>
+<span class="code-line" data-line="17">    return False</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive undirected trace</div>
+          <p class="footer-note" style="margin-top:8px;">Canonical example: pendant node 0 hangs off a triangle formed by 1, 2, 3. Edges (sorted adjacency): 0–1, 1–2, 2–3, 3–1.</p>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="ud-graph" viewBox="0 0 520 260" width="100%" role="img" aria-label="Undirected graph: pendant node 0 attached to a triangle of nodes 1, 2, 3">
+              <text x="20" y="24" class="ud-title">Recursion stack right now</text>
+              <line x1="70" y1="140" x2="200" y2="140" class="ud-base-edge" />
+              <line x1="200" y1="140" x2="350" y2="60" class="ud-base-edge" />
+              <line x1="350" y1="60" x2="350" y2="220" class="ud-base-edge" />
+              <line x1="350" y1="220" x2="200" y2="140" class="ud-base-edge" />
+              <line x1="70" y1="140" x2="200" y2="140" class="ud-active-edge" data-ud-edge="0-1" visibility="hidden" />
+              <line x1="200" y1="140" x2="350" y2="60" class="ud-active-edge" data-ud-edge="1-2" visibility="hidden" />
+              <line x1="350" y1="60" x2="350" y2="220" class="ud-active-edge" data-ud-edge="2-3" visibility="hidden" />
+              <line x1="350" y1="220" x2="200" y2="140" class="ud-active-edge" data-ud-edge="3-1" visibility="hidden" />
+              <circle cx="70" cy="140" r="26" class="ud-node" data-node="0" />
+              <circle cx="200" cy="140" r="26" class="ud-node" data-node="1" />
+              <circle cx="350" cy="60" r="26" class="ud-node" data-node="2" />
+              <circle cx="350" cy="220" r="26" class="ud-node" data-node="3" />
+              <text x="63" y="146" class="ud-label">0</text>
+              <text x="193" y="146" class="ud-label">1</text>
+              <text x="343" y="66" class="ud-label">2</text>
+              <text x="343" y="226" class="ud-label">3</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current node / cycle-closing edge</span>
+            <span><i class="dot dot-green"></i> on the recursion stack (paused ancestor)</span>
+            <span><i class="dot dot-blue"></i> finished (call returned)</span>
+            <span><i class="dot dot-gray"></i> not visited yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="ud-step-title">Initial state</h3>
+          <p id="ud-step-text">The adjacency list is built first. Nothing is visited yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="ud-prev">Previous</button>
+            <button type="button" id="ud-play" class="primary">Resume</button>
+            <button type="button" id="ud-next">Next</button>
+            <button type="button" id="ud-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="ud-step-counter">Step 0 / 15</span>
+            <div class="progress"><span id="ud-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Current node (u)</strong><div class="state-value" id="ud-u">—</div></div>
+            <div class="state-box"><strong>Parent</strong><div class="state-value" id="ud-parent">—</div></div>
+            <div class="state-box"><strong>Seen set</strong><div class="state-value" id="ud-seen">{}</div></div>
+            <div class="state-box"><strong>Neighbour check</strong><div class="state-value" id="ud-examine">—</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="ud-action">Build adjacency list</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="ud-result">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="ud-detail"><strong>What changed:</strong> nothing has run yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="ud-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Call / edge</th><th>Check</th><th>Seen after</th><th>Verdict</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Build graph</td><td>—</td><td><code>{}</code></td><td>—</td></tr>
+            <tr data-step="1"><td>1</td><td>outer s=0</td><td>0 not seen → dfs(0, -1)</td><td><code>{}</code></td><td>—</td></tr>
+            <tr data-step="2"><td>2</td><td>enter dfs(0,-1)</td><td>seen[0] = True</td><td><code>{0}</code></td><td>—</td></tr>
+            <tr data-step="3"><td>3</td><td>edge 0→1</td><td>1 not seen → recurse</td><td><code>{0}</code></td><td>—</td></tr>
+            <tr data-step="4"><td>4</td><td>enter dfs(1,0)</td><td>seen[1] = True</td><td><code>{0,1}</code></td><td>—</td></tr>
+            <tr data-step="5"><td>5</td><td>edge 1→0</td><td>0 seen, 0 == parent → skip</td><td><code>{0,1}</code></td><td>—</td></tr>
+            <tr data-step="6"><td>6</td><td>edge 1→2</td><td>2 not seen → recurse</td><td><code>{0,1}</code></td><td>—</td></tr>
+            <tr data-step="7"><td>7</td><td>enter dfs(2,1)</td><td>seen[2] = True</td><td><code>{0,1,2}</code></td><td>—</td></tr>
+            <tr data-step="8"><td>8</td><td>edge 2→1</td><td>1 seen, 1 == parent → skip</td><td><code>{0,1,2}</code></td><td>—</td></tr>
+            <tr data-step="9"><td>9</td><td>edge 2→3</td><td>3 not seen → recurse</td><td><code>{0,1,2}</code></td><td>—</td></tr>
+            <tr data-step="10"><td>10</td><td>enter dfs(3,2)</td><td>seen[3] = True</td><td><code>{0,1,2,3}</code></td><td>—</td></tr>
+            <tr data-step="11"><td>11</td><td>edge 3→1</td><td>1 seen, 1 != parent(2) → CYCLE</td><td><code>{0,1,2,3}</code></td><td>Cycle on 3–1</td></tr>
+            <tr data-step="12"><td>12</td><td>dfs(3) → True</td><td>dfs(2,1) returns True</td><td><code>{0,1,2,3}</code></td><td>Cycle on 3–1</td></tr>
+            <tr data-step="13"><td>13</td><td>dfs(2) → True</td><td>dfs(1,0) returns True</td><td><code>{0,1,2,3}</code></td><td>Cycle on 3–1</td></tr>
+            <tr data-step="14"><td>14</td><td>dfs(1) → True</td><td>dfs(0,-1) returns True</td><td><code>{0,1,2,3}</code></td><td>Cycle on 3–1</td></tr>
+            <tr data-step="15"><td>15</td><td>outer returns</td><td>has_cycle_undirected → True</td><td><code>{0,1,2,3}</code></td><td>True</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>At any moment, the recursion stack is exactly the path from the outer-loop start down to the current node. A cycle is a second edge that lands on any vertex still open on that stack.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common undirected mistake</h4>
+          <p>Checking only <code>if seen[v]: return True</code> without the parent guard. That flags <strong>every single edge</strong> as a cycle, because you always immediately see the vertex you just came from.</p>
+        </div>
+        <div class="card">
+          <h4>Why the outer loop matters</h4>
+          <p>DFS from vertex 0 alone would miss a cycle sitting in a disconnected second component. Looping <code>for s in range(n)</code> restarts DFS on every unvisited vertex.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Directed — the 3-colour DFS (back edges)</h2>
+      <p>In a directed graph the parent trick breaks, because arrows are one-way — you can never walk straight back along the edge you arrived on. Instead, every vertex gets one of three colours: <strong>white</strong> (never touched), <strong>grey</strong> (visited, and still on the current recursion stack — an ancestor of where you are now), or <strong>black</strong> (fully finished, every descendant explored). A cycle exists exactly when an edge points to a <strong>grey</strong> vertex — a back edge to an ancestor. An edge to a black vertex is completely normal.</p>
+      <div class="code-block stepped">
+        <code id="dc-code">
+<span class="code-line" data-line="1">def has_cycle_directed(n, adj):</span>
+<span class="code-line" data-line="2">    WHITE, GREY, BLACK = 0, 1, 2</span>
+<span class="code-line" data-line="3">    color = [WHITE] * n</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    def dfs(u):</span>
+<span class="code-line" data-line="6">        color[u] = GREY</span>
+<span class="code-line" data-line="7">        for v in sorted(adj[u]):</span>
+<span class="code-line" data-line="8">            if color[v] == GREY:</span>
+<span class="code-line" data-line="9">                return True</span>
+<span class="code-line" data-line="10">            if color[v] == WHITE and dfs(v):</span>
+<span class="code-line" data-line="11">                return True</span>
+<span class="code-line" data-line="12">        color[u] = BLACK</span>
+<span class="code-line" data-line="13">        return False</span>
+<span class="code-line" data-line="14"></span>
+<span class="code-line" data-line="15">    for s in range(n):</span>
+<span class="code-line" data-line="16">        if color[s] == WHITE and dfs(s):</span>
+<span class="code-line" data-line="17">            return True</span>
+<span class="code-line" data-line="18">    return False</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive directed trace</div>
+          <p class="footer-note" style="margin-top:8px;">Canonical example: 0 has a dead-end edge to 1, and a second edge into a loop 2 → 3 → 4 → 2. Edges (sorted adjacency): 0→1, 0→2, 2→3, 3→4, 4→2.</p>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="dc-graph" viewBox="0 0 520 260" width="100%" role="img" aria-label="Directed graph: 0 points to dead-end 1 and to a loop among 2, 3, 4">
+              <defs>
+                <marker id="dc-arrow-base" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#cad3e6" />
+                </marker>
+                <marker id="dc-arrow-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#ff9f1c" />
+                </marker>
+              </defs>
+              <text x="20" y="24" class="dc-title">Colour of each vertex right now</text>
+              <line x1="80" y1="140" x2="80" y2="68" class="dc-base-edge" marker-end="url(#dc-arrow-base)" />
+              <line x1="80" y1="140" x2="202" y2="140" class="dc-base-edge" marker-end="url(#dc-arrow-base)" />
+              <line x1="230" y1="140" x2="355.3" y2="73.2" class="dc-base-edge" marker-end="url(#dc-arrow-base)" />
+              <line x1="380" y1="60" x2="380" y2="192" class="dc-base-edge" marker-end="url(#dc-arrow-base)" />
+              <line x1="380" y1="220" x2="254.7" y2="153.2" class="dc-base-edge" marker-end="url(#dc-arrow-base)" />
+              <line x1="80" y1="140" x2="80" y2="68" class="dc-active-edge" data-dc-edge="0-1" marker-end="url(#dc-arrow-active)" visibility="hidden" />
+              <line x1="80" y1="140" x2="202" y2="140" class="dc-active-edge" data-dc-edge="0-2" marker-end="url(#dc-arrow-active)" visibility="hidden" />
+              <line x1="230" y1="140" x2="355.3" y2="73.2" class="dc-active-edge" data-dc-edge="2-3" marker-end="url(#dc-arrow-active)" visibility="hidden" />
+              <line x1="380" y1="60" x2="380" y2="192" class="dc-active-edge" data-dc-edge="3-4" marker-end="url(#dc-arrow-active)" visibility="hidden" />
+              <line x1="380" y1="220" x2="254.7" y2="153.2" class="dc-active-edge" data-dc-edge="4-2" marker-end="url(#dc-arrow-active)" visibility="hidden" />
+              <circle cx="80" cy="140" r="26" class="dc-node" data-node="0" />
+              <circle cx="80" cy="40" r="26" class="dc-node" data-node="1" />
+              <circle cx="230" cy="140" r="26" class="dc-node" data-node="2" />
+              <circle cx="380" cy="60" r="26" class="dc-node" data-node="3" />
+              <circle cx="380" cy="220" r="26" class="dc-node" data-node="4" />
+              <text x="73" y="146" class="dc-label">0</text>
+              <text x="73" y="46" class="dc-label">1</text>
+              <text x="223" y="146" class="dc-label">2</text>
+              <text x="373" y="66" class="dc-label">3</text>
+              <text x="373" y="226" class="dc-label">4</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current node / back edge that closes the cycle</span>
+            <span><i class="dot dot-green"></i> grey — on the recursion stack</span>
+            <span><i class="dot dot-blue"></i> black — finished</span>
+            <span><i class="dot dot-gray"></i> white — not visited yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="dc-step-title">Initial state</h3>
+          <p id="dc-step-text">The adjacency list is built first. Every vertex starts WHITE.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="dc-prev">Previous</button>
+            <button type="button" id="dc-play" class="primary">Resume</button>
+            <button type="button" id="dc-next">Next</button>
+            <button type="button" id="dc-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="dc-step-counter">Step 0 / 16</span>
+            <div class="progress"><span id="dc-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Current node (u)</strong><div class="state-value" id="dc-u">—</div></div>
+            <div class="state-box"><strong>Colours</strong><div class="state-value" id="dc-colors">0:W 1:W 2:W 3:W 4:W</div></div>
+            <div class="state-box"><strong>On stack (GREY)</strong><div class="state-value" id="dc-stack">[]</div></div>
+            <div class="state-box"><strong>Neighbour check</strong><div class="state-value" id="dc-examine">—</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="dc-action">Build adjacency list</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="dc-result">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="dc-detail"><strong>What changed:</strong> nothing has run yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="dc-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Call / edge</th><th>Check</th><th>Colours after</th><th>Verdict</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Build graph</td><td>—</td><td><code>W W W W W</code></td><td>—</td></tr>
+            <tr data-step="1"><td>1</td><td>outer s=0</td><td>0 WHITE → dfs(0)</td><td><code>W W W W W</code></td><td>—</td></tr>
+            <tr data-step="2"><td>2</td><td>enter dfs(0)</td><td>color[0] = GREY</td><td><code>G W W W W</code></td><td>—</td></tr>
+            <tr data-step="3"><td>3</td><td>edge 0→1</td><td>1 WHITE → recurse</td><td><code>G W W W W</code></td><td>—</td></tr>
+            <tr data-step="4"><td>4</td><td>enter dfs(1)</td><td>color[1] = GREY</td><td><code>G G W W W</code></td><td>—</td></tr>
+            <tr data-step="5"><td>5</td><td>exit dfs(1)</td><td>no edges → color[1] = BLACK</td><td><code>G B W W W</code></td><td>—</td></tr>
+            <tr data-step="6"><td>6</td><td>edge 0→2</td><td>2 WHITE → recurse</td><td><code>G B W W W</code></td><td>—</td></tr>
+            <tr data-step="7"><td>7</td><td>enter dfs(2)</td><td>color[2] = GREY</td><td><code>G B G W W</code></td><td>—</td></tr>
+            <tr data-step="8"><td>8</td><td>edge 2→3</td><td>3 WHITE → recurse</td><td><code>G B G W W</code></td><td>—</td></tr>
+            <tr data-step="9"><td>9</td><td>enter dfs(3)</td><td>color[3] = GREY</td><td><code>G B G G W</code></td><td>—</td></tr>
+            <tr data-step="10"><td>10</td><td>edge 3→4</td><td>4 WHITE → recurse</td><td><code>G B G G W</code></td><td>—</td></tr>
+            <tr data-step="11"><td>11</td><td>enter dfs(4)</td><td>color[4] = GREY</td><td><code>G B G G G</code></td><td>—</td></tr>
+            <tr data-step="12"><td>12</td><td>edge 4→2</td><td>2 GREY → CYCLE (back edge)</td><td><code>G B G G G</code></td><td>Cycle on 4→2</td></tr>
+            <tr data-step="13"><td>13</td><td>dfs(4) → True</td><td>dfs(3) returns True</td><td><code>G B G G G</code></td><td>Cycle on 4→2</td></tr>
+            <tr data-step="14"><td>14</td><td>dfs(3) → True</td><td>dfs(2) returns True</td><td><code>G B G G G</code></td><td>Cycle on 4→2</td></tr>
+            <tr data-step="15"><td>15</td><td>dfs(2) → True</td><td>dfs(0) returns True</td><td><code>G B G G G</code></td><td>Cycle on 4→2</td></tr>
+            <tr data-step="16"><td>16</td><td>outer returns</td><td>has_cycle_directed → True</td><td><code>G B G G G</code></td><td>True</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Grey means "an ancestor of the node I'm at right now." Only an edge to a grey vertex closes a loop back onto the current path — an edge to black is just a second, unrelated way to reach an already-finished branch.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common directed mistake</h4>
+          <p>Using one boolean <code>visited</code> flag instead of three colours. That collapses grey and black together, so reaching vertex 2 a second time (once it is black) gets wrongly reported as a cycle.</p>
+        </div>
+        <div class="card">
+          <h4>Why the early return matters</h4>
+          <p>Notice in the trace above that 2, 3, and 4 never reach <code>color[u] = BLACK</code> — they return <code>True</code> early and stay grey forever. That is fine: the algorithm is about to stop entirely, so no later code ever reads their colour again.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Self-loop</button>
+        <button type="button" data-example-tab="1">Parallel edge (undirected)</button>
+        <button type="button" data-example-tab="2">Shared successor (directed)</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: a self-loop</h3>
+          <p><code>adj = {0: [0], 1: []}</code> — vertex 0 has an edge back to itself.</p>
+          <div class="result-badge">Answer = cycle found (both directions)</div>
+          <p class="footer-note">Undirected: <code>dfs(0, parent=-1)</code> sees neighbour <code>0</code>, which is seen and is <strong>not</strong> equal to the sentinel parent <code>-1</code> → cycle. Directed: <code>dfs(0)</code> colours 0 GREY, then immediately examines the edge <code>0→0</code> and finds <code>color[0] == GREY</code> → cycle. A self-loop is the smallest possible cycle in either graph type.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: a duplicate edge in an undirected graph — this IS a cycle</h3>
+          <p><code>adj = {0: [1, 1], 1: [0, 0]}</code> — the edge (0,1) is listed twice.</p>
+          <div class="result-badge">Answer = cycle found</div>
+          <p class="footer-note">The first pass into 1 and back correctly skips 0 (it is the parent). But <code>dfs(0,-1)</code> then reaches the <strong>second</strong> copy of neighbour 1 in its own list. By then 1 is seen, and 1 is not equal to 0's parent (<code>-1</code>) — so this correctly reports a cycle. Two parallel edges between the same pair of vertices really do form a 2-edge cycle; the parent guard only protects against the single edge you are currently walking, not against a second, separately-listed one.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: a directed shared successor — this looks like a cycle but is NOT</h3>
+          <p><code>adj = {0: [1, 2], 1: [2], 2: []}</code> — both 0 and 1 point to 2.</p>
+          <div class="result-badge">Answer = no cycle</div>
+          <p class="footer-note">DFS visits <code>0 → 1 → 2</code>, finishes 2 (BLACK), then finishes 1 (BLACK). Back in <code>dfs(0)</code>, the edge <code>0 → 2</code> is examined: <code>color[2]</code> is now BLACK, not GREY, so nothing happens. A beginner using a plain visited flag would see "2 already visited" and wrongly flag a cycle — the 3-colour check correctly recognises this as two unrelated paths converging, not a loop.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Time</th><th>Space</th><th>Gotcha</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>DFS + parent (undirected)</td><td>O(V + E)</td><td>O(V) recursion stack</td><td>Don't flag the edge straight back to your parent.</td></tr>
+            <tr><td>Union-Find on edges (undirected alt.)</td><td>O(E · α(V)) ≈ O(E)</td><td>O(V) parent array</td><td>An edge whose endpoints already share a root closes a cycle — no DFS needed at all.</td></tr>
+            <tr><td>3-colour DFS (directed)</td><td>O(V + E)</td><td>O(V) recursion stack + colour array</td><td>Don't flag edges to BLACK (finished) vertices — only GREY (on-stack) counts.</td></tr>
+            <tr><td>Kahn's topological sort (directed alt.)</td><td>O(V + E)</td><td>O(V) in-degree array + queue</td><td>If the output order has fewer than V vertices, the leftovers are stuck in a cycle.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">All four rely on the same core truth: an already-visited vertex only counts as a cycle once you know it is still "open" (the parent link, or the recursion stack) rather than merely "seen before."</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>First question: are the edges bidirectional or one-way? That single fact decides everything downstream.</p></div>
+            <div class="timeline-step"><p>If undirected: a plain "visited" check is not enough, because every edge you walk immediately shows you your own parent as "visited." I need to carry <code>parent</code> and exempt it.</p></div>
+            <div class="timeline-step"><p>If directed: a plain "visited" check is <em>also</em> not enough, but for a different reason — it cannot tell a back edge (ancestor, real cycle) from a cross edge (a finished, unrelated branch). I need a third state.</p></div>
+            <div class="timeline-step"><p>Either way it is one DFS pass, O(V + E), plus an outer loop over every vertex so disconnected pieces are not missed.</p></div>
+            <div class="timeline-step"><p>If asked for a non-recursive alternative: Union-Find for undirected, Kahn's topological sort for directed.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"First I'll check whether this graph is directed or undirected — the cycle rule is different for each, so I don't want to guess."</li>
+            <li>"For undirected, seeing a visited neighbour is not a cycle if it's the parent I arrived from — I'll pass that parent down through the recursion."</li>
+            <li>"For directed, seeing a visited neighbour is not a cycle if that vertex has already finished — I need a third state, on-stack, not just visited, so I'll use white/grey/black."</li>
+            <li>"I'll still loop over every vertex from the outside so I don't miss a cycle sitting in a disconnected part of the graph."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Undirected mistakes</h3>
+          <ul class="mistake-list">
+            <li>Flagging a cycle on any seen neighbour without excluding the parent — this reports every edge as a cycle.</li>
+            <li>Passing the wrong parent into the recursive call (e.g. always <code>0</code> instead of the actual calling vertex <code>u</code>).</li>
+            <li>Forgetting the outer <code>for s in range(n)</code> loop, so a cycle in a second, disconnected component is never found.</li>
+            <li>For Union-Find: comparing raw vertex ids instead of their <code>find()</code> roots, or forgetting to call <code>find()</code> before checking equality.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Directed mistakes</h3>
+          <ul class="mistake-list">
+            <li>Using a single <code>visited</code> boolean instead of white/grey/black — this flags a normal edge to a finished (black) vertex as a cycle.</li>
+            <li>Colouring a vertex BLACK too early, before all of its neighbours are actually checked — this can hide a real back edge.</li>
+            <li>Assuming any repeated vertex means a cycle, instead of specifically checking "is it still on the current recursion stack (grey)?"</li>
+            <li>For Kahn's: forgetting to compare the number of vertices actually output to <code>V</code> — silently returning "no cycle" when vertices are stuck.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — Undirected, <code>n = 4, edges = [(0,1), (1,2), (2,3)]</code></summary>
+          <p style="margin-top:10px;">Answer: <strong>no cycle</strong>. This is a straight path (a tree with 3 edges and 4 vertices). At every step, DFS's only seen neighbour is the parent it just came from, so the elif branch never triggers.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — Directed, <code>adj = {0: [1], 1: [2], 2: [3], 3: [1]}</code></summary>
+          <p style="margin-top:10px;">Answer: <strong>cycle found</strong>. DFS colours 0, 1, 2, 3 all GREY in turn. When it examines edge <code>3 → 1</code>, vertex 1 is still GREY (an ancestor on the current stack), so this is a back edge — a cycle: <code>1 → 2 → 3 → 1</code>. Vertex 0 is not part of the cycle itself; it just happened to be where the DFS started.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — Directed, <code>adj = {0: [1, 2], 1: [2], 2: []}</code></summary>
+          <p style="margin-top:10px;">Answer: <strong>no cycle</strong>. This is the same "shared successor" shape from the edge cases above. DFS reaches vertex 2 twice — once via <code>0 → 1 → 2</code> (finishing it to BLACK) and once via the direct edge <code>0 → 2</code> (by which point 2 is BLACK, not GREY). Two paths converging on the same finished vertex is completely normal in a DAG; it is exactly the case a plain "visited" flag gets wrong.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          Cycle detection is not one algorithm — it is one instinct (DFS) paired with two different extra pieces of
+          state. <strong>Undirected: carry your parent, and only ignore that one exempted edge.</strong>
+          <strong>Directed: carry a three-way colour, and only an edge to a still-open (grey) vertex counts.</strong>
+          Every beginner mistake on this page traces back to the same root cause — treating "visited" as if it
+          already meant "cycle," when really it is just the first half of the question.
+        </p>
+      </div>
+      <p class="footer-note">Based on the Cycle Detection README and notebook — both traces above were generated by running the exact functions shown, with neighbours iterated in sorted order, and transcribed verbatim from that run.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const udSteps = [
+        { step: 0, title: "Initial state", text: "Build the adjacency list from the edges (0-1, 1-2, 2-3, 3-1), adding each edge in both directions since the graph is undirected. Nothing is visited yet.", u: "—", parent: "—", seen: "{}", examine: "—", action: "Build adjacency list", result: "—", current: null, onstack: [], finished: [], edge: null, detail: "The adjacency list is ready; seen starts empty for all 4 vertices.", lines: [1, 2] },
+        { step: 1, title: "Step 1: outer loop s = 0", text: "Vertex 0 is unvisited, so start a fresh DFS from it with parent = -1, a sentinel meaning no real parent yet.", u: "0 (about to enter)", parent: "—", seen: "{}", examine: "—", action: "0 not seen -> call dfs(0, parent=-1)", result: "—", current: null, onstack: [], finished: [], edge: null, detail: "The outer loop also guarantees we start a fresh DFS for any disconnected pieces of the graph.", lines: [14, 15] },
+        { step: 2, title: "Step 2: enter dfs(0, parent=-1)", text: "Mark 0 as seen. Its sentinel parent -1 will never match a real vertex id, so 0 can never wrongly skip a real cycle edge.", u: "0", parent: "-1", seen: "{0}", examine: "—", action: "seen[0] = True", result: "—", current: 0, onstack: [], finished: [], edge: null, detail: "0 becomes the first vertex on the recursion stack.", lines: [4, 5] },
+        { step: 3, title: "Step 3: examine edge 0 -> 1", text: "Neighbour 1 is not seen yet, so recurse into it, remembering we arrived from 0.", u: "0", parent: "-1", seen: "{0}", examine: "v=1: not seen", action: "not seen[1] -> dfs(1, parent=0)", result: "—", current: 0, onstack: [], finished: [], edge: "0-1", detail: "We are about to go one level deeper; 0 stays on the stack waiting for this call to return.", lines: [6, 7, 8] },
+        { step: 4, title: "Step 4: enter dfs(1, parent=0)", text: "Mark 1 as seen. Its parent is 0 - the vertex we just came from.", u: "1", parent: "0", seen: "{0,1}", examine: "—", action: "seen[1] = True", result: "—", current: 1, onstack: [0], finished: [], edge: null, detail: "0 is now a paused ancestor on the stack; 1 is the active vertex.", lines: [4, 5] },
+        { step: 5, title: "Step 5: examine edge 1 -> 0", text: "Neighbour 0 is seen, but it equals 1's parent (0) - this is just the edge we arrived on, walked backwards. Skip it.", u: "1", parent: "0", seen: "{0,1}", examine: "v=0: seen, v == parent", action: "seen[0] and 0 == parent -> skip", result: "—", current: 1, onstack: [0], finished: [], edge: "0-1", detail: "This is exactly the trap: seeing a visited vertex here is not a cycle, because it is the parent link.", lines: [6, 7, 10] },
+        { step: 6, title: "Step 6: examine edge 1 -> 2", text: "Neighbour 2 is not seen yet, so recurse into it, remembering we arrived from 1.", u: "1", parent: "0", seen: "{0,1}", examine: "v=2: not seen", action: "not seen[2] -> dfs(2, parent=1)", result: "—", current: 1, onstack: [0], finished: [], edge: "1-2", detail: "1 stays on the stack while we explore its second neighbour.", lines: [6, 7, 8] },
+        { step: 7, title: "Step 7: enter dfs(2, parent=1)", text: "Mark 2 as seen. Its parent is 1.", u: "2", parent: "1", seen: "{0,1,2}", examine: "—", action: "seen[2] = True", result: "—", current: 2, onstack: [0, 1], finished: [], edge: null, detail: "The recursion stack is now 0 -> 1 -> 2.", lines: [4, 5] },
+        { step: 8, title: "Step 8: examine edge 2 -> 1", text: "Neighbour 1 is seen and equals 2's parent (1) - again just the edge we arrived on. Skip it.", u: "2", parent: "1", seen: "{0,1,2}", examine: "v=1: seen, v == parent", action: "seen[1] and 1 == parent -> skip", result: "—", current: 2, onstack: [0, 1], finished: [], edge: "1-2", detail: "Same trap as step 5, one level deeper.", lines: [6, 7, 10] },
+        { step: 9, title: "Step 9: examine edge 2 -> 3", text: "Neighbour 3 is not seen yet, so recurse into it, remembering we arrived from 2.", u: "2", parent: "1", seen: "{0,1,2}", examine: "v=3: not seen", action: "not seen[3] -> dfs(3, parent=2)", result: "—", current: 2, onstack: [0, 1], finished: [], edge: "2-3", detail: "This closes off the triangle - the next call is where the cycle will surface.", lines: [6, 7, 8] },
+        { step: 10, title: "Step 10: enter dfs(3, parent=2)", text: "Mark 3 as seen. Its parent is 2.", u: "3", parent: "2", seen: "{0,1,2,3}", examine: "—", action: "seen[3] = True", result: "—", current: 3, onstack: [0, 1, 2], finished: [], edge: null, detail: "The recursion stack is now 0 -> 1 -> 2 -> 3, and every vertex in the graph has been reached.", lines: [4, 5] },
+        { step: 11, title: "Step 11: examine edge 3 -> 1 - CYCLE", text: "Neighbour 1 is seen, and it is NOT 3's parent (which is 2). A visited vertex that is not the parent means a second, different way back to 1 - that is a cycle.", u: "3", parent: "2", seen: "{0,1,2,3}", examine: "v=1: seen, v != parent", action: "seen[1] and 1 != parent(2) -> return True", result: "Cycle found on edge 3-1", current: 3, onstack: [0, 1, 2], finished: [], edge: "3-1", detail: "The beginner trap resolved correctly: vertex 1 was visited, but through a completely different edge than the one that reached 3.", lines: [6, 7, 10, 11] },
+        { step: 12, title: "Step 12: dfs(3) returns True", text: "The True propagates back up to the call that made this one - dfs(2) immediately returns True too, without looking at any more neighbours of 2.", u: "2", parent: "1", seen: "{0,1,2,3}", examine: "—", action: "dfs(3, 2) returned True -> dfs(2,1) returns True", result: "Cycle found on edge 3-1", current: 2, onstack: [0, 1], finished: [3], edge: "3-1", detail: "Once a cycle is confirmed, every enclosing call short-circuits - there is no need to keep searching.", lines: [8, 9] },
+        { step: 13, title: "Step 13: dfs(2) returns True", text: "Propagate further: dfs(1) returns True as soon as dfs(2) reports True.", u: "1", parent: "0", seen: "{0,1,2,3}", examine: "—", action: "dfs(2, 1) returned True -> dfs(1,0) returns True", result: "Cycle found on edge 3-1", current: 1, onstack: [0], finished: [3, 2], edge: "3-1", detail: "The short-circuit keeps climbing back toward the very first call.", lines: [8, 9] },
+        { step: 14, title: "Step 14: dfs(1) returns True", text: "Propagate again: dfs(0) returns True.", u: "0", parent: "-1", seen: "{0,1,2,3}", examine: "—", action: "dfs(1, 0) returned True -> dfs(0,-1) returns True", result: "Cycle found on edge 3-1", current: 0, onstack: [], finished: [3, 2, 1], edge: "3-1", detail: "We are back at the very first call - one more return and the function itself is done.", lines: [8, 9] },
+        { step: 15, title: "Step 15: has_cycle_undirected returns True", text: "The outer loop sees dfs(0,-1) returned True and returns True immediately. The whole graph is confirmed to contain a cycle.", u: "—", parent: "—", seen: "{0,1,2,3}", examine: "—", action: "dfs(0,-1) is True -> return True", result: "True - the graph has a cycle", current: null, onstack: [], finished: [3, 2, 1, 0], edge: "3-1", detail: "Final answer: True. The cycle is 1 -> 2 -> 3 -> 1; vertex 0 is just a pendant hanging off it.", lines: [15, 16] }
+      ];
+
+      const dcSteps = [
+        { step: 0, title: "Initial state", text: "Build the adjacency list from the directed edges (0->1, 0->2, 2->3, 3->4, 4->2). Every vertex starts WHITE. Unlike the undirected version, an edge is only added in the direction it points.", u: "—", colors: "0:W 1:W 2:W 3:W 4:W", stackList: "[]", examine: "—", action: "Build adjacency list", result: "—", current: null, grey: [], black: [], edge: null, detail: "Every vertex starts WHITE. Colour, not a simple seen/unseen flag, is what this method needs.", lines: [2, 3] },
+        { step: 1, title: "Step 1: outer loop s = 0", text: "Vertex 0 is WHITE, so start a fresh DFS from it.", u: "0 (about to enter)", colors: "0:W 1:W 2:W 3:W 4:W", stackList: "[]", examine: "—", action: "color[0] == WHITE -> call dfs(0)", result: "—", current: null, grey: [], black: [], edge: null, detail: "Same idea as the undirected outer loop: this also covers any disconnected parts of the graph.", lines: [15, 16] },
+        { step: 2, title: "Step 2: enter dfs(0)", text: "Colour 0 GREY - it is now on the recursion stack, an ancestor of everything explored from here.", u: "0", colors: "0:G 1:W 2:W 3:W 4:W", stackList: "[0]", examine: "—", action: "color[0] = GREY", result: "—", current: 0, grey: [0], black: [], edge: null, detail: "GREY means currently open, still being explored - not yet finished.", lines: [5, 6] },
+        { step: 3, title: "Step 3: examine edge 0 -> 1", text: "Neighbour 1 is WHITE, so recurse into it.", u: "0", colors: "0:G 1:W 2:W 3:W 4:W", stackList: "[0]", examine: "v=1: WHITE", action: "color[1] == WHITE -> dfs(1)", result: "—", current: 0, grey: [0], black: [], edge: "0-1", detail: "0 stays GREY on the stack while dfs(1) runs.", lines: [7, 10] },
+        { step: 4, title: "Step 4: enter dfs(1)", text: "Colour 1 GREY.", u: "1", colors: "0:G 1:G 2:W 3:W 4:W", stackList: "[0,1]", examine: "—", action: "color[1] = GREY", result: "—", current: 1, grey: [0, 1], black: [], edge: null, detail: "The recursion stack is now 0 -> 1.", lines: [5, 6] },
+        { step: 5, title: "Step 5: exit dfs(1)", text: "Vertex 1 has no outgoing edges, so the loop body never runs. Colour 1 BLACK - it is fully finished - and return False.", u: "1", colors: "0:G 1:B 2:W 3:W 4:W", stackList: "[0]", examine: "—", action: "color[1] = BLACK; return False", result: "—", current: 1, grey: [0], black: [1], edge: null, detail: "1 is a dead end. If it were reached again, it would now read as BLACK (safe), not GREY.", lines: [7, 12, 13] },
+        { step: 6, title: "Step 6: examine edge 0 -> 2", text: "Back in dfs(0). Its next neighbour, 2, is WHITE, so recurse into it.", u: "0", colors: "0:G 1:B 2:W 3:W 4:W", stackList: "[0]", examine: "v=2: WHITE", action: "color[2] == WHITE -> dfs(2)", result: "—", current: 0, grey: [0], black: [1], edge: "0-2", detail: "0 has now tried both of its outgoing edges - 1 finished cleanly, and 2 is next.", lines: [7, 10] },
+        { step: 7, title: "Step 7: enter dfs(2)", text: "Colour 2 GREY.", u: "2", colors: "0:G 1:B 2:G 3:W 4:W", stackList: "[0,2]", examine: "—", action: "color[2] = GREY", result: "—", current: 2, grey: [0, 2], black: [1], edge: null, detail: "The recursion stack is now 0 -> 2.", lines: [5, 6] },
+        { step: 8, title: "Step 8: examine edge 2 -> 3", text: "Neighbour 3 is WHITE, so recurse into it.", u: "2", colors: "0:G 1:B 2:G 3:W 4:W", stackList: "[0,2]", examine: "v=3: WHITE", action: "color[3] == WHITE -> dfs(3)", result: "—", current: 2, grey: [0, 2], black: [1], edge: "2-3", detail: "Stack: 0 -> 2 -> 3 is forming.", lines: [7, 10] },
+        { step: 9, title: "Step 9: enter dfs(3)", text: "Colour 3 GREY.", u: "3", colors: "0:G 1:B 2:G 3:G 4:W", stackList: "[0,2,3]", examine: "—", action: "color[3] = GREY", result: "—", current: 3, grey: [0, 2, 3], black: [1], edge: null, detail: "Stack: 0 -> 2 -> 3.", lines: [5, 6] },
+        { step: 10, title: "Step 10: examine edge 3 -> 4", text: "Neighbour 4 is WHITE, so recurse into it.", u: "3", colors: "0:G 1:B 2:G 3:G 4:W", stackList: "[0,2,3]", examine: "v=4: WHITE", action: "color[4] == WHITE -> dfs(4)", result: "—", current: 3, grey: [0, 2, 3], black: [1], edge: "3-4", detail: "One more level and the loop 2->3->4->2 will close.", lines: [7, 10] },
+        { step: 11, title: "Step 11: enter dfs(4)", text: "Colour 4 GREY.", u: "4", colors: "0:G 1:B 2:G 3:G 4:G", stackList: "[0,2,3,4]", examine: "—", action: "color[4] = GREY", result: "—", current: 4, grey: [0, 2, 3, 4], black: [1], edge: null, detail: "Stack: 0 -> 2 -> 3 -> 4. Every vertex except 1 is now GREY.", lines: [5, 6] },
+        { step: 12, title: "Step 12: examine edge 4 -> 2 - CYCLE", text: "Neighbour 2 is GREY - it is still on the recursion stack, an ancestor of 4. This is a back edge, so a cycle exists.", u: "4", colors: "0:G 1:B 2:G 3:G 4:G", stackList: "[0,2,3,4]", examine: "v=2: GREY", action: "color[2] == GREY -> return True", result: "Cycle found on edge 4->2", current: 4, grey: [0, 2, 3, 4], black: [1], edge: "4-2", detail: "The directed version of the same trap: 2 was visited, but the real question is not visited? - it is still open on the stack? And it is.", lines: [7, 8, 9] },
+        { step: 13, title: "Step 13: dfs(4) returns True", text: "True propagates up: dfs(3) returns True immediately, without colouring 3 BLACK.", u: "3", colors: "0:G 1:B 2:G 3:G 4:G", stackList: "[0,2,3,4]", examine: "—", action: "dfs(4) returned True -> dfs(3) returns True", result: "Cycle found on edge 4->2", current: 3, grey: [0, 2, 3, 4], black: [1], edge: "4-2", detail: "Notice 3 and 4 never reach the color[u] = BLACK line - they short-circuit out while still GREY.", lines: [10, 11] },
+        { step: 14, title: "Step 14: dfs(3) returns True", text: "True propagates further: dfs(2) returns True.", u: "2", colors: "0:G 1:B 2:G 3:G 4:G", stackList: "[0,2,3,4]", examine: "—", action: "dfs(3) returned True -> dfs(2) returns True", result: "Cycle found on edge 4->2", current: 2, grey: [0, 2, 3, 4], black: [1], edge: "4-2", detail: "2 also exits without ever turning BLACK, for the same reason.", lines: [10, 11] },
+        { step: 15, title: "Step 15: dfs(2) returns True", text: "True propagates to the outermost call: dfs(0) returns True.", u: "0", colors: "0:G 1:B 2:G 3:G 4:G", stackList: "[0,2,3,4]", examine: "—", action: "dfs(2) returned True -> dfs(0) returns True", result: "Cycle found on edge 4->2", current: 0, grey: [0, 2, 3, 4], black: [1], edge: "4-2", detail: "0 is the last GREY vertex left holding the True on its way out.", lines: [10, 11] },
+        { step: 16, title: "Step 16: has_cycle_directed returns True", text: "The outer loop sees dfs(0) returned True and returns True immediately. Final colours: 1 is BLACK (a clean dead end); everything else is permanently GREY, because they returned early and never reached the mark BLACK line.", u: "—", colors: "0:G 1:B 2:G 3:G 4:G", stackList: "[0,2,3,4]", examine: "—", action: "dfs(0) is True -> return True", result: "True - the graph has a cycle", current: null, grey: [0, 2, 3, 4], black: [1], edge: "4-2", detail: "Final answer: True. The cycle is 2 -> 3 -> 4 -> 2; vertex 1 was an unrelated dead end explored first.", lines: [16, 17] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderUD(step, index, max) {
+        document.getElementById('ud-step-title').textContent = step.title;
+        document.getElementById('ud-step-text').textContent = step.text;
+        document.getElementById('ud-u').textContent = step.u;
+        document.getElementById('ud-parent').textContent = step.parent;
+        document.getElementById('ud-seen').textContent = step.seen;
+        document.getElementById('ud-examine').textContent = step.examine;
+        document.getElementById('ud-action').textContent = step.action;
+        document.getElementById('ud-result').textContent = step.result;
+        document.getElementById('ud-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('ud-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('ud-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('ud-trace-table', step.step);
+        setCodeHighlight('ud-code', step.lines);
+
+        document.querySelectorAll('#ud-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('onstack', 'finished', 'current');
+          if (step.finished.includes(id)) node.classList.add('finished');
+          if (step.onstack.includes(id)) node.classList.add('onstack');
+          if (step.current === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#ud-graph [data-ud-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.udEdge === step.edge ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderDC(step, index, max) {
+        document.getElementById('dc-step-title').textContent = step.title;
+        document.getElementById('dc-step-text').textContent = step.text;
+        document.getElementById('dc-u').textContent = step.u;
+        document.getElementById('dc-colors').textContent = step.colors;
+        document.getElementById('dc-stack').textContent = step.stackList;
+        document.getElementById('dc-examine').textContent = step.examine;
+        document.getElementById('dc-action').textContent = step.action;
+        document.getElementById('dc-result').textContent = step.result;
+        document.getElementById('dc-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('dc-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('dc-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('dc-trace-table', step.step);
+        setCodeHighlight('dc-code', step.lines);
+
+        document.querySelectorAll('#dc-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('grey', 'black', 'current');
+          if (step.black.includes(id)) node.classList.add('black');
+          if (step.grey.includes(id)) node.classList.add('grey');
+          if (step.current === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#dc-graph [data-dc-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.dcEdge === step.edge ? 'visible' : 'hidden');
+        });
+      }
+
+      setupTrace({ steps: udSteps, prefix: 'ud', render: renderUD });
+      setupTrace({ steps: dcSteps, prefix: 'dc', render: renderDC });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

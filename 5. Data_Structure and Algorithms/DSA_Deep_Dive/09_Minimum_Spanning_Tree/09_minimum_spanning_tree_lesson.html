@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minimum Spanning Tree — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Graph algorithms · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Minimum Spanning Tree — Kruskal &amp; Prim</h1>
+          <p>
+            A Minimum Spanning Tree connects every vertex of a weighted graph using the cheapest possible set
+            of edges, with no cycles. This page traces two different greedy algorithms — Kruskal (sort edges,
+            skip anything that would cycle) and Prim (grow one tree outward, always take the cheapest edge
+            leaving it) — on the exact same graph, line by line, so you can see them arrive at the same total
+            weight through two different orders of edge selection.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: cheapest safe edge, repeatedly</span>
+            <span class="chip">Interactive Kruskal trace</span>
+            <span class="chip">Interactive Prim trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>vertices = A, B, C, D, E</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 520 320" width="100%" role="img" aria-label="Weighted graph with five vertices; the minimum spanning tree edges are highlighted">
+              <defs>
+                <style>
+                  .hero-edge-off { stroke: #c8d2e7; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 6 6; }
+                  .hero-edge-on { stroke: #315efb; stroke-width: 8; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .hero-wlabel { font: 700 13px Inter, Arial, sans-serif; fill: #172033; }
+                  .hero-wbg { fill: #ffffff; stroke: #d9e1ef; stroke-width: 1; }
+                </style>
+              </defs>
+              <line x1="90" y1="70" x2="430" y2="70" class="hero-edge-off" />
+              <line x1="260" y1="170" x2="90" y2="270" class="hero-edge-off" />
+              <line x1="90" y1="70" x2="260" y2="170" class="hero-edge-on" />
+              <line x1="430" y1="70" x2="260" y2="170" class="hero-edge-on" />
+              <line x1="430" y1="270" x2="90" y2="270" class="hero-edge-on" />
+              <line x1="430" y1="70" x2="430" y2="270" class="hero-edge-on" />
+              <circle cx="175" cy="120" r="13" class="hero-wbg" /><text x="171" y="124" class="hero-wlabel">1</text>
+              <circle cx="345" cy="120" r="13" class="hero-wbg" /><text x="341" y="124" class="hero-wlabel">2</text>
+              <circle cx="260" cy="50" r="13" class="hero-wbg" /><text x="256" y="54" class="hero-wlabel">4</text>
+              <circle cx="260" cy="290" r="13" class="hero-wbg" /><text x="256" y="294" class="hero-wlabel">3</text>
+              <circle cx="452" cy="170" r="13" class="hero-wbg" /><text x="448" y="174" class="hero-wlabel">5</text>
+              <circle cx="175" cy="220" r="13" class="hero-wbg" /><text x="171" y="224" class="hero-wlabel">6</text>
+              <circle cx="90" cy="70" r="26" class="hero-node" />
+              <circle cx="430" cy="70" r="26" class="hero-node" />
+              <circle cx="260" cy="170" r="26" class="hero-node" />
+              <circle cx="430" cy="270" r="26" class="hero-node" />
+              <circle cx="90" cy="270" r="26" class="hero-node" />
+              <text x="84" y="76" class="hero-label">A</text>
+              <text x="424" y="76" class="hero-label">B</text>
+              <text x="254" y="176" class="hero-label">C</text>
+              <text x="424" y="276" class="hero-label">D</text>
+              <text x="84" y="276" class="hero-label">E</text>
+            </svg>
+          </div>
+          <div class="result-badge">MST total weight = 11 (edges A-C, B-C, D-E, B-D)</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Network infrastructure</h3>
+          <p>Wiring every office, data center, or house to a network for the least total cable — no redundant loops, every site reachable.</p>
+        </div>
+        <div class="card">
+          <h3>Circuit board design</h3>
+          <p>Connecting every pin on a board with the shortest total trace length is literally a minimum spanning tree problem.</p>
+        </div>
+        <div class="card">
+          <h3>Clustering</h3>
+          <p>Single-linkage clustering builds an MST over data points, then cuts its most expensive edges to reveal natural groups.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> MST is one of the cleanest examples of a greedy algorithm that is provably optimal — not "usually good," but always correct, for a reason you can state precisely (the cut property, covered below).</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a Minimum Spanning Tree?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Three words, three requirements</h3>
+          <p><strong>Spanning</strong> — touches every one of the <code>V</code> vertices, none left out. <strong>Tree</strong> — no cycles, which for a connected structure over <code>V</code> vertices forces exactly <code>V - 1</code> edges. <strong>Minimum</strong> — among every possible spanning tree, the one whose edge weights sum to the least.</p>
+        </div>
+        <div class="card">
+          <h3>What you are actually building</h3>
+          <p>You start with a graph that may have many redundant connections (cycles) and many possible ways to link everything up. You are selecting a subset of exactly <code>V - 1</code> edges that keeps the graph connected at the lowest possible total cost.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if a graph has <code>V</code> vertices and is connected, its MST always has exactly <code>V - 1</code> edges — no more, no fewer. Count your accepted edges as you go; when you hit <code>V - 1</code>, you are done, even if edges remain unprocessed.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Confirm the graph is connected</h3>
+          <p>If it isn't, no spanning tree exists at all — there's no set of edges that can reach every vertex.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Pick edge-centric or vertex-centric</h3>
+          <p>Sparse graph, edges easy to sort → Kruskal. Dense graph, want to grow outward from one point → Prim.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Repeatedly take the cheapest safe edge</h3>
+          <p>"Safe" means it doesn't create a cycle (Kruskal) or its far endpoint isn't already in the tree (Prim).</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Stop at V - 1 edges</h3>
+          <p>That is a complete spanning tree. Any further edges would only create a cycle.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes a working structure</h2>
+      <p>Both algorithms start from the same raw fact — a list of weighted edges — but each reshapes it differently before it can run.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input: weighted edge list</h3>
+          <div class="code-block"><code>edges = [
+  (1, A, C), (2, B, C),
+  (3, D, E), (4, A, B),
+  (5, B, D), (6, C, E)
+]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Kruskal needs: sorted edge list</h3>
+          <div class="code-block"><code>sorted(edges) =
+(1,A,C) (2,B,C) (3,D,E)
+(4,A,B) (5,B,D) (6,C,E)</code></div>
+        </div>
+      </div>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input: weighted edge list</h3>
+          <div class="code-block"><code>edges = [
+  (1, A, C), (2, B, C),
+  (3, D, E), (4, A, B),
+  (5, B, D), (6, C, E)
+]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Prim needs: adjacency list</h3>
+          <div class="code-block"><code>A: [(C,1), (B,4)]
+B: [(C,2), (A,4), (D,5)]
+C: [(A,1), (B,2), (E,6)]
+D: [(E,3), (B,5)]
+E: [(D,3), (C,6)]</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Sorting once, up front (Kruskal)</h4>
+          <p>Because Kruskal always wants "the next cheapest edge overall," sorting the whole list once at the start means every later step is just "read the next item" — no repeated searching.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Building both directions (Prim)</h4>
+          <p>The graph is undirected, so each edge <code>(w, u, v)</code> is added to both <code>adj[u]</code> and <code>adj[v]</code> — from either endpoint you need to be able to see the edge.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Same graph, two different "next" questions</h4>
+          <p>Kruskal's "next" is a position in a sorted array. Prim's "next" is whatever sits at the top of a min-heap of edges leaving the current tree. Different bookkeeping, same underlying graph.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> neither structure by itself prevents cycles. Kruskal pairs its sorted list with Union-Find; Prim pairs its heap with a <code>visited</code> set. The structure only decides <em>which edge to look at next</em> — a separate check decides whether to keep it.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: Kruskal — sort edges, skip anything that cycles</h2>
+      <p>Consider every edge from cheapest to most expensive. Add it if and only if its two endpoints are currently in different Union-Find groups — that is exactly the same question as "would this edge create a cycle?"</p>
+      <div class="card" style="margin-top:14px;">
+        <h4>The cycle-check engine: Union-Find</h4>
+        <p style="margin-bottom:0;">Kruskal calls <code>uf.union(u, v)</code> on every edge. It returns <code>True</code> (safe, groups merged) if <code>u</code> and <code>v</code> were in different groups, or <code>False</code> (would create a cycle) if they already shared a group.</p>
+        <div class="code-block"><code>class UnionFind:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [0] * n
+
+    def find(self, x):
+        while self.parent[x] != x:
+            self.parent[x] = self.parent[self.parent[x]]
+            x = self.parent[x]
+        return x
+
+    def union(self, a, b):
+        ra, rb = self.find(a), self.find(b)
+        if ra == rb:
+            return False
+        if self.rank[ra] < self.rank[rb]:
+            ra, rb = rb, ra
+        self.parent[rb] = ra
+        if self.rank[ra] == self.rank[rb]:
+            self.rank[ra] += 1
+        return True</code></div>
+      </div>
+      <div class="code-block stepped">
+        <code id="kru-code">
+<span class="code-line" data-line="1">def kruskal(n, edges):</span>
+<span class="code-line" data-line="2">    uf = UnionFind(n)</span>
+<span class="code-line" data-line="3">    mst, total = [], 0</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    for w, u, v in sorted(edges):</span>
+<span class="code-line" data-line="6">        if uf.union(u, v):</span>
+<span class="code-line" data-line="7">            mst.append((u, v, w))</span>
+<span class="code-line" data-line="8">            total += w</span>
+<span class="code-line" data-line="9">            if len(mst) == n - 1:</span>
+<span class="code-line" data-line="10">                break</span>
+<span class="code-line" data-line="11"></span>
+<span class="code-line" data-line="12">    return mst, total</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive Kruskal trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="kru-graph" viewBox="0 0 520 320" width="100%" role="img" aria-label="Kruskal trace over the weighted graph">
+              <defs>
+                <style>
+                  .kg-wlabel { font: 700 13px Inter, Arial, sans-serif; fill: #172033; }
+                  .kg-wbg { fill: #ffffff; stroke: #d9e1ef; stroke-width: 1; }
+                  .kg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .kg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="kg-title">Edge under evaluation</text>
+              <line data-edge="A-B" x1="90" y1="70" x2="430" y2="70" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <line data-edge="C-E" x1="260" y1="170" x2="90" y2="270" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <line data-edge="A-C" x1="90" y1="70" x2="260" y2="170" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <line data-edge="B-C" x1="430" y1="70" x2="260" y2="170" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <line data-edge="D-E" x1="430" y1="270" x2="90" y2="270" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <line data-edge="B-D" x1="430" y1="70" x2="430" y2="270" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <circle cx="175" cy="120" r="13" class="kg-wbg" /><text x="171" y="124" class="kg-wlabel">1</text>
+              <circle cx="345" cy="120" r="13" class="kg-wbg" /><text x="341" y="124" class="kg-wlabel">2</text>
+              <circle cx="260" cy="50" r="13" class="kg-wbg" /><text x="256" y="54" class="kg-wlabel">4</text>
+              <circle cx="260" cy="290" r="13" class="kg-wbg" /><text x="256" y="294" class="kg-wlabel">3</text>
+              <circle cx="452" cy="170" r="13" class="kg-wbg" /><text x="448" y="174" class="kg-wlabel">5</text>
+              <circle cx="175" cy="220" r="13" class="kg-wbg" /><text x="171" y="224" class="kg-wlabel">6</text>
+              <circle data-node="A" cx="90" cy="70" r="26" fill="#c8d2e7" />
+              <circle data-node="B" cx="430" cy="70" r="26" fill="#c8d2e7" />
+              <circle data-node="C" cx="260" cy="170" r="26" fill="#c8d2e7" />
+              <circle data-node="D" cx="430" cy="270" r="26" fill="#c8d2e7" />
+              <circle data-node="E" cx="90" cy="270" r="26" fill="#c8d2e7" />
+              <text x="84" y="76" class="kg-label">A</text>
+              <text x="424" y="76" class="kg-label">B</text>
+              <text x="254" y="176" class="kg-label">C</text>
+              <text x="424" y="276" class="kg-label">D</text>
+              <text x="84" y="276" class="kg-label">E</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current edge / its endpoints</span>
+            <span><i class="dot dot-blue"></i> accepted into the MST</span>
+            <span><i class="dot dot-green"></i> candidate under consideration</span>
+            <span><i class="dot dot-gray"></i> untouched or rejected</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="kru-step-title">Initial state</h3>
+          <p id="kru-step-text">Union-Find starts with every vertex as its own group.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="kru-prev">Previous</button>
+            <button type="button" id="kru-play" class="primary">Resume</button>
+            <button type="button" id="kru-next">Next</button>
+            <button type="button" id="kru-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="kru-step-counter">Step 0 / 6</span>
+            <div class="progress"><span id="kru-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Current edge</strong><div class="state-value" id="kru-edge">—</div></div>
+            <div class="state-box"><strong>Roots found</strong><div class="state-value" id="kru-roots">—</div></div>
+            <div class="state-box"><strong>Decision</strong><div class="state-value" id="kru-decision">—</div></div>
+            <div class="state-box"><strong>Parent list [A,B,C,D,E]</strong><div class="state-value" id="kru-parent">[A, B, C, D, E]</div></div>
+            <div class="state-box"><strong>Running total</strong><div class="state-value" id="kru-total">0</div></div>
+            <div class="state-box"><strong>MST edges so far</strong><div class="state-value" id="kru-mstsize">0 / 4</div></div>
+          </div>
+          <div class="explainer">
+            <p id="kru-detail"><strong>What changed:</strong> nothing processed yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="kru-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Edge (weight)</th><th>root(u)</th><th>root(v)</th><th>Decision</th><th>Parent after</th><th>Total after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>—</td><td>—</td><td>Init</td><td><code>[A, B, C, D, E]</code></td><td><code>0</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>A-C (1)</code></td><td><code>A</code></td><td><code>C</code></td><td>Accept</td><td><code>[A, B, A, D, E]</code></td><td><code>1</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>B-C (2)</code></td><td><code>B</code></td><td><code>A</code></td><td>Accept</td><td><code>[A, A, A, D, E]</code></td><td><code>3</code></td></tr>
+            <tr data-step="3"><td>3</td><td><code>D-E (3)</code></td><td><code>D</code></td><td><code>E</code></td><td>Accept</td><td><code>[A, A, A, D, D]</code></td><td><code>6</code></td></tr>
+            <tr data-step="4"><td>4</td><td><code>A-B (4)</code></td><td><code>A</code></td><td><code>A</code></td><td>Reject — cycle</td><td><code>[A, A, A, D, D]</code></td><td><code>6</code></td></tr>
+            <tr data-step="5"><td>5</td><td><code>B-D (5)</code></td><td><code>A</code></td><td><code>D</code></td><td>Accept</td><td><code>[A, A, A, A, D]</code></td><td><code>11</code></td></tr>
+            <tr data-step="6"><td>6</td><td>—</td><td>—</td><td>—</td><td>Done — V-1 edges reached</td><td><code>[A, A, A, A, D]</code></td><td><code>11</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Sorting turns "find the globally cheapest remaining edge" into "read the next item." Union-Find turns "would this create a cycle?" into one near-O(1) comparison of two roots.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common Kruskal mistake</h4>
+          <p>Forgetting the <code>len(mst) == n - 1</code> stop condition and processing every edge anyway. It still gives the right answer, but on a large graph it wastes work — and if you forget it entirely on a disconnected graph, the loop simply runs out of edges without ever reaching a full tree.</p>
+        </div>
+        <div class="card">
+          <h4>Why Union-Find matters</h4>
+          <p>Without it, checking "are A and D already connected?" would mean a fresh DFS/BFS from A on every single edge — O(V+E) per check instead of near-O(1).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Prim — grow one tree, always take the cheapest frontier edge</h2>
+      <p>Start at any vertex. Keep a min-heap of every edge leaving the current tree. Repeatedly pop the cheapest one; if its far endpoint is already in the tree, discard it — otherwise add that vertex and push its outgoing edges as new candidates.</p>
+      <div class="code-block stepped">
+        <code id="prim-code">
+<span class="code-line" data-line="1">def prim(adj, start=0):</span>
+<span class="code-line" data-line="2">    visited = {start}</span>
+<span class="code-line" data-line="3">    pq = [(w, start, v) for v, w in adj[start]]</span>
+<span class="code-line" data-line="4">    heapq.heapify(pq)</span>
+<span class="code-line" data-line="5">    mst, total = [], 0</span>
+<span class="code-line" data-line="6"></span>
+<span class="code-line" data-line="7">    while pq and len(visited) < len(adj):</span>
+<span class="code-line" data-line="8">        w, u, v = heapq.heappop(pq)</span>
+<span class="code-line" data-line="9">        if v in visited:</span>
+<span class="code-line" data-line="10">            continue</span>
+<span class="code-line" data-line="11">        visited.add(v)</span>
+<span class="code-line" data-line="12">        mst.append((u, v, w))</span>
+<span class="code-line" data-line="13">        total += w</span>
+<span class="code-line" data-line="14">        for nxt, w2 in adj[v]:</span>
+<span class="code-line" data-line="15">            if nxt not in visited:</span>
+<span class="code-line" data-line="16">                heapq.heappush(pq, (w2, v, nxt))</span>
+<span class="code-line" data-line="17"></span>
+<span class="code-line" data-line="18">    return mst, total</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive Prim trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="prim-graph" viewBox="0 0 520 320" width="100%" role="img" aria-label="Prim trace over the weighted graph">
+              <defs>
+                <style>
+                  .pg-wlabel { font: 700 13px Inter, Arial, sans-serif; fill: #172033; }
+                  .pg-wbg { fill: #ffffff; stroke: #d9e1ef; stroke-width: 1; }
+                  .pg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .pg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="pg-title">Cheapest edge popped from the heap</text>
+              <line data-edge="A-B" x1="90" y1="70" x2="430" y2="70" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <line data-edge="C-E" x1="260" y1="170" x2="90" y2="270" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <line data-edge="A-C" x1="90" y1="70" x2="260" y2="170" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <line data-edge="B-C" x1="430" y1="70" x2="260" y2="170" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <line data-edge="D-E" x1="430" y1="270" x2="90" y2="270" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <line data-edge="B-D" x1="430" y1="70" x2="430" y2="270" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+              <circle cx="175" cy="120" r="13" class="pg-wbg" /><text x="171" y="124" class="pg-wlabel">1</text>
+              <circle cx="345" cy="120" r="13" class="pg-wbg" /><text x="341" y="124" class="pg-wlabel">2</text>
+              <circle cx="260" cy="50" r="13" class="pg-wbg" /><text x="256" y="54" class="pg-wlabel">4</text>
+              <circle cx="260" cy="290" r="13" class="pg-wbg" /><text x="256" y="294" class="pg-wlabel">3</text>
+              <circle cx="452" cy="170" r="13" class="pg-wbg" /><text x="448" y="174" class="pg-wlabel">5</text>
+              <circle cx="175" cy="220" r="13" class="pg-wbg" /><text x="171" y="224" class="pg-wlabel">6</text>
+              <circle data-node="A" cx="90" cy="70" r="26" fill="#315efb" />
+              <circle data-node="B" cx="430" cy="70" r="26" fill="#c8d2e7" />
+              <circle data-node="C" cx="260" cy="170" r="26" fill="#c8d2e7" />
+              <circle data-node="D" cx="430" cy="270" r="26" fill="#c8d2e7" />
+              <circle data-node="E" cx="90" cy="270" r="26" fill="#c8d2e7" />
+              <text x="84" y="76" class="pg-label">A</text>
+              <text x="424" y="76" class="pg-label">B</text>
+              <text x="254" y="176" class="pg-label">C</text>
+              <text x="424" y="276" class="pg-label">D</text>
+              <text x="84" y="276" class="pg-label">E</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current edge / its endpoints</span>
+            <span><i class="dot dot-blue"></i> vertex already in the tree</span>
+            <span><i class="dot dot-green"></i> candidate reachable via the heap</span>
+            <span><i class="dot dot-gray"></i> untouched or rejected</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="prim-step-title">Initial state</h3>
+          <p id="prim-step-text">The tree starts with just A; its outgoing edges seed the heap.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="prim-prev">Previous</button>
+            <button type="button" id="prim-play" class="primary">Resume</button>
+            <button type="button" id="prim-next">Next</button>
+            <button type="button" id="prim-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="prim-step-counter">Step 0 / 6</span>
+            <div class="progress"><span id="prim-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Heap (min-first)</strong><div class="state-value" id="prim-heap">[(1,A,C), (4,A,B)]</div></div>
+            <div class="state-box"><strong>Popped edge</strong><div class="state-value" id="prim-popped">—</div></div>
+            <div class="state-box"><strong>Already in tree?</strong><div class="state-value" id="prim-check">—</div></div>
+            <div class="state-box"><strong>Visited (tree) set</strong><div class="state-value" id="prim-visited">{A}</div></div>
+            <div class="state-box"><strong>Running total</strong><div class="state-value" id="prim-total">0</div></div>
+            <div class="state-box"><strong>MST edges so far</strong><div class="state-value" id="prim-mstsize">0 / 4</div></div>
+          </div>
+          <div class="explainer">
+            <p id="prim-detail"><strong>What changed:</strong> nothing popped yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="prim-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Popped edge (weight)</th><th>Already in tree?</th><th>Action</th><th>Visited after</th><th>Total after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>—</td><td>Seed heap from A</td><td><code>{A}</code></td><td><code>0</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>A-C (1)</code></td><td>No</td><td>Add C, push C-B(2), C-E(6)</td><td><code>{A, C}</code></td><td><code>1</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>C-B (2)</code></td><td>No</td><td>Add B, push B-D(5)</td><td><code>{A, B, C}</code></td><td><code>3</code></td></tr>
+            <tr data-step="3"><td>3</td><td><code>A-B (4)</code></td><td>Yes</td><td>Skip — stale entry</td><td><code>{A, B, C}</code></td><td><code>3</code></td></tr>
+            <tr data-step="4"><td>4</td><td><code>B-D (5)</code></td><td>No</td><td>Add D, push D-E(3)</td><td><code>{A, B, C, D}</code></td><td><code>8</code></td></tr>
+            <tr data-step="5"><td>5</td><td><code>D-E (3)</code></td><td>No</td><td>Add E — all vertices in tree</td><td><code>{A, B, C, D, E}</code></td><td><code>11</code></td></tr>
+            <tr data-step="6"><td>6</td><td>—</td><td>—</td><td>Done — loop condition false</td><td><code>{A, B, C, D, E}</code></td><td><code>11</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The heap always surfaces the cheapest edge leaving the current tree. Prim never has to scan every frontier edge to find the minimum — the heap already did that work.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common Prim mistake</h4>
+          <p>Forgetting the <code>if v in visited: continue</code> check. Stale heap entries like <code>A-B(4)</code> in step 3 are expected and harmless — but only if you actually discard them instead of re-adding an already-visited vertex.</p>
+        </div>
+        <div class="card">
+          <h4>Why the heap matters</h4>
+          <p>Without it, finding the cheapest frontier edge would mean scanning every edge touching the tree on every iteration — O(V) or worse per step instead of O(log V) per heap operation.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Disconnected graph</button>
+        <button type="button" data-example-tab="1">Tied edge weights</button>
+        <button type="button" data-example-tab="2">Single / two vertices</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: disconnected graph</h3>
+          <p><code>vertices = A, B, C, D</code> with edges only among <code>{A, B}</code> and none touching <code>{C, D}</code></p>
+          <div class="result-badge">No spanning tree exists</div>
+          <p class="footer-note">Kruskal will run out of edges with <code>len(mst) &lt; n - 1</code> and just stop — it will not raise an error, it will silently return an incomplete tree. Prim's <code>visited</code> set will never reach <code>len(adj)</code> and the heap will empty out first. Always check <code>len(mst) == n - 1</code> before trusting the result.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: tied edge weights</h3>
+          <p><code>triangle A-B(2), B-C(2), A-C(2)</code></p>
+          <div class="result-badge">Total weight = 4 either way, but the edge SET can differ</div>
+          <p class="footer-note">With a tie, <code>sorted()</code>'s stable order (or the order edges were pushed to the heap) decides which two of the three equal edges get kept. Two different valid MSTs can result — same total weight, different edges — and that is not a bug in either algorithm. If all weights in a graph are distinct, the MST is provably unique.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: single vertex or two vertices</h3>
+          <p><code>n = 1</code> (no edges) or <code>n = 2</code> with one edge <code>A-B(7)</code></p>
+          <div class="result-badge">n=1: 0 edges, total=0 · n=2: 1 edge, total=7</div>
+          <p class="footer-note">A single vertex is trivially its own spanning tree with zero edges. With two vertices and one connecting edge, that edge is forced — there is no choice to make, and both algorithms return it immediately.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Time</th><th>Space</th><th>Best for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Union-Find (find + union)</td><td>O(α(V)) amortized per op — practically O(1)</td><td>O(V)</td><td>The cycle-check engine Kruskal depends on</td></tr>
+            <tr><td>Kruskal</td><td>O(E log E) — dominated by sorting</td><td>O(V + E)</td><td>Sparse graphs; edges already available as a list</td></tr>
+            <tr><td>Prim (binary heap)</td><td>O((V + E) log V)</td><td>O(V + E)</td><td>Dense graphs; growing outward from a known start</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">Both are greedy and both are always correct (the cut property guarantees it). If all edge weights are distinct, they return the same unique tree — just discovered through a different sequence of decisions, as this page's two traces show.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>We need to connect everything at minimum total cost, with no redundant cycles.</p></div>
+            <div class="timeline-step"><p>Greedy — always take the cheapest available option — is tempting, but does it actually give the optimal total?</p></div>
+            <div class="timeline-step"><p>The cut property: split the vertices into any two groups. The cheapest edge crossing that split can never be wrong to include — a cheaper alternative crossing the same split would already have been the cheaper edge.</p></div>
+            <div class="timeline-step"><p>Kruskal applies this globally, one sorted edge at a time. Prim applies it locally, around the frontier of one growing tree. Both are legal because the cut property holds for every possible cut.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"I need every vertex connected at minimum cost with no cycles — that's a spanning tree, and I want the cheapest one."</li>
+            <li>"Greedy is actually optimal here because of the cut property: the cheapest edge crossing any split of the vertices is always safe to include in some MST."</li>
+            <li>"Given the graph is sparse, I'll sort the edges and use Union-Find to reject anything that would cycle — that's Kruskal, O(E log E)."</li>
+            <li>"If it were dense instead, I'd grow one tree with a min-heap of frontier edges — that's Prim, O((V+E) log V), similar shape to Dijkstra."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Kruskal mistakes</h3>
+          <ul class="mistake-list">
+            <li>Comparing vertices directly (<code>u == v</code>) instead of comparing their <strong>roots</strong> (<code>find(u) == find(v)</code>) to detect a cycle.</li>
+            <li>Forgetting to sort the edges first — the whole algorithm depends on always looking at the cheapest remaining edge.</li>
+            <li>Not stopping at <code>V - 1</code> edges, or forgetting to check whether it was ever reached (silently wrong on a disconnected graph).</li>
+            <li>Implementing Union-Find without path compression or union by rank, quietly degrading it from near-O(1) to O(V) per call.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Prim mistakes</h3>
+          <ul class="mistake-list">
+            <li>Forgetting to check <code>if v in visited: continue</code> after popping — this is what discards stale heap entries safely.</li>
+            <li>Only pushing edges from the start vertex once, instead of pushing every newly-added vertex's outgoing edges too.</li>
+            <li>Using a plain list and scanning for the minimum instead of a heap, turning an O(log V) operation into O(V).</li>
+            <li>Assuming the heap only ever holds valid frontier edges — it can and will hold stale entries pointing at vertices already in the tree.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — A graph has two edges tied for cheapest: A-B(3) and C-D(3), touching completely different vertices. Does the order Kruskal considers them in change the final total weight?</summary>
+          <p style="margin-top:10px;">Answer: No. Since the two edges don't share any vertex, both will always be accepted regardless of which is processed first — neither can create a cycle relative to the other. Ties only matter for the final <em>edge set</em> when the tied edges compete for the same connection; the total weight of the MST is unaffected either way.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — You run <code>kruskal(6, edges)</code> on a graph where vertex 5 has no edges at all. What does the function return, and how would you catch the problem?</summary>
+          <p style="margin-top:10px;">Answer: The loop will never accept an edge touching vertex 5, so <code>mst</code> will end with only 4 edges instead of the required <code>n - 1 = 5</code>. The function returns normally with no error — you must explicitly check <code>len(mst) == n - 1</code> after the call to detect that the graph was disconnected.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — Partway through Prim, the tree is <code>{A, B, C}</code> and the heap holds <code>(4,A,B)</code>, <code>(5,B,D)</code>, <code>(6,C,E)</code>. Which edge gets processed next, and is it accepted?</summary>
+          <p style="margin-top:10px;">Answer: The heap always pops the smallest weight first, so <code>(4,A,B)</code> comes out next. But both A and B are already in <code>{A, B, C}</code>, so <code>v=B in visited</code> is true and it is skipped as a stale entry — the next real addition will be <code>(5,B,D)</code>.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          Kruskal and Prim are not two different answers — they are two different <strong>orders of discovery</strong>
+          for the same guarantee. Kruskal asks a global question, cheapest edge first, and leans on Union-Find to
+          reject cycles. Prim asks a local question, cheapest edge leaving the current tree, and leans on a heap to
+          find it fast. Both are correct because of the same cut property, and on this page's graph both land on
+          total weight <strong>11</strong> — just by picking edges in a different order.
+        </p>
+      </div>
+      <p class="footer-note">Based on the Minimum Spanning Tree README and notebook — canonical example: vertices A-E, edges (1,A,C) (2,B,C) (3,D,E) (4,A,B) (5,B,D) (6,C,E).</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const EDGE_KEYS = ['A-C', 'B-C', 'A-B', 'D-E', 'B-D', 'C-E'];
+      const NODE_KEYS = ['A', 'B', 'C', 'D', 'E'];
+      const COLORS = { gray: '#c8d2e7', orange: '#ff9f1c', blue: '#315efb', green: '#13a46b' };
+
+      function paintEdges(svgId, current, accepted, frontier) {
+        EDGE_KEYS.forEach((key) => {
+          const el = document.querySelector(`#${svgId} [data-edge="${key}"]`);
+          if (!el) return;
+          let colorKey = 'gray';
+          if (accepted.includes(key)) colorKey = 'blue';
+          if (frontier && frontier.includes(key)) colorKey = 'green';
+          if (key === current) colorKey = 'orange';
+          el.setAttribute('stroke', COLORS[colorKey]);
+          el.setAttribute('stroke-width', colorKey === 'gray' ? 4 : (colorKey === 'orange' ? 8 : 7));
+        });
+      }
+
+      function paintNodes(svgId, currentNodes, blueNodes, frontierNodes) {
+        NODE_KEYS.forEach((key) => {
+          const el = document.querySelector(`#${svgId} [data-node="${key}"]`);
+          if (!el) return;
+          let colorKey = 'gray';
+          if (blueNodes.includes(key)) colorKey = 'blue';
+          if (frontierNodes && frontierNodes.includes(key)) colorKey = 'green';
+          if (currentNodes && currentNodes.includes(key)) colorKey = 'orange';
+          el.setAttribute('fill', COLORS[colorKey]);
+        });
+      }
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      // ---------- KRUSKAL ----------
+      const kruSteps = [
+        { step: 0, title: 'Initial state — every vertex is its own group', text: 'Union-Find starts with parent[i] = i for every vertex. The edge list is sorted by weight before anything else happens: A-C(1), B-C(2), D-E(3), A-B(4), B-D(5), C-E(6).', edge: '—', roots: '—', decision: '—', parent: '[A, B, C, D, E]', total: '0', mstsize: '0 / 4', detail: 'uf = UnionFind(5); mst = []; total = 0.', current: null, accepted: [], currentNodes: [], blueNodes: [], lines: [2, 3] },
+        { step: 1, title: 'Step 1 — edge A-C, weight 1', text: 'The cheapest edge in the whole graph. find(A) and find(C) return different roots, so accepting this edge cannot create a cycle.', edge: 'A-C (w=1)', roots: 'root(A)=A, root(C)=C', decision: 'ACCEPT — different groups', parent: '[A, B, A, D, E]', total: '1', mstsize: '1 / 4', detail: 'uf.union(A, C) returns True. mst=[(A,C,1)], total=1.', current: 'A-C', accepted: ['A-C'], currentNodes: ['A', 'C'], blueNodes: ['A', 'C'], lines: [5, 6, 7, 8, 9] },
+        { step: 2, title: 'Step 2 — edge B-C, weight 2', text: "B is still its own group; C's group leader is now A (from step 1). Different roots, so this is safe.", edge: 'B-C (w=2)', roots: 'root(B)=B, root(C)=A', decision: 'ACCEPT — different groups', parent: '[A, A, A, D, E]', total: '3', mstsize: '2 / 4', detail: 'uf.union(B, C) returns True. mst=[(A,C,1),(B,C,2)], total=3. A, B, C are now one group.', current: 'B-C', accepted: ['A-C', 'B-C'], currentNodes: ['B', 'C'], blueNodes: ['A', 'B', 'C'], lines: [5, 6, 7, 8, 9] },
+        { step: 3, title: 'Step 3 — edge D-E, weight 3', text: 'D and E are untouched so far — different groups, safe to add. This starts a second, separate mini-tree.', edge: 'D-E (w=3)', roots: 'root(D)=D, root(E)=E', decision: 'ACCEPT — different groups', parent: '[A, A, A, D, D]', total: '6', mstsize: '3 / 4', detail: 'uf.union(D, E) returns True. mst now has 3 edges, total=6. Two separate groups exist: {A,B,C} and {D,E}.', current: 'D-E', accepted: ['A-C', 'B-C', 'D-E'], currentNodes: ['D', 'E'], blueNodes: ['A', 'B', 'C', 'D', 'E'], lines: [5, 6, 7, 8, 9] },
+        { step: 4, title: 'Step 4 — edge A-B, weight 4', text: 'A and B are already in the same group ({A,B,C}) from steps 1-2. Adding A-B would create a cycle inside that group, so Kruskal rejects it and moves on — the parent array does not change.', edge: 'A-B (w=4)', roots: 'root(A)=A, root(B)=A', decision: 'REJECT — same group (cycle)', parent: '[A, A, A, D, D]', total: '6', mstsize: '3 / 4', detail: 'uf.union(A, B) returns False because find(A) == find(B) == A. No append, no total change — this is exactly why Union-Find exists.', current: 'A-B', accepted: ['A-C', 'B-C', 'D-E'], currentNodes: ['A', 'B'], blueNodes: ['A', 'B', 'C', 'D', 'E'], lines: [5, 6] },
+        { step: 5, title: 'Step 5 — edge B-D, weight 5', text: 'This edge crosses the two remaining groups — {A,B,C} and {D,E} — so it is safe, and it is the edge that finally merges everything into one tree.', edge: 'B-D (w=5)', roots: 'root(B)=A, root(D)=D', decision: 'ACCEPT — different groups', parent: '[A, A, A, A, D]', total: '11', mstsize: '4 / 4', detail: 'uf.union(B, D) returns True. mst now has 4 = V-1 edges, so the loop breaks immediately — the 6th edge, C-E(w=6), is never even looked at.', current: 'B-D', accepted: ['A-C', 'B-C', 'D-E', 'B-D'], currentNodes: ['B', 'D'], blueNodes: ['A', 'B', 'C', 'D', 'E'], lines: [5, 6, 7, 8, 9, 10] },
+        { step: 6, title: 'Algorithm complete', text: 'Kruskal stops the moment it has V-1=4 edges. The MST is {A-C, B-C, D-E, B-D} with total weight 11.', edge: '—', roots: '—', decision: 'Done', parent: '[A, A, A, A, D]', total: '11', mstsize: '4 / 4', detail: 'return mst, total -> ([(A,C,1),(B,C,2),(D,E,3),(B,D,5)], 11).', current: null, accepted: ['A-C', 'B-C', 'D-E', 'B-D'], currentNodes: [], blueNodes: ['A', 'B', 'C', 'D', 'E'], lines: [12] }
+      ];
+
+      function renderKru(step, index, max) {
+        document.getElementById('kru-step-title').textContent = step.title;
+        document.getElementById('kru-step-text').textContent = step.text;
+        document.getElementById('kru-edge').textContent = step.edge;
+        document.getElementById('kru-roots').textContent = step.roots;
+        document.getElementById('kru-decision').textContent = step.decision;
+        document.getElementById('kru-parent').textContent = step.parent;
+        document.getElementById('kru-total').textContent = step.total;
+        document.getElementById('kru-mstsize').textContent = step.mstsize;
+        document.getElementById('kru-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('kru-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('kru-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('kru-trace-table', step.step);
+        setCodeHighlight('kru-code', step.lines);
+        paintEdges('kru-graph', step.current, step.accepted, null);
+        paintNodes('kru-graph', step.currentNodes, step.blueNodes, null);
+      }
+
+      // ---------- PRIM ----------
+      const primSteps = [
+        { step: 0, title: 'Initial state — seed the frontier from A', text: 'visited = {A}. Every edge leaving A becomes a candidate in the min-heap: A-C (w=1) and A-B (w=4).', heap: '[(1,A,C), (4,A,B)]', popped: '—', check: '—', visited: '{A}', total: '0', mstsize: '0 / 4', detail: 'pq=[(1,A,C),(4,A,B)] built from adj[A]. heapq.heapify keeps the smallest weight at the top.', current: null, accepted: [], currentNodes: [], blueNodes: ['A'], frontierEdges: ['A-B', 'A-C'], frontierNodes: ['B', 'C'], lines: [2, 3, 4, 5] },
+        { step: 1, title: 'Step 1 — pop (w=1, A to C)', text: "C is not yet in the tree, so this is a real new connection. Add C to the tree; push C's outgoing edges (C-B=2, C-E=6) as new candidates.", heap: 'pop (1,A,C) -> heap becomes [(2,C,B), (4,A,B), (6,C,E)]', popped: 'A-C (w=1)', check: 'C not in visited -> ADD', visited: '{A, C}', total: '1', mstsize: '1 / 4', detail: 'visited.add(C); mst=[(A,C,1)]; total=1. New frontier edges pushed from C.', current: 'A-C', accepted: ['A-C'], currentNodes: ['A', 'C'], blueNodes: ['A'], frontierEdges: ['A-B', 'B-C', 'C-E'], frontierNodes: ['B', 'E'], lines: [8, 9, 11, 12, 13, 14, 15, 16] },
+        { step: 2, title: 'Step 2 — pop (w=2, C to B)', text: "B is not yet in the tree. Add B; push B's remaining outgoing edge B-D (w=5). Note A-B (w=4) is still sitting in the heap from step 0 — it will surface later but is now redundant since B is reached more cheaply through C.", heap: 'pop (2,C,B) -> heap becomes [(4,A,B), (5,B,D), (6,C,E)]', popped: 'B-C (w=2)', check: 'B not in visited -> ADD', visited: '{A, B, C}', total: '3', mstsize: '2 / 4', detail: 'visited.add(B); mst=[(A,C,1),(B,C,2)]; total=3.', current: 'B-C', accepted: ['A-C', 'B-C'], currentNodes: ['C', 'B'], blueNodes: ['A', 'C'], frontierEdges: ['B-D', 'C-E'], frontierNodes: ['D', 'E'], lines: [8, 9, 11, 12, 13, 14, 15, 16] },
+        { step: 3, title: 'Step 3 — pop (w=4, A to B) — stale entry', text: 'This A-B edge was pushed all the way back in step 0, before B was reached through C. B is already in the tree, so this entry is skipped — it does not create a second connection to B.', heap: 'pop (4,A,B) -> heap becomes [(5,B,D), (6,C,E)]', popped: 'A-B (w=4)', check: 'B already in visited -> SKIP', visited: '{A, B, C}', total: '3', mstsize: '2 / 4', detail: 'v=B is already in visited, so "continue" skips straight to the next heap pop — no append, no total change.', current: 'A-B', accepted: ['A-C', 'B-C'], currentNodes: ['A', 'B'], blueNodes: ['A', 'B', 'C'], frontierEdges: ['B-D', 'C-E'], frontierNodes: ['D', 'E'], lines: [8, 9, 10] },
+        { step: 4, title: 'Step 4 — pop (w=5, B to D)', text: "D is not yet in the tree. Add D; push D's remaining outgoing edge D-E (w=3).", heap: 'pop (5,B,D) -> heap becomes [(3,D,E), (6,C,E)]', popped: 'B-D (w=5)', check: 'D not in visited -> ADD', visited: '{A, B, C, D}', total: '8', mstsize: '3 / 4', detail: 'visited.add(D); mst=[...,(B,D,5)]; total=8.', current: 'B-D', accepted: ['A-C', 'B-C', 'B-D'], currentNodes: ['B', 'D'], blueNodes: ['A', 'B', 'C'], frontierEdges: ['C-E', 'D-E'], frontierNodes: ['E'], lines: [8, 9, 11, 12, 13, 14, 15, 16] },
+        { step: 5, title: 'Step 5 — pop (w=3, D to E)', text: 'E is not yet in the tree — and it is now the cheapest remaining option in the heap because D reached it directly. Add E. All 5 vertices are now in the tree, so the while loop ends.', heap: 'pop (3,D,E) -> heap becomes [(6,C,E)] (never opened)', popped: 'D-E (w=3)', check: 'E not in visited -> ADD', visited: '{A, B, C, D, E}', total: '11', mstsize: '4 / 4', detail: 'visited.add(E); mst now has 4 = V-1 edges; total=11. len(visited) == len(adj), so the while condition becomes false.', current: 'D-E', accepted: ['A-C', 'B-C', 'B-D', 'D-E'], currentNodes: ['D', 'E'], blueNodes: ['A', 'B', 'C', 'D'], frontierEdges: [], frontierNodes: [], lines: [8, 9, 11, 12, 13, 14, 15, 16] },
+        { step: 6, title: 'Algorithm complete', text: 'Prim stops the instant every vertex is in the tree. The MST is {A-C, B-C, B-D, D-E} — the same set of edges Kruskal found, total weight 11, just discovered in a different order.', heap: '[(6,C,E)] — never popped', popped: '—', check: '—', visited: '{A, B, C, D, E}', total: '11', mstsize: '4 / 4', detail: 'return mst, total -> ([(A,C,1),(C,B,2),(B,D,5),(D,E,3)], 11).', current: null, accepted: ['A-C', 'B-C', 'B-D', 'D-E'], currentNodes: [], blueNodes: ['A', 'B', 'C', 'D', 'E'], frontierEdges: [], frontierNodes: [], lines: [18] }
+      ];
+
+      function renderPrim(step, index, max) {
+        document.getElementById('prim-step-title').textContent = step.title;
+        document.getElementById('prim-step-text').textContent = step.text;
+        document.getElementById('prim-heap').textContent = step.heap;
+        document.getElementById('prim-popped').textContent = step.popped;
+        document.getElementById('prim-check').textContent = step.check;
+        document.getElementById('prim-visited').textContent = step.visited;
+        document.getElementById('prim-total').textContent = step.total;
+        document.getElementById('prim-mstsize').textContent = step.mstsize;
+        document.getElementById('prim-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('prim-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('prim-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('prim-trace-table', step.step);
+        setCodeHighlight('prim-code', step.lines);
+        paintEdges('prim-graph', step.current, step.accepted, step.frontierEdges);
+        paintNodes('prim-graph', step.currentNodes, step.blueNodes, step.frontierNodes);
+      }
+
+      setupTrace({ steps: kruSteps, prefix: 'kru', render: renderKru });
+      setupTrace({ steps: primSteps, prefix: 'prim', render: renderPrim });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

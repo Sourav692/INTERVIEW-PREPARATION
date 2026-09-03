@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strongly Connected Components — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 Z" fill="#9aa6c2" />
+      </marker>
+      <marker id="arrow-dark" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 Z" fill="#6c7a96" />
+      </marker>
+      <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 Z" fill="#ff9f1c" />
+      </marker>
+      <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 Z" fill="#315efb" />
+      </marker>
+      <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 Z" fill="#13a46b" />
+      </marker>
+    </defs>
+  </svg>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Directed graphs · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Strongly Connected Components in a Directed Graph</h1>
+          <p>
+            An SCC is a maximal group of vertices where every one can reach every other one — forward, along the
+            arrows. This page traces the two standard ways to find them, Kosaraju (two DFS passes over a reversed
+            graph) and Tarjan (one DFS with discovery/low-link numbers), against one real, verified graph, so you can
+            watch exactly what each algorithm's state looks like on every single step.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: mutual reachability</span>
+            <span class="chip">Interactive Kosaraju trace</span>
+            <span class="chip">Interactive Tarjan trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>adj = {0:[1], 1:[2], 2:[0,3], 3:[4], 4:[3]}</code>, <code>n = 5</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 560 260" width="100%" role="img" aria-label="Directed graph with a 0-1-2 cycle, a 3-4 cycle, and a one-way edge from 2 to 3">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; marker-end: url(#arrow-dark); }
+                  .hero-nodeA { fill: #315efb; }
+                  .hero-nodeB { fill: #13a46b; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .hero-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="28" class="hero-title">SCC {0,1,2} — blue</text>
+              <text x="360" y="28" class="hero-title">SCC {3,4} — green</text>
+              <line x1="100" y1="84" x2="70" y2="156" class="hero-edge" />
+              <line x1="86" y1="180" x2="194" y2="180" class="hero-edge" />
+              <line x1="202" y1="161" x2="128" y2="79" class="hero-edge" />
+              <line x1="242" y1="167" x2="398" y2="73" class="hero-edge" />
+              <line x1="408" y1="86" x2="408" y2="174" class="hero-edge" />
+              <line x1="432" y1="174" x2="432" y2="86" class="hero-edge" />
+              <circle cx="110" cy="60" r="26" class="hero-nodeA" />
+              <circle cx="60" cy="180" r="26" class="hero-nodeA" />
+              <circle cx="220" cy="180" r="26" class="hero-nodeA" />
+              <circle cx="420" cy="60" r="26" class="hero-nodeB" />
+              <circle cx="420" cy="200" r="26" class="hero-nodeB" />
+              <text x="103" y="66" class="hero-label">0</text>
+              <text x="53" y="186" class="hero-label">1</text>
+              <text x="213" y="186" class="hero-label">2</text>
+              <text x="413" y="66" class="hero-label">3</text>
+              <text x="413" y="206" class="hero-label">4</text>
+            </svg>
+          </div>
+          <div class="result-badge">SCCs found: {0, 1, 2} and {3, 4}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Deadlock &amp; dependency cycles</h3>
+          <p>A "depends on" graph where module A depends on B and B depends back on A is a deadlock waiting to happen. Any SCC of size &gt; 1 in a dependency graph is exactly that knot — vertices that must be resolved together, not one at a time.</p>
+        </div>
+        <div class="card">
+          <h3>2-SAT</h3>
+          <p>2-SAT builds an implication graph from every clause. The formula is satisfiable if and only if no variable <code>x</code> ends up in the same SCC as its negation <code>¬x</code> — SCCs turn a satisfiability question into a reachability question.</p>
+        </div>
+        <div class="card">
+          <h3>Condensing a graph into a DAG</h3>
+          <p>Collapse every SCC into one super-node and any directed graph becomes acyclic. That unlocks every algorithm that only works on DAGs: topological sort, longest path, dependency-ordered dynamic programming.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> SCCs are rarely the final answer by themselves. They are almost always step one of something bigger — find the SCCs, condense to a DAG, then run a DAG algorithm on the much smaller condensation.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a strongly connected component?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition: mutual reachability</h3>
+          <p>An SCC is a maximal set of vertices where every vertex can reach every other vertex by following directed edges. <code>u</code> and <code>v</code> belong to the same SCC exactly when <code>u</code> can reach <code>v</code> <strong>and</strong> <code>v</code> can reach <code>u</code>.</p>
+        </div>
+        <div class="card">
+          <h3>How this differs from an undirected component</h3>
+          <p>In an undirected graph, one edge already proves both directions are reachable, so "connected" has only one meaning. Here, <code>2 → 3</code> proves nothing about whether <code>3</code> can reach <code>2</code> — it can't. That's why {0,1,2} and {3,4} are two separate SCCs even though the graph is one piece if you ignore arrow direction (that weaker notion is a "weakly connected component").</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if you can trace a path forward from <code>u</code> to <code>v</code> AND a separate path forward from <code>v</code> back to <code>u</code>, they're in the same SCC. If you can only go one way, no matter how tangled the graph looks, they are not.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Build a directed adjacency list</h3>
+          <p>Read each edge <code>u → v</code> and add <code>v</code> to <code>adj[u]</code> only — never the reverse. That's what makes it directed.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Test mutual reachability, not just reachability</h3>
+          <p>You're not asking "can I get there" — that's plain reachability. SCC asks "can I get there <strong>and back</strong>".</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Choose one DFS discipline</h3>
+          <p>Kosaraju: DFS, remember finish order, reverse the graph, DFS again in that order. Tarjan: one DFS, tracking <code>disc</code>/<code>low</code> and an explicit stack.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Read off each closed component</h3>
+          <p>Kosaraju hands you one SCC per DFS tree in pass two. Tarjan hands you one SCC every time <code>low[u] == disc[u]</code> closes and pops the stack.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes a working structure</h2>
+      <p>Both algorithms start from the same directed adjacency list. Kosaraju additionally needs a <strong>reversed</strong> adjacency list (the transpose), built once, after pass one finishes.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Edge list</h3>
+          <div class="code-block"><code>edges = [(0,1), (1,2), (2,0),
+         (2,3), (3,4), (4,3)]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Adjacency list (adj)</h3>
+          <div class="code-block"><code>0: [1]
+1: [2]
+2: [0, 3]
+3: [4]
+4: [3]</code></div>
+        </div>
+      </div>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Adjacency list (adj)</h3>
+          <div class="code-block"><code>0: [1]
+1: [2]
+2: [0, 3]
+3: [4]
+4: [3]</code></div>
+        </div>
+        <div class="arrow-box">reverse<br />every<br />edge →</div>
+        <div class="mini-diagram">
+          <h3>Reversed adjacency list (radj)</h3>
+          <div class="code-block"><code>0: [2]
+1: [0]
+2: [1]
+3: [2, 4]
+4: [3]</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Read <code>(0,1)</code>, <code>(1,2)</code>, <code>(2,0)</code></h4>
+          <p>Each is added to <code>adj</code> in one direction only. Together they form the 0→1→2→0 cycle that makes {0,1,2} mutually reachable.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read <code>(2,3)</code></h4>
+          <p>A one-way link between the two clusters. It proves 2 can reach 3, and nothing about 3 reaching 2.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Read <code>(3,4)</code>, <code>(4,3)</code></h4>
+          <p>Both directions exist between 3 and 4, so they are mutually reachable — a second, separate SCC.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Build <code>radj</code> (Kosaraju only, after pass one)</h4>
+          <p>For every original edge <code>u → v</code>, add <code>u</code> to <code>radj[v]</code>. Unlike an undirected graph, you do not build both lists up front — the reversed list is only built once, when Kosaraju needs it.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> reversing every edge does not delete any information — it is a lossless transformation. Every SCC of the original graph is still an SCC of the transpose, because "<code>u</code> reaches <code>v</code> and <code>v</code> reaches <code>u</code>" stays true no matter which direction you call "forward".</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: Kosaraju — two DFS passes</h2>
+      <p>Pass one runs a plain DFS and records each vertex's <strong>finish</strong> order (post-order), not its visit order. Pass two reverses every edge and DFS's the transpose again, popping vertices in <strong>decreasing</strong> finish order. Each DFS tree that pass two grows is exactly one SCC.</p>
+
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Original graph (pass 1 walks this)</h3>
+          <svg viewBox="0 0 560 260" width="100%" role="img" aria-label="Original directed graph">
+            <defs>
+              <style>
+                .mo-edge { stroke: #6c7a96; stroke-width: 3.5; stroke-linecap: round; marker-end: url(#arrow-dark); }
+                .mo-node { fill: #cfd8ea; }
+                .mo-label { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+              </style>
+            </defs>
+            <line x1="100" y1="84" x2="70" y2="156" class="mo-edge" />
+            <line x1="86" y1="180" x2="194" y2="180" class="mo-edge" />
+            <line x1="202" y1="161" x2="128" y2="79" class="mo-edge" />
+            <line x1="242" y1="167" x2="398" y2="73" class="mo-edge" />
+            <line x1="408" y1="86" x2="408" y2="174" class="mo-edge" />
+            <line x1="432" y1="174" x2="432" y2="86" class="mo-edge" />
+            <circle cx="110" cy="60" r="24" class="mo-node" />
+            <circle cx="60" cy="180" r="24" class="mo-node" />
+            <circle cx="220" cy="180" r="24" class="mo-node" />
+            <circle cx="420" cy="60" r="24" class="mo-node" />
+            <circle cx="420" cy="200" r="24" class="mo-node" />
+            <text x="105" y="65" class="mo-label">0</text>
+            <text x="55" y="185" class="mo-label">1</text>
+            <text x="215" y="185" class="mo-label">2</text>
+            <text x="415" y="65" class="mo-label">3</text>
+            <text x="415" y="205" class="mo-label">4</text>
+          </svg>
+        </div>
+        <div class="arrow-box">reverse<br />every<br />edge →</div>
+        <div class="mini-diagram">
+          <h3>Reversed graph / transpose (pass 2 walks this)</h3>
+          <svg viewBox="0 0 560 260" width="100%" role="img" aria-label="Reversed directed graph (transpose)">
+            <defs>
+              <style>
+                .mt-edge { stroke: #6c7a96; stroke-width: 3.5; stroke-linecap: round; marker-end: url(#arrow-dark); }
+                .mt-node { fill: #cfd8ea; }
+                .mt-label { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+              </style>
+            </defs>
+            <line x1="70" y1="156" x2="100" y2="84" class="mt-edge" />
+            <line x1="194" y1="180" x2="86" y2="180" class="mt-edge" />
+            <line x1="128" y1="79" x2="202" y2="161" class="mt-edge" />
+            <line x1="398" y1="73" x2="242" y2="167" class="mt-edge" />
+            <line x1="408" y1="86" x2="408" y2="174" class="mt-edge" />
+            <line x1="432" y1="174" x2="432" y2="86" class="mt-edge" />
+            <circle cx="110" cy="60" r="24" class="mt-node" />
+            <circle cx="60" cy="180" r="24" class="mt-node" />
+            <circle cx="220" cy="180" r="24" class="mt-node" />
+            <circle cx="420" cy="60" r="24" class="mt-node" />
+            <circle cx="420" cy="200" r="24" class="mt-node" />
+            <text x="105" y="65" class="mt-label">0</text>
+            <text x="55" y="185" class="mt-label">1</text>
+            <text x="215" y="185" class="mt-label">2</text>
+            <text x="415" y="65" class="mt-label">3</text>
+            <text x="415" y="205" class="mt-label">4</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="callout">
+        <p><strong>Why reversing works (the part that actually makes it click):</strong> reversing does not delete the link between the two components — the transpose above still has an edge <code>3 → 2</code>. What makes Kosaraju correct is <em>combining</em> the reversal with the finish-time order from pass one. There is a classic DFS lemma: if there's an edge from SCC <code>C1</code> to SCC <code>C2</code> in the original graph, then the maximum finish time inside <code>C1</code> is always greater than the maximum finish time inside <code>C2</code>. Here, {0,1,2} → {3,4}, so {0,1,2}'s latest finish time (node 0, finishing last of all) beats {3,4}'s. Pass two always starts its next DFS tree from the unvisited vertex with the <em>highest remaining</em> finish time — so whichever component it starts in cannot have any <em>unvisited</em> component pointing into it in the transpose (any such component would have had to finish even later, and would already have been visited first). The transpose edge <code>3 → 2</code> still exists, but by the time pass two reaches it, node 2 is already claimed — so the DFS just stops there instead of merging the two components.</p>
+      </div>
+
+      <div class="code-block stepped">
+        <code id="kos-code">
+<span class="code-line" data-line="1">def kosaraju(n, adj):</span>
+<span class="code-line" data-line="2">    """Returns a list of SCCs (each a list of vertices)."""</span>
+<span class="code-line" data-line="3">    seen = [False] * n</span>
+<span class="code-line" data-line="4">    order = []</span>
+<span class="code-line" data-line="5">    def dfs1(u):</span>
+<span class="code-line" data-line="6">        seen[u] = True</span>
+<span class="code-line" data-line="7">        for v in adj[u]:</span>
+<span class="code-line" data-line="8">            if not seen[v]:</span>
+<span class="code-line" data-line="9">                dfs1(v)</span>
+<span class="code-line" data-line="10">        order.append(u)                       # push on FINISH (post-order)</span>
+<span class="code-line" data-line="11">    for i in range(n):</span>
+<span class="code-line" data-line="12">        if not seen[i]:</span>
+<span class="code-line" data-line="13">            dfs1(i)</span>
+<span class="code-line" data-line="14"></span>
+<span class="code-line" data-line="15">    radj = [[] for _ in range(n)]             # build the transpose (reverse every edge)</span>
+<span class="code-line" data-line="16">    for u in range(n):</span>
+<span class="code-line" data-line="17">        for v in adj[u]:</span>
+<span class="code-line" data-line="18">            radj[v].append(u)</span>
+<span class="code-line" data-line="19"></span>
+<span class="code-line" data-line="20">    comp = [-1] * n</span>
+<span class="code-line" data-line="21">    sccs = []</span>
+<span class="code-line" data-line="22">    def dfs2(u, bag):</span>
+<span class="code-line" data-line="23">        comp[u] = len(sccs)</span>
+<span class="code-line" data-line="24">        bag.append(u)</span>
+<span class="code-line" data-line="25">        for v in radj[u]:</span>
+<span class="code-line" data-line="26">            if comp[v] == -1:</span>
+<span class="code-line" data-line="27">                dfs2(v, bag)</span>
+<span class="code-line" data-line="28">    for u in reversed(order):                 # decreasing finish time</span>
+<span class="code-line" data-line="29">        if comp[u] == -1:</span>
+<span class="code-line" data-line="30">            bag = []</span>
+<span class="code-line" data-line="31">            dfs2(u, bag)</span>
+<span class="code-line" data-line="32">            sccs.append(bag)                  # each DFS tree on the transpose = one SCC</span>
+<span class="code-line" data-line="33">    return sccs</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive Kosaraju trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="kos-graph" viewBox="0 0 560 260" width="100%" role="img" aria-label="Kosaraju trace over the graph">
+              <defs>
+                <style>
+                  .kos-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .kos-node.seen { fill: #315efb; }
+                  .kos-node.current { fill: #ff9f1c; }
+                  .kos-node.frontier { fill: #13a46b; }
+                  .kos-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .kos-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                  .kos-edge { stroke: #9aa6c2; stroke-width: 4; stroke-linecap: round; marker-end: url(#arrow-gray); }
+                  .kos-edge.active { stroke: #ff9f1c; stroke-width: 7; marker-end: url(#arrow-orange); }
+                </style>
+              </defs>
+              <text x="16" y="24" class="kos-title" id="kos-graph-title">Pass 1 — original graph</text>
+              <line class="kos-edge" data-edge="0-1" data-group="orig" x1="100" y1="84" x2="70" y2="156" />
+              <line class="kos-edge" data-edge="1-2" data-group="orig" x1="86" y1="180" x2="194" y2="180" />
+              <line class="kos-edge" data-edge="2-0" data-group="orig" x1="202" y1="161" x2="128" y2="79" />
+              <line class="kos-edge" data-edge="2-3" data-group="orig" x1="242" y1="167" x2="398" y2="73" />
+              <line class="kos-edge" data-edge="t-1-0" data-group="trans" x1="70" y1="156" x2="100" y2="84" />
+              <line class="kos-edge" data-edge="t-2-1" data-group="trans" x1="194" y1="180" x2="86" y2="180" />
+              <line class="kos-edge" data-edge="t-0-2" data-group="trans" x1="128" y1="79" x2="202" y2="161" />
+              <line class="kos-edge" data-edge="t-3-2" data-group="trans" x1="398" y1="73" x2="242" y2="167" />
+              <line class="kos-edge" data-edge="m-3-4" data-group="mutual" x1="408" y1="86" x2="408" y2="174" />
+              <line class="kos-edge" data-edge="m-4-3" data-group="mutual" x1="432" y1="174" x2="432" y2="86" />
+              <circle cx="110" cy="60" r="26" class="kos-node" data-node="0" />
+              <circle cx="60" cy="180" r="26" class="kos-node" data-node="1" />
+              <circle cx="220" cy="180" r="26" class="kos-node" data-node="2" />
+              <circle cx="420" cy="60" r="26" class="kos-node" data-node="3" />
+              <circle cx="420" cy="200" r="26" class="kos-node" data-node="4" />
+              <text x="103" y="66" class="kos-label">0</text>
+              <text x="53" y="186" class="kos-label">1</text>
+              <text x="213" y="186" class="kos-label">2</text>
+              <text x="413" y="66" class="kos-label">3</text>
+              <text x="413" y="206" class="kos-label">4</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current node</span>
+            <span><i class="dot dot-green"></i> open (call stack / bag being built)</span>
+            <span><i class="dot dot-blue"></i> finished / assigned to a closed SCC</span>
+            <span><i class="dot dot-gray"></i> untouched</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="kos-step-title">Initial state</h3>
+          <p id="kos-step-text">Nothing is visited yet. Neighbours are always tried in the order they appear in the adjacency list.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="kos-prev">Previous</button>
+            <button type="button" id="kos-play" class="primary">Resume</button>
+            <button type="button" id="kos-next">Next</button>
+            <button type="button" id="kos-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="kos-step-counter">Step 0 / 15</span>
+            <div class="progress"><span id="kos-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Stage</strong><div class="state-value" id="kos-stage">Pass 1 — build finish order</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="kos-node">—</div></div>
+            <div class="state-box"><strong>Finish-order stack</strong><div class="state-value" id="kos-stack">[]</div></div>
+            <div class="state-box"><strong>Seen / assigned</strong><div class="state-value" id="kos-visited">{}</div></div>
+            <div class="state-box"><strong>Current bag</strong><div class="state-value" id="kos-bag">—</div></div>
+            <div class="state-box"><strong>SCCs found</strong><div class="state-value" id="kos-sccs">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="kos-detail"><strong>What changed:</strong> pass one is about to begin.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="kos-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Stage</th><th>Node</th><th>Action</th><th>Stack</th><th>SCCs so far</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Pass 1</td><td>—</td><td>seen = {}, order = []</td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>Pass 1</td><td>0</td><td>dfs1(0) starts, seen[0]=True</td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>Pass 1</td><td>1</td><td>0→1 unseen, dfs1(1) starts</td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>Pass 1</td><td>2</td><td>1→2 unseen, dfs1(2) starts</td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>Pass 1</td><td>3</td><td>2→0 seen (skip); 2→3 unseen, dfs1(3) starts</td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>Pass 1</td><td>4</td><td>3→4 unseen, dfs1(4) starts</td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>Pass 1</td><td>4</td><td>4→3 seen (skip); dfs1(4) FINISHES</td><td><code>[4]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>Pass 1</td><td>3</td><td>dfs1(3) finishes</td><td><code>[4, 3]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>Pass 1</td><td>2</td><td>dfs1(2) finishes</td><td><code>[4, 3, 2]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>Pass 1</td><td>1</td><td>dfs1(1) finishes</td><td><code>[4, 3, 2, 1]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>Pass 1 done</td><td>0</td><td>dfs1(0) finishes; 1,2,3,4 already seen</td><td><code>[4, 3, 2, 1, 0]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>Build transpose</td><td>—</td><td>radj = [[2],[0],[1],[2,4],[3]]</td><td><code>[4, 3, 2, 1, 0]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>Pass 2</td><td>2</td><td>pop 0 (new SCC #0); visit 2</td><td><code>[4, 3, 2, 1]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="13"><td>13</td><td>Pass 2</td><td>1</td><td>visit 1; tree closes → SCC {0,1,2}</td><td><code>[4, 3, 2, 1]</code></td><td><code>[{0,1,2}]</code></td></tr>
+            <tr data-step="14"><td>14</td><td>Pass 2</td><td>3</td><td>pop 1, 2 (skip); pop 3 (new SCC #1)</td><td><code>[4]</code></td><td><code>[{0,1,2}]</code></td></tr>
+            <tr data-step="15"><td>15</td><td>Pass 2 done</td><td>4</td><td>visit 4; tree closes → SCC {3,4}; pop 4 (skip)</td><td><code>[]</code></td><td><code>[{0,1,2}, {3,4}]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The finish-order stack always puts a "source" component of the condensation DAG on top. Pass two peels off exactly one full SCC per DFS tree, from source to sink.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common Kosaraju mistake</h4>
+          <p>Pushing a node onto the order stack when it is first <em>visited</em> instead of when it <em>finishes</em>. Only finish order guarantees pass two can't leak between components — visit order does not have that property.</p>
+        </div>
+        <div class="card">
+          <h4>Why the transpose matters</h4>
+          <p>Reversing every edge doesn't erase the link between {0,1,2} and {3,4} — the transpose still has <code>3 → 2</code>. What blocks the leak is processing nodes in decreasing finish order: by the time pass two reaches 3, node 2 already belongs to a closed SCC, so <code>comp[v] == -1</code> stops it cold.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Tarjan — one DFS with low-link numbers</h2>
+      <p>Tarjan finds every SCC in a single DFS pass using two numbers per vertex: <code>disc[u]</code> (when <code>u</code> was discovered) and <code>low[u]</code> (the earliest discovery index reachable from <code>u</code>'s subtree, including one back edge). Vertices are pushed onto an explicit stack as they're entered. The moment <code>low[u] == disc[u]</code>, <code>u</code> roots a finished SCC — pop the stack down to <code>u</code> to collect it.</p>
+
+      <div class="code-block stepped">
+        <code id="tar-code">
+<span class="code-line" data-line="1">import sys</span>
+<span class="code-line" data-line="2"></span>
+<span class="code-line" data-line="3">def tarjan(n, adj):</span>
+<span class="code-line" data-line="4">    disc = [-1] * n; low = [0] * n; on_stack = [False] * n</span>
+<span class="code-line" data-line="5">    stack = []; sccs = []; counter = [0]</span>
+<span class="code-line" data-line="6">    def dfs(u):</span>
+<span class="code-line" data-line="7">        disc[u] = low[u] = counter[0]; counter[0] += 1</span>
+<span class="code-line" data-line="8">        stack.append(u); on_stack[u] = True</span>
+<span class="code-line" data-line="9">        for v in adj[u]:</span>
+<span class="code-line" data-line="10">            if disc[v] == -1:                 # tree edge: recurse, then pull up low</span>
+<span class="code-line" data-line="11">                dfs(v)</span>
+<span class="code-line" data-line="12">                low[u] = min(low[u], low[v])</span>
+<span class="code-line" data-line="13">            elif on_stack[v]:                 # back edge to a vertex still on the stack</span>
+<span class="code-line" data-line="14">                low[u] = min(low[u], disc[v])</span>
+<span class="code-line" data-line="15">        if low[u] == disc[u]:                 # u roots an SCC -> pop it off the stack</span>
+<span class="code-line" data-line="16">            comp = []</span>
+<span class="code-line" data-line="17">            while True:</span>
+<span class="code-line" data-line="18">                w = stack.pop(); on_stack[w] = False</span>
+<span class="code-line" data-line="19">                comp.append(w)</span>
+<span class="code-line" data-line="20">                if w == u:</span>
+<span class="code-line" data-line="21">                    break</span>
+<span class="code-line" data-line="22">            sccs.append(comp)</span>
+<span class="code-line" data-line="23">    for i in range(n):</span>
+<span class="code-line" data-line="24">        if disc[i] == -1:</span>
+<span class="code-line" data-line="25">            dfs(i)</span>
+<span class="code-line" data-line="26">    return sccs</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive Tarjan trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="tar-graph" viewBox="0 0 560 260" width="100%" role="img" aria-label="Tarjan trace over the graph">
+              <defs>
+                <style>
+                  .tar-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .tar-node.seen { fill: #315efb; }
+                  .tar-node.current { fill: #ff9f1c; }
+                  .tar-node.frontier { fill: #13a46b; }
+                  .tar-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .tar-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                  .tar-edge { stroke: #9aa6c2; stroke-width: 4; stroke-linecap: round; marker-end: url(#arrow-gray); }
+                  .tar-edge.active { stroke: #ff9f1c; stroke-width: 7; marker-end: url(#arrow-orange); }
+                </style>
+              </defs>
+              <text x="16" y="24" class="tar-title">Single DFS pass</text>
+              <line class="tar-edge" data-edge="0-1" x1="100" y1="84" x2="70" y2="156" />
+              <line class="tar-edge" data-edge="1-2" x1="86" y1="180" x2="194" y2="180" />
+              <line class="tar-edge" data-edge="2-0" x1="202" y1="161" x2="128" y2="79" />
+              <line class="tar-edge" data-edge="2-3" x1="242" y1="167" x2="398" y2="73" />
+              <line class="tar-edge" data-edge="m-3-4" x1="408" y1="86" x2="408" y2="174" />
+              <line class="tar-edge" data-edge="m-4-3" x1="432" y1="174" x2="432" y2="86" />
+              <circle cx="110" cy="60" r="26" class="tar-node" data-node="0" />
+              <circle cx="60" cy="180" r="26" class="tar-node" data-node="1" />
+              <circle cx="220" cy="180" r="26" class="tar-node" data-node="2" />
+              <circle cx="420" cy="60" r="26" class="tar-node" data-node="3" />
+              <circle cx="420" cy="200" r="26" class="tar-node" data-node="4" />
+              <text x="103" y="66" class="tar-label">0</text>
+              <text x="53" y="186" class="tar-label">1</text>
+              <text x="213" y="186" class="tar-label">2</text>
+              <text x="413" y="66" class="tar-label">3</text>
+              <text x="413" y="206" class="tar-label">4</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current node</span>
+            <span><i class="dot dot-green"></i> on the stack (open)</span>
+            <span><i class="dot dot-blue"></i> popped into a closed SCC</span>
+            <span><i class="dot dot-gray"></i> undiscovered</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="tar-step-title">Initial state</h3>
+          <p id="tar-step-text">Every disc value starts at -1. Tarjan needs only one DFS pass over the whole graph.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="tar-prev">Previous</button>
+            <button type="button" id="tar-play" class="primary">Resume</button>
+            <button type="button" id="tar-next">Next</button>
+            <button type="button" id="tar-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="tar-step-counter">Step 0 / 13</span>
+            <div class="progress"><span id="tar-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="tar-node">—</div></div>
+            <div class="state-box"><strong>disc</strong><div class="state-value" id="tar-disc">[-1, -1, -1, -1, -1]</div></div>
+            <div class="state-box"><strong>low</strong><div class="state-value" id="tar-low">[0, 0, 0, 0, 0]</div></div>
+            <div class="state-box"><strong>on_stack</strong><div class="state-value" id="tar-onstack">{}</div></div>
+            <div class="state-box"><strong>Explicit stack</strong><div class="state-value" id="tar-stack">[]</div></div>
+            <div class="state-box"><strong>SCCs found</strong><div class="state-value" id="tar-sccs">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="tar-detail"><strong>What changed:</strong> nothing has been discovered yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="tar-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Node</th><th>disc / low</th><th>On-stack</th><th>Stack</th><th>SCCs so far</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td><code>[-1,-1,-1,-1,-1] / [0,0,0,0,0]</code></td><td><code>{}</code></td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>0</td><td>disc[0]=low[0]=0</td><td><code>{0}</code></td><td><code>[0]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>1</td><td>disc[1]=low[1]=1</td><td><code>{0,1}</code></td><td><code>[0,1]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>2</td><td>disc[2]=low[2]=2</td><td><code>{0,1,2}</code></td><td><code>[0,1,2]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>2</td><td>back edge 2→0: low[2]=min(2,0)=0</td><td><code>{0,1,2}</code></td><td><code>[0,1,2]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>3</td><td>disc[3]=low[3]=3</td><td><code>{0,1,2,3}</code></td><td><code>[0,1,2,3]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>4</td><td>disc[4]=low[4]=4</td><td><code>{0,1,2,3,4}</code></td><td><code>[0,1,2,3,4]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>4</td><td>back edge 4→3: low[4]=min(4,3)=3</td><td><code>{0,1,2,3,4}</code></td><td><code>[0,1,2,3,4]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>3</td><td>low[4]≠disc[4], not root; low[3]=min(3,3)=3</td><td><code>{0,1,2,3,4}</code></td><td><code>[0,1,2,3,4]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>3</td><td>low[3]==disc[3]==3 → ROOT, pop 4, 3</td><td><code>{0,1,2}</code></td><td><code>[0,1,2]</code></td><td><code>[{3,4}]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>2</td><td>low[2]=min(0,3)=0, not root</td><td><code>{0,1,2}</code></td><td><code>[0,1,2]</code></td><td><code>[{3,4}]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>1</td><td>low[1]=min(1,0)=0, not root</td><td><code>{0,1,2}</code></td><td><code>[0,1,2]</code></td><td><code>[{3,4}]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>0</td><td>low[0]==disc[0]==0 → ROOT, pop 2,1,0</td><td><code>{}</code></td><td><code>[]</code></td><td><code>[{3,4}, {0,1,2}]</code></td></tr>
+            <tr data-step="13"><td>13</td><td>—</td><td>outer loop finishes, return sccs</td><td><code>{}</code></td><td><code>[]</code></td><td><code>[{3,4}, {0,1,2}]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p><code>low[u]</code> answers: "from u's subtree, what's the earliest-discovered vertex I can still reach?" If the answer is u itself, nothing below u can escape past u — u caps the component.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common Tarjan mistake</h4>
+          <p>Checking <code>disc[v] != -1</code> instead of <code>on_stack[v]</code> when deciding whether to fold v's value into u's low. A node can be visited but already popped into a finished SCC — pulling its disc value in would wrongly stitch two separate components together.</p>
+        </div>
+        <div class="card">
+          <h4>Why the stack matters</h4>
+          <p>The stack always holds exactly the vertices of "open" SCCs — ones whose root hasn't been found yet. Popping down to u the instant <code>low[u] == disc[u]</code> hands you the whole component in one clean slice, no second pass required.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">DAG — every node its own SCC</button>
+        <button type="button" data-example-tab="1">One big cycle</button>
+        <button type="button" data-example-tab="2">Self-loop</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: acyclic graph (a DAG)</h3>
+          <p><code>n = 4, adj = {0:[1], 1:[2], 2:[3], 3:[]}</code></p>
+          <div class="result-badge">SCCs = {0}, {1}, {2}, {3} — four singletons</div>
+          <p class="footer-note">No cycle means no vertex can reach back to an ancestor, so <code>low[u] == disc[u]</code> for every single vertex in Tarjan, and every dfs1 call in Kosaraju becomes its own DFS tree in pass two. A graph that is already a DAG is its own condensation.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: the whole graph is one cycle</h3>
+          <p><code>n = 4, adj = {0:[1], 1:[2], 2:[3], 3:[0]}</code></p>
+          <div class="result-badge">SCCs = {0, 1, 2, 3} — one component</div>
+          <p class="footer-note">Every vertex can reach every other by walking around the cycle, so there is exactly one SCC covering the whole graph. In Tarjan, only the vertex that started the cycle (the first one discovered) ever gets <code>low[u] == disc[u]</code> — everyone else's low value gets pulled down to it by the closing back edge.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: a self-loop</h3>
+          <p><code>n = 3, adj = {0:[0, 1], 1:[2], 2:[]}</code></p>
+          <div class="result-badge">SCCs = {0}, {1}, {2} — the self-loop changes nothing</div>
+          <p class="footer-note">A self-loop on 0 means 0 trivially reaches itself, but that was already true of every vertex — an SCC only needs size &gt; 1 to be interesting. In Tarjan, the self-loop is a back edge to a vertex still on the stack (itself), so <code>low[0] = min(low[0], disc[0])</code> — no change. In Kosaraju, <code>adj[0]</code> containing <code>0</code> is simply skipped by the <code>if not seen[v]</code> check, since 0 is already marked seen the instant dfs1(0) starts.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Time</th><th>Space</th><th>Passes</th><th>Best beginner takeaway</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Kosaraju</td><td>O(V + E)</td><td>O(V + E)</td><td>Two (+ build transpose)</td><td>Easier to explain out loud: finish order, reverse, DFS again.</td></tr>
+            <tr><td>Tarjan</td><td>O(V + E)</td><td>O(V)</td><td>One</td><td>Trickier low-link idea, but no transpose graph to build, and often faster in practice.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">Both rely on the same underlying fact: DFS finish order encodes the shape of the condensation DAG. Kosaraju exploits that with two explicit passes; Tarjan folds it into one pass using low-link numbers instead.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>The question mentions cycles, mutual dependency, or "a group that can all reach each other" — this is an SCC problem, not plain reachability.</p></div>
+            <div class="timeline-step"><p>I need a directed adjacency list built from <code>u → v</code> edges only.</p></div>
+            <div class="timeline-step"><p>I have two standard tools: Kosaraju (two DFS passes + reversed graph) or Tarjan (one DFS + disc/low + a stack). I'll pick Tarjan for a single pass, or Kosaraju if I want something easier to narrate.</p></div>
+            <div class="timeline-step"><p>Once I have the SCCs, I can mention the condensation: collapsing each SCC into one node always produces a DAG, useful for whatever the interviewer asks next.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"This graph is directed, so 'connected' has to mean 'reachable both ways' — that's the definition of an SCC."</li>
+            <li>"I'll do Kosaraju: one DFS to get a finish order, reverse every edge, then DFS again popping that order — each tree I get is one SCC."</li>
+            <li>"Or I'll do Tarjan: one DFS carrying a discovery index and a low-link value; the moment <code>low[u] == disc[u]</code>, u roots a finished SCC and I pop the stack down to it."</li>
+            <li>"Either way this is O(V+E), and if I need a DAG afterward, I collapse each SCC into a single node."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Kosaraju mistakes</h3>
+          <ul class="mistake-list">
+            <li>Pushing onto the order stack on <em>visit</em> instead of <em>finish</em> — breaks the whole ordering guarantee.</li>
+            <li>Forgetting to build the transpose before pass two, and accidentally rerunning DFS on the original graph.</li>
+            <li>Iterating <code>order</code> instead of <code>reversed(order)</code> in pass two — processes the lowest finish time first, not the highest.</li>
+            <li>Reusing the <code>seen</code> set from pass one as the <code>comp</code> array in pass two — they track different things (visited vs. assigned-to-a-component).</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Tarjan mistakes</h3>
+          <ul class="mistake-list">
+            <li>Using <code>disc[v] != -1</code> instead of <code>on_stack[v]</code> to decide whether to update <code>low[u]</code> — folds in already-closed components.</li>
+            <li>Forgetting to set <code>on_stack[u] = False</code> when popping — leaves stale state that corrupts later low-link comparisons.</li>
+            <li>Updating <code>low[u]</code> with <code>low[v]</code> on a back edge instead of <code>disc[v]</code> — back edges use <code>disc[v]</code>; only tree edges use <code>low[v]</code>.</li>
+            <li>Checking <code>low[u] == disc[u]</code> before the full neighbor loop finishes, instead of after.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — <code>adj = {0: [1], 1: [0], 2: []}, n = 3</code> — what are the SCCs?</summary>
+          <p style="margin-top:10px;">Answer: <strong>{0, 1}</strong> and <strong>{2}</strong>. A pair with edges both ways is always one SCC of size 2, and an isolated vertex is always its own SCC of size 1.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — Why does <code>dfs1(u)</code> call <code>order.append(u)</code> AFTER its for-loop over neighbours, not before?</summary>
+          <p style="margin-top:10px;">Answer: finish order must record when <code>u</code> is fully done — that is, after everything reachable from <code>u</code> has already finished. Appending before the loop would just record visit order (pre-order), which does not have the property that lets pass two safely reverse the graph and pop without leaking between components.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — In Tarjan, vertex <code>u</code> has <code>low[u] = 2, disc[u] = 2</code>. Its child <code>v</code> (reached by a tree edge) has <code>low[v] = 0</code>. What does <code>dfs(u)</code> do, and what does <code>low[v] = 0</code> tell you?</summary>
+          <p style="margin-top:10px;">Answer: <code>dfs(u)</code> sets <code>low[u] = min(low[u], low[v]) = 0</code>, pulling u's low value down to match its child. <code>low[v] = 0</code> means something inside v's own subtree found a back edge reaching all the way up to the vertex discovered 0th — so v (and now u, transitively) cannot be an SCC root yet. Whatever eventually has <code>low == disc == 0</code> will absorb both of them into one component.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          Both algorithms answer the same question — which vertices can reach each other and get back — by
+          exploiting DFS finish order. <strong>Kosaraju makes that explicit</strong>: two passes, a reversed graph,
+          and the guarantee that decreasing finish order never lets pass two leak between components.
+          <strong>Tarjan folds the same idea into one pass</strong> with low-link numbers, closing a component the
+          instant <code>low[u] == disc[u]</code>. Pick whichever you can explain without hesitating — in an
+          interview, that matters more than which one is "better".
+        </p>
+      </div>
+      <p class="footer-note">Traced against the exact <code>kosaraju</code> and <code>tarjan</code> functions and the <code>adj = {0: [1], 1: [2], 2: [0, 3], 3: [4], 4: [3]}</code> example from the 15_Strongly_Connected_Components notebook — every state shown here was verified by running the real Python, not hand-simulated.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const kosarajuSteps = [
+        { step: 0, title: 'Initial state', text: 'Nothing is visited yet. seen = {} and the finish-order stack (order) is empty. Pass one is a plain DFS over the original graph.', stage: 'Pass 1 — build finish order', node: '—', stack: '[]', visited: '{}', bag: '—', sccs: '[]', detail: 'Both passes share this graph; pass one only tracks who has been seen so far.', lines: [3, 4], currentNode: null, blueNodes: [], greenNodes: [], showTranspose: false, activeEdge: null },
+        { step: 1, title: 'Step 1: dfs1(0) starts', text: 'Node 0 is unseen, so the outer loop calls dfs1(0). It is marked seen immediately, on entry.', stage: 'Pass 1', node: '0', stack: '[]', visited: '{0}', bag: '—', sccs: '[]', detail: 'Marking a node seen the moment it is entered (not when it is left) is what lets DFS avoid infinite loops on a cyclic graph like this one.', lines: [12, 13, 5, 6], currentNode: 0, blueNodes: [], greenNodes: [0], showTranspose: false, activeEdge: null },
+        { step: 2, title: 'Step 2: recurse into neighbor 1', text: '0 → 1 is unseen, so dfs1 recurses into 1 before doing anything else with node 0.', stage: 'Pass 1', node: '1', stack: '[]', visited: '{0, 1}', bag: '—', sccs: '[]', detail: 'DFS always goes as deep as possible before backing out — node 0 stays "open" on the call stack while we chase 1.', lines: [7, 8, 9, 5, 6], currentNode: 1, blueNodes: [], greenNodes: [0, 1], showTranspose: false, activeEdge: '0-1' },
+        { step: 3, title: 'Step 3: recurse into neighbor 2', text: '1 → 2 is unseen, so dfs1 recurses again.', stage: 'Pass 1', node: '2', stack: '[]', visited: '{0, 1, 2}', bag: '—', sccs: '[]', detail: 'Three calls are open at once now: dfs1(0) waiting on dfs1(1), which is waiting on dfs1(2).', lines: [7, 8, 9, 5, 6], currentNode: 2, blueNodes: [], greenNodes: [0, 1, 2], showTranspose: false, activeEdge: '1-2' },
+        { step: 4, title: 'Step 4: node 2 closes the triangle, then reaches out', text: '2 → 0 is already seen, so it is skipped — this is the back edge that closes the 0-1-2 cycle. 2 → 3 is unseen, so dfs1 recurses into 3.', stage: 'Pass 1', node: '3', stack: '[]', visited: '{0, 1, 2, 3}', bag: '—', sccs: '[]', detail: 'The skipped 2 → 0 edge is exactly what proves {0,1,2} are mutually reachable — but it does not end anything here, because node 3 is still reachable and unexplored.', lines: [7, 8, 9, 5, 6], currentNode: 3, blueNodes: [], greenNodes: [0, 1, 2, 3], showTranspose: false, activeEdge: '2-3' },
+        { step: 5, title: 'Step 5: recurse into neighbor 4', text: '3 → 4 is unseen, so dfs1 recurses one level deeper.', stage: 'Pass 1', node: '4', stack: '[]', visited: '{0, 1, 2, 3, 4}', bag: '—', sccs: '[]', detail: 'Every vertex is now seen. Five calls are open on the stack, from dfs1(0) down to dfs1(4).', lines: [7, 8, 9, 5, 6], currentNode: 4, blueNodes: [], greenNodes: [0, 1, 2, 3, 4], showTranspose: false, activeEdge: 'm-3-4' },
+        { step: 6, title: 'Step 6: node 4 has nothing left — it finishes first', text: '4 → 3 is already seen, so it is skipped. Node 4 has no more neighbors, so it FINISHES — pushed onto the order stack the moment its loop ends, not when it was entered.', stage: 'Pass 1', node: '4', stack: '[4]', visited: '{0, 1, 2, 3, 4}', bag: '—', sccs: '[]', detail: 'This is the whole trick of Kosaraju: the stack records FINISH order, not visit order. Node 4 was visited last but finishes first because it has no unexplored neighbors left.', lines: [10], currentNode: 4, blueNodes: [4], greenNodes: [0, 1, 2, 3], showTranspose: false, activeEdge: 'm-4-3' },
+        { step: 7, title: 'Step 7: node 3 finishes next', text: 'Control returns to dfs1(3). It has no more neighbors to try, so it finishes and is pushed.', stage: 'Pass 1', node: '3', stack: '[4, 3]', visited: '{0, 1, 2, 3, 4}', bag: '—', sccs: '[]', detail: 'Node 3 finishes only after everything reachable from it (node 4) has already finished — that is exactly what "finish order" means.', lines: [10], currentNode: 3, blueNodes: [4, 3], greenNodes: [0, 1, 2], showTranspose: false, activeEdge: null },
+        { step: 8, title: 'Step 8: node 2 finishes', text: 'Control returns to dfs1(2). Its loop over [0, 3] is done, so it finishes and is pushed.', stage: 'Pass 1', node: '2', stack: '[4, 3, 2]', visited: '{0, 1, 2, 3, 4}', bag: '—', sccs: '[]', detail: 'Node 2 waited on both of its neighbors (0 was already seen, 3 needed a full recursive detour) before it could finish.', lines: [10], currentNode: 2, blueNodes: [4, 3, 2], greenNodes: [0, 1], showTranspose: false, activeEdge: null },
+        { step: 9, title: 'Step 9: node 1 finishes', text: 'Control returns to dfs1(1). Its only neighbor, 2, is already handled, so it finishes and is pushed.', stage: 'Pass 1', node: '1', stack: '[4, 3, 2, 1]', visited: '{0, 1, 2, 3, 4}', bag: '—', sccs: '[]', detail: 'Only node 0 remains open on the call stack.', lines: [10], currentNode: 1, blueNodes: [4, 3, 2, 1], greenNodes: [0], showTranspose: false, activeEdge: null },
+        { step: 10, title: 'Step 10: node 0 finishes — pass one is done', text: 'Control returns to dfs1(0), which finishes last of all. The outer loop then checks 1, 2, 3, 4 — all already seen, so pass one is complete.', stage: 'Pass 1 complete', node: '0', stack: '[4, 3, 2, 1, 0]', visited: '{0, 1, 2, 3, 4}', bag: '—', sccs: '[]', detail: 'Node 0 finishing LAST is not a coincidence: it is the root of the whole DFS tree, so it can only finish after every node it can reach has already finished.', lines: [10, 11, 12], currentNode: 0, blueNodes: [4, 3, 2, 1, 0], greenNodes: [], showTranspose: false, activeEdge: null },
+        { step: 11, title: 'Step 11: reverse every edge', text: 'Build the transpose: for every original edge u → v, add u to radj[v] instead. radj = [[2], [0], [1], [2, 4], [3]].', stage: 'Build transpose', node: '—', stack: '[4, 3, 2, 1, 0]', visited: '{0, 1, 2, 3, 4}', bag: '—', sccs: '[]', detail: 'Every mutual pair (3 and 4) stays mutual. Every one-way link (2 → 3) flips: it becomes 3 → 2. Reversing alone does not delete the connection between the two components — it only flips its direction. What actually prevents pass two from leaking is explained above the code.', lines: [15, 16, 17, 18], currentNode: null, blueNodes: [4, 3, 2, 1, 0], greenNodes: [], showTranspose: true, activeEdge: null },
+        { step: 12, title: 'Step 12: pass two starts at node 0', text: 'Pop the stack: 0 has the highest finish time, so it is processed first. comp[0] is unassigned, so a brand-new SCC (#0) begins. dfs2 walks the transpose from 0 into its only neighbor, 2.', stage: 'Pass 2 — DFS transpose', node: '2', stack: '[4, 3, 2, 1]', visited: '{0, 1, 2, 3, 4}', bag: '[0, 2]', sccs: '[]', detail: 'From here on, blue means "closed into a finished SCC", not just "finished in pass one" — pass two starts every color fresh. On the transpose, 0 → 2 (the reverse of the original 2 → 0).', lines: [28, 29, 30, 31, 22, 23, 24, 25, 26, 27], currentNode: 2, blueNodes: [], greenNodes: [0, 2], showTranspose: true, activeEdge: 't-0-2' },
+        { step: 13, title: 'Step 13: SCC #0 closes as {0, 1, 2}', text: 'dfs2 continues to 1 (the transpose neighbor of 2). From 1, the only transpose neighbor is 0, already assigned — so this DFS tree is finished. sccs = [{0, 1, 2}].', stage: 'Pass 2', node: '1', stack: '[4, 3, 2, 1]', visited: '{0, 1, 2, 3, 4}', bag: '[0, 2, 1]', sccs: '[{0, 1, 2}]', detail: 'This tree could not escape {0,1,2}: its only exit toward {3,4} would need a transpose edge 2 → 3, but the transpose only has 3 → 2, pointing the wrong way.', lines: [22, 23, 24, 25, 26, 32], currentNode: 1, blueNodes: [0, 1, 2], greenNodes: [], showTranspose: true, activeEdge: 't-2-1' },
+        { step: 14, title: 'Step 14: skip 1 and 2, start SCC #1 at node 3', text: 'The stack pops 1, then 2 — both already assigned, so they are skipped. It pops 3: unassigned, so a new SCC (#1) begins.', stage: 'Pass 2', node: '3', stack: '[4]', visited: '{0, 1, 2, 3, 4}', bag: '[3]', sccs: '[{0, 1, 2}]', detail: 'Node 3 does have a transpose edge into the finished component (3 → 2), but 2 is already assigned, so dfs2 will refuse to step into it — that visited-check is what actually keeps the two SCCs separate, not the reversal by itself.', lines: [28, 29, 30, 31, 22, 23, 24], currentNode: 3, blueNodes: [0, 1, 2], greenNodes: [3], showTranspose: true, activeEdge: null },
+        { step: 15, title: 'Step 15: SCC #1 closes as {3, 4} — done', text: "dfs2(3) tries transpose neighbor 2 (already assigned, skip) and neighbor 4 (unassigned, recurse). 4's only transpose neighbor, 3, is already assigned, so the tree closes. Node 4 is popped and skipped at the outer level. sccs = [{0,1,2}, {3,4}] — matching Tarjan and the expected answer.", stage: 'Pass 2 complete', node: '4', stack: '[]', visited: '{0, 1, 2, 3, 4}', bag: '[3, 4]', sccs: '[{0, 1, 2}, {3, 4}]', detail: 'Two DFS trees on the transpose, exactly two SCCs found — one tree per component, always.', lines: [25, 26, 27, 32, 33], currentNode: 4, blueNodes: [0, 1, 2, 3, 4], greenNodes: [], showTranspose: true, activeEdge: 'm-3-4' }
+      ];
+
+      const tarjanSteps = [
+        { step: 0, title: 'Initial state', text: 'Every disc value starts at -1 (undiscovered). The explicit stack is empty. Tarjan needs only one DFS pass over the whole graph.', node: '—', disc: '[-1, -1, -1, -1, -1]', low: '[0, 0, 0, 0, 0]', onstack: '{}', stack: '[]', sccs: '[]', detail: 'disc and low are set together the moment a vertex is entered — they only diverge if a back edge later pulls low down.', lines: [4, 5], currentNode: null, blueNodes: [], greenNodes: [], activeEdge: null },
+        { step: 1, title: 'Step 1: dfs(0) enters', text: 'The outer loop finds 0 undiscovered and calls dfs(0). disc[0] and low[0] are both set to the current counter value, 0, and 0 is pushed onto the explicit stack.', node: '0', disc: '[0, -1, -1, -1, -1]', low: '[0, 0, 0, 0, 0]', onstack: '{0}', stack: '[0]', sccs: '[]', detail: 'low[u] always starts equal to disc[u] — it can only go down from here, never up.', lines: [23, 24, 25, 7, 8], currentNode: 0, blueNodes: [], greenNodes: [0], activeEdge: null },
+        { step: 2, title: 'Step 2: tree edge 0 → 1', text: '0 → 1 leads to an undiscovered vertex, so this is a tree edge: dfs recurses into 1. disc[1] = low[1] = 1.', node: '1', disc: '[0, 1, -1, -1, -1]', low: '[0, 1, 0, 0, 0]', onstack: '{0, 1}', stack: '[0, 1]', sccs: '[]', detail: 'Node 0 stays open on the call stack, waiting for dfs(1) to return before it can run its own low-link check.', lines: [9, 10, 11, 7, 8], currentNode: 1, blueNodes: [], greenNodes: [0, 1], activeEdge: '0-1' },
+        { step: 3, title: 'Step 3: tree edge 1 → 2', text: '1 → 2 is also unexplored: another tree edge, another recursion. disc[2] = low[2] = 2.', node: '2', disc: '[0, 1, 2, -1, -1]', low: '[0, 1, 2, 0, 0]', onstack: '{0, 1, 2}', stack: '[0, 1, 2]', sccs: '[]', detail: 'Three calls are now open: dfs(0) → dfs(1) → dfs(2).', lines: [9, 10, 11, 7, 8], currentNode: 2, blueNodes: [], greenNodes: [0, 1, 2], activeEdge: '1-2' },
+        { step: 4, title: 'Step 4: back edge 2 → 0', text: '2 → 0 points at a vertex that is already discovered AND still on the stack — a back edge. low[2] is pulled down to disc[0] = 0.', node: '2', disc: '[0, 1, 2, -1, -1]', low: '[0, 1, 0, 0, 0]', onstack: '{0, 1, 2}', stack: '[0, 1, 2]', sccs: '[]', detail: 'This is the signal that closes the 0-1-2 cycle: node 2 can prove it reaches all the way back to the vertex discovered 0th, so it cannot be an SCC root by itself.', lines: [9, 13, 14], currentNode: 2, blueNodes: [], greenNodes: [0, 1, 2], activeEdge: '2-0' },
+        { step: 5, title: 'Step 5: tree edge 2 → 3', text: '2 → 3 is unexplored, so dfs recurses out of the triangle and into node 3. disc[3] = low[3] = 3.', node: '3', disc: '[0, 1, 2, 3, -1]', low: '[0, 1, 0, 3, 0]', onstack: '{0, 1, 2, 3}', stack: '[0, 1, 2, 3]', sccs: '[]', detail: 'Crossing into a different component changes nothing about the mechanics — dfs(3) starts exactly like every other call.', lines: [9, 10, 11, 7, 8], currentNode: 3, blueNodes: [], greenNodes: [0, 1, 2, 3], activeEdge: '2-3' },
+        { step: 6, title: 'Step 6: tree edge 3 → 4', text: '3 → 4 is unexplored: one more tree edge. disc[4] = low[4] = 4.', node: '4', disc: '[0, 1, 2, 3, 4]', low: '[0, 1, 0, 3, 4]', onstack: '{0, 1, 2, 3, 4}', stack: '[0, 1, 2, 3, 4]', sccs: '[]', detail: 'Every vertex is discovered now. Five calls are open, from dfs(0) down to dfs(4).', lines: [9, 10, 11, 7, 8], currentNode: 4, blueNodes: [], greenNodes: [0, 1, 2, 3, 4], activeEdge: 'm-3-4' },
+        { step: 7, title: 'Step 7: back edge 4 → 3', text: '4 → 3 points at a vertex that is discovered and still on the stack — a back edge. low[4] is pulled down to disc[3] = 3.', node: '4', disc: '[0, 1, 2, 3, 4]', low: '[0, 1, 0, 3, 3]', onstack: '{0, 1, 2, 3, 4}', stack: '[0, 1, 2, 3, 4]', sccs: '[]', detail: '4 cannot reach anything discovered before 3, so the deepest it can cap a component at is 3, not itself.', lines: [9, 13, 14], currentNode: 4, blueNodes: [], greenNodes: [0, 1, 2, 3, 4], activeEdge: 'm-4-3' },
+        { step: 8, title: 'Step 8: dfs(4) is not a root; back to dfs(3)', text: 'low[4] = 3 is not equal to disc[4] = 4, so 4 does not close a component — it simply returns. dfs(3) pulls low[3] down using low[4]: min(3, 3) = 3 (unchanged).', node: '3', disc: '[0, 1, 2, 3, 4]', low: '[0, 1, 0, 3, 3]', onstack: '{0, 1, 2, 3, 4}', stack: '[0, 1, 2, 3, 4]', sccs: '[]', detail: 'A tree edge folds in the CHILD low value (low[v]); a back edge folds in the neighbor\'s disc value (disc[v]) directly. Mixing those two up is a classic bug.', lines: [15, 12], currentNode: 3, blueNodes: [], greenNodes: [0, 1, 2, 3, 4], activeEdge: null },
+        { step: 9, title: 'Step 9: dfs(3) closes {3, 4}', text: 'low[3] = 3 equals disc[3] = 3 — node 3 is an SCC root. Pop the stack down to and including 3: that removes 4, then 3.', node: '3', disc: '[0, 1, 2, 3, 4]', low: '[0, 1, 0, 3, 3]', onstack: '{0, 1, 2}', stack: '[0, 1, 2]', sccs: '[{3, 4}]', detail: 'This is the payoff of low-link numbers: the moment low[u] == disc[u], everything still on the stack above u (and u itself) forms exactly one SCC — no second pass needed.', lines: [15, 16, 17, 18, 19, 20, 21, 22], currentNode: 3, blueNodes: [3, 4], greenNodes: [0, 1, 2], activeEdge: null },
+        { step: 10, title: 'Step 10: back to dfs(2)', text: 'Control returns to dfs(2). low[2] is pulled down using low[3]: min(0, 3) = 0 (unchanged — the back edge to 0 was already lower).', node: '2', disc: '[0, 1, 2, 3, 4]', low: '[0, 1, 0, 3, 3]', onstack: '{0, 1, 2}', stack: '[0, 1, 2]', sccs: '[{3, 4}]', detail: 'low[2] == 0 but disc[2] == 2 — not a match, so 2 is not (yet) an SCC root. It has to wait for 0 and 1 to finish too.', lines: [12, 15], currentNode: 2, blueNodes: [3, 4], greenNodes: [0, 1, 2], activeEdge: null },
+        { step: 11, title: 'Step 11: back to dfs(1)', text: 'Control returns to dfs(1). low[1] is pulled down using low[2]: min(1, 0) = 0.', node: '1', disc: '[0, 1, 2, 3, 4]', low: '[0, 0, 0, 3, 3]', onstack: '{0, 1, 2}', stack: '[0, 1, 2]', sccs: '[{3, 4}]', detail: 'low[1] is now 0, matching disc[0] — proof that 1 can reach all the way back to the very first vertex. Still not a root itself: 0 has to check too.', lines: [12, 15], currentNode: 1, blueNodes: [3, 4], greenNodes: [0, 1, 2], activeEdge: null },
+        { step: 12, title: 'Step 12: dfs(0) closes {0, 1, 2} — done', text: 'Control returns to dfs(0). low[0] is pulled down using low[1]: min(0, 0) = 0. low[0] equals disc[0] = 0, so 0 is an SCC root — pop the stack down to and including 0: that removes 2, 1, then 0.', node: '0', disc: '[0, 1, 2, 3, 4]', low: '[0, 0, 0, 3, 3]', onstack: '{}', stack: '[]', sccs: '[{3, 4}, {0, 1, 2}]', detail: 'Two SCCs found in a single DFS pass, no reversed graph required — {3,4} closed first because it happened to be discovered deepest, then {0,1,2} closed once the whole outer call unwound.', lines: [12, 15, 16, 17, 18, 19, 20, 21, 22], currentNode: 0, blueNodes: [0, 1, 2, 3, 4], greenNodes: [], activeEdge: null },
+        { step: 13, title: 'Step 13: outer loop finishes', text: 'The outer loop checks 1, 2, 3, 4 — all already discovered, so nothing more happens. tarjan returns sccs.', node: '—', disc: '[0, 1, 2, 3, 4]', low: '[0, 0, 0, 3, 3]', onstack: '{}', stack: '[]', sccs: '[{3, 4}, {0, 1, 2}]', detail: 'The same two SCCs Kosaraju found, in a different (but equally valid) discovery order — SCC identity never depends on which algorithm or which starting vertex you use.', lines: [23, 24, 26], currentNode: null, blueNodes: [0, 1, 2, 3, 4], greenNodes: [], activeEdge: null }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderKosaraju(step, index, max) {
+        document.getElementById('kos-step-title').textContent = step.title;
+        document.getElementById('kos-step-text').textContent = step.text;
+        document.getElementById('kos-stage').textContent = step.stage;
+        document.getElementById('kos-node').textContent = step.node;
+        document.getElementById('kos-stack').textContent = step.stack;
+        document.getElementById('kos-visited').textContent = step.visited;
+        document.getElementById('kos-bag').textContent = step.bag;
+        document.getElementById('kos-sccs').textContent = step.sccs;
+        document.getElementById('kos-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('kos-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('kos-progress').style.width = `${(index / max) * 100}%`;
+        document.getElementById('kos-graph-title').textContent = step.showTranspose ? 'Pass 2 — reversed graph (transpose)' : 'Pass 1 — original graph';
+        markActiveRow('kos-trace-table', step.step);
+        setCodeHighlight('kos-code', step.lines);
+
+        document.querySelectorAll('#kos-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('seen', 'current', 'frontier');
+          if (step.blueNodes.includes(id)) node.classList.add('seen');
+          if (step.greenNodes.includes(id)) node.classList.add('frontier');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#kos-graph [data-edge]').forEach((line) => {
+          const group = line.dataset.group;
+          const visible = group === 'mutual' || (group === 'orig' && !step.showTranspose) || (group === 'trans' && step.showTranspose);
+          line.setAttribute('visibility', visible ? 'visible' : 'hidden');
+          line.classList.toggle('active', line.dataset.edge === step.activeEdge);
+        });
+      }
+
+      function renderTarjan(step, index, max) {
+        document.getElementById('tar-step-title').textContent = step.title;
+        document.getElementById('tar-step-text').textContent = step.text;
+        document.getElementById('tar-node').textContent = step.node;
+        document.getElementById('tar-disc').textContent = step.disc;
+        document.getElementById('tar-low').textContent = step.low;
+        document.getElementById('tar-onstack').textContent = step.onstack;
+        document.getElementById('tar-stack').textContent = step.stack;
+        document.getElementById('tar-sccs').textContent = step.sccs;
+        document.getElementById('tar-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('tar-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('tar-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('tar-trace-table', step.step);
+        setCodeHighlight('tar-code', step.lines);
+
+        document.querySelectorAll('#tar-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('seen', 'current', 'frontier');
+          if (step.blueNodes.includes(id)) node.classList.add('seen');
+          if (step.greenNodes.includes(id)) node.classList.add('frontier');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#tar-graph [data-edge]').forEach((line) => {
+          line.classList.toggle('active', line.dataset.edge === step.activeEdge);
+        });
+      }
+
+      setupTrace({ steps: kosarajuSteps, prefix: 'kos', render: renderKosaraju });
+      setupTrace({ steps: tarjanSteps, prefix: 'tar', render: renderTarjan });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

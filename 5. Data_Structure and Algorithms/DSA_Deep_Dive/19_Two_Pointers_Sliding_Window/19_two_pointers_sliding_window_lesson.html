@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Two Pointers and Sliding Window — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Arrays &amp; strings · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Two Pointers and Sliding Window</h1>
+          <p>
+            Both techniques replace an <code>O(n²)</code> nested loop with two indices that only ever move
+            forward. This page traces the real code step by step: converging pointers that close in on a sorted
+            array from both ends, and a variable-size window that expands right and shrinks left — and explains
+            why a loop that looks nested is still only <code>O(n)</code> total work.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: pointers never move backward</span>
+            <span class="chip">Interactive two-pointer trace</span>
+            <span class="chip">Interactive sliding-window trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>two_sum_sorted([1, 2, 4, 7, 11, 15], target=9)</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 460 190" width="100%" role="img" aria-label="Sorted array with lo pointer at value 2 and hi pointer at value 7, the pair that sums to the target">
+              <defs>
+                <style>
+                  .hero-cell { fill: #c8d2e7; stroke: #9fb0d1; stroke-width: 2; }
+                  .hero-cell.found { fill: #13a46b; stroke: #0f8a5b; }
+                  .hero-val { font: 700 20px Inter, Arial, sans-serif; fill: #182132; }
+                  .hero-val.light { fill: #ffffff; }
+                  .hero-idx { font: 600 12px Inter, Arial, sans-serif; fill: #5d677d; }
+                  .hero-ptr { font: 800 13px Inter, Arial, sans-serif; fill: #182132; }
+                </style>
+              </defs>
+              <text x="118" y="30" text-anchor="middle" class="hero-ptr">lo</text>
+              <text x="258" y="30" text-anchor="middle" class="hero-ptr">hi</text>
+              <polygon points="109,40 127,40 118,54" fill="#182132" />
+              <polygon points="249,40 267,40 258,54" fill="#182132" />
+              <rect x="20" y="60" width="56" height="64" rx="10" class="hero-cell" />
+              <rect x="90" y="60" width="56" height="64" rx="10" class="hero-cell found" />
+              <rect x="160" y="60" width="56" height="64" rx="10" class="hero-cell" />
+              <rect x="230" y="60" width="56" height="64" rx="10" class="hero-cell found" />
+              <rect x="300" y="60" width="56" height="64" rx="10" class="hero-cell" />
+              <rect x="370" y="60" width="56" height="64" rx="10" class="hero-cell" />
+              <text x="48" y="98" text-anchor="middle" class="hero-val">1</text>
+              <text x="118" y="98" text-anchor="middle" class="hero-val light">2</text>
+              <text x="188" y="98" text-anchor="middle" class="hero-val">4</text>
+              <text x="258" y="98" text-anchor="middle" class="hero-val light">7</text>
+              <text x="328" y="98" text-anchor="middle" class="hero-val">11</text>
+              <text x="398" y="98" text-anchor="middle" class="hero-val">15</text>
+              <text x="48" y="142" text-anchor="middle" class="hero-idx">0</text>
+              <text x="118" y="142" text-anchor="middle" class="hero-idx">1</text>
+              <text x="188" y="142" text-anchor="middle" class="hero-idx">2</text>
+              <text x="258" y="142" text-anchor="middle" class="hero-idx">3</text>
+              <text x="328" y="142" text-anchor="middle" class="hero-idx">4</text>
+              <text x="398" y="142" text-anchor="middle" class="hero-idx">5</text>
+            </svg>
+          </div>
+          <div class="result-badge">Answer = indices [1, 3] → 2 + 7 = 9</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Pair-matching on sorted data</h3>
+          <p>Two-sum on a sorted leaderboard, matching merged log timestamps, or Container With Most Water all reduce to the same converging-pointer shape.</p>
+        </div>
+        <div class="card">
+          <h3>Constraint-bound substrings/subarrays</h3>
+          <p>Longest substring without repeats, minimum window substring, and longest subarray with at most K distinct values are all one sliding window with a different validity rule.</p>
+        </div>
+        <div class="card">
+          <h3>Interview reuse</h3>
+          <p>Once you own these two shapes, 3Sum, Trapping Rain Water, and Minimum Size Subarray Sum become small edits, not new algorithms.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> the reason these problems feel different from a brute force is not cleverness — it is a proof about how many times each index can possibly move. Learn that proof once and it applies to both patterns.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What are two pointers and sliding window?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Two pointers — converging from both ends</h3>
+          <p>One pointer starts at index <code>0</code>, the other at the last index. Each step looks at both values together and moves exactly one pointer inward, based on a comparison that a <strong>sorted</strong> array makes decisive.</p>
+        </div>
+        <div class="card">
+          <h3>Sliding window — variable-size, moving right</h3>
+          <p>Both pointers start at the left. <code>right</code> expands the window to include more; <code>left</code> shrinks it only when the window becomes invalid. Neither pointer ever moves backward.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut — eligibility:</strong> converging pointers need a <strong>sorted array</strong> (or one you sort first) — that is what makes "move the wrong side" a forced, correct decision instead of a guess. A sliding window needs a <strong>monotone validity condition</strong>: once the window is valid, growing it never breaks it, and once it is invalid, shrinking is the only fix. If either property is missing, the technique does not apply.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Identify the shape</h3>
+          <p>Is it "find a pair/triple in sorted data" (converging pointers) or "find the best contiguous run under a constraint" (sliding window)?</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Name the forced decision</h3>
+          <p>For converging pointers: what does the sorted order tell you about which side to move? For a window: what condition makes it invalid?</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Write a loop that only advances</h3>
+          <p>Never reset a pointer backward and never rescan. One comparison decides exactly one pointer move.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Keep the running state in sync</h3>
+          <p>Update the sum, the seen-map, or the counter the instant a pointer moves — never recompute it from scratch.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes the working structure</h2>
+      <p>Beginners often picture these techniques as "two loops," but nothing is nested in the way a brute force is. The input becomes a pair of positions plus a small piece of running state that travels with them.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input: sorted array</h3>
+          <div class="code-block"><code>arr = [1, 2, 4, 7, 11, 15]
+target = 9</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Two pointers</h3>
+          <div class="code-block"><code>lo = 0          # arr[lo] = 1
+hi = len(arr)-1 # arr[hi] = 15</code></div>
+        </div>
+      </div>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input: raw string</h3>
+          <div class="code-block"><code>s = "abcabcbb"</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Window + running state</h3>
+          <div class="code-block"><code>left = 0, best = 0
+seen = {}   # char -> last index</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Sorted array → two ends</h4>
+          <p><code>lo</code> starts at index <code>0</code>, <code>hi</code> starts at the last index. Both are valid starting candidates because sorted order guarantees a direction to move.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Raw string → empty window</h4>
+          <p><code>left</code> and <code>right</code> both start at index <code>0</code>. The running state (<code>seen</code>) starts empty because nothing has been read yet.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Each step reads exactly one new fact</h4>
+          <p>For converging pointers, one comparison decides which single pointer moves. For the window, <code>right</code> always advances and <code>left</code> advances only while the window is invalid.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>State updates travel with the pointers</h4>
+          <p>The sum comparison and the <code>seen</code> map are always current for wherever the pointers are right now — nothing is ever re-derived from index <code>0</code>.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> the "window" is never rebuilt from scratch. It is edited by exactly one element at a time — one value enters when a pointer advances, at most one value leaves when the other pointer catches up.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: Two pointers — converging from both ends (Two Sum on a sorted array)</h2>
+      <p>Because <code>arr</code> is sorted, the current sum tells you everything you need: too big means the right value must shrink, too small means the left value must grow. There is never a reason to try both at once.</p>
+      <div class="code-block stepped">
+        <code id="tp-code">
+<span class="code-line" data-line="1">def two_sum_sorted(arr, target):</span>
+<span class="code-line" data-line="2">    """arr is SORTED. Find two indices whose values sum to target."""</span>
+<span class="code-line" data-line="3">    lo, hi = 0, len(arr) - 1</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    while lo < hi:</span>
+<span class="code-line" data-line="6">        s = arr[lo] + arr[hi]</span>
+<span class="code-line" data-line="7">        if s == target:</span>
+<span class="code-line" data-line="8">            return [lo, hi]</span>
+<span class="code-line" data-line="9">        elif s < target:</span>
+<span class="code-line" data-line="10">            lo += 1              # sum too small -> need a bigger left value</span>
+<span class="code-line" data-line="11">        else:</span>
+<span class="code-line" data-line="12">            hi -= 1              # sum too big -> need a smaller right value</span>
+<span class="code-line" data-line="13"></span>
+<span class="code-line" data-line="14">    return []</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive two-pointer trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="tp-graph" viewBox="0 0 460 200" width="100%" role="img" aria-label="Two pointers converging on a sorted array">
+              <defs>
+                <style>
+                  .tp-cell { stroke-width: 2; transition: fill 0.2s ease, stroke 0.2s ease; }
+                  .tp-cell.gray { fill: #c8d2e7; stroke: #9fb0d1; }
+                  .tp-cell.blue { fill: #315efb; stroke: #1f45cf; }
+                  .tp-cell.green { fill: #13a46b; stroke: #0f8a5b; }
+                  .tp-cell.moved { stroke: #ff9f1c; stroke-width: 5; }
+                  .tp-val { font: 700 20px Inter, Arial, sans-serif; fill: #182132; }
+                  .tp-val.light { fill: #ffffff; }
+                  .tp-idx { font: 600 12px Inter, Arial, sans-serif; fill: #5d677d; }
+                  .tp-ptr { font: 800 13px Inter, Arial, sans-serif; fill: #182132; }
+                </style>
+              </defs>
+              <g id="tp-lo-marker">
+                <polygon points="-9,-18 9,-18 0,0" fill="#182132" />
+                <text y="-24" text-anchor="middle" class="tp-ptr">lo</text>
+              </g>
+              <g id="tp-hi-marker">
+                <polygon points="-9,-18 9,-18 0,0" fill="#182132" />
+                <text y="-24" text-anchor="middle" class="tp-ptr">hi</text>
+              </g>
+              <rect data-idx="0" x="20" y="70" width="56" height="64" rx="10" class="tp-cell gray" />
+              <rect data-idx="1" x="90" y="70" width="56" height="64" rx="10" class="tp-cell gray" />
+              <rect data-idx="2" x="160" y="70" width="56" height="64" rx="10" class="tp-cell gray" />
+              <rect data-idx="3" x="230" y="70" width="56" height="64" rx="10" class="tp-cell gray" />
+              <rect data-idx="4" x="300" y="70" width="56" height="64" rx="10" class="tp-cell gray" />
+              <rect data-idx="5" x="370" y="70" width="56" height="64" rx="10" class="tp-cell gray" />
+              <text data-idx-val="0" x="48" y="108" text-anchor="middle" class="tp-val">1</text>
+              <text data-idx-val="1" x="118" y="108" text-anchor="middle" class="tp-val">2</text>
+              <text data-idx-val="2" x="188" y="108" text-anchor="middle" class="tp-val">4</text>
+              <text data-idx-val="3" x="258" y="108" text-anchor="middle" class="tp-val">7</text>
+              <text data-idx-val="4" x="328" y="108" text-anchor="middle" class="tp-val">11</text>
+              <text data-idx-val="5" x="398" y="108" text-anchor="middle" class="tp-val">15</text>
+              <text x="48" y="152" text-anchor="middle" class="tp-idx">0</text>
+              <text x="118" y="152" text-anchor="middle" class="tp-idx">1</text>
+              <text x="188" y="152" text-anchor="middle" class="tp-idx">2</text>
+              <text x="258" y="152" text-anchor="middle" class="tp-idx">3</text>
+              <text x="328" y="152" text-anchor="middle" class="tp-idx">4</text>
+              <text x="398" y="152" text-anchor="middle" class="tp-idx">5</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-blue"></i> inside the current [lo, hi] range</span>
+            <span><i class="dot dot-green"></i> the answer found</span>
+            <span><i class="dot dot-orange"></i> pointer that just moved</span>
+            <span><i class="dot dot-gray"></i> discarded / outside the range</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="tp-step-title">Initial state</h3>
+          <p id="tp-step-text">lo starts at index 0, hi starts at the last index.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="tp-prev">Previous</button>
+            <button type="button" id="tp-play" class="primary">Resume</button>
+            <button type="button" id="tp-next">Next</button>
+            <button type="button" id="tp-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="tp-step-counter">Step 0 / 4</span>
+            <div class="progress"><span id="tp-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>lo (index, value)</strong><div class="state-value" id="tp-lo">0, 1</div></div>
+            <div class="state-box"><strong>hi (index, value)</strong><div class="state-value" id="tp-hi">5, 15</div></div>
+            <div class="state-box"><strong>arr[lo] + arr[hi]</strong><div class="state-value" id="tp-sum">—</div></div>
+            <div class="state-box"><strong>Comparison vs target</strong><div class="state-value" id="tp-compare">—</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="tp-result">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="tp-detail"><strong>What changed:</strong> pointers are placed at both ends; nothing has been compared yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="tp-trace-table">
+          <thead>
+            <tr><th>Step</th><th>lo</th><th>hi</th><th>Comparison</th><th>Action</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td><code>0 (1)</code></td><td><code>5 (15)</code></td><td>—</td><td>Place pointers at both ends</td><td>—</td></tr>
+            <tr data-step="1"><td>1</td><td><code>0 (1)</code></td><td><code>4 (11)</code></td><td><code>1 + 15 = 16 &gt; 9</code></td><td><code>hi -= 1</code></td><td>—</td></tr>
+            <tr data-step="2"><td>2</td><td><code>0 (1)</code></td><td><code>3 (7)</code></td><td><code>1 + 11 = 12 &gt; 9</code></td><td><code>hi -= 1</code></td><td>—</td></tr>
+            <tr data-step="3"><td>3</td><td><code>1 (2)</code></td><td><code>3 (7)</code></td><td><code>1 + 7 = 8 &lt; 9</code></td><td><code>lo += 1</code></td><td>—</td></tr>
+            <tr data-step="4"><td>4</td><td><code>1 (2)</code></td><td><code>3 (7)</code></td><td><code>2 + 7 = 9 == 9</code></td><td><code>return [lo, hi]</code></td><td><code>[1, 3]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Sorted order means the current sum tells you, with certainty, which single pointer is wrong — you never need to try both.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Running this on an unsorted array. Without sorted order, "sum too big → move hi" is not guaranteed to preserve the true answer.</p>
+        </div>
+        <div class="card">
+          <h4>Why O(n), not O(n²)</h4>
+          <p>Every step moves exactly one pointer inward by one, and <code>lo</code> and <code>hi</code> can each move at most <code>n</code> times before they meet — total movement is bounded by <code>n</code>, not <code>n²</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Sliding window — variable size (Longest Substring Without Repeating Characters)</h2>
+      <p><code>right</code> expands the window by one character every iteration. The moment that character has already been seen inside the current window, the window is invalid — <code>left</code> jumps forward just far enough to fix it, then the best length is updated.</p>
+      <div class="code-block stepped">
+        <code id="sw-code">
+<span class="code-line" data-line="1">def longest_substring_without_repeat(s):</span>
+<span class="code-line" data-line="2">    seen = {}                       # char -> most recent index</span>
+<span class="code-line" data-line="3">    left = best = 0</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    for right, ch in enumerate(s):</span>
+<span class="code-line" data-line="6">        if ch in seen and seen[ch] >= left:</span>
+<span class="code-line" data-line="7">            left = seen[ch] + 1     # shrink: jump left past the previous occurrence</span>
+<span class="code-line" data-line="8">        seen[ch] = right</span>
+<span class="code-line" data-line="9">        best = max(best, right - left + 1)</span>
+<span class="code-line" data-line="10"></span>
+<span class="code-line" data-line="11">    return best</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive sliding-window trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="sw-graph" viewBox="0 0 500 200" width="100%" role="img" aria-label="Sliding window over the string abcabcbb">
+              <defs>
+                <style>
+                  .sw-cell { stroke-width: 2; transition: fill 0.2s ease, stroke 0.2s ease; }
+                  .sw-cell.gray { fill: #c8d2e7; stroke: #9fb0d1; }
+                  .sw-cell.blue { fill: #315efb; stroke: #1f45cf; }
+                  .sw-cell.green { fill: #13a46b; stroke: #0f8a5b; }
+                  .sw-cell.moved { stroke: #ff9f1c; stroke-width: 5; }
+                  .sw-val { font: 700 18px Inter, Arial, sans-serif; fill: #182132; }
+                  .sw-val.light { fill: #ffffff; }
+                  .sw-idx { font: 600 12px Inter, Arial, sans-serif; fill: #5d677d; }
+                  .sw-ptr { font: 800 12px Inter, Arial, sans-serif; fill: #182132; }
+                </style>
+              </defs>
+              <g id="sw-left-marker">
+                <polygon points="-9,-18 9,-18 0,0" fill="#182132" />
+                <text y="-24" text-anchor="middle" class="sw-ptr">L</text>
+              </g>
+              <g id="sw-right-marker">
+                <polygon points="-9,-18 9,-18 0,0" fill="#182132" />
+                <text y="-24" text-anchor="middle" class="sw-ptr">R</text>
+              </g>
+              <rect data-idx="0" x="20" y="70" width="48" height="64" rx="10" class="sw-cell gray" />
+              <rect data-idx="1" x="78" y="70" width="48" height="64" rx="10" class="sw-cell gray" />
+              <rect data-idx="2" x="136" y="70" width="48" height="64" rx="10" class="sw-cell gray" />
+              <rect data-idx="3" x="194" y="70" width="48" height="64" rx="10" class="sw-cell gray" />
+              <rect data-idx="4" x="252" y="70" width="48" height="64" rx="10" class="sw-cell gray" />
+              <rect data-idx="5" x="310" y="70" width="48" height="64" rx="10" class="sw-cell gray" />
+              <rect data-idx="6" x="368" y="70" width="48" height="64" rx="10" class="sw-cell gray" />
+              <rect data-idx="7" x="426" y="70" width="48" height="64" rx="10" class="sw-cell gray" />
+              <text data-idx-val="0" x="44" y="108" text-anchor="middle" class="sw-val">a</text>
+              <text data-idx-val="1" x="102" y="108" text-anchor="middle" class="sw-val">b</text>
+              <text data-idx-val="2" x="160" y="108" text-anchor="middle" class="sw-val">c</text>
+              <text data-idx-val="3" x="218" y="108" text-anchor="middle" class="sw-val">a</text>
+              <text data-idx-val="4" x="276" y="108" text-anchor="middle" class="sw-val">b</text>
+              <text data-idx-val="5" x="334" y="108" text-anchor="middle" class="sw-val">c</text>
+              <text data-idx-val="6" x="392" y="108" text-anchor="middle" class="sw-val">b</text>
+              <text data-idx-val="7" x="450" y="108" text-anchor="middle" class="sw-val">b</text>
+              <text x="44" y="152" text-anchor="middle" class="sw-idx">0</text>
+              <text x="102" y="152" text-anchor="middle" class="sw-idx">1</text>
+              <text x="160" y="152" text-anchor="middle" class="sw-idx">2</text>
+              <text x="218" y="152" text-anchor="middle" class="sw-idx">3</text>
+              <text x="276" y="152" text-anchor="middle" class="sw-idx">4</text>
+              <text x="334" y="152" text-anchor="middle" class="sw-idx">5</text>
+              <text x="392" y="152" text-anchor="middle" class="sw-idx">6</text>
+              <text x="450" y="152" text-anchor="middle" class="sw-idx">7</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-blue"></i> inside the current window</span>
+            <span><i class="dot dot-green"></i> window that just set a new best</span>
+            <span><i class="dot dot-orange"></i> pointer(s) that just moved</span>
+            <span><i class="dot dot-gray"></i> outside the window</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="sw-step-title">Initial state</h3>
+          <p id="sw-step-text">The window is empty; seen is empty.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="sw-prev">Previous</button>
+            <button type="button" id="sw-play" class="primary">Resume</button>
+            <button type="button" id="sw-next">Next</button>
+            <button type="button" id="sw-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="sw-step-counter">Step 0 / 8</span>
+            <div class="progress"><span id="sw-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>left pointer</strong><div class="state-value" id="sw-left">0</div></div>
+            <div class="state-box"><strong>right pointer</strong><div class="state-value" id="sw-right">—</div></div>
+            <div class="state-box"><strong>Current window</strong><div class="state-value" id="sw-window">(empty)</div></div>
+            <div class="state-box"><strong>seen (char → last index)</strong><div class="state-value" id="sw-seen">{}</div></div>
+            <div class="state-box"><strong>Best length so far</strong><div class="state-value" id="sw-best">0</div></div>
+          </div>
+          <div class="explainer">
+            <p id="sw-detail"><strong>What changed:</strong> we are about to sweep right across the string, only ever moving left forward to fix a violation.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="sw-trace-table">
+          <thead>
+            <tr><th>Step</th><th>right</th><th>char</th><th>Shrink?</th><th>left after</th><th>Window</th><th>Best after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>—</td><td>—</td><td><code>0</code></td><td>(empty)</td><td><code>0</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>0</code></td><td><code>a</code></td><td>No</td><td><code>0</code></td><td><code>"a"</code></td><td><code>1</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>1</code></td><td><code>b</code></td><td>No</td><td><code>0</code></td><td><code>"ab"</code></td><td><code>2</code></td></tr>
+            <tr data-step="3"><td>3</td><td><code>2</code></td><td><code>c</code></td><td>No</td><td><code>0</code></td><td><code>"abc"</code></td><td><code>3</code></td></tr>
+            <tr data-step="4"><td>4</td><td><code>3</code></td><td><code>a</code></td><td>Yes — <code>a</code> last at 0</td><td><code>1</code></td><td><code>"bca"</code></td><td><code>3</code></td></tr>
+            <tr data-step="5"><td>5</td><td><code>4</code></td><td><code>b</code></td><td>Yes — <code>b</code> last at 1</td><td><code>2</code></td><td><code>"cab"</code></td><td><code>3</code></td></tr>
+            <tr data-step="6"><td>6</td><td><code>5</code></td><td><code>c</code></td><td>Yes — <code>c</code> last at 2</td><td><code>3</code></td><td><code>"abc"</code></td><td><code>3</code></td></tr>
+            <tr data-step="7"><td>7</td><td><code>6</code></td><td><code>b</code></td><td>Yes — <code>b</code> last at 4</td><td><code>5</code></td><td><code>"cb"</code></td><td><code>3</code></td></tr>
+            <tr data-step="8"><td>8</td><td><code>7</code></td><td><code>b</code></td><td>Yes — <code>b</code> last at 6</td><td><code>7</code></td><td><code>"b"</code></td><td><code>3</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The window never resets to empty on a repeat — <code>left</code> jumps to exactly one past the earlier occurrence, so no valid substring is skipped.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Checking <code>ch in seen</code> alone without <code>seen[ch] >= left</code>. A character seen before the current window started is stale and must not trigger a shrink.</p>
+        </div>
+        <div class="card">
+          <h4>Why O(n), not O(n²)</h4>
+          <p><code>right</code> advances exactly <code>n</code> times; <code>left</code> also only ever advances, and across the whole run it moves at most <code>n</code> times total — not <code>n</code> times per step of <code>right</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">No valid answer</button>
+        <button type="button" data-example-tab="1">Whole input is the answer</button>
+        <button type="button" data-example-tab="2">All-identical elements</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: no valid answer exists</h3>
+          <p><code>two_sum_sorted([1, 2, 4, 7, 11, 15], target=100)</code></p>
+          <div class="result-badge">Answer = []</div>
+          <p class="footer-note">lo keeps advancing (every sum is still too small) until <code>lo == hi</code>, and the loop exits without ever returning. The function must explicitly return <code>[]</code> after the loop — there is no pair to find.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: the whole input is the answer</h3>
+          <p><code>longest_substring_without_repeat("abcdef")</code></p>
+          <div class="result-badge">Answer = 6</div>
+          <p class="footer-note">Every character is unique, so the shrink condition (<code>ch in seen and seen[ch] >= left</code>) never fires. <code>left</code> stays at <code>0</code> for the whole run and the window grows to cover the entire string.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: all-identical elements</h3>
+          <p><code>longest_substring_without_repeat("bbbbb")</code></p>
+          <div class="result-badge">Answer = 1</div>
+          <p class="footer-note">Every new <code>b</code> is a repeat of the one right before it, so <code>left</code> jumps forward on every single step. The window never grows past length 1 — this is the case that most exposes an <code>if</code>-instead-of-correct-jump bug.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Time</th><th>Space</th><th>Best for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Brute force (check every pair / every substring)</td><td>O(n²)</td><td>O(1)</td><td>Correctness baseline; too slow past small inputs</td></tr>
+            <tr><td>Two pointers (converging, needs sorted input)</td><td>O(n) (or O(n log n) if a sort is needed first)</td><td>O(1)</td><td>Pair/triple problems where the array is already sorted or is cheap to sort once</td></tr>
+            <tr><td>Sliding window (variable size)</td><td>O(n)</td><td>O(k) — k = distinct elements currently in the window</td><td>Contiguous-run problems with a monotone validity condition</td></tr>
+            <tr><td>Hash-map one-pass (no shrinking pointer)</td><td>O(n)</td><td>O(n)</td><td>Two-sum on <em>unsorted</em> data — trades O(1) space for O(n) space to avoid sorting</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">All three non-brute-force methods rely on the same truth: once you can prove a pointer never needs to move backward, the total number of pointer moves is bounded by <code>n</code>, not <code>n²</code>.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>Start with the brute force: nested loops checking every pair or every substring. This is the safe, obviously-correct baseline.</p></div>
+            <div class="timeline-step"><p>Notice the redundant work: fixing a left index and rescanning the rest re-derives the same "too small / too big" information over and over.</p></div>
+            <div class="timeline-step"><p>Ask whether moving one side ever lets you safely skip the other — sorted order answers this for two-sum; a monotone validity rule answers it for a window.</p></div>
+            <div class="timeline-step"><p>Replace the nested loop with two indices that only ever advance — same correctness, O(n) instead of O(n²).</p></div>
+            <div class="timeline-step"><p>State out loud why no valid pair or window is ever skipped — this is the part interviewers actually probe.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"My brute force is O(n²) because for every left index I rescan the rest of the array or string — that's wasted, repeated work."</li>
+            <li>"The array is sorted, so I know moving lo right only grows the sum and moving hi left only shrinks it — that determinism is what lets me discard one comparison per step instead of keeping every pair on the table."</li>
+            <li>"For the window, once it's invalid, shrinking is the only fix, and once it's valid, growing is always safe — that monotonic property is what lets a while loop replace a full rescan."</li>
+            <li>"Each pointer moves at most n times total across the whole run, so total work is O(n), not O(n²), even though there's a loop inside a loop."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Sliding window mistakes</h3>
+          <ul class="mistake-list">
+            <li>Shrinking with <code>if</code> instead of <code>while</code> — one <code>if</code> only fixes a single violation; some constraints need repeated shrinking to become valid again.</li>
+            <li>Forgetting to update the running state (the <code>seen</code> map or a counter) the moment a pointer moves — the validity check then silently goes stale.</li>
+            <li>Comparing for the "best" answer before updating the window's state for this step, so the score reflects the previous window instead of the current one.</li>
+            <li>Resetting the window to empty on a repeat instead of jumping <code>left</code> to exactly one past the earlier occurrence — this quietly turns O(n) into O(n²).</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Two-pointer mistakes</h3>
+          <ul class="mistake-list">
+            <li>Using converging two pointers on <strong>unsorted data</strong> — without sorted order, "sum too big → move hi" has no guarantee of correctness.</li>
+            <li>Moving both pointers on the same step instead of exactly one — this can step over the actual answer.</li>
+            <li>Using <code>lo &lt;= hi</code> instead of <code>lo &lt; hi</code>, letting a pointer compare an index against itself.</li>
+            <li>Forgetting to handle "no answer" — the loop just ends when the pointers meet; it does not signal that on its own.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — Trace <code>two_sum_sorted([1, 3, 4, 5, 7, 10, 11], target=9)</code> by hand. What indices does it return?</summary>
+          <p style="margin-top:10px;">Answer: <strong>[2, 3]</strong>. Trace: <code>lo=0(1),hi=6(11)</code> sum 12 &gt; 9 → hi--; <code>hi=5(10)</code> sum 11 &gt; 9 → hi--; <code>hi=4(7)</code> sum 8 &lt; 9 → lo++; <code>lo=1(3),hi=4(7)</code> sum 10 &gt; 9 → hi--; <code>hi=3(5)</code> sum 8 &lt; 9 → lo++; <code>lo=2(4),hi=3(5)</code> sum 9 == 9 → return <code>[2, 3]</code> (4 + 5 = 9).</p>
+        </details>
+        <details>
+          <summary>Practice 2 — What does <code>longest_substring_without_repeat("dvdf")</code> return, and why isn't the answer "dvd" reset from scratch at the second <code>d</code>?</summary>
+          <p style="margin-top:10px;">Answer: <strong>3</strong> (the substring <code>"vdf"</code>). At <code>right=2</code> the character <code>d</code> repeats (last seen at index 0), so <code>left</code> jumps to exactly <code>1</code> — one past the stale <code>d</code> — not back to <code>0</code> and not forward to <code>3</code>. That precise jump is what lets the algorithm find <code>"vdf"</code> at <code>right=3</code> instead of undercounting or overcounting the window.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — Why doesn't converging two pointers need a <code>while</code>-style shrink loop the way sliding window does?</summary>
+          <p style="margin-top:10px;">Answer: because each iteration compares exactly one pair of values and resolves it with exactly one pointer move — there is no notion of a "currently invalid window" that might need several fixes in a row. The outer <code>while lo &lt; hi</code> already is the only loop needed; nesting another loop inside it would just repeat work the single comparison already settled.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          A loop inside a loop is not automatically <code>O(n²)</code> — what matters is how many times each index can possibly move. Converging pointers and sliding windows both guarantee that every index enters and leaves consideration at most once across the whole run, so total pointer movement is bounded by <code>n</code>. That single proof is why both techniques replace a brute-force nested scan with genuinely <code>O(n)</code> work.
+        </p>
+      </div>
+      <p class="footer-note">Based on the Two Pointers &amp; Sliding Window notebook — every trace above was produced by running the real Python functions, not hand-simulated.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const tpCellX = [48, 118, 188, 258, 328, 398];
+      const swCellX = [44, 102, 160, 218, 276, 334, 392, 450];
+
+      const tpSteps = [
+        {
+          step: 0, title: 'Initial state',
+          text: 'lo starts at index 0 (value 1), hi starts at index 5 (value 15). Because the array is sorted, we know exactly how to react to any sum.',
+          lo: '0, 1', hi: '5, 15', sum: '—', compare: '—', result: '—',
+          detail: 'The array is sorted ascending, so moving lo right only increases the sum, and moving hi left only decreases it — that guarantee is what makes this technique work.',
+          loIdx: 0, hiIdx: 5, moved: [],
+          cells: ['blue', 'blue', 'blue', 'blue', 'blue', 'blue'],
+          lines: [1, 3]
+        },
+        {
+          step: 1, title: 'Step 1: sum too big — hi moves left',
+          text: 'arr[lo] + arr[hi] = 1 + 15 = 16, greater than target 9. Since the array is sorted, the only way to shrink the sum is to bring in a smaller value from the right, so hi moves from 5 to 4.',
+          lo: '0, 1', hi: '4, 11', sum: '1 + 15 = 16', compare: '16 > 9', result: '—',
+          detail: 'Moving lo instead would only make the sum bigger (the array is sorted ascending) — it could never fix an already-too-large sum, so hi is the only pointer that can possibly help.',
+          loIdx: 0, hiIdx: 4, moved: [4],
+          cells: ['blue', 'blue', 'blue', 'blue', 'blue', 'gray'],
+          lines: [5, 6, 7, 9, 11, 12]
+        },
+        {
+          step: 2, title: 'Step 2: sum still too big — hi moves left again',
+          text: 'arr[lo] + arr[hi] = 1 + 11 = 12, still greater than target 9, so hi moves from 4 to 3.',
+          lo: '0, 1', hi: '3, 7', sum: '1 + 11 = 12', compare: '12 > 9', result: '—',
+          detail: 'Same forced logic as step 1 — sorted order means this decision requires no guessing.',
+          loIdx: 0, hiIdx: 3, moved: [3],
+          cells: ['blue', 'blue', 'blue', 'blue', 'gray', 'gray'],
+          lines: [5, 6, 7, 9, 11, 12]
+        },
+        {
+          step: 3, title: 'Step 3: sum too small — lo moves right',
+          text: 'arr[lo] + arr[hi] = 1 + 7 = 8, less than target 9, so lo moves from 0 to 1.',
+          lo: '1, 2', hi: '3, 7', sum: '1 + 7 = 8', compare: '8 < 9', result: '—',
+          detail: 'Now the sum undershoots, so we need a bigger left value — hi cannot help here, since moving it left would only shrink the sum further.',
+          loIdx: 1, hiIdx: 3, moved: [1],
+          cells: ['gray', 'blue', 'blue', 'blue', 'gray', 'gray'],
+          lines: [5, 6, 7, 9, 10]
+        },
+        {
+          step: 4, title: 'Step 4: sum matches target — FOUND',
+          text: 'arr[lo] + arr[hi] = 2 + 7 = 9, equal to the target. Return indices [1, 3].',
+          lo: '1, 2', hi: '3, 7', sum: '2 + 7 = 9', compare: '9 == 9', result: '[1, 3]',
+          detail: 'lo and hi never crossed, and every step moved exactly one pointer forward — that bound (each index visited at most once) is why this is O(n) instead of an O(n²) brute-force pair check.',
+          loIdx: 1, hiIdx: 3, moved: [],
+          cells: ['gray', 'green', 'blue', 'green', 'gray', 'gray'],
+          lines: [5, 6, 7, 8]
+        }
+      ];
+
+      const swSteps = [
+        {
+          step: 0, title: 'Initial state',
+          text: 'left and right both conceptually start before index 0. The window is empty, and the seen map (tracking the most recent index of each character) is empty too.',
+          left: '0', right: '—', window: '(empty)', seen: '{}', best: '0',
+          detail: 'We are about to sweep right across the string one character at a time, only ever moving left forward to fix violations.',
+          leftIdx: 0, rightIdx: -1, moved: [],
+          cells: ['gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray'],
+          lines: [2, 3]
+        },
+        {
+          step: 1, title: "Step 1: right=0 ('a') — window grows",
+          text: '"a" has not been seen inside the current window, so no shrink is needed. seen["a"] = 0. Window = "a", length 1 — a new best.',
+          left: '0', right: '0', window: '"a"  (s[0:1])', seen: "{'a': 0}", best: '1',
+          detail: 'Because this is the very first character, the window can only grow — there is nothing to shrink from yet.',
+          leftIdx: 0, rightIdx: 0, moved: [0],
+          cells: ['green', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray'],
+          lines: [5, 6, 8, 9]
+        },
+        {
+          step: 2, title: "Step 2: right=1 ('b') — window grows",
+          text: '"b" is new to the window, so it just extends. Window = "ab", length 2 — a new best.',
+          left: '0', right: '1', window: '"ab"  (s[0:2])', seen: "{'a': 0, 'b': 1}", best: '2',
+          detail: 'Every character seen so far is distinct, so right keeps advancing without needing to shrink.',
+          leftIdx: 0, rightIdx: 1, moved: [1],
+          cells: ['green', 'green', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray'],
+          lines: [5, 6, 8, 9]
+        },
+        {
+          step: 3, title: "Step 3: right=2 ('c') — window grows",
+          text: '"c" is also new. Window = "abc", length 3 — a new best.',
+          left: '0', right: '2', window: '"abc"  (s[0:3])', seen: "{'a': 0, 'b': 1, 'c': 2}", best: '3',
+          detail: 'Three unique characters in a row — this is the widest the window will get during this run.',
+          leftIdx: 0, rightIdx: 2, moved: [2],
+          cells: ['green', 'green', 'green', 'gray', 'gray', 'gray', 'gray', 'gray'],
+          lines: [5, 6, 8, 9]
+        },
+        {
+          step: 4, title: "Step 4: right=3 ('a') — repeat found, window shrinks",
+          text: '"a" was last seen at index 0, which is inside the current window (left=0), so left jumps to 1, pushing the stale "a" out. seen["a"] updates to 3. Window = "bca", still length 3.',
+          left: '1', right: '3', window: '"bca"  (s[1:4])', seen: "{'a': 3, 'b': 1, 'c': 2}", best: '3',
+          detail: 'This is the shrink step: the window does not reset to empty, it only jumps past the earlier duplicate — left never moves backward.',
+          leftIdx: 1, rightIdx: 3, moved: [1, 3],
+          cells: ['gray', 'blue', 'blue', 'blue', 'gray', 'gray', 'gray', 'gray'],
+          lines: [5, 6, 7, 8, 9]
+        },
+        {
+          step: 5, title: "Step 5: right=4 ('b') — repeat found, window shrinks",
+          text: '"b" was last seen at index 1, inside the window (left=1), so left jumps to 2. Window = "cab", length 3.',
+          left: '2', right: '4', window: '"cab"  (s[2:5])', seen: "{'a': 3, 'b': 4, 'c': 2}", best: '3',
+          detail: 'The best of 3 from step 3 still stands — this window matches it but does not beat it.',
+          leftIdx: 2, rightIdx: 4, moved: [2, 4],
+          cells: ['gray', 'gray', 'blue', 'blue', 'blue', 'gray', 'gray', 'gray'],
+          lines: [5, 6, 7, 8, 9]
+        },
+        {
+          step: 6, title: "Step 6: right=5 ('c') — repeat found, window shrinks",
+          text: '"c" was last seen at index 2, inside the window, so left jumps to 3. Window = "abc" again (a different occurrence than step 3), length 3.',
+          left: '3', right: '5', window: '"abc"  (s[3:6])', seen: "{'a': 3, 'b': 4, 'c': 5}", best: '3',
+          detail: 'Same length as the best, but not larger — best stays 3.',
+          leftIdx: 3, rightIdx: 5, moved: [3, 5],
+          cells: ['gray', 'gray', 'gray', 'blue', 'blue', 'blue', 'gray', 'gray'],
+          lines: [5, 6, 7, 8, 9]
+        },
+        {
+          step: 7, title: "Step 7: right=6 ('b') — window shrinks past two characters",
+          text: '"b" was last seen at index 4, inside the window (left=3), so left jumps to 5 — past both "a" and the stale "b". Window = "cb", length 2.',
+          left: '5', right: '6', window: '"cb"  (s[5:7])', seen: "{'a': 3, 'b': 6, 'c': 5}", best: '3',
+          detail: 'left can jump more than one position in a single step — it always jumps straight to one past the duplicate, never one at a time.',
+          leftIdx: 5, rightIdx: 6, moved: [5, 6],
+          cells: ['gray', 'gray', 'gray', 'gray', 'gray', 'blue', 'blue', 'gray'],
+          lines: [5, 6, 7, 8, 9]
+        },
+        {
+          step: 8, title: "Step 8: right=7 ('b') — window shrinks to a single character",
+          text: '"b" was last seen at index 6, inside the window, so left jumps to 7. Window = "b", length 1. The loop ends — return best = 3.',
+          left: '7', right: '7', window: '"b"  (s[7:8])', seen: "{'a': 3, 'b': 7, 'c': 5}", best: '3',
+          detail: 'Final answer: the longest substring without a repeated character has length 3 ("abc"). Across all 8 characters, right advanced 8 times and left advanced a total of 7 times, never backward — that bound is exactly why this is O(n).',
+          leftIdx: 7, rightIdx: 7, moved: [7],
+          cells: ['gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'blue'],
+          lines: [5, 6, 7, 8, 9, 11]
+        }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderCells(prefix, cellX, step) {
+        document.querySelectorAll(`#${prefix}-graph [data-idx]`).forEach((rect) => {
+          const idx = Number(rect.dataset.idx);
+          const fillClass = step.cells[idx];
+          rect.classList.remove('gray', 'blue', 'green', 'moved');
+          rect.classList.add(fillClass);
+          if (step.moved.includes(idx)) rect.classList.add('moved');
+        });
+        document.querySelectorAll(`#${prefix}-graph [data-idx-val]`).forEach((textEl) => {
+          const idx = Number(textEl.dataset.idxVal);
+          const fillClass = step.cells[idx];
+          textEl.classList.toggle('light', fillClass === 'blue' || fillClass === 'green');
+        });
+      }
+
+      function renderTP(step, index, max) {
+        document.getElementById('tp-step-title').textContent = step.title;
+        document.getElementById('tp-step-text').textContent = step.text;
+        document.getElementById('tp-lo').textContent = step.lo;
+        document.getElementById('tp-hi').textContent = step.hi;
+        document.getElementById('tp-sum').textContent = step.sum;
+        document.getElementById('tp-compare').textContent = step.compare;
+        document.getElementById('tp-result').textContent = step.result;
+        document.getElementById('tp-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('tp-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('tp-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('tp-trace-table', step.step);
+        setCodeHighlight('tp-code', step.lines);
+        renderCells('tp', tpCellX, step);
+
+        const loMarker = document.getElementById('tp-lo-marker');
+        const hiMarker = document.getElementById('tp-hi-marker');
+        loMarker.setAttribute('transform', `translate(${tpCellX[step.loIdx]}, 70)`);
+        hiMarker.setAttribute('transform', `translate(${tpCellX[step.hiIdx]}, 70)`);
+      }
+
+      function renderSW(step, index, max) {
+        document.getElementById('sw-step-title').textContent = step.title;
+        document.getElementById('sw-step-text').textContent = step.text;
+        document.getElementById('sw-left').textContent = step.left;
+        document.getElementById('sw-right').textContent = step.right;
+        document.getElementById('sw-window').textContent = step.window;
+        document.getElementById('sw-seen').textContent = step.seen;
+        document.getElementById('sw-best').textContent = step.best;
+        document.getElementById('sw-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('sw-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('sw-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('sw-trace-table', step.step);
+        setCodeHighlight('sw-code', step.lines);
+        renderCells('sw', swCellX, step);
+
+        const leftMarker = document.getElementById('sw-left-marker');
+        const rightMarker = document.getElementById('sw-right-marker');
+        leftMarker.setAttribute('transform', `translate(${swCellX[step.leftIdx]}, 70)`);
+        if (step.rightIdx >= 0) {
+          rightMarker.setAttribute('transform', `translate(${swCellX[step.rightIdx]}, 70)`);
+          rightMarker.setAttribute('visibility', 'visible');
+        } else {
+          rightMarker.setAttribute('visibility', 'hidden');
+        }
+      }
+
+      setupTrace({ steps: tpSteps, prefix: 'tp', render: renderTP });
+      setupTrace({ steps: swSteps, prefix: 'sw', render: renderSW });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

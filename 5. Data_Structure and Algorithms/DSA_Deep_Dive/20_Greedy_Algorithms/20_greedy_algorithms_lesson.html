@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Greedy Algorithms — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+
+    /* --- lesson-specific bar states (reuse the same 4 legend colors only) --- */
+    .sched-bar { fill: #c8d2e7; stroke: none; transition: fill 0.2s ease, stroke 0.2s ease; }
+    .sched-bar.accepted { fill: #315efb; }
+    .sched-bar.justAccepted { fill: #13a46b; }
+    .sched-bar.current { stroke: #ff9f1c; stroke-width: 4; }
+    .sched-bar.rejected { fill: #c8d2e7; }
+
+    .part-bar { fill: #c8d2e7; stroke: none; transition: fill 0.2s ease; }
+    .part-bar.placed { fill: #315efb; }
+    .part-bar.reuse { fill: #13a46b; }
+    .part-bar.opennew { fill: #ff9f1c; }
+
+    .hero-bar-accepted { fill: #315efb; }
+    .hero-bar-rejected { fill: #c8d2e7; }
+
+    .diagram-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+    .diagram-tick { stroke: #d9e1ef; stroke-width: 1; }
+    .diagram-label { font: 600 12px ui-monospace, Consolas, monospace; fill: #46516a; }
+    .diagram-axis-label { font: 600 11px Inter, Arial, sans-serif; fill: #8592ab; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Algorithmic foundations · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Greedy Algorithms: Interval Scheduling &amp; Partitioning</h1>
+          <p>
+            A greedy algorithm commits to the locally best choice at every step and never reconsiders. This page teaches two greedy algorithms that actually work — and, just as importantly, the exchange-argument reasoning that tells you <em>when</em> a greedy rule is safe and when it silently fails.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: sort by the right key, then scan once</span>
+            <span class="chip">Interactive interval-scheduling trace</span>
+            <span class="chip">Interactive interval-partitioning trace</span>
+            <span class="chip">Includes a real greedy failure case</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>meetings = [(1,3),(2,4),(3,5),(0,6),(5,7),(8,9)]</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 520 260" width="100%" role="img" aria-label="Timeline of six meetings, four accepted and two rejected">
+              <text x="14" y="18" class="diagram-title">Sorted by end time — accept / reject</text>
+              <line x1="110" y1="30" x2="452" y2="30" class="diagram-tick" />
+              <line x1="148" y1="30" x2="148" y2="234" class="diagram-tick" />
+              <line x1="262" y1="30" x2="262" y2="234" class="diagram-tick" />
+              <line x1="376" y1="30" x2="376" y2="234" class="diagram-tick" />
+
+              <text x="15" y="41" class="diagram-label">(1,3)</text>
+              <rect x="148" y="28" width="76" height="24" rx="6" class="hero-bar-accepted" />
+
+              <text x="15" y="79" class="diagram-label">(2,4)</text>
+              <rect x="186" y="66" width="76" height="24" rx="6" class="hero-bar-rejected" />
+
+              <text x="15" y="117" class="diagram-label">(3,5)</text>
+              <rect x="224" y="104" width="76" height="24" rx="6" class="hero-bar-accepted" />
+
+              <text x="15" y="155" class="diagram-label">(0,6)</text>
+              <rect x="110" y="142" width="228" height="24" rx="6" class="hero-bar-rejected" />
+
+              <text x="15" y="193" class="diagram-label">(5,7)</text>
+              <rect x="300" y="180" width="76" height="24" rx="6" class="hero-bar-accepted" />
+
+              <text x="15" y="231" class="diagram-label">(8,9)</text>
+              <rect x="414" y="218" width="38" height="24" rx="6" class="hero-bar-accepted" />
+
+              <text x="106" y="248" class="diagram-axis-label">0</text>
+              <text x="258" y="248" class="diagram-axis-label">4</text>
+              <text x="372" y="248" class="diagram-axis-label">8</text>
+            </svg>
+          </div>
+          <div class="result-badge">Answer = 4 non-overlapping meetings</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Meeting room booking</h3>
+          <p>Given a pile of requested time slots, pick the maximum number that can happen in one room without overlapping.</p>
+        </div>
+        <div class="card">
+          <h3>CPU / job scheduling</h3>
+          <p>The same accept-or-reject scan decides which jobs a single machine can run back to back.</p>
+        </div>
+        <div class="card">
+          <h3>Court, room, and machine allocation</h3>
+          <p>When you can't reject anything and must serve every request, the question flips to: how many rooms/machines/courts do I need at minimum?</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> both problems on this page share the same skeleton — sort the input by one key, then make a single pass. That skeleton is not an accident; it is the entire content of the algorithm. The hard part is never the loop, it's proving which key is correct.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a greedy algorithm?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>At every step, take the choice that looks best <em>right now</em>, and never go back to reconsider it. No backtracking, no trying alternatives — one pass, one decision at a time.</p>
+        </div>
+        <div class="card">
+          <h3>Fast, but only sometimes correct</h3>
+          <p>That single-pass discipline is what makes greedy fast — usually <code>O(n log n)</code> from the sort, then one linear scan. It is also exactly why greedy can be wrong: a locally good choice can box you into a globally bad outcome, and nothing in the algorithm itself checks for that.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if you can finish the sentence "swapping in the greedy choice never makes an optimal solution worse," greedy is safe. If you can't finish that sentence — or you can think of a case where it's false — greedy is guessing, not proving.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Name the choice</h3>
+          <p>At each step of the scan, what decision is actually being made? For scheduling it's accept/reject; for partitioning it's reuse/open-new.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Choose the sort key</h3>
+          <p>This is the algorithm. Sort by end time for scheduling, by start time for partitioning — pick wrong and the rest of the code runs perfectly and still gives the wrong answer.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Apply the greedy test</h3>
+          <p>One comparison per item, decided immediately and never revisited: does this pass the test right now, given what's already been chosen?</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Prove it — or find a counterexample</h3>
+          <p>Write the one-sentence exchange argument. If you can't, try to break your own rule with a small adversarial input before you trust it.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes the working structure</h2>
+      <p>This is where the algorithm is actually decided. Before any scanning happens, the raw list is sorted by one key — and that choice of key is not a minor implementation detail, it is the whole strategy.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Raw input</h3>
+          <div class="code-block"><code>meetings = [
+  (1, 3), (2, 4), (3, 5),
+  (0, 6), (5, 7), (8, 9)
+]</code></div>
+        </div>
+        <div class="arrow-box">→ sort by end time →</div>
+        <div class="mini-diagram">
+          <h3>Working order (scan left to right)</h3>
+          <div class="code-block"><code>(1, 3)   end = 3
+(2, 4)   end = 4
+(3, 5)   end = 5
+(0, 6)   end = 6
+(5, 7)   end = 7
+(8, 9)   end = 9</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Why end time, not start time</h4>
+          <p>Finishing earliest leaves the most room for everything scheduled after it. An interval that starts early but runs long (like <code>(0,6)</code>) can block far more future picks than one that starts late but ends soon.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Proof by contrast: sorting by start time instead</h4>
+          <p>Running the exact same accept/reject loop but sorted by <strong>start</strong> time on these six meetings gives only <code>2</code> accepted meetings, not <code>4</code> — sorting by start time picks <code>(0,6)</code> first because it starts earliest, which then blocks everything from <code>1</code> to <code>6</code>. Same loop, wrong key, worse answer.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>The scan itself is trivial</h4>
+          <p>Once sorted by end time, the loop is a single pass with one comparison: does this interval start after the last one we kept ends? That's it — no backtracking, no lookahead. All of the intelligence lives in the sort key.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> almost every correct greedy algorithm starts with "sort by ___." Choosing that key correctly <em>is</em> the algorithm — everything after it is bookkeeping.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: Interval scheduling — <code>max_non_overlapping</code></h2>
+      <p>Sort by end time. Walk the sorted list once. Keep an interval whenever its start is at or after the end of the last interval you kept — that's the entire algorithm.</p>
+      <div class="code-block stepped">
+        <code id="sched-code">
+<span class="code-line" data-line="1">def max_non_overlapping(intervals):</span>
+<span class="code-line" data-line="2">    intervals = sorted(intervals, key=lambda iv: iv[1])   # sort by END time</span>
+<span class="code-line" data-line="3">    count, last_end = 0, float("-inf")</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    for start, end in intervals:</span>
+<span class="code-line" data-line="6">        if start >= last_end:              # doesn't overlap the last one taken</span>
+<span class="code-line" data-line="7">            count += 1</span>
+<span class="code-line" data-line="8">            last_end = end</span>
+<span class="code-line" data-line="9"></span>
+<span class="code-line" data-line="10">    return count</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive scheduling trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="sched-graph" viewBox="0 0 520 260" width="100%" role="img" aria-label="Interval scheduling trace timeline">
+              <text x="14" y="18" class="diagram-title">Meetings, sorted by end time</text>
+              <line x1="110" y1="30" x2="452" y2="30" class="diagram-tick" />
+              <line x1="148" y1="30" x2="148" y2="234" class="diagram-tick" />
+              <line x1="262" y1="30" x2="262" y2="234" class="diagram-tick" />
+              <line x1="376" y1="30" x2="376" y2="234" class="diagram-tick" />
+
+              <text x="15" y="41" class="diagram-label">(1,3)</text>
+              <rect data-iv="1-3" x="148" y="28" width="76" height="24" rx="6" class="sched-bar" />
+
+              <text x="15" y="79" class="diagram-label">(2,4)</text>
+              <rect data-iv="2-4" x="186" y="66" width="76" height="24" rx="6" class="sched-bar" />
+
+              <text x="15" y="117" class="diagram-label">(3,5)</text>
+              <rect data-iv="3-5" x="224" y="104" width="76" height="24" rx="6" class="sched-bar" />
+
+              <text x="15" y="155" class="diagram-label">(0,6)</text>
+              <rect data-iv="0-6" x="110" y="142" width="228" height="24" rx="6" class="sched-bar" />
+
+              <text x="15" y="193" class="diagram-label">(5,7)</text>
+              <rect data-iv="5-7" x="300" y="180" width="76" height="24" rx="6" class="sched-bar" />
+
+              <text x="15" y="231" class="diagram-label">(8,9)</text>
+              <rect data-iv="8-9" x="414" y="218" width="38" height="24" rx="6" class="sched-bar" />
+
+              <text x="106" y="248" class="diagram-axis-label">0</text>
+              <text x="258" y="248" class="diagram-axis-label">4</text>
+              <text x="372" y="248" class="diagram-axis-label">8</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-blue"></i> accepted into the answer</span>
+            <span><i class="dot dot-green"></i> just passed the greedy test</span>
+            <span><i class="dot dot-orange"></i> under consideration (ring)</span>
+            <span><i class="dot dot-gray"></i> rejected / not yet reached</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="sched-step-title">Initial state</h3>
+          <p id="sched-step-text">The six meetings are sorted by end time. Nothing has been decided yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="sched-prev">Previous</button>
+            <button type="button" id="sched-play" class="primary">Resume</button>
+            <button type="button" id="sched-next">Next</button>
+            <button type="button" id="sched-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="sched-step-counter">Step 0 / 7</span>
+            <div class="progress"><span id="sched-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box">
+              <strong>Interval considered</strong>
+              <div class="state-value" id="sched-interval">—</div>
+            </div>
+            <div class="state-box">
+              <strong>Greedy test</strong>
+              <div class="state-value" id="sched-test">—</div>
+            </div>
+            <div class="state-box">
+              <strong>Decision</strong>
+              <div class="state-value" id="sched-decision">—</div>
+            </div>
+            <div class="state-box">
+              <strong>last_end</strong>
+              <div class="state-value" id="sched-lastend">-inf</div>
+            </div>
+            <div class="state-box">
+              <strong>count</strong>
+              <div class="state-value" id="sched-count">0</div>
+            </div>
+            <div class="state-box">
+              <strong>Position in scan</strong>
+              <div class="state-value" id="sched-position">0 / 6</div>
+            </div>
+          </div>
+          <div class="explainer">
+            <p id="sched-detail"><strong>What changed:</strong> sorting is the entire strategy here — once sorted by end time, the scan is a single pass.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="sched-trace-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Interval</th>
+              <th>Test</th>
+              <th>Decision</th>
+              <th>last_end after</th>
+              <th>count after</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>—</td><td>Sorted by end time</td><td><code>-inf</code></td><td><code>0</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>(1,3)</code></td><td><code>1 &gt;= -inf</code> → True</td><td>ACCEPT</td><td><code>3</code></td><td><code>1</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>(2,4)</code></td><td><code>2 &gt;= 3</code> → False</td><td>REJECT (overlaps)</td><td><code>3</code></td><td><code>1</code></td></tr>
+            <tr data-step="3"><td>3</td><td><code>(3,5)</code></td><td><code>3 &gt;= 3</code> → True</td><td>ACCEPT</td><td><code>5</code></td><td><code>2</code></td></tr>
+            <tr data-step="4"><td>4</td><td><code>(0,6)</code></td><td><code>0 &gt;= 5</code> → False</td><td>REJECT (overlaps)</td><td><code>5</code></td><td><code>2</code></td></tr>
+            <tr data-step="5"><td>5</td><td><code>(5,7)</code></td><td><code>5 &gt;= 5</code> → True</td><td>ACCEPT</td><td><code>7</code></td><td><code>3</code></td></tr>
+            <tr data-step="6"><td>6</td><td><code>(8,9)</code></td><td><code>8 &gt;= 7</code> → True</td><td>ACCEPT</td><td><code>9</code></td><td><code>4</code></td></tr>
+            <tr data-step="7"><td>7</td><td>—</td><td>—</td><td>Loop finished, return count</td><td><code>9</code></td><td><code>4</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p><code>last_end</code> is the only memory the algorithm needs. Every decision is just "does this start late enough to clear that one number?"</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Sorting by start time instead of end time. It looks equally reasonable but on this exact input it gives <code>2</code> instead of <code>4</code> — a 50% worse answer from one wrong sort key.</p>
+        </div>
+        <div class="card">
+          <h4>Why the >= matters</h4>
+          <p><code>(3,5)</code> is accepted right after <code>(1,3)</code> even though they touch at <code>3</code>. Touching is not overlapping — using <code>&gt;</code> instead of <code>&gt;=</code> would wrongly reject back-to-back meetings.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Interval partitioning — <code>min_resources</code></h2>
+      <p>A different question: instead of rejecting anything, every interval must be scheduled somewhere. Sort by start time, and reuse whichever resource frees up earliest if it's already free — otherwise open a new one. A min-heap gives <code>O(log n)</code> access to "which resource frees up soonest."</p>
+      <div class="code-block stepped">
+        <code id="part-code">
+<span class="code-line" data-line="1">import heapq</span>
+<span class="code-line" data-line="2"></span>
+<span class="code-line" data-line="3">def min_resources(intervals):</span>
+<span class="code-line" data-line="4">    intervals = sorted(intervals, key=lambda iv: iv[0])   # sort by START time</span>
+<span class="code-line" data-line="5">    heap = []                                               # end times of resources in use</span>
+<span class="code-line" data-line="6"></span>
+<span class="code-line" data-line="7">    for start, end in intervals:</span>
+<span class="code-line" data-line="8">        if heap and heap[0] <= start:      # earliest-freeing resource is free by now</span>
+<span class="code-line" data-line="9">            heapq.heappop(heap)</span>
+<span class="code-line" data-line="10">        heapq.heappush(heap, end)</span>
+<span class="code-line" data-line="11"></span>
+<span class="code-line" data-line="12">    return len(heap)                        # resources still "in use" at the end = the peak count</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive partitioning trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="part-graph" viewBox="0 0 520 200" width="100%" role="img" aria-label="Interval partitioning trace across two resources">
+              <text x="14" y="18" class="diagram-title">Intervals assigned to resources, sorted by start time</text>
+              <line x1="100" y1="180" x2="460" y2="180" class="diagram-tick" />
+              <line x1="100" y1="55" x2="100" y2="180" class="diagram-tick" />
+              <line x1="220" y1="55" x2="220" y2="180" class="diagram-tick" />
+              <line x1="340" y1="55" x2="340" y2="180" class="diagram-tick" />
+              <line x1="460" y1="55" x2="460" y2="180" class="diagram-tick" />
+
+              <text x="14" y="80" class="diagram-label">Res. A</text>
+              <rect data-iv="0-10" x="100" y="65" width="120" height="26" rx="6" class="part-bar" />
+              <rect data-iv="10-20" x="220" y="65" width="120" height="26" rx="6" class="part-bar" />
+
+              <text x="14" y="140" class="diagram-label">Res. B</text>
+              <rect data-iv="5-15" x="160" y="125" width="120" height="26" rx="6" class="part-bar" />
+              <rect data-iv="20-30" x="340" y="125" width="120" height="26" rx="6" class="part-bar" />
+
+              <text x="96" y="196" class="diagram-axis-label">0</text>
+              <text x="216" y="196" class="diagram-axis-label">10</text>
+              <text x="336" y="196" class="diagram-axis-label">20</text>
+              <text x="452" y="196" class="diagram-axis-label">30</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-blue"></i> already placed</span>
+            <span><i class="dot dot-green"></i> reuses a freed resource</span>
+            <span><i class="dot dot-orange"></i> opens a new resource</span>
+            <span><i class="dot dot-gray"></i> not yet reached</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="part-step-title">Initial state</h3>
+          <p id="part-step-text">Four intervals are sorted by start time. The heap of resource end times starts empty.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="part-prev">Previous</button>
+            <button type="button" id="part-play" class="primary">Resume</button>
+            <button type="button" id="part-next">Next</button>
+            <button type="button" id="part-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="part-step-counter">Step 0 / 5</span>
+            <div class="progress"><span id="part-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box">
+              <strong>Interval considered</strong>
+              <div class="state-value" id="part-interval">—</div>
+            </div>
+            <div class="state-box">
+              <strong>Earliest-freeing resource</strong>
+              <div class="state-value" id="part-heaptop">—</div>
+            </div>
+            <div class="state-box">
+              <strong>Reuse test</strong>
+              <div class="state-value" id="part-test">—</div>
+            </div>
+            <div class="state-box">
+              <strong>Decision</strong>
+              <div class="state-value" id="part-decision">—</div>
+            </div>
+            <div class="state-box">
+              <strong>Heap now</strong>
+              <div class="state-value" id="part-heap">[]</div>
+            </div>
+            <div class="state-box">
+              <strong>Resources in use</strong>
+              <div class="state-value" id="part-count">0</div>
+            </div>
+          </div>
+          <div class="explainer">
+            <p id="part-detail"><strong>What changed:</strong> sorting by start time matches how resources actually get requested — one at a time, in chronological order.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="part-trace-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Interval</th>
+              <th>Heap top</th>
+              <th>Reuse test</th>
+              <th>Decision</th>
+              <th>Heap after</th>
+              <th>Resources after</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>—</td><td>—</td><td>Sorted by start time</td><td><code>[]</code></td><td><code>0</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>(0,10)</code></td><td>none</td><td>no resource to check</td><td>OPEN NEW</td><td><code>[10]</code></td><td><code>1</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>(5,15)</code></td><td><code>10</code></td><td><code>10 &lt;= 5</code> → False</td><td>OPEN NEW</td><td><code>[10, 15]</code></td><td><code>2</code></td></tr>
+            <tr data-step="3"><td>3</td><td><code>(10,20)</code></td><td><code>10</code></td><td><code>10 &lt;= 10</code> → True</td><td>REUSE (pop 10)</td><td><code>[15, 20]</code></td><td><code>2</code></td></tr>
+            <tr data-step="4"><td>4</td><td><code>(20,30)</code></td><td><code>15</code></td><td><code>15 &lt;= 20</code> → True</td><td>REUSE (pop 15)</td><td><code>[20, 30]</code></td><td><code>2</code></td></tr>
+            <tr data-step="5"><td>5</td><td>—</td><td>—</td><td>—</td><td>Loop finished, return len(heap)</td><td><code>[20, 30]</code></td><td><code>2</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The heap answers exactly one question fast: "which resource frees up soonest?" That is the only information the greedy rule needs to decide reuse vs. open-new.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Popping the heap unconditionally instead of checking <code>heap[0] &lt;= start</code> first. That silently reuses a resource that is not actually free yet.</p>
+        </div>
+        <div class="card">
+          <h4>Why the answer equals peak overlap</h4>
+          <p>The heap only grows past its current size when no resource is free — which happens exactly when intervals genuinely overlap. So the peak heap size <em>is</em> the maximum simultaneous overlap. On this input both equal <code>2</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Greedy fails: coin change</button>
+        <button type="button" data-example-tab="1">Ties in the sort key</button>
+        <button type="button" data-example-tab="2">Empty / single-element input</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: greedy fails — coin change with denominations <code>{1, 3, 4}</code>, target <code>6</code></h3>
+          <p>The naive greedy rule — repeatedly take the largest coin that still fits — works for US coins <code>{25,10,5,1}</code>, but it is not universally safe. There is no exchange argument for it: swapping a large coin into an optimal solution can make things worse.</p>
+          <div>
+            <span class="result-badge" style="background:var(--warn-soft); color:var(--warn);">Greedy takes 4 + 1 + 1 = 3 coins</span>
+            <span class="result-badge" style="background:var(--good-soft); color:var(--good); margin-left:10px;">True optimum: 3 + 3 = 2 coins</span>
+          </div>
+          <p class="footer-note">Traced run: <code>greedy_coin_change([1,3,4], 6)</code> → takes <code>4</code> first (largest that fits), leaving <code>2</code>, then two <code>1</code>s. That's a valid answer (sums to <code>6</code>) but not the minimum-count one. Compare to US coins: <code>greedy_coin_change([25,10,5,1], 30)</code> → <code>25 + 5</code>, which happens to be optimal — the same rule, correct on one input and wrong on another, which is exactly why "it worked on my example" is not a proof.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: ties in the sort key</h3>
+          <p><code>intervals = [(1,4), (2,4), (4,6)]</code> — the first two both end at <code>4</code>.</p>
+          <div class="result-badge">Answer = 2, regardless of tie order</div>
+          <p class="footer-note">Traced run: processing <code>[(1,4),(2,4),(4,6)]</code> gives count <code>2</code>, and processing the tied pair reversed as <code>[(2,4),(1,4),(4,6)]</code> also gives count <code>2</code>. Whichever of the two tied-end intervals is scanned first gets accepted; the other is rejected because its start is always less than the shared end. Only one interval from a tied-end group can ever be kept, so tie-breaking order does not change the final count — you don't need a tie-breaking rule for this problem.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: empty or single-element input</h3>
+          <p><code>intervals = []</code> and <code>intervals = [(2,5)]</code>, run through both methods.</p>
+          <div class="result-badge">max_non_overlapping: 0, then 1 — min_resources: 0, then 1</div>
+          <p class="footer-note">Traced run: <code>max_non_overlapping([]) = 0</code>, <code>max_non_overlapping([(2,5)]) = 1</code>, <code>min_resources([]) = 0</code>, <code>min_resources([(2,5)]) = 1</code>. Both functions handle these without a special case in the code — <code>float("-inf")</code> as the starting <code>last_end</code> and an empty heap already do the right thing on an empty or singleton list. If your implementation needs an <code>if not intervals: return 0</code> guard, that's a sign your initial values are wrong, not that the guard is necessary.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Time</th>
+              <th>Space</th>
+              <th>When it's correct</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Greedy — interval scheduling (sort by end)</td><td><code>O(n log n)</code></td><td><code>O(1)</code> extra</td><td>Provably optimal — the exchange argument holds: swapping in the earliest-finishing interval never leaves less room.</td></tr>
+            <tr><td>Greedy — interval partitioning (sort by start + heap)</td><td><code>O(n log n)</code></td><td><code>O(n)</code> for the heap</td><td>Provably optimal — the answer is bounded below by peak overlap, and the heap reuse rule always hits that bound.</td></tr>
+            <tr><td>Greedy — coin change (largest coin first)</td><td><code>O(n log n)</code></td><td><code>O(1)</code> extra</td><td><strong>Not always correct.</strong> No exchange argument exists for arbitrary denominations — see the counterexample above.</td></tr>
+            <tr><td>DP — coin change (bottom-up over amounts)</td><td><code>O(target × coins)</code></td><td><code>O(target)</code></td><td>Always correct, for any denominations — the "always right, slower" fallback greedy can't safely replace.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">The lesson underneath the table: when a greedy exchange argument holds, it matches or beats DP on speed with far less code. When it doesn't hold, DP is the safety net — slower, but correct on every input, not just the ones you happened to test.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>What am I actually optimizing? Maximum count of non-overlapping intervals.</p></div>
+            <div class="timeline-step"><p>My first instinct is to sort — the question is by which key. Start time feels natural; let me not commit yet.</p></div>
+            <div class="timeline-step"><p>Let me test my greedy rule against a small adversarial case before I commit — a long interval that starts early but blocks everything.</p></div>
+            <div class="timeline-step"><p>Sorting by start lets that long interval get picked first and it wrecks the count. Sorting by end time avoids that: whichever interval frees up soonest leaves the most room for the rest.</p></div>
+            <div class="timeline-step"><p>Can I state the exchange argument in one sentence? "Any optimal solution's first choice can be swapped for the earliest-finishing interval without losing room." Yes — so greedy is safe here.</p></div>
+            <div class="timeline-step"><p>Land on: sort by end time, single pass, <code>O(n log n)</code>.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"This smells like a greedy problem — I need to pick the right sort key, not just any sort key."</li>
+            <li>"Let me test my greedy rule against a small adversarial case before I commit — for example, one long interval that starts first."</li>
+            <li>"I can justify sorting by end time with an exchange argument: it never leaves less room than any other optimal first choice."</li>
+            <li>"If I can't construct that sentence confidently — like with coin change on arbitrary denominations — I say so out loud and fall back to DP instead of hoping greedy works."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Interval scheduling mistakes</h3>
+          <ul class="mistake-list">
+            <li>Sorting by start time instead of end time — looks equally natural, is provably worse.</li>
+            <li>Using <code>&gt;</code> instead of <code>&gt;=</code> in the overlap test, which wrongly rejects meetings that only touch.</li>
+            <li>Initializing <code>last_end</code> to <code>0</code> instead of <code>float("-inf")</code>, which breaks on negative-start intervals.</li>
+            <li>Confusing "maximum count of intervals" with "minimum number of intervals to remove" — same problem, easy to answer the wrong question.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>General greedy mistakes</h3>
+          <ul class="mistake-list">
+            <li>Sorting by end time for interval <strong>partitioning</strong> — that's the other problem's key; partitioning needs start time.</li>
+            <li>Popping the heap before checking <code>heap[0] &lt;= start</code>, which reuses a resource that isn't actually free yet.</li>
+            <li>Assuming a locally-sensible rule (like "take the biggest coin") is automatically correct without writing the exchange argument first.</li>
+            <li>Applying the sort-and-scan template to a problem where no exchange argument exists, then debugging the code instead of questioning the approach.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — <code>max_non_overlapping([(0,2), (2,4), (1,3)])</code></summary>
+          <p style="margin-top:10px;">Answer: <strong>2</strong>. Sorted by end time: <code>(0,2)</code>, <code>(1,3)</code>, <code>(2,4)</code>. Accept <code>(0,2)</code> (<code>last_end=2</code>), reject <code>(1,3)</code> since <code>1 &lt; 2</code>, accept <code>(2,4)</code> since <code>2 &gt;= 2</code>. Two meetings fit.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — what happens if you sort by <em>duration</em> (<code>end - start</code>) instead of end time, on the canonical <code>meetings</code> list?</summary>
+          <p style="margin-top:10px;">Answer: it collapses to <strong>1</strong> accepted meeting, down from <code>4</code>. Sorting by duration picks the shortest interval, <code>(8,9)</code>, first — but that tells you nothing about how much room it leaves for the rest of the timeline, since it happens to sit at the very end and blocks nothing before it in duration-order but everything after it is now compared against <code>last_end = 9</code>, rejecting all five remaining meetings. Shortest-first sounds greedy-friendly but has no exchange argument behind it — this traced run is the proof.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — <code>min_resources([(1,4), (2,5), (3,6)])</code></summary>
+          <p style="margin-top:10px;">Answer: <strong>3</strong>. All three intervals pairwise overlap (each starts before the previous one ends), so no resource ever frees up in time to be reused — three separate resources are opened, and the peak overlap really is <code>3</code>.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          Greedy is not "the obvious idea that happens to work" — it's a claim that needs a proof. When you can state the exchange argument in one sentence, as with sorting intervals by end time or by start time plus a heap, greedy is fast and correct. When you can't — as with coin change on arbitrary denominations — greedy will still run, still return an answer, and still be wrong. The sort key is the algorithm; the exchange argument is what tells you whether to trust it.
+        </p>
+      </div>
+      <p class="footer-note">This lesson traces both methods against real instrumented runs of the exact functions in <code>20_Greedy_Algorithms/README.md</code> and <code>20_greedy_algorithms.ipynb</code> — every number shown was printed by running the code, not invented for the page.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const schedSteps = [
+        { step: 0, title: 'Initial state — sorted by end time', text: 'Before scanning, the six meetings are sorted by end time: (1,3), (2,4), (3,5), (0,6), (5,7), (8,9). last_end starts at -infinity so the very first meeting always passes.', interval: '—', test: '—', decision: '—', lastend: '-inf', count: '0', position: '0 / 6', detail: 'Sorting is the entire strategy here — once sorted by end time, the scan itself is a single pass.', acceptedBlue: [], justAccepted: null, current: null, lines: [1,2,3] },
+        { step: 1, title: 'Step 1 — meeting (1,3)', text: 'Test: start(1) >= last_end(-inf) -> True. Nothing is booked yet, so this meeting is free to take.', interval: '(1, 3)', test: '1 >= -inf -> True', decision: 'ACCEPT', lastend: '3', count: '1', position: '1 / 6', detail: 'count becomes 1 and last_end updates to 3 — this is now the value everything else gets compared against.', acceptedBlue: [], justAccepted: '1-3', current: '1-3', lines: [5,6,7,8] },
+        { step: 2, title: 'Step 2 — meeting (2,4)', text: 'Test: start(2) >= last_end(3) -> False. This meeting starts before the last accepted one ends, so it overlaps and is skipped.', interval: '(2, 4)', test: '2 >= 3 -> False', decision: 'REJECT (overlaps)', lastend: '3', count: '1', position: '2 / 6', detail: 'last_end does not move — the greedy pointer only advances on an accepted meeting.', acceptedBlue: ['1-3'], justAccepted: null, current: '2-4', lines: [5,6] },
+        { step: 3, title: 'Step 3 — meeting (3,5)', text: 'Test: start(3) >= last_end(3) -> True. Touching at the boundary counts as non-overlapping, so this meeting is accepted.', interval: '(3, 5)', test: '3 >= 3 -> True', decision: 'ACCEPT', lastend: '5', count: '2', position: '3 / 6', detail: 'count becomes 2 and last_end advances to 5.', acceptedBlue: ['1-3'], justAccepted: '3-5', current: '3-5', lines: [5,6,7,8] },
+        { step: 4, title: 'Step 4 — meeting (0,6)', text: 'Test: start(0) >= last_end(5) -> False. Even though this meeting started earliest of all six, it runs past 5, so it overlaps and is rejected.', interval: '(0, 6)', test: '0 >= 5 -> False', decision: 'REJECT (overlaps)', lastend: '5', count: '2', position: '4 / 6', detail: 'Notice this meeting started at 0 — earlier than everything else — yet greedy still rejects it, because start time was never the criterion.', acceptedBlue: ['1-3','3-5'], justAccepted: null, current: '0-6', lines: [5,6] },
+        { step: 5, title: 'Step 5 — meeting (5,7)', text: 'Test: start(5) >= last_end(5) -> True. Accepted.', interval: '(5, 7)', test: '5 >= 5 -> True', decision: 'ACCEPT', lastend: '7', count: '3', position: '5 / 6', detail: 'count becomes 3 and last_end advances to 7.', acceptedBlue: ['1-3','3-5'], justAccepted: '5-7', current: '5-7', lines: [5,6,7,8] },
+        { step: 6, title: 'Step 6 — meeting (8,9)', text: 'Test: start(8) >= last_end(7) -> True. Accepted.', interval: '(8, 9)', test: '8 >= 7 -> True', decision: 'ACCEPT', lastend: '9', count: '4', position: '6 / 6', detail: 'count becomes 4 — every remaining meeting has now been scanned.', acceptedBlue: ['1-3','3-5','5-7'], justAccepted: '8-9', current: '8-9', lines: [5,6,7,8] },
+        { step: 7, title: 'Loop finished — return count', text: 'All six meetings have been scanned once. The greedy scan returns count = 4.', interval: '—', test: '—', decision: 'Done', lastend: '9', count: '4', position: '6 / 6', detail: 'Four meetings — (1,3), (3,5), (5,7), (8,9) — fit without overlapping. That is the maximum possible for this input.', acceptedBlue: ['1-3','3-5','5-7','8-9'], justAccepted: null, current: null, lines: [10] }
+      ];
+
+      const partSteps = [
+        { step: 0, title: 'Initial state — sorted by start time', text: 'The four intervals are sorted by start time: (0,10), (5,15), (10,20), (20,30). The heap tracks when each resource currently in use frees up; it starts empty.', interval: '—', heaptop: '—', test: '—', decision: '—', heap: '[]', count: '0', placed: [], reuse: null, opennew: null, lines: [3,4,5] },
+        { step: 1, title: 'Step 1 — interval (0,10)', text: 'The heap is empty, so no resource is free yet. Open a brand-new resource.', interval: '(0, 10)', heaptop: '— (heap empty)', test: 'no resource to check', decision: 'OPEN NEW', heap: '[10]', count: '1', placed: [], reuse: null, opennew: '0-10', lines: [7,8,10] },
+        { step: 2, title: 'Step 2 — interval (5,15)', text: 'The earliest-freeing resource is busy until 10, and this interval starts at 5 — too early to reuse it. Open a second resource.', interval: '(5, 15)', heaptop: '10', test: '10 <= 5 -> False', decision: 'OPEN NEW', heap: '[10, 15]', count: '2', placed: ['0-10'], reuse: null, opennew: '5-15', lines: [7,8,10] },
+        { step: 3, title: 'Step 3 — interval (10,20)', text: 'The earliest-freeing resource frees up exactly at 10, and this interval starts at 10 — it is free by now. Reuse it instead of opening a third.', interval: '(10, 20)', heaptop: '10', test: '10 <= 10 -> True', decision: 'REUSE (pop 10)', heap: '[15, 20]', count: '2', placed: ['0-10','5-15'], reuse: '10-20', opennew: null, lines: [7,8,9,10] },
+        { step: 4, title: 'Step 4 — interval (20,30)', text: 'The earliest-freeing resource frees up at 15, well before this interval starts at 20. Reuse it.', interval: '(20, 30)', heaptop: '15', test: '15 <= 20 -> True', decision: 'REUSE (pop 15)', heap: '[20, 30]', count: '2', placed: ['0-10','5-15','10-20'], reuse: '20-30', opennew: null, lines: [7,8,9,10] },
+        { step: 5, title: 'Loop finished — return len(heap)', text: 'All four intervals are placed. The heap final size is the peak number of resources ever in use at once: 2.', interval: '—', heaptop: '—', test: '—', decision: 'Done', heap: '[20, 30]', count: '2', placed: ['0-10','5-15','10-20','20-30'], reuse: null, opennew: null, lines: [12] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderSched(step, index, max) {
+        document.getElementById('sched-step-title').textContent = step.title;
+        document.getElementById('sched-step-text').textContent = step.text;
+        document.getElementById('sched-interval').textContent = step.interval;
+        document.getElementById('sched-test').textContent = step.test;
+        document.getElementById('sched-decision').textContent = step.decision;
+        document.getElementById('sched-lastend').textContent = step.lastend;
+        document.getElementById('sched-count').textContent = step.count;
+        document.getElementById('sched-position').textContent = step.position;
+        document.getElementById('sched-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('sched-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('sched-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('sched-trace-table', step.step);
+        setCodeHighlight('sched-code', step.lines);
+
+        document.querySelectorAll('#sched-graph [data-iv]').forEach((bar) => {
+          const key = bar.dataset.iv;
+          bar.classList.remove('accepted', 'justAccepted', 'current', 'rejected');
+          if (step.acceptedBlue.includes(key)) bar.classList.add('accepted');
+          if (step.justAccepted === key) bar.classList.add('justAccepted');
+          if (step.current === key) bar.classList.add('current');
+        });
+      }
+
+      function renderPart(step, index, max) {
+        document.getElementById('part-step-title').textContent = step.title;
+        document.getElementById('part-step-text').textContent = step.text;
+        document.getElementById('part-interval').textContent = step.interval;
+        document.getElementById('part-heaptop').textContent = step.heaptop;
+        document.getElementById('part-test').textContent = step.test;
+        document.getElementById('part-decision').textContent = step.decision;
+        document.getElementById('part-heap').textContent = step.heap;
+        document.getElementById('part-count').textContent = step.count;
+        document.getElementById('part-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('part-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('part-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('part-trace-table', step.step);
+        setCodeHighlight('part-code', step.lines);
+
+        document.querySelectorAll('#part-graph [data-iv]').forEach((bar) => {
+          const key = bar.dataset.iv;
+          bar.classList.remove('placed', 'reuse', 'opennew');
+          if (step.placed.includes(key)) bar.classList.add('placed');
+          if (step.reuse === key) bar.classList.add('reuse');
+          if (step.opennew === key) bar.classList.add('opennew');
+        });
+      }
+
+      setupTrace({ steps: schedSteps, prefix: 'sched', render: renderSched });
+      setupTrace({ steps: partSteps, prefix: 'part', render: renderPart });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

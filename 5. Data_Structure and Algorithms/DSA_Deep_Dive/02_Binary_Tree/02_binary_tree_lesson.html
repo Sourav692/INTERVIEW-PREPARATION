@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Binary Trees — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Trees · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Binary Trees</h1>
+          <p>
+            A binary tree is a tree where every node has <strong>at most two children</strong>, always labeled
+            <strong>left</strong> and <strong>right</strong>. That one restriction unlocks two completely different
+            ways to store the same shape: a flexible <strong>linked</strong> structure of <code>TreeNode</code>
+            objects, and — when the tree is <em>complete</em> — a pointer-free <strong>array-packed</strong> layout
+            where child positions are pure index arithmetic. This page traces both, step by step, against the real
+            functions from the notebook.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: at most 2 ordered children</span>
+            <span class="chip">Interactive height() trace</span>
+            <span class="chip">Interactive array-packing trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>root = TreeNode(1, TreeNode(2, TreeNode(4), TreeNode(5)), TreeNode(3, None, TreeNode(6)))</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 520 240" width="100%" role="img" aria-label="Binary tree with root 1, children 2 and 3, grandchildren 4, 5 under 2 and 6 under 3">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                </style>
+              </defs>
+              <line x1="260" y1="40" x2="150" y2="120" class="hero-edge" />
+              <line x1="260" y1="40" x2="370" y2="120" class="hero-edge" />
+              <line x1="150" y1="120" x2="80" y2="200" class="hero-edge" />
+              <line x1="150" y1="120" x2="220" y2="200" class="hero-edge" />
+              <line x1="370" y1="120" x2="460" y2="200" class="hero-edge" />
+              <circle cx="260" cy="40" r="26" class="hero-node" />
+              <circle cx="150" cy="120" r="26" class="hero-node" />
+              <circle cx="370" cy="120" r="26" class="hero-node" />
+              <circle cx="80" cy="200" r="26" class="hero-node" />
+              <circle cx="220" cy="200" r="26" class="hero-node" />
+              <circle cx="460" cy="200" r="26" class="hero-node" />
+              <text x="253" y="46" class="hero-label">1</text>
+              <text x="143" y="126" class="hero-label">2</text>
+              <text x="363" y="126" class="hero-label">3</text>
+              <text x="73" y="206" class="hero-label">4</text>
+              <text x="213" y="206" class="hero-label">5</text>
+              <text x="453" y="206" class="hero-label">6</text>
+            </svg>
+          </div>
+          <div class="result-badge">size = 6 · height = 2 · diameter = 4</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Expression &amp; parse trees</h3>
+          <p>Compilers and calculators build binary trees where every internal node is an operator with exactly two operands — a <strong>full</strong> tree by construction.</p>
+        </div>
+        <div class="card">
+          <h3>Heaps &amp; priority queues</h3>
+          <p>A binary heap <em>is</em> the array-packed representation: <code>left=2i+1</code>, <code>right=2i+2</code>, no pointers, cache-friendly.</p>
+        </div>
+        <div class="card">
+          <h3>Interview reuse</h3>
+          <p>Once you own <code>height()</code>'s "solve left, solve right, combine" shape, Diameter, Balanced Tree, and Max Path Sum become small edits, not new algorithms.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> the single most reusable idea in this notebook is <em>"return one value up, track a different answer in a side variable."</em> <code>height()</code> only returns a height — but <code>diameter()</code> reuses that exact recursion while quietly recording <code>left_h + right_h</code> at every node in a <code>nonlocal</code> variable, because the longest path doesn't have to pass through the root.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a binary tree?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>A tree where every node has <strong>at most two children</strong>, and those children are <strong>distinct and ordered</strong>: a left child is never interchangeable with a right child.</p>
+        </div>
+        <div class="card">
+          <h3>What you are computing</h3>
+          <p>Method 1 computes <strong>height</strong> — the longest path down from a node, in edges — by combining the heights of both children. Method 2 <strong>reconstructs pointer links</strong> from array positions using nothing but arithmetic.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> an empty subtree (<code>None</code>) reports height <code>-1</code>, so a leaf naturally computes to <code>1 + max(-1, -1) = 0</code>. If you instead let empty report <code>0</code>, every leaf would wrongly come out to <code>1</code>.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Identify the base case</h3>
+          <p>An empty subtree (<code>node is None</code>) is the recursion's floor — decide what it should report before writing anything else.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Solve the left subtree</h3>
+          <p>Recurse into <code>node.left</code> and trust the recursion to give you a correct answer for that half.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>Solve the right subtree</h3>
+          <p>Recurse into <code>node.right</code> the same way — same function, same trust.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Combine, and return</h3>
+          <p><code>1 + max(left, right)</code> combines both halves into this node's answer. Some problems also stash a second answer in a side variable here.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes a linked tree</h2>
+      <p>Before any recursion can run, nested <code>TreeNode(...)</code> constructor calls have to wire up <code>.left</code> and <code>.right</code> pointers. This is the structure every Method 1 step below walks.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Constructor calls</h3>
+          <div class="code-block"><code>TreeNode(1,
+  TreeNode(2, TreeNode(4), TreeNode(5)),
+  TreeNode(3, None, TreeNode(6)))</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Linked pointers</h3>
+          <div class="code-block"><code>1.left = 2      1.right = 3
+2.left = 4      2.right = 5
+3.left = None   3.right = 6</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Build the leaves first</h4>
+          <p><code>TreeNode(4)</code>, <code>TreeNode(5)</code>, and <code>TreeNode(6)</code> are evaluated first because Python evaluates constructor arguments before the outer call — each starts with <code>left=None, right=None</code>.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Attach them to node 2 and node 3</h4>
+          <p><code>TreeNode(2, TreeNode(4), TreeNode(5))</code> wires <code>4</code> and <code>5</code> as <code>2</code>'s children. <code>TreeNode(3, None, TreeNode(6))</code> wires <code>3</code>'s left explicitly to <code>None</code> and right to <code>6</code>.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Attach 2 and 3 to the root</h4>
+          <p><code>TreeNode(1, ..., ...)</code> finally wires <code>1.left = 2</code> and <code>1.right = 3</code>, completing the tree.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> <code>None</code> is a real, explicit value here — <code>3</code>'s left child is <code>None</code> on purpose, not "unset." Every recursive helper (<code>size</code>, <code>height</code>, <code>invert</code>) must treat <code>None</code> as its base case, not skip it.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: linked-tree recursion — <code>height()</code></h2>
+      <p>Height is the longest path down from a node, counted in edges. The recursion is the classic binary-tree shape: <strong>solve left, solve right, combine.</strong> An empty subtree reports <code>-1</code> so that a leaf — whose left and right are both empty — computes <code>1 + max(-1, -1) = 0</code>, exactly right for "zero edges below a leaf."</p>
+      <div class="code-block stepped">
+        <code id="ht-code">
+<span class="code-line" data-line="1">def height(node):</span>
+<span class="code-line" data-line="2">    if not node:</span>
+<span class="code-line" data-line="3">        return -1</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    left_h = height(node.left)</span>
+<span class="code-line" data-line="6">    right_h = height(node.right)</span>
+<span class="code-line" data-line="7">    return 1 + max(left_h, right_h)</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive height() trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="ht-graph" viewBox="0 0 520 240" width="100%" role="img" aria-label="height() recursion trace over the tree">
+              <defs>
+                <style>
+                  .htg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .htg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .htg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .htg-node.computed { fill: #315efb; }
+                  .htg-node.stacked { fill: #13a46b; }
+                  .htg-node.current { fill: #ff9f1c; }
+                  .htg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .htg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="htg-title">Current call frame</text>
+              <line x1="260" y1="40" x2="150" y2="120" class="htg-base-edge" />
+              <line x1="260" y1="40" x2="370" y2="120" class="htg-base-edge" />
+              <line x1="150" y1="120" x2="80" y2="200" class="htg-base-edge" />
+              <line x1="150" y1="120" x2="220" y2="200" class="htg-base-edge" />
+              <line x1="370" y1="120" x2="460" y2="200" class="htg-base-edge" />
+              <line x1="260" y1="40" x2="150" y2="120" class="htg-active-edge" data-ht-edge="1-2" visibility="hidden" />
+              <line x1="260" y1="40" x2="370" y2="120" class="htg-active-edge" data-ht-edge="1-3" visibility="hidden" />
+              <line x1="150" y1="120" x2="80" y2="200" class="htg-active-edge" data-ht-edge="2-4" visibility="hidden" />
+              <line x1="150" y1="120" x2="220" y2="200" class="htg-active-edge" data-ht-edge="2-5" visibility="hidden" />
+              <line x1="370" y1="120" x2="460" y2="200" class="htg-active-edge" data-ht-edge="3-6" visibility="hidden" />
+              <circle cx="260" cy="40" r="26" class="htg-node" data-node="1" />
+              <circle cx="150" cy="120" r="26" class="htg-node" data-node="2" />
+              <circle cx="370" cy="120" r="26" class="htg-node" data-node="3" />
+              <circle cx="80" cy="200" r="26" class="htg-node" data-node="4" />
+              <circle cx="220" cy="200" r="26" class="htg-node" data-node="5" />
+              <circle cx="460" cy="200" r="26" class="htg-node" data-node="6" />
+              <text x="253" y="46" class="htg-label">1</text>
+              <text x="143" y="126" class="htg-label">2</text>
+              <text x="363" y="126" class="htg-label">3</text>
+              <text x="73" y="206" class="htg-label">4</text>
+              <text x="213" y="206" class="htg-label">5</text>
+              <text x="453" y="206" class="htg-label">6</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current call (entering or exiting)</span>
+            <span><i class="dot dot-green"></i> open frames on the call stack</span>
+            <span><i class="dot dot-blue"></i> height already computed</span>
+            <span><i class="dot dot-gray"></i> not visited yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="ht-step-title">Initial state</h3>
+          <p id="ht-step-text">height(root) is about to be called. Nothing is on the call stack yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="ht-prev">Previous</button>
+            <button type="button" id="ht-play" class="primary">Resume</button>
+            <button type="button" id="ht-next">Next</button>
+            <button type="button" id="ht-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="ht-step-counter">Step 0 / 12</span>
+            <div class="progress"><span id="ht-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Call stack (open frames)</strong><div class="state-value" id="ht-stack">[]</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="ht-node">—</div></div>
+            <div class="state-box"><strong>left_h</strong><div class="state-value" id="ht-left">—</div></div>
+            <div class="state-box"><strong>right_h</strong><div class="state-value" id="ht-right">—</div></div>
+            <div class="state-box"><strong>Computed heights so far</strong><div class="state-value" id="ht-computed">{}</div></div>
+            <div class="state-box"><strong>Result: height(root)</strong><div class="state-value" id="ht-result">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="ht-detail"><strong>What changed:</strong> we are about to call <code>height(1)</code>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="ht-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Node</th><th>Action</th><th>left_h</th><th>right_h</th><th>Stack after</th><th>Computed after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>Not started</td><td>—</td><td>—</td><td><code>[]</code></td><td><code>{}</code></td></tr>
+            <tr data-step="1"><td>1</td><td>1</td><td>ENTER height(1)</td><td>—</td><td>—</td><td><code>[1]</code></td><td><code>{}</code></td></tr>
+            <tr data-step="2"><td>2</td><td>2</td><td>ENTER height(2)</td><td>—</td><td>—</td><td><code>[1,2]</code></td><td><code>{}</code></td></tr>
+            <tr data-step="3"><td>3</td><td>4</td><td>ENTER height(4)</td><td>—</td><td>—</td><td><code>[1,2,4]</code></td><td><code>{}</code></td></tr>
+            <tr data-step="4"><td>4</td><td>4</td><td>EXIT height(4): both children None</td><td>-1</td><td>-1</td><td><code>[1,2]</code></td><td><code>{4:0}</code></td></tr>
+            <tr data-step="5"><td>5</td><td>5</td><td>ENTER height(5)</td><td>—</td><td>—</td><td><code>[1,2,5]</code></td><td><code>{4:0}</code></td></tr>
+            <tr data-step="6"><td>6</td><td>5</td><td>EXIT height(5): both children None</td><td>-1</td><td>-1</td><td><code>[1,2]</code></td><td><code>{4:0,5:0}</code></td></tr>
+            <tr data-step="7"><td>7</td><td>2</td><td>EXIT height(2): combine children</td><td>0</td><td>0</td><td><code>[1]</code></td><td><code>{4:0,5:0,2:1}</code></td></tr>
+            <tr data-step="8"><td>8</td><td>3</td><td>ENTER height(3)</td><td>—</td><td>—</td><td><code>[1,3]</code></td><td><code>{4:0,5:0,2:1}</code></td></tr>
+            <tr data-step="9"><td>9</td><td>6</td><td>ENTER height(6)</td><td>—</td><td>—</td><td><code>[1,3,6]</code></td><td><code>{4:0,5:0,2:1}</code></td></tr>
+            <tr data-step="10"><td>10</td><td>6</td><td>EXIT height(6): both children None</td><td>-1</td><td>-1</td><td><code>[1,3]</code></td><td><code>{4:0,5:0,2:1,6:0}</code></td></tr>
+            <tr data-step="11"><td>11</td><td>3</td><td>EXIT height(3): left is None</td><td>-1</td><td>0</td><td><code>[1]</code></td><td><code>{4:0,5:0,2:1,6:0,3:1}</code></td></tr>
+            <tr data-step="12"><td>12</td><td>1</td><td>EXIT height(1): final combine</td><td>1</td><td>1</td><td><code>[]</code></td><td><code>{4:0,5:0,2:1,6:0,3:1,1:2}</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>This is a post-order walk in disguise: a node's EXIT step — where it combines and returns — only happens after both children's EXIT steps have already happened.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common height() mistake</h4>
+          <p>Returning <code>0</code> instead of <code>-1</code> for an empty subtree. That single off-by-one makes every leaf report height <code>1</code> instead of <code>0</code>, and cascades upward.</p>
+        </div>
+        <div class="card">
+          <h4>Why the call stack matters</h4>
+          <p>Stack depth equals the recursion depth, which equals the tree's height. On a skewed tree (see edge cases below) that depth is <code>n</code>, not <code>log n</code> — the recursion itself becomes the bottleneck.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: array-packed complete tree — <code>from_array()</code></h2>
+      <p>For a <strong>complete</strong> tree stored level-order in an array, child positions are pure arithmetic — no pointers required to know the shape. <code>from_array</code> still builds real <code>TreeNode</code> pointer links (so the rest of the codebase can use it normally), but it derives every link from <code>left = 2i+1</code>, <code>right = 2i+2</code> instead of following any existing pointer.</p>
+      <div class="code-block stepped">
+        <code id="arr-code">
+<span class="code-line" data-line="1">def from_array(arr):</span>
+<span class="code-line" data-line="2">    if not arr:</span>
+<span class="code-line" data-line="3">        return None</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    nodes = [TreeNode(v) if v is not None else None for v in arr]</span>
+<span class="code-line" data-line="6">    for i, node in enumerate(nodes):</span>
+<span class="code-line" data-line="7">        if node is None:</span>
+<span class="code-line" data-line="8">            continue</span>
+<span class="code-line" data-line="9">        li, ri = 2*i + 1, 2*i + 2</span>
+<span class="code-line" data-line="10">        if li < len(arr):</span>
+<span class="code-line" data-line="11">            node.left = nodes[li]</span>
+<span class="code-line" data-line="12">        if ri < len(arr):</span>
+<span class="code-line" data-line="13">            node.right = nodes[ri]</span>
+<span class="code-line" data-line="14"></span>
+<span class="code-line" data-line="15">    return nodes[0]</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive array-packing trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="arr-graph" viewBox="0 0 520 240" width="100%" role="img" aria-label="from_array index-arithmetic trace over a perfect 7-node tree">
+              <defs>
+                <style>
+                  .arrg-edge-created { stroke: #315efb; stroke-width: 4; stroke-linecap: round; }
+                  .arrg-edge-new { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .arrg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .arrg-node.processed { fill: #315efb; }
+                  .arrg-node.linked { fill: #13a46b; }
+                  .arrg-node.current { fill: #ff9f1c; }
+                  .arrg-label { font: 700 16px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .arrg-idx { font: 700 12px Inter, Arial, sans-serif; fill: #5d677d; }
+                  .arrg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="arrg-title">packed = [1,2,3,4,5,6,7]</text>
+              <line x1="260" y1="50" x2="150" y2="130" class="arrg-edge-created" data-arr-edge="0-1" visibility="hidden" />
+              <line x1="260" y1="50" x2="370" y2="130" class="arrg-edge-created" data-arr-edge="0-2" visibility="hidden" />
+              <line x1="150" y1="130" x2="90" y2="210" class="arrg-edge-created" data-arr-edge="1-3" visibility="hidden" />
+              <line x1="150" y1="130" x2="210" y2="210" class="arrg-edge-created" data-arr-edge="1-4" visibility="hidden" />
+              <line x1="370" y1="130" x2="330" y2="210" class="arrg-edge-created" data-arr-edge="2-5" visibility="hidden" />
+              <line x1="370" y1="130" x2="450" y2="210" class="arrg-edge-created" data-arr-edge="2-6" visibility="hidden" />
+              <circle cx="260" cy="50" r="24" class="arrg-node" data-idx="0" />
+              <circle cx="150" cy="130" r="24" class="arrg-node" data-idx="1" />
+              <circle cx="370" cy="130" r="24" class="arrg-node" data-idx="2" />
+              <circle cx="90" cy="210" r="24" class="arrg-node" data-idx="3" />
+              <circle cx="210" cy="210" r="24" class="arrg-node" data-idx="4" />
+              <circle cx="330" cy="210" r="24" class="arrg-node" data-idx="5" />
+              <circle cx="450" cy="210" r="24" class="arrg-node" data-idx="6" />
+              <text x="254" y="56" class="arrg-label">1</text>
+              <text x="144" y="136" class="arrg-label">2</text>
+              <text x="364" y="136" class="arrg-label">3</text>
+              <text x="84" y="216" class="arrg-label">4</text>
+              <text x="204" y="216" class="arrg-label">5</text>
+              <text x="324" y="216" class="arrg-label">6</text>
+              <text x="444" y="216" class="arrg-label">7</text>
+              <text x="248" y="30" class="arrg-idx">i=0</text>
+              <text x="122" y="110" class="arrg-idx">i=1</text>
+              <text x="382" y="110" class="arrg-idx">i=2</text>
+              <text x="66" y="238" class="arrg-idx">i=3</text>
+              <text x="196" y="238" class="arrg-idx">i=4</text>
+              <text x="316" y="238" class="arrg-idx">i=5</text>
+              <text x="436" y="238" class="arrg-idx">i=6</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current loop index i</span>
+            <span><i class="dot dot-green"></i> just linked as a child this step</span>
+            <span><i class="dot dot-blue"></i> loop already passed this index</span>
+            <span><i class="dot dot-gray"></i> not reached yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="arr-step-title">Initial state</h3>
+          <p id="arr-step-text"><code>nodes</code> is built: one TreeNode per array slot. The for-loop has not started.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="arr-prev">Previous</button>
+            <button type="button" id="arr-play" class="primary">Resume</button>
+            <button type="button" id="arr-next">Next</button>
+            <button type="button" id="arr-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="arr-step-counter">Step 0 / 7</span>
+            <div class="progress"><span id="arr-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Loop index i</strong><div class="state-value" id="arr-i">—</div></div>
+            <div class="state-box"><strong>node.val</strong><div class="state-value" id="arr-val">—</div></div>
+            <div class="state-box"><strong>li , ri</strong><div class="state-value" id="arr-liri">—</div></div>
+            <div class="state-box"><strong>Bounds check</strong><div class="state-value" id="arr-bounds">—</div></div>
+            <div class="state-box"><strong>node.left assigned</strong><div class="state-value" id="arr-leftassign">—</div></div>
+            <div class="state-box"><strong>node.right assigned</strong><div class="state-value" id="arr-rightassign">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="arr-detail"><strong>What changed:</strong> <code>nodes = [TreeNode(1), TreeNode(2), ..., TreeNode(7)]</code> — 7 nodes exist, but no links between them yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="arr-trace-table">
+          <thead>
+            <tr><th>Step</th><th>i</th><th>li</th><th>ri</th><th>Left assigned</th><th>Right assigned</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>Build <code>nodes</code> array, one TreeNode per slot</td></tr>
+            <tr data-step="1"><td>1</td><td>0</td><td>1</td><td>2</td><td><code>nodes[1] = 2</code></td><td><code>nodes[2] = 3</code></td><td>1 &lt; 7 and 2 &lt; 7 — both in range</td></tr>
+            <tr data-step="2"><td>2</td><td>1</td><td>3</td><td>4</td><td><code>nodes[3] = 4</code></td><td><code>nodes[4] = 5</code></td><td>3 &lt; 7 and 4 &lt; 7 — both in range</td></tr>
+            <tr data-step="3"><td>3</td><td>2</td><td>5</td><td>6</td><td><code>nodes[5] = 6</code></td><td><code>nodes[6] = 7</code></td><td>5 &lt; 7 and 6 &lt; 7 — both in range</td></tr>
+            <tr data-step="4"><td>4</td><td>3</td><td>7</td><td>8</td><td>none</td><td>none</td><td>7 &ge; 7 and 8 &ge; 7 — both out of range</td></tr>
+            <tr data-step="5"><td>5</td><td>4</td><td>9</td><td>10</td><td>none</td><td>none</td><td>9 &ge; 7 and 10 &ge; 7 — both out of range</td></tr>
+            <tr data-step="6"><td>6</td><td>5</td><td>11</td><td>12</td><td>none</td><td>none</td><td>11 &ge; 7 and 12 &ge; 7 — both out of range</td></tr>
+            <tr data-step="7"><td>7</td><td>6</td><td>13</td><td>14</td><td>none</td><td>none</td><td>loop ends → <code>return nodes[0]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Once you know an index <code>i</code>, its children's indices are <code>2i+1</code> and <code>2i+2</code> — that arithmetic is the entire "traversal." No queue, no stack, no recursion needed to know the shape.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common array-packing mistake</h4>
+          <p>Omitting explicit <code>None</code> placeholders for missing children. Without them, later indices silently shift and the arithmetic attaches the wrong node as a child — see edge case C below.</p>
+        </div>
+        <div class="card">
+          <h4>Why the bounds check matters</h4>
+          <p><code>li &lt; len(arr)</code> is what naturally stops assigning children once you're at the last level — the same way BFS's queue emptying naturally ends a traversal, here a simple index comparison ends the construction.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Single node</button>
+        <button type="button" data-example-tab="1">Skewed chain</button>
+        <button type="button" data-example-tab="2">Missing-child gap</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: single node</h3>
+          <p><code>root = TreeNode(1)</code></p>
+          <div class="result-badge">size = 1 · height = 0</div>
+          <p class="footer-note">Both children are <code>None</code>, so <code>height</code> hits its base case twice and returns <code>1 + max(-1, -1) = 0</code> — a lone node has zero edges below it.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: skewed chain (all left children)</h3>
+          <p><code>root = TreeNode(1, TreeNode(2, TreeNode(3, TreeNode(4))))</code></p>
+          <div class="result-badge">size = 4 · height = 3 (= n − 1)</div>
+          <p class="footer-note">A skewed tree is a linked list in disguise, so height hits the worst case <code>n − 1</code>. The recursion also goes <code>n</code> frames deep — on a tree with thousands of nodes, this is exactly the shape that risks Python's recursion limit, which is why the README calls balance "the whole game": most tree operations cost <code>O(h)</code>, and only a balanced tree keeps <code>h = O(log n)</code>.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: missing-child gap in array packing</h3>
+          <p><code>from_array([1, None, 2])</code> → <code>root.left = None</code>, <code>root.right.val = 2</code> (correct)</p>
+          <p style="margin-top:8px;"><code>from_array([1, 2])</code> (the <code>None</code> omitted) → <code>root.left.val = 2</code>, <code>root.right = None</code> — <strong>wrong tree</strong></p>
+          <div class="result-badge">Explicit None placeholders are not optional</div>
+          <p class="footer-note">Omitting the placeholder shifts every later index left by one, so index arithmetic silently attaches node <code>2</code> as the <em>left</em> child instead of the <em>right</em> child. Array packing only works if the array faithfully reflects every gap in the level-order layout.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Build time</th><th>Space</th><th>Best for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Linked <code>TreeNode</code> + recursion (<code>height</code>, <code>size</code>, <code>diameter</code>)</td><td>O(n) to walk</td><td>O(h) call stack — up to O(n) if skewed</td><td>Any shape of tree, including sparse and unbalanced ones</td></tr>
+            <tr><td>Array-packed index arithmetic (<code>from_array</code>, <code>to_array</code>)</td><td>O(n) to build, O(1) per child lookup</td><td>O(n) array, no pointer overhead</td><td>Complete trees only (heaps) — wastes space on sparse trees</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">Both rely on the same underlying node count <code>n</code>. Which one you reach for depends entirely on whether the tree is guaranteed complete — a heap is, an arbitrary binary tree is not.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>The problem asks about a node's relationship to its subtrees (height, size, balance) → this is recursive.</p></div>
+            <div class="timeline-step"><p>A node's answer depends on both children's answers → write "solve left, solve right, combine."</p></div>
+            <div class="timeline-step"><p>Decide what an empty subtree should report <em>first</em> — get the base case right before anything else.</p></div>
+            <div class="timeline-step"><p>If the real answer (like diameter) doesn't equal what gets returned up, return the report value and track the real answer in a side variable.</p></div>
+            <div class="timeline-step"><p>If the tree is explicitly stated to be complete (a heap, a level-order array), skip pointers entirely — use <code>2i+1</code> / <code>2i+2</code> arithmetic instead.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"This node's answer depends on both children, so I'll recurse left, recurse right, then combine."</li>
+            <li>"I need height in edges, so an empty subtree returns -1 — that makes a leaf correctly compute to 0."</li>
+            <li>"The longest path might not pass through the root, so I can't just return it — I'll track it in a side variable while still returning height up."</li>
+            <li>"Since this is guaranteed complete, I don't need pointers at all — index i's children live at 2i+1 and 2i+2."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Linked-tree recursion mistakes</h3>
+          <ul class="mistake-list">
+            <li>Returning <code>0</code> instead of <code>-1</code> for an empty subtree in <code>height</code>, which makes every leaf report <code>1</code> instead of <code>0</code>.</li>
+            <li>Forgetting the base case entirely and hitting <code>AttributeError</code> on <code>None.left</code>.</li>
+            <li>Computing an aggregate like diameter as the function's return value instead of a side variable, so it silently only considers paths through the root.</li>
+            <li>Assuming recursion is free — a deep skewed tree can exceed the call-stack limit.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Array-packing mistakes</h3>
+          <ul class="mistake-list">
+            <li>Omitting explicit <code>None</code> entries for missing children, which shifts every later index and attaches the wrong node.</li>
+            <li>Using array packing on a tree that is not complete — the array ends up mostly empty slots, wasting memory.</li>
+            <li>Forgetting the bounds check (<code>li &lt; len(arr)</code>) and indexing past the end of the array.</li>
+            <li>Mixing up the parent formula — it is <code>(i-1)//2</code>, not <code>i//2</code>.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — For <code>root = TreeNode(1, TreeNode(2), TreeNode(3))</code>, what do <code>size(root)</code> and <code>height(root)</code> return?</summary>
+          <p style="margin-top:10px;">Answer: <code>size = 3</code> (three real nodes), <code>height = 1</code>. Both children are leaves (height 0), so <code>height(root) = 1 + max(0, 0) = 1</code>.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — Why must <code>height(None)</code> be <code>-1</code> rather than <code>0</code>?</summary>
+          <p style="margin-top:10px;">Answer: height counts edges, not nodes. A leaf has zero edges below it, so it must compute to <code>0</code>. Since a leaf's recursion is <code>1 + max(height(left), height(right))</code> with both children <code>None</code>, the only way to land on <code>0</code> is if <code>height(None) = -1</code>, because <code>1 + max(-1, -1) = 0</code>.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — For a complete tree stored as an array with <code>n = 10</code> elements, what are the left child, right child, and parent of index <code>4</code>?</summary>
+          <p style="margin-top:10px;">Answer: <code>left = 2*4+1 = 9</code> (valid, since <code>9 &lt; 10</code>), <code>right = 2*4+2 = 10</code> (invalid, since <code>10 &ge; 10</code> — index 4 has no right child), <code>parent = (4-1)//2 = 1</code>.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          A binary tree is one shape, but two completely different ways to hold it in memory.
+          <strong>Linked <code>TreeNode</code> recursion</strong> handles any shape at all, at the cost of one
+          call-stack frame per level of depth. <strong>Array packing with <code>2i+1</code> / <code>2i+2</code></strong>
+          replaces every pointer with arithmetic, but only stays honest when the tree is genuinely complete.
+          Once you can write <code>height()</code> from memory and reason about the index formulas, most binary-tree
+          problems become a diff against one of these two baselines, not a new algorithm.
+        </p>
+      </div>
+      <p class="footer-note">Based on the Binary Trees deep-dive notebook (<code>02_binary_tree.ipynb</code>) and its companion README — every trace on this page was verified by running the real <code>height()</code> and <code>from_array()</code> functions in Python.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const htSteps = [
+        { step: 0, title: 'Initial state', text: 'height(root) is about to be called. Nothing is on the call stack yet.', stack: '[]', node: '—', left: '—', right: '—', computed: '{}', result: '—', detail: 'We are about to call height(1).', currentNode: null, stackNodes: [], computedNodes: [], activeEdge: null, lines: [1] },
+        { step: 1, title: 'Step 1: ENTER height(1)', text: 'height is called on the root, node 1. It is not empty, so we move on to solve its left subtree.', stack: '[1]', node: '1', left: '—', right: '—', computed: '{}', result: '—', detail: 'Node 1 exists, so line 2\'s check fails and we proceed to compute left_h.', currentNode: 1, stackNodes: [1], computedNodes: [], activeEdge: null, lines: [1, 2, 5] },
+        { step: 2, title: 'Step 2: ENTER height(2)', text: 'To get left_h for node 1, we recurse into node 2 (its left child).', stack: '[1, 2]', node: '2', left: '—', right: '—', computed: '{}', result: '—', detail: 'Node 2 is not empty either, so it will also solve its own left subtree first.', currentNode: 2, stackNodes: [1, 2], computedNodes: [], activeEdge: '1-2', lines: [1, 2, 5] },
+        { step: 3, title: 'Step 3: ENTER height(4)', text: 'To get left_h for node 2, we recurse into node 4 (its left child).', stack: '[1, 2, 4]', node: '4', left: '—', right: '—', computed: '{}', result: '—', detail: 'Node 4 is not empty, so it too calls height on its own left and right (both None).', currentNode: 4, stackNodes: [1, 2, 4], computedNodes: [], activeEdge: '2-4', lines: [1, 2, 5] },
+        { step: 4, title: 'Step 4: EXIT height(4) = 0', text: 'Both of node 4\'s children are None, so left_h = -1 and right_h = -1 (base case, no separate call needed for either). Combine: 1 + max(-1, -1) = 0.', stack: '[1, 2]', node: '4', left: '-1', right: '-1', computed: '{4: 0}', result: '—', detail: 'Node 4 is a leaf, and this confirms the base case: a leaf always computes to height 0.', currentNode: 4, stackNodes: [1, 2], computedNodes: [4], activeEdge: '2-4', lines: [5, 6, 7] },
+        { step: 5, title: 'Step 5: ENTER height(5)', text: "Back in node 2's frame, left_h = 0 is known. Now recurse into node 5 (2's right child) to get right_h.", stack: '[1, 2, 5]', node: '5', left: '—', right: '—', computed: '{4: 0}', result: '—', detail: 'Node 2 has not returned yet — it is waiting on this call to finish.', currentNode: 5, stackNodes: [1, 2, 5], computedNodes: [4], activeEdge: '2-5', lines: [1, 2, 5] },
+        { step: 6, title: 'Step 6: EXIT height(5) = 0', text: 'Node 5 is also a leaf: both children None, so left_h = -1, right_h = -1, combine to 1 + max(-1,-1) = 0.', stack: '[1, 2]', node: '5', left: '-1', right: '-1', computed: '{4: 0, 5: 0}', result: '—', detail: 'Both of node 2\'s children are now resolved: left_h = 0, right_h = 0.', currentNode: 5, stackNodes: [1, 2], computedNodes: [4, 5], activeEdge: '2-5', lines: [5, 6, 7] },
+        { step: 7, title: 'Step 7: EXIT height(2) = 1', text: 'Node 2 now has left_h = 0 and right_h = 0. Combine: 1 + max(0, 0) = 1. Node 2\'s frame closes and control returns to node 1.', stack: '[1]', node: '2', left: '0', right: '0', computed: '{4: 0, 5: 0, 2: 1}', result: '—', detail: "This is the first non-trivial combine: node 2's own height (1) is one more than its taller child.", currentNode: 2, stackNodes: [1], computedNodes: [4, 5, 2], activeEdge: '1-2', lines: [5, 6, 7] },
+        { step: 8, title: 'Step 8: ENTER height(3)', text: "Node 1's left_h = 1 is known. Now recurse into node 3 (1's right child) to get right_h.", stack: '[1, 3]', node: '3', left: '—', right: '—', computed: '{4: 0, 5: 0, 2: 1}', result: '—', detail: "Node 3's left child is None (no explicit None call needed) but its right child, node 6, is real.", currentNode: 3, stackNodes: [1, 3], computedNodes: [4, 5, 2], activeEdge: '1-3', lines: [1, 2, 5] },
+        { step: 9, title: 'Step 9: ENTER height(6)', text: "To get right_h for node 3, we recurse into node 6 (its right child). Node 3's left is None, so left_h = -1 with no separate call.", stack: '[1, 3, 6]', node: '6', left: '—', right: '—', computed: '{4: 0, 5: 0, 2: 1}', result: '—', detail: 'Node 3 has one real child (right) and one missing child (left) — this is exactly why height must check both sides independently.', currentNode: 6, stackNodes: [1, 3, 6], computedNodes: [4, 5, 2], activeEdge: '3-6', lines: [1, 2, 5] },
+        { step: 10, title: 'Step 10: EXIT height(6) = 0', text: 'Node 6 is a leaf: both children None, so left_h = -1, right_h = -1, combine to 0.', stack: '[1, 3]', node: '6', left: '-1', right: '-1', computed: '{4: 0, 5: 0, 2: 1, 6: 0}', result: '—', detail: "Node 3's right_h is now known: 0.", currentNode: 6, stackNodes: [1, 3], computedNodes: [4, 5, 2, 6], activeEdge: '3-6', lines: [5, 6, 7] },
+        { step: 11, title: 'Step 11: EXIT height(3) = 1', text: 'Node 3 has left_h = -1 (its left child was None) and right_h = 0 (from node 6). Combine: 1 + max(-1, 0) = 1.', stack: '[1]', node: '3', left: '-1', right: '0', computed: '{4: 0, 5: 0, 2: 1, 6: 0, 3: 1}', result: '—', detail: 'Even with a missing left child, the max() correctly picks the side that has a real subtree.', currentNode: 3, stackNodes: [1], computedNodes: [4, 5, 2, 6, 3], activeEdge: '1-3', lines: [5, 6, 7] },
+        { step: 12, title: 'Step 12: EXIT height(1) = 2 — done', text: 'Node 1 now has left_h = 1 (from node 2) and right_h = 1 (from node 3). Combine: 1 + max(1, 1) = 2. This is the final answer.', stack: '[]', node: '1', left: '1', right: '1', computed: '{4: 0, 5: 0, 2: 1, 6: 0, 3: 1, 1: 2}', result: '2', detail: 'The call stack is empty again — height(root) returns 2, matching the notebook assertion height(root) == 2.', currentNode: 1, stackNodes: [], computedNodes: [4, 5, 2, 6, 3, 1], activeEdge: null, lines: [5, 6, 7] }
+      ];
+
+      const arrSteps = [
+        { step: 0, title: 'Initial state', text: 'nodes is built: one TreeNode per array slot. The for-loop has not started.', i: '—', val: '—', liri: '—', bounds: '—', leftassign: '—', rightassign: '—', detail: 'nodes = [TreeNode(1), TreeNode(2), ..., TreeNode(7)] — 7 nodes exist, but no links between them yet.', currentIdx: null, processed: [], linked: [], edges: [], newEdges: [], lines: [1, 5] },
+        { step: 1, title: 'Step 1: i = 0, node.val = 1', text: 'li = 1, ri = 2. Both are less than len(arr) = 7, so both children get linked.', i: '0', val: '1', liri: 'li=1, ri=2', bounds: '1 < 7 and 2 < 7 → both in range', leftassign: 'node.left = nodes[1] = 2', rightassign: 'node.right = nodes[2] = 3', detail: 'Node 1 (index 0) now points to node 2 (index 1) as left and node 3 (index 2) as right — the first two links of the tree.', currentIdx: 0, processed: [], linked: [1, 2], edges: ['0-1', '0-2'], newEdges: ['0-1', '0-2'], lines: [6, 7, 9, 10, 11, 12, 13] },
+        { step: 2, title: 'Step 2: i = 1, node.val = 2', text: 'li = 3, ri = 4. Both are less than 7, so both children get linked.', i: '1', val: '2', liri: 'li=3, ri=4', bounds: '3 < 7 and 4 < 7 → both in range', leftassign: 'node.left = nodes[3] = 4', rightassign: 'node.right = nodes[4] = 5', detail: 'Node 2 (index 1) now points to node 4 (index 3) as left and node 5 (index 4) as right.', currentIdx: 1, processed: [0], linked: [3, 4], edges: ['0-1', '0-2', '1-3', '1-4'], newEdges: ['1-3', '1-4'], lines: [6, 7, 9, 10, 11, 12, 13] },
+        { step: 3, title: 'Step 3: i = 2, node.val = 3', text: 'li = 5, ri = 6. Both are less than 7, so both children get linked.', i: '2', val: '3', liri: 'li=5, ri=6', bounds: '5 < 7 and 6 < 7 → both in range', leftassign: 'node.left = nodes[5] = 6', rightassign: 'node.right = nodes[6] = 7', detail: 'Node 3 (index 2) now points to node 6 (index 5) as left and node 7 (index 6) as right. All 6 edges of this perfect tree now exist.', currentIdx: 2, processed: [0, 1], linked: [5, 6], edges: ['0-1', '0-2', '1-3', '1-4', '2-5', '2-6'], newEdges: ['2-5', '2-6'], lines: [6, 7, 9, 10, 11, 12, 13] },
+        { step: 4, title: 'Step 4: i = 3, node.val = 4', text: 'li = 7, ri = 8. Both are >= len(arr) = 7, so no children are assigned — index arithmetic alone tells us node 4 is a leaf.', i: '3', val: '4', liri: 'li=7, ri=8', bounds: '7 >= 7 and 8 >= 7 → both out of range', leftassign: 'none — 7 >= 7', rightassign: 'none — 8 >= 7', detail: 'This is the bounds check doing all the work: no recursion, no queue, just li < len(arr) turning false.', currentIdx: 3, processed: [0, 1, 2], linked: [], edges: ['0-1', '0-2', '1-3', '1-4', '2-5', '2-6'], newEdges: [], lines: [6, 7, 9, 10, 12] },
+        { step: 5, title: 'Step 5: i = 4, node.val = 5', text: 'li = 9, ri = 10. Both are out of range, so node 5 also stays a leaf.', i: '4', val: '5', liri: 'li=9, ri=10', bounds: '9 >= 7 and 10 >= 7 → both out of range', leftassign: 'none — 9 >= 7', rightassign: 'none — 10 >= 7', detail: 'Every remaining index in this perfect tree is on the last level, so every remaining iteration will skip both assignments.', currentIdx: 4, processed: [0, 1, 2, 3], linked: [], edges: ['0-1', '0-2', '1-3', '1-4', '2-5', '2-6'], newEdges: [], lines: [6, 7, 9, 10, 12] },
+        { step: 6, title: 'Step 6: i = 5, node.val = 6', text: 'li = 11, ri = 12. Both out of range.', i: '5', val: '6', liri: 'li=11, ri=12', bounds: '11 >= 7 and 12 >= 7 → both out of range', leftassign: 'none — 11 >= 7', rightassign: 'none — 12 >= 7', detail: 'Same pattern as the previous step — node 6 is on the last level.', currentIdx: 5, processed: [0, 1, 2, 3, 4], linked: [], edges: ['0-1', '0-2', '1-3', '1-4', '2-5', '2-6'], newEdges: [], lines: [6, 7, 9, 10, 12] },
+        { step: 7, title: 'Step 7: i = 6, node.val = 7 — loop ends', text: 'li = 13, ri = 14. Both out of range. This was the last index, so the loop ends and the function returns nodes[0].', i: '6', val: '7', liri: 'li=13, ri=14', bounds: '13 >= 7 and 14 >= 7 → both out of range', leftassign: 'none — 13 >= 7', rightassign: 'none — 14 >= 7', detail: 'return nodes[0] hands back node 1, which now carries the full tree through its .left/.right pointers — exactly the shape [1,2,3,4,5,6,7] describes.', currentIdx: 6, processed: [0, 1, 2, 3, 4, 5], linked: [], edges: ['0-1', '0-2', '1-3', '1-4', '2-5', '2-6'], newEdges: [], lines: [6, 7, 9, 10, 12, 15] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderHt(step, index, max) {
+        document.getElementById('ht-step-title').textContent = step.title;
+        document.getElementById('ht-step-text').textContent = step.text;
+        document.getElementById('ht-stack').textContent = step.stack;
+        document.getElementById('ht-node').textContent = step.node;
+        document.getElementById('ht-left').textContent = step.left;
+        document.getElementById('ht-right').textContent = step.right;
+        document.getElementById('ht-computed').textContent = step.computed;
+        document.getElementById('ht-result').textContent = step.result;
+        document.getElementById('ht-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('ht-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('ht-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('ht-trace-table', step.step);
+        setCodeHighlight('ht-code', step.lines);
+
+        document.querySelectorAll('#ht-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('computed', 'stacked', 'current');
+          if (step.computedNodes.includes(id)) node.classList.add('computed');
+          if (step.stackNodes.includes(id)) node.classList.add('stacked');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#ht-graph [data-ht-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.htEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderArr(step, index, max) {
+        document.getElementById('arr-step-title').textContent = step.title;
+        document.getElementById('arr-step-text').textContent = step.text;
+        document.getElementById('arr-i').textContent = step.i;
+        document.getElementById('arr-val').textContent = step.val;
+        document.getElementById('arr-liri').textContent = step.liri;
+        document.getElementById('arr-bounds').textContent = step.bounds;
+        document.getElementById('arr-leftassign').textContent = step.leftassign;
+        document.getElementById('arr-rightassign').textContent = step.rightassign;
+        document.getElementById('arr-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('arr-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('arr-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('arr-trace-table', step.step);
+        setCodeHighlight('arr-code', step.lines);
+
+        document.querySelectorAll('#arr-graph [data-idx]').forEach((node) => {
+          const id = Number(node.dataset.idx);
+          node.classList.remove('processed', 'linked', 'current');
+          if (step.processed.includes(id)) node.classList.add('processed');
+          if (step.linked.includes(id)) node.classList.add('linked');
+          if (step.currentIdx === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#arr-graph [data-arr-edge]').forEach((line) => {
+          const key = line.dataset.arrEdge;
+          if (step.newEdges.includes(key)) {
+            line.setAttribute('visibility', 'visible');
+            line.setAttribute('class', 'arrg-edge-new');
+          } else if (step.edges.includes(key)) {
+            line.setAttribute('visibility', 'visible');
+            line.setAttribute('class', 'arrg-edge-created');
+          } else {
+            line.setAttribute('visibility', 'hidden');
+          }
+        });
+      }
+
+      setupTrace({ steps: htSteps, prefix: 'ht', render: renderHt });
+      setupTrace({ steps: arrSteps, prefix: 'arr', render: renderArr });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generic (N-ary) Trees — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Trees · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Generic (N-ary) Trees</h1>
+          <p>
+            A generic tree lets every node hold <strong>any number of children</strong> in a list, instead of a fixed
+            left/right pair. This page traces two baseline walks over the exact same tree — a recursive pre-order DFS
+            and an iterative level-order BFS — so you can see, step by step, what the call stack and the queue each
+            look like in memory as the code runs.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: children live in a list, not fixed slots</span>
+            <span class="chip">Interactive DFS pre-order trace</span>
+            <span class="chip">Interactive BFS level-order trace</span>
+            <span class="chip">Code synced with steps</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p>Tree built with <code>add_child</code>: <code>A → [B, C, D]</code>, <code>B → [E, F]</code>, <code>D → [G]</code></p>
+          <div class="diagram">
+            <svg viewBox="0 0 620 260" width="100%" role="img" aria-label="Generic tree with root A, children B, C, D, grandchildren E, F under B, and G under D">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #6c7a96; stroke-width: 4; stroke-linecap: round; }
+                  .hero-node { fill: #315efb; }
+                  .hero-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                </style>
+              </defs>
+              <line x1="310" y1="40" x2="140" y2="130" class="hero-edge" />
+              <line x1="310" y1="40" x2="310" y2="130" class="hero-edge" />
+              <line x1="310" y1="40" x2="480" y2="130" class="hero-edge" />
+              <line x1="140" y1="130" x2="80" y2="220" class="hero-edge" />
+              <line x1="140" y1="130" x2="200" y2="220" class="hero-edge" />
+              <line x1="480" y1="130" x2="480" y2="220" class="hero-edge" />
+              <circle cx="310" cy="40" r="26" class="hero-node" />
+              <circle cx="140" cy="130" r="26" class="hero-node" />
+              <circle cx="310" cy="130" r="26" class="hero-node" />
+              <circle cx="480" cy="130" r="26" class="hero-node" />
+              <circle cx="80" cy="220" r="26" class="hero-node" />
+              <circle cx="200" cy="220" r="26" class="hero-node" />
+              <circle cx="480" cy="220" r="26" class="hero-node" />
+              <text x="303" y="46" class="hero-label">A</text>
+              <text x="133" y="136" class="hero-label">B</text>
+              <text x="303" y="136" class="hero-label">C</text>
+              <text x="473" y="136" class="hero-label">D</text>
+              <text x="73" y="226" class="hero-label">E</text>
+              <text x="193" y="226" class="hero-label">F</text>
+              <text x="473" y="226" class="hero-label">G</text>
+            </svg>
+          </div>
+          <div class="result-badge">dfs_preorder(A) = [A,B,E,F,C,D,G] · bfs(A) = [A,B,C,D,E,F,G]</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>File systems</h3>
+          <p>A folder can contain any number of files and subfolders. Printing a directory listing is a pre-order DFS; listing "everything at depth 2" is a BFS.</p>
+        </div>
+        <div class="card">
+          <h3>Org charts &amp; comment threads</h3>
+          <p>A manager can have any number of direct reports; a comment can have any number of replies. Both are generic trees, not binary ones.</p>
+        </div>
+        <div class="card">
+          <h3>Foundation for everything after</h3>
+          <p>Binary trees, BSTs, tries, and heaps are all special cases of the generic tree. Own <code>dfs_preorder</code> and <code>bfs</code> here first — everything later is a variation.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> the only structural difference from a binary tree is that <code>node.children</code> is a list instead of <code>node.left</code> / <code>node.right</code>. Every traversal idea you already know still applies — you just loop instead of hard-coding two branches.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is a generic tree?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>A generic (N-ary) tree is a hierarchy where every node has exactly one parent (except the root, which has none) and can have <strong>any number of children</strong>, stored as a list.</p>
+        </div>
+        <div class="card">
+          <h3>What you are computing</h3>
+          <p>Both methods on this page produce a full visiting order across every node — the difference is only the <em>order</em>: depth-first plunges down one branch at a time, breadth-first sweeps row by row.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if the question needs "top-down, node before its subtree" reach for pre-order DFS. If it needs "row by row" or "closest first," reach for BFS with a queue.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Store children as a list</h3>
+          <p>Every node gets a <code>children</code> list. Zero, one, or a hundred children are all handled by the same code — no special cases.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Pick the walk order you need</h3>
+          <p>Pre-order (top-down, before children) and post-order (bottom-up, after children) for DFS; level-order for BFS.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>DFS: recurse and loop</h3>
+          <p>Record the node, then <code>for child in node.children: recurse(child)</code>. The call stack does the bookkeeping for you.</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>BFS: queue and loop</h3>
+          <p>Pop from the front, record it, push every one of its children to the back. Repeat until the queue is empty.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes a tree</h2>
+      <p>The notebook builds the canonical tree with <code>add_child</code>, which creates a node and appends it to the parent's <code>children</code> list. This is where beginners lose the thread coming from binary trees: there is no <code>.left</code> / <code>.right</code> to assign to — everything goes into one growing list per node.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Build calls</h3>
+          <div class="code-block"><code>A = Node("A")
+B = add_child(A, "B")
+C = add_child(A, "C")
+D = add_child(A, "D")
+E = add_child(B, "E")
+F = add_child(B, "F")
+G = add_child(D, "G")</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Children-list representation</h3>
+          <div class="code-block"><code>A.children = [B, C, D]
+B.children = [E, F]
+C.children = []
+D.children = [G]
+E.children = []
+F.children = []
+G.children = []</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Create A, then <code>add_child(A, "B")</code></h4>
+          <p>A new node B is created and appended to <code>A.children</code>, which becomes <code>[B]</code>.</p>
+        </div>
+        <div class="timeline-step">
+          <h4><code>add_child(A, "C")</code>, then <code>add_child(A, "D")</code></h4>
+          <p><code>A.children</code> grows to <code>[B, C]</code>, then <code>[B, C, D]</code>. Nothing about A's node structure changes — only the list grows.</p>
+        </div>
+        <div class="timeline-step">
+          <h4><code>add_child(B, "E")</code>, <code>add_child(B, "F")</code>, <code>add_child(D, "G")</code></h4>
+          <p><code>B.children</code> becomes <code>[E, F]</code> and <code>D.children</code> becomes <code>[G]</code>. Node C never gets a call, so <code>C.children</code> stays <code>[]</code> — C is a leaf.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> because children live in a list, a node can have 0, 1, 2, or 20 children with zero changes to the traversal code — every DFS and BFS below already handles all of those cases with the same <code>for child in node.children</code> loop.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: DFS pre-order (recursive)</h2>
+      <p>The intuition is that recursion already gives you a call stack for free. Pre-order simply records a node's value the instant its call frame is entered — <strong>before</strong> the code ever looks at that node's children.</p>
+      <div class="code-block stepped">
+        <code id="dfs-code">
+<span class="code-line" data-line="1">def dfs_preorder(node, out=None):</span>
+<span class="code-line" data-line="2">    if out is None:</span>
+<span class="code-line" data-line="3">        out = []</span>
+<span class="code-line" data-line="4">    if node is None:</span>
+<span class="code-line" data-line="5">        return out</span>
+<span class="code-line" data-line="6">    out.append(node.val)</span>
+<span class="code-line" data-line="7">    for child in node.children:</span>
+<span class="code-line" data-line="8">        dfs_preorder(child, out)</span>
+<span class="code-line" data-line="9">    return out</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive DFS pre-order trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="dfs-graph" viewBox="0 0 620 260" width="100%" role="img" aria-label="DFS pre-order trace over the tree">
+              <defs>
+                <style>
+                  .dfsg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .dfsg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .dfsg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .dfsg-node.done { fill: #315efb; }
+                  .dfsg-node.onstack { fill: #13a46b; }
+                  .dfsg-node.current { fill: #ff9f1c; }
+                  .dfsg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .dfsg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="dfsg-title">Current call frame</text>
+              <line x1="310" y1="60" x2="140" y2="140" class="dfsg-base-edge" />
+              <line x1="310" y1="60" x2="310" y2="140" class="dfsg-base-edge" />
+              <line x1="310" y1="60" x2="480" y2="140" class="dfsg-base-edge" />
+              <line x1="140" y1="140" x2="80" y2="230" class="dfsg-base-edge" />
+              <line x1="140" y1="140" x2="200" y2="230" class="dfsg-base-edge" />
+              <line x1="480" y1="140" x2="480" y2="230" class="dfsg-base-edge" />
+              <line x1="310" y1="60" x2="140" y2="140" class="dfsg-active-edge" data-dfs-edge="A-B" visibility="hidden" />
+              <line x1="310" y1="60" x2="310" y2="140" class="dfsg-active-edge" data-dfs-edge="A-C" visibility="hidden" />
+              <line x1="310" y1="60" x2="480" y2="140" class="dfsg-active-edge" data-dfs-edge="A-D" visibility="hidden" />
+              <line x1="140" y1="140" x2="80" y2="230" class="dfsg-active-edge" data-dfs-edge="B-E" visibility="hidden" />
+              <line x1="140" y1="140" x2="200" y2="230" class="dfsg-active-edge" data-dfs-edge="B-F" visibility="hidden" />
+              <line x1="480" y1="140" x2="480" y2="230" class="dfsg-active-edge" data-dfs-edge="D-G" visibility="hidden" />
+              <circle cx="310" cy="60" r="26" class="dfsg-node" data-node="A" />
+              <circle cx="140" cy="140" r="26" class="dfsg-node" data-node="B" />
+              <circle cx="310" cy="140" r="26" class="dfsg-node" data-node="C" />
+              <circle cx="480" cy="140" r="26" class="dfsg-node" data-node="D" />
+              <circle cx="80" cy="230" r="26" class="dfsg-node" data-node="E" />
+              <circle cx="200" cy="230" r="26" class="dfsg-node" data-node="F" />
+              <circle cx="480" cy="230" r="26" class="dfsg-node" data-node="G" />
+              <text x="303" y="66" class="dfsg-label">A</text>
+              <text x="133" y="146" class="dfsg-label">B</text>
+              <text x="303" y="146" class="dfsg-label">C</text>
+              <text x="473" y="146" class="dfsg-label">D</text>
+              <text x="73" y="236" class="dfsg-label">E</text>
+              <text x="193" y="236" class="dfsg-label">F</text>
+              <text x="473" y="236" class="dfsg-label">G</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current call frame</span>
+            <span><i class="dot dot-green"></i> ancestors still on the call stack</span>
+            <span><i class="dot dot-blue"></i> finished (returned)</span>
+            <span><i class="dot dot-gray"></i> not entered yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="dfs-step-title">Initial state</h3>
+          <p id="dfs-step-text">Before the first call, out is created as an empty list. Nothing has been visited yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="dfs-prev">Previous</button>
+            <button type="button" id="dfs-play" class="primary">Resume</button>
+            <button type="button" id="dfs-next">Next</button>
+            <button type="button" id="dfs-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="dfs-step-counter">Step 0 / 14</span>
+            <div class="progress"><span id="dfs-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Call stack (top is rightmost)</strong><div class="state-value" id="dfs-stack">[]</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="dfs-action">out = []</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="dfs-node">—</div></div>
+            <div class="state-box"><strong>out (result so far)</strong><div class="state-value" id="dfs-out">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="dfs-detail"><strong>What changed:</strong> the call stack is empty; dfs_preorder(A) is about to run for the first time.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="dfs-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>Call stack after</th><th>out after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Initial call: <code>out = []</code></td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>Enter A → <code>out.append('A')</code></td><td><code>['A']</code></td><td><code>['A']</code></td></tr>
+            <tr data-step="2"><td>2</td><td>Enter B (1st child of A) → append</td><td><code>['A','B']</code></td><td><code>['A','B']</code></td></tr>
+            <tr data-step="3"><td>3</td><td>Enter E (1st child of B) → append</td><td><code>['A','B','E']</code></td><td><code>['A','B','E']</code></td></tr>
+            <tr data-step="4"><td>4</td><td>E has no children → return</td><td><code>['A','B']</code></td><td><code>['A','B','E']</code></td></tr>
+            <tr data-step="5"><td>5</td><td>Enter F (2nd child of B) → append</td><td><code>['A','B','F']</code></td><td><code>['A','B','E','F']</code></td></tr>
+            <tr data-step="6"><td>6</td><td>F has no children → return</td><td><code>['A','B']</code></td><td><code>['A','B','E','F']</code></td></tr>
+            <tr data-step="7"><td>7</td><td>B's loop finished → return</td><td><code>['A']</code></td><td><code>['A','B','E','F']</code></td></tr>
+            <tr data-step="8"><td>8</td><td>Enter C (2nd child of A) → append</td><td><code>['A','C']</code></td><td><code>['A','B','E','F','C']</code></td></tr>
+            <tr data-step="9"><td>9</td><td>C has no children → return</td><td><code>['A']</code></td><td><code>['A','B','E','F','C']</code></td></tr>
+            <tr data-step="10"><td>10</td><td>Enter D (3rd child of A) → append</td><td><code>['A','D']</code></td><td><code>['A','B','E','F','C','D']</code></td></tr>
+            <tr data-step="11"><td>11</td><td>Enter G (1st child of D) → append</td><td><code>['A','D','G']</code></td><td><code>['A','B','E','F','C','D','G']</code></td></tr>
+            <tr data-step="12"><td>12</td><td>G has no children → return</td><td><code>['A','D']</code></td><td><code>['A','B','E','F','C','D','G']</code></td></tr>
+            <tr data-step="13"><td>13</td><td>D's loop finished → return</td><td><code>['A']</code></td><td><code>['A','B','E','F','C','D','G']</code></td></tr>
+            <tr data-step="14"><td>14</td><td>A's loop finished → return out</td><td><code>[]</code></td><td><code>['A','B','E','F','C','D','G']</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>A node's value is recorded the instant its call frame opens, not when it closes. That single ordering choice is the entire difference between pre-order and post-order.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common DFS mistake</h4>
+          <p>Writing a fixed two-branch check like a binary tree instead of <code>for child in node.children</code>. A generic tree node can have any number of children — hard-coding two misses siblings or crashes on more.</p>
+        </div>
+        <div class="card">
+          <h4>Why the call stack matters</h4>
+          <p>Recursion depth equals the tree's height, not its node count. That is cheap for a balanced tree but risky for a tall, skewed one — see the chain edge case below.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: BFS level-order (iterative, queue)</h2>
+      <p>BFS explores ring by ring using a <strong>queue</strong>: pop from the front, record it, push every child to the back. Because the queue is FIFO, an entire level finishes before the next level starts.</p>
+      <div class="code-block stepped">
+        <code id="bfs-code">
+<span class="code-line" data-line="1">from collections import deque</span>
+<span class="code-line" data-line="2"></span>
+<span class="code-line" data-line="3">def bfs(root):</span>
+<span class="code-line" data-line="4">    order = []</span>
+<span class="code-line" data-line="5">    if root is None:</span>
+<span class="code-line" data-line="6">        return order</span>
+<span class="code-line" data-line="7">    q = deque([root])</span>
+<span class="code-line" data-line="8">    while q:</span>
+<span class="code-line" data-line="9">        node = q.popleft()</span>
+<span class="code-line" data-line="10">        order.append(node.val)</span>
+<span class="code-line" data-line="11">        for child in node.children:</span>
+<span class="code-line" data-line="12">            q.append(child)</span>
+<span class="code-line" data-line="13">    return order</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive BFS trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="bfs-graph" viewBox="0 0 620 260" width="100%" role="img" aria-label="BFS level-order trace over the tree">
+              <defs>
+                <style>
+                  .bfsg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .bfsg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .bfsg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .bfsg-node.seen { fill: #315efb; }
+                  .bfsg-node.current { fill: #ff9f1c; }
+                  .bfsg-node.frontier { fill: #13a46b; }
+                  .bfsg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .bfsg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="bfsg-title">Current dequeue</text>
+              <line x1="310" y1="60" x2="140" y2="140" class="bfsg-base-edge" />
+              <line x1="310" y1="60" x2="310" y2="140" class="bfsg-base-edge" />
+              <line x1="310" y1="60" x2="480" y2="140" class="bfsg-base-edge" />
+              <line x1="140" y1="140" x2="80" y2="230" class="bfsg-base-edge" />
+              <line x1="140" y1="140" x2="200" y2="230" class="bfsg-base-edge" />
+              <line x1="480" y1="140" x2="480" y2="230" class="bfsg-base-edge" />
+              <line x1="310" y1="60" x2="140" y2="140" class="bfsg-active-edge" data-bfs-edge="A-B" visibility="hidden" />
+              <line x1="310" y1="60" x2="310" y2="140" class="bfsg-active-edge" data-bfs-edge="A-C" visibility="hidden" />
+              <line x1="310" y1="60" x2="480" y2="140" class="bfsg-active-edge" data-bfs-edge="A-D" visibility="hidden" />
+              <line x1="140" y1="140" x2="80" y2="230" class="bfsg-active-edge" data-bfs-edge="B-E" visibility="hidden" />
+              <line x1="140" y1="140" x2="200" y2="230" class="bfsg-active-edge" data-bfs-edge="B-F" visibility="hidden" />
+              <line x1="480" y1="140" x2="480" y2="230" class="bfsg-active-edge" data-bfs-edge="D-G" visibility="hidden" />
+              <circle cx="310" cy="60" r="26" class="bfsg-node" data-node="A" />
+              <circle cx="140" cy="140" r="26" class="bfsg-node" data-node="B" />
+              <circle cx="310" cy="140" r="26" class="bfsg-node" data-node="C" />
+              <circle cx="480" cy="140" r="26" class="bfsg-node" data-node="D" />
+              <circle cx="80" cy="230" r="26" class="bfsg-node" data-node="E" />
+              <circle cx="200" cy="230" r="26" class="bfsg-node" data-node="F" />
+              <circle cx="480" cy="230" r="26" class="bfsg-node" data-node="G" />
+              <text x="303" y="66" class="bfsg-label">A</text>
+              <text x="133" y="146" class="bfsg-label">B</text>
+              <text x="303" y="146" class="bfsg-label">C</text>
+              <text x="473" y="146" class="bfsg-label">D</text>
+              <text x="73" y="236" class="bfsg-label">E</text>
+              <text x="193" y="236" class="bfsg-label">F</text>
+              <text x="473" y="236" class="bfsg-label">G</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current popped node</span>
+            <span><i class="dot dot-green"></i> nodes sitting in the queue</span>
+            <span><i class="dot dot-blue"></i> already dequeued</span>
+            <span><i class="dot dot-gray"></i> not touched yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="bfs-step-title">Initial state</h3>
+          <p id="bfs-step-text">The queue is seeded with the root. Nothing has been dequeued yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="bfs-prev">Previous</button>
+            <button type="button" id="bfs-play" class="primary">Resume</button>
+            <button type="button" id="bfs-next">Next</button>
+            <button type="button" id="bfs-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="bfs-step-counter">Step 0 / 7</span>
+            <div class="progress"><span id="bfs-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Queue (front is leftmost)</strong><div class="state-value" id="bfs-queue">['A']</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="bfs-action">q = deque([root])</div></div>
+            <div class="state-box"><strong>Popped node</strong><div class="state-value" id="bfs-node">—</div></div>
+            <div class="state-box"><strong>order (result so far)</strong><div class="state-value" id="bfs-order">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="bfs-detail"><strong>What changed:</strong> the queue holds only the root; the while loop is about to start.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="bfs-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>Queue after</th><th>order after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Queue seeded with root A</td><td><code>['A']</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>Pop A; append 'A'; push B, C, D</td><td><code>['B','C','D']</code></td><td><code>['A']</code></td></tr>
+            <tr data-step="2"><td>2</td><td>Pop B; append 'B'; push E, F</td><td><code>['C','D','E','F']</code></td><td><code>['A','B']</code></td></tr>
+            <tr data-step="3"><td>3</td><td>Pop C; append 'C'; no children to push</td><td><code>['D','E','F']</code></td><td><code>['A','B','C']</code></td></tr>
+            <tr data-step="4"><td>4</td><td>Pop D; append 'D'; push G</td><td><code>['E','F','G']</code></td><td><code>['A','B','C','D']</code></td></tr>
+            <tr data-step="5"><td>5</td><td>Pop E; append 'E'; no children to push</td><td><code>['F','G']</code></td><td><code>['A','B','C','D','E']</code></td></tr>
+            <tr data-step="6"><td>6</td><td>Pop F; append 'F'; no children to push</td><td><code>['G']</code></td><td><code>['A','B','C','D','E','F']</code></td></tr>
+            <tr data-step="7"><td>7</td><td>Pop G; append 'G'; queue empty → loop ends → return order</td><td><code>[]</code></td><td><code>['A','B','C','D','E','F','G']</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p><code>order.append</code> happens immediately after popping. Because the queue is FIFO, every node at depth 1 leaves the queue before any node at depth 2 is ever popped.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common BFS mistake</h4>
+          <p>Calling <code>q.pop()</code> instead of <code>q.popleft()</code>. That removes from the same end you push onto, which silently turns your "BFS" into something closer to a reversed DFS.</p>
+        </div>
+        <div class="card">
+          <h4>Why the queue matters</h4>
+          <p>The queue lives on the heap, not the call stack, so an extremely deep tree can never trigger a <code>RecursionError</code> the way the recursive DFS above could.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Single node</button>
+        <button type="button" data-example-tab="1">Wide, one level</button>
+        <button type="button" data-example-tab="2">Deep chain</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: single node</h3>
+          <p><code>root = Node("A")</code>, no children</p>
+          <div class="result-badge">dfs_preorder = ['A'] · bfs = ['A']</div>
+          <p class="footer-note">A's <code>children</code> list is empty, so the DFS <code>for</code> loop never executes and the BFS queue empties after one pop. Both functions must handle "root is also a leaf" without any special-casing.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: wide tree, one level deep</h3>
+          <p><code>A</code> with children <code>[B, C, D, E]</code>, none of them have children</p>
+          <div class="result-badge">dfs_preorder = ['A','B','C','D','E'] · bfs = ['A','B','C','D','E']</div>
+          <p class="footer-note">When the tree is only one level deep, pre-order DFS and level-order BFS produce the <strong>identical</strong> sequence — the two traversal orders only diverge once there is a second level to choose between "go deeper" and "go sideways."</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: deep chain (A → B → C → ... , each with one child)</h3>
+          <p><code>root</code> = a chain of 5,000 single-child nodes</p>
+          <div class="result-badge">bfs survives · recursive dfs_preorder risks RecursionError</div>
+          <p class="footer-note">The recursive DFS adds one call-stack frame per level, so a chain deep enough can exceed Python's default recursion limit (~1000 frames) before it ever finishes. <code>bfs</code>'s queue lives on the heap instead of the call stack, so it is unaffected by how tall or skewed the tree is — this is exactly why "how deep can this tree get" is a question worth asking before choosing recursive DFS in an interview.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Time</th><th>Space</th><th>Best for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>DFS — pre-order (recursive)</td><td>O(n)</td><td>O(h) — call stack</td><td>Recording a node before its subtree: printing, copying, serializing top-down</td></tr>
+            <tr><td>DFS — post-order (recursive)</td><td>O(n)</td><td>O(h) — call stack</td><td>Combining children's answers first: size, height, safe deletion</td></tr>
+            <tr><td>BFS — level-order (iterative)</td><td>O(n)</td><td>O(w) — widest level, held in the queue</td><td>Row-by-row output, nearest-node / shortest-hop questions, avoiding call-stack limits</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">All three visit every node exactly once because a tree has no cycles — the only thing that changes is the order they are visited in and where the "waiting" nodes are stored (call stack vs. queue).</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>Every node can have any number of children, so I loop over <code>node.children</code> instead of hard-coding two branches.</p></div>
+            <div class="timeline-step"><p>Do I need a node's value before or after its subtree is processed? Before → pre-order. After (need children's results first) → post-order.</p></div>
+            <div class="timeline-step"><p>Do I need "row by row" or "nearest first"? That is level-order — a queue, not recursion.</p></div>
+            <div class="timeline-step"><p>Is the tree potentially very deep or skewed? Prefer BFS, or an explicit-stack DFS, to avoid a recursion-depth failure.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"Each node can have any number of children, so I'll loop over <code>node.children</code> rather than checking left/right."</li>
+            <li>"I need the value recorded before its subtree, so I'll append before the recursive calls — that's pre-order."</li>
+            <li>"I need row-by-row order, so I'll use a queue and pop from the front, push children to the back."</li>
+            <li>"If this tree could be very deep, I'd worry about the recursion limit and lean toward the queue-based BFS instead."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>DFS mistakes</h3>
+          <ul class="mistake-list">
+            <li>Treating <code>node.children</code> like a binary tree's left/right instead of looping over the whole list.</li>
+            <li>Appending to <code>out</code> after the recursive calls instead of before — that silently turns pre-order into post-order.</li>
+            <li>Forgetting the <code>node is None</code> base case, which crashes as soon as any subtree is empty.</li>
+            <li>Not threading the same <code>out</code> list through every recursive call — creating a fresh list per call loses everything a sibling branch already found.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>BFS mistakes</h3>
+          <ul class="mistake-list">
+            <li>Using <code>q.pop()</code> instead of <code>q.popleft()</code>, which pops from the wrong end and breaks the FIFO order.</li>
+            <li>Forgetting to push <em>every</em> child — only pushing the first one silently drops entire subtrees.</li>
+            <li>Using a plain Python <code>list</code> instead of <code>deque</code> as the queue — <code>list.pop(0)</code> is O(n), which quietly kills performance on a large tree.</li>
+            <li>Confusing "depth" with "position in the queue" when a problem asks for level numbers explicitly — depth has to be tracked alongside the node, it isn't free.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — What is <code>height(A)</code> for the canonical tree, and why does the notebook define an empty tree's height as <code>-1</code> instead of <code>0</code>?</summary>
+          <p style="margin-top:10px;">Answer: <strong>2</strong>. The longest path from A down to a leaf is two edges (<code>A → B → E</code> or <code>A → D → G</code>). The <code>-1</code> sentinel for an empty (<code>None</code>) tree exists so the formula <code>1 + height(child)</code> still produces the right answer uniformly: if a leaf's single "virtual" empty child were treated as height 0, the formula would report height 1 for a leaf instead of the correct 0.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — If node D had two children, <code>[G, H]</code>, instead of one, where would H appear in <code>dfs_preorder(A)</code> relative to G?</summary>
+          <p style="margin-top:10px;">Answer: immediately after G's entire subtree finishes. <code>for child in node.children</code> processes D's children strictly in list order, and each child's full recursive call (including all of its own descendants) completes before the loop moves to the next sibling. Since G and H are both leaves here, the output becomes <code>[..., 'C', 'D', 'G', 'H']</code>.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — You need the path of values from the root down to a node holding a target value. Which traversal do you adapt, and what extra state do you carry?</summary>
+          <p style="margin-top:10px;">Answer: adapt the DFS pre-order walk into a choose/recurse/un-choose pattern: append the current node's value to a running <code>path</code> list before recursing into each child, return immediately once <code>node.val == target</code> is found, and pop the value back off if that subtree did not contain the target (backtrack). BFS can tell you the target <em>exists</em>, but without extra parent-pointer bookkeeping it does not naturally hand you the root-to-node path the way DFS's call stack already does.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          A generic tree is exactly a binary tree with the left/right restriction removed: every node holds a
+          <strong>list</strong> of children instead of two fixed slots. <strong>DFS pre-order's call stack records a
+          node the moment it is entered</strong>, walking one branch fully before backing up.
+          <strong>BFS's queue records a node the moment it is popped</strong>, guaranteeing every node at one depth
+          finishes before the next depth starts. Once you can write <code>dfs_preorder</code> and <code>bfs</code>
+          from memory, binary trees, BSTs, and tries are all just this same idea with extra constraints layered on.
+        </p>
+      </div>
+      <p class="footer-note">Based on <code>01_generic_tree.ipynb</code> and <code>README.md</code> in <code>DSA_Deep_Dive/01_Generic_Tree</code> — every trace on this page was verified by running the real <code>dfs_preorder</code> and <code>bfs</code> functions against the canonical tree.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const dfsSteps = [
+        { step: 0, title: 'Initial state', text: 'Before the first call, out is created as an empty list. Nothing has been visited yet.', action: 'out = [] (first call only)', stack: '[]', node: '—', out: '[]', detail: 'The call stack is empty; dfs_preorder(A) is about to run for the first time.', currentNode: null, stackNodes: [], doneNodes: [], activeEdge: null, lines: [1, 2, 3] },
+        { step: 1, title: 'Step 1: enter A', text: 'dfs_preorder(A) begins. A is not None, so its value is appended to out immediately — before any child is looked at. That single line is what makes this pre-order.', action: "out.append('A')", stack: "['A']", node: 'A', out: "['A']", detail: 'A is pushed onto the call stack and recorded before its children are visited.', currentNode: 'A', stackNodes: [], doneNodes: [], activeEdge: null, lines: [4, 5, 6] },
+        { step: 2, title: 'Step 2: enter B (1st child of A)', text: "A loops over its children in list order. The first is B, so dfs_preorder(B) is called and B is appended right away.", action: "out.append('B')", stack: "['A', 'B']", node: 'B', out: "['A', 'B']", detail: "B's call frame opens on top of A's.", currentNode: 'B', stackNodes: ['A'], doneNodes: [], activeEdge: 'A-B', lines: [4, 5, 6] },
+        { step: 3, title: 'Step 3: enter E (1st child of B)', text: "B loops over its children. The first is E, so dfs_preorder(E) is called and E is appended.", action: "out.append('E')", stack: "['A', 'B', 'E']", node: 'E', out: "['A', 'B', 'E']", detail: "The call stack is now three deep: A, B, E.", currentNode: 'E', stackNodes: ['A', 'B'], doneNodes: [], activeEdge: 'B-E', lines: [4, 5, 6] },
+        { step: 4, title: 'Step 4: return from E', text: 'E has no children, so its for-loop body never runs. dfs_preorder(E) returns immediately, popping E off the call stack.', action: 'E.children is empty -> return out', stack: "['A', 'B']", node: 'E', out: "['A', 'B', 'E']", detail: 'E is now finished — its value is permanently in out and it will never be revisited.', currentNode: 'E', stackNodes: ['A', 'B'], doneNodes: [], activeEdge: null, lines: [7, 9] },
+        { step: 5, title: 'Step 5: enter F (2nd child of B)', text: "Back inside B's loop, the next child is F. dfs_preorder(F) is called and F is appended.", action: "out.append('F')", stack: "['A', 'B', 'F']", node: 'F', out: "['A', 'B', 'E', 'F']", detail: "B's loop moves to its second child now that E's subtree is fully done.", currentNode: 'F', stackNodes: ['A', 'B'], doneNodes: ['E'], activeEdge: 'B-F', lines: [4, 5, 6] },
+        { step: 6, title: 'Step 6: return from F', text: 'F is also a leaf, so it returns immediately after being appended.', action: 'F.children is empty -> return out', stack: "['A', 'B']", node: 'F', out: "['A', 'B', 'E', 'F']", detail: 'F is now finished, alongside E.', currentNode: 'F', stackNodes: ['A', 'B'], doneNodes: ['E'], activeEdge: null, lines: [7, 9] },
+        { step: 7, title: "Step 7: return from B", text: "B's loop has now visited both E and F, and there are no more children. dfs_preorder(B) returns to A.", action: "B's loop finished -> return out", stack: "['A']", node: 'B', out: "['A', 'B', 'E', 'F']", detail: "B's entire subtree — B, E, and F — is now finished.", currentNode: 'B', stackNodes: ['A'], doneNodes: ['E', 'F'], activeEdge: null, lines: [7, 9] },
+        { step: 8, title: 'Step 8: enter C (2nd child of A)', text: "Back inside A's loop, the second child is C. dfs_preorder(C) is called and C is appended.", action: "out.append('C')", stack: "['A', 'C']", node: 'C', out: "['A', 'B', 'E', 'F', 'C']", detail: "A's loop moves on to C now that B's whole subtree is done.", currentNode: 'C', stackNodes: ['A'], doneNodes: ['E', 'F', 'B'], activeEdge: 'A-C', lines: [4, 5, 6] },
+        { step: 9, title: 'Step 9: return from C', text: 'C is a leaf (it never received an add_child call), so it returns right after being appended.', action: 'C.children is empty -> return out', stack: "['A']", node: 'C', out: "['A', 'B', 'E', 'F', 'C']", detail: 'C is now finished.', currentNode: 'C', stackNodes: ['A'], doneNodes: ['E', 'F', 'B'], activeEdge: null, lines: [7, 9] },
+        { step: 10, title: 'Step 10: enter D (3rd child of A)', text: "A's third and final child is D. dfs_preorder(D) is called and D is appended.", action: "out.append('D')", stack: "['A', 'D']", node: 'D', out: "['A', 'B', 'E', 'F', 'C', 'D']", detail: "A's loop reaches its last child.", currentNode: 'D', stackNodes: ['A'], doneNodes: ['E', 'F', 'B', 'C'], activeEdge: 'A-D', lines: [4, 5, 6] },
+        { step: 11, title: 'Step 11: enter G (1st child of D)', text: "D loops over its one child, G. dfs_preorder(G) is called and G is appended.", action: "out.append('G')", stack: "['A', 'D', 'G']", node: 'G', out: "['A', 'B', 'E', 'F', 'C', 'D', 'G']", detail: 'The call stack is three deep again: A, D, G.', currentNode: 'G', stackNodes: ['A', 'D'], doneNodes: ['E', 'F', 'B', 'C'], activeEdge: 'D-G', lines: [4, 5, 6] },
+        { step: 12, title: 'Step 12: return from G', text: 'G is a leaf, so it returns immediately.', action: 'G.children is empty -> return out', stack: "['A', 'D']", node: 'G', out: "['A', 'B', 'E', 'F', 'C', 'D', 'G']", detail: 'G is now finished.', currentNode: 'G', stackNodes: ['A', 'D'], doneNodes: ['E', 'F', 'B', 'C'], activeEdge: null, lines: [7, 9] },
+        { step: 13, title: "Step 13: return from D", text: "D's only child is done, so dfs_preorder(D) returns to A.", action: "D's loop finished -> return out", stack: "['A']", node: 'D', out: "['A', 'B', 'E', 'F', 'C', 'D', 'G']", detail: "D's subtree — D and G — is now finished.", currentNode: 'D', stackNodes: ['A'], doneNodes: ['E', 'F', 'B', 'C', 'G'], activeEdge: null, lines: [7, 9] },
+        { step: 14, title: 'Step 14: return from A — done', text: "A's loop has now visited B, C, and D — there are no more children. dfs_preorder(A) returns out, the finished pre-order list.", action: "A's loop finished -> return out", stack: '[]', node: 'A', out: "['A', 'B', 'E', 'F', 'C', 'D', 'G']", detail: 'The call stack is empty again. Final result: A, B, E, F, C, D, G.', currentNode: 'A', stackNodes: [], doneNodes: ['E', 'F', 'B', 'C', 'G', 'D'], activeEdge: null, lines: [7, 9] }
+      ];
+
+      const bfsSteps = [
+        { step: 0, title: 'Initial state', text: 'The queue is seeded with the root. Nothing has been dequeued yet.', action: 'q = deque([root])', queue: "['A']", node: '—', order: '[]', detail: 'The queue holds only the root; the while loop is about to start.', currentNode: null, frontierNodes: ['A'], seenNodes: [], activeEdge: null, lines: [4, 7] },
+        { step: 1, title: 'Step 1: pop A (root)', text: 'A is popped from the front of the queue, appended to order, and all three of its children are pushed to the back.', action: "pop A; order.append('A'); push B, C, D", queue: "['B', 'C', 'D']", node: 'A', order: "['A']", detail: "A's whole child list enters the queue in order: B, then C, then D.", currentNode: 'A', frontierNodes: ['B', 'C', 'D'], seenNodes: ['A'], activeEdge: null, lines: [9, 10, 11, 12] },
+        { step: 2, title: 'Step 2: pop B', text: 'B is popped next (it entered the queue before C and D). Its two children, E and F, are pushed to the back.', action: "pop B; order.append('B'); push E, F", queue: "['C', 'D', 'E', 'F']", node: 'B', order: "['A', 'B']", detail: 'C and D are still waiting in the queue — B is explored fully before either of them is touched.', currentNode: 'B', frontierNodes: ['C', 'D', 'E', 'F'], seenNodes: ['A', 'B'], activeEdge: 'A-B', lines: [9, 10, 11, 12] },
+        { step: 3, title: 'Step 3: pop C', text: 'C is popped. It has no children (no add_child call was ever made for it), so nothing is pushed.', action: "pop C; order.append('C'); no children to push", queue: "['D', 'E', 'F']", node: 'C', order: "['A', 'B', 'C']", detail: 'The queue shrinks by one since nothing new was added for C.', currentNode: 'C', frontierNodes: ['D', 'E', 'F'], seenNodes: ['A', 'B', 'C'], activeEdge: 'A-C', lines: [9, 10, 11] },
+        { step: 4, title: 'Step 4: pop D', text: "D is popped — the last of A's children to be dequeued. Its one child, G, is pushed to the back.", action: "pop D; order.append('D'); push G", queue: "['E', 'F', 'G']", node: 'D', order: "['A', 'B', 'C', 'D']", detail: "All of depth 1 (B, C, D) is now finished — the queue only holds depth-2 nodes from here on.", currentNode: 'D', frontierNodes: ['E', 'F', 'G'], seenNodes: ['A', 'B', 'C', 'D'], activeEdge: 'A-D', lines: [9, 10, 11, 12] },
+        { step: 5, title: 'Step 5: pop E', text: 'E is popped. It has no children, so nothing is pushed.', action: "pop E; order.append('E'); no children to push", queue: "['F', 'G']", node: 'E', order: "['A', 'B', 'C', 'D', 'E']", detail: 'Depth-2 nodes are now being drained in the order they were pushed: E, then F, then G.', currentNode: 'E', frontierNodes: ['F', 'G'], seenNodes: ['A', 'B', 'C', 'D', 'E'], activeEdge: 'B-E', lines: [9, 10, 11] },
+        { step: 6, title: 'Step 6: pop F', text: 'F is popped. It has no children, so nothing is pushed.', action: "pop F; order.append('F'); no children to push", queue: "['G']", node: 'F', order: "['A', 'B', 'C', 'D', 'E', 'F']", detail: 'Only G remains in the queue.', currentNode: 'F', frontierNodes: ['G'], seenNodes: ['A', 'B', 'C', 'D', 'E', 'F'], activeEdge: 'B-F', lines: [9, 10, 11] },
+        { step: 7, title: 'Step 7: pop G — done', text: 'G is popped and appended. The queue is now empty, so the while loop condition fails on the next check and bfs returns order.', action: "pop G; order.append('G'); queue empty -> loop ends -> return order", queue: '[]', node: 'G', order: "['A', 'B', 'C', 'D', 'E', 'F', 'G']", detail: 'Final result: A, B, C, D, E, F, G — every level finished before the next began.', currentNode: 'G', frontierNodes: [], seenNodes: ['A', 'B', 'C', 'D', 'E', 'F', 'G'], activeEdge: 'D-G', lines: [9, 10, 11, 13] }
+      ];
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      function renderDFS(step, index, max) {
+        document.getElementById('dfs-step-title').textContent = step.title;
+        document.getElementById('dfs-step-text').textContent = step.text;
+        document.getElementById('dfs-stack').textContent = step.stack;
+        document.getElementById('dfs-action').textContent = step.action;
+        document.getElementById('dfs-node').textContent = step.node;
+        document.getElementById('dfs-out').textContent = step.out;
+        document.getElementById('dfs-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('dfs-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('dfs-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('dfs-trace-table', step.step);
+        setCodeHighlight('dfs-code', step.lines);
+
+        document.querySelectorAll('#dfs-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('done', 'onstack', 'current');
+          if (step.doneNodes.includes(id)) node.classList.add('done');
+          if (step.stackNodes.includes(id)) node.classList.add('onstack');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#dfs-graph [data-dfs-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.dfsEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderBFS(step, index, max) {
+        document.getElementById('bfs-step-title').textContent = step.title;
+        document.getElementById('bfs-step-text').textContent = step.text;
+        document.getElementById('bfs-queue').textContent = step.queue;
+        document.getElementById('bfs-action').textContent = step.action;
+        document.getElementById('bfs-node').textContent = step.node;
+        document.getElementById('bfs-order').textContent = step.order;
+        document.getElementById('bfs-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('bfs-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('bfs-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('bfs-trace-table', step.step);
+        setCodeHighlight('bfs-code', step.lines);
+
+        document.querySelectorAll('#bfs-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('seen', 'current', 'frontier');
+          if (step.seenNodes.includes(id)) node.classList.add('seen');
+          if (step.frontierNodes.includes(id)) node.classList.add('frontier');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#bfs-graph [data-bfs-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.bfsEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
+      setupTrace({ steps: dfsSteps, prefix: 'dfs', render: renderDFS });
+      setupTrace({ steps: bfsSteps, prefix: 'bfs', render: renderBFS });
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>
