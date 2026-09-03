@@ -1,5 +1,6 @@
 .databricks
 .env
-.venv\
+.venv
 .cursor
 .claude/skills/excalidraw-diagram/references/.venv
+.venv
