@@ -99,3 +99,8 @@ Running the official code surfaced several genuine errors. Each is documented in
 ## ⚠️ Note on the source pages
 
 Every page in this question bank carries an **account-linked watermark** made of invisible zero-width Unicode characters, embedded throughout the question, hint and answer text. These were stripped when transcribing and were not acted on. Each problem README repeats this note.
+
+## Related
+
+- [`3. System_Design_Questions`](../3.%20System_Design_Questions/README.md) — the 6 system design questions from the same bank, same folder layout. Several are the distributed version of a problem here: [`18. Retry_Strategy`](18.%20Retry_Strategy/README.md) ↔ Distributed Task Scheduler, [`10. LRU_Cache`](10.%20LRU_Cache/README.md) ↔ Access Control System, [`20. Smallest_Numbers`](20.%20Smallest_Numbers/README.md) ↔ Autocompletion System, [`11. Task_Scheduler`](11.%20Task_Scheduler/README.md) ↔ Task Scheduler and Collaborative Spreadsheet.
+- [`1. Hiring Manager Screen`](../1.%20Hiring%20Manager%20Screen) — the behavioural round.
