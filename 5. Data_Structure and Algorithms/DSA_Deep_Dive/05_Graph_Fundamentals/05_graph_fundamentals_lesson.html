@@ -513,6 +513,8 @@
             <span class="chip">Core idea: vertices + edges, stored as neighbour sets</span>
             <span class="chip">Interactive adjacency-list trace</span>
             <span class="chip">Interactive path_exists trace</span>
+            <span class="chip">Interactive vocabulary trace: degree, path, cycle</span>
+            <span class="chip">Undirected vs directed vs weighted</span>
             <span class="chip">Code synced with steps</span>
           </div>
         </div>
@@ -931,6 +933,232 @@ F: {C, E}</code></div>
     </section>
 
     <section class="panel">
+      <h2>Method 3: the vocabulary tour — degree, path, cycle</h2>
+      <p>Every graph term you'll ever use is answerable by reading the same adjacency list a different way. <code>degree(u)</code> counts entries in one neighbour set. A <strong>path</strong> is a sequence of vertices where every consecutive pair is a real edge — <code>v in adj[u]</code>, checked over and over. A <strong>cycle</strong> is exactly that same kind of chain, except the last vertex has to be the first vertex again. This trace steps through all three on the canonical grid graph so you see what the words mean instead of just reading a definition.</p>
+      <div class="code-block stepped">
+        <code id="vocab-code">
+<span class="code-line" data-line="1">adj = {</span>
+<span class="code-line" data-line="2">    "A": {"B", "D"}, "B": {"A", "C", "E"}, "C": {"B", "F"},</span>
+<span class="code-line" data-line="3">    "D": {"A", "E"}, "E": {"B", "D", "F"}, "F": {"C", "E"},</span>
+<span class="code-line" data-line="4">}</span>
+<span class="code-line" data-line="5"></span>
+<span class="code-line" data-line="6">vertices = sorted(adj)</span>
+<span class="code-line" data-line="7">edges = [("A","B"), ("A","D"), ("B","C"), ("B","E"), ("C","F"), ("D","E"), ("E","F")]</span>
+<span class="code-line" data-line="8"></span>
+<span class="code-line" data-line="9">degree_B = len(adj["B"])            # neighbours: A, C, E</span>
+<span class="code-line" data-line="10"></span>
+<span class="code-line" data-line="11">path = ["A", "B", "E", "F"]</span>
+<span class="code-line" data-line="12">for u, v in zip(path, path[1:]):</span>
+<span class="code-line" data-line="13">    assert v in adj[u]              # every step is a real edge</span>
+<span class="code-line" data-line="14"></span>
+<span class="code-line" data-line="15">cycle = ["A", "B", "E", "D", "A"]</span>
+<span class="code-line" data-line="16">for u, v in zip(cycle, cycle[1:]):</span>
+<span class="code-line" data-line="17">    assert v in adj[u]              # every step is a real edge</span>
+<span class="code-line" data-line="18">assert cycle[0] == cycle[-1]        # returns to start</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive vocabulary trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="vocab-graph" viewBox="0 0 520 240" width="100%" role="img" aria-label="Vocabulary trace over the grid graph: vertices, edges, degree, a path, and a cycle">
+              <defs>
+                <style>
+                  .vocab-edge { stroke-linecap: round; transition: stroke 0.2s ease, stroke-width 0.2s ease; }
+                  .vocab-node { fill: #c8d2e7; transition: fill 0.2s ease; }
+                  .vocab-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .vocab-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="vocab-title">degree · path · cycle, on the same graph</text>
+              <line x1="100" y1="70" x2="260" y2="70" class="vocab-edge" data-vocab-edge="A-B" stroke="#c8d2e7" stroke-width="4" />
+              <line x1="260" y1="70" x2="420" y2="70" class="vocab-edge" data-vocab-edge="B-C" stroke="#c8d2e7" stroke-width="4" />
+              <line x1="100" y1="70" x2="100" y2="190" class="vocab-edge" data-vocab-edge="A-D" stroke="#c8d2e7" stroke-width="4" />
+              <line x1="260" y1="70" x2="260" y2="190" class="vocab-edge" data-vocab-edge="B-E" stroke="#c8d2e7" stroke-width="4" />
+              <line x1="420" y1="70" x2="420" y2="190" class="vocab-edge" data-vocab-edge="C-F" stroke="#c8d2e7" stroke-width="4" />
+              <line x1="100" y1="190" x2="260" y2="190" class="vocab-edge" data-vocab-edge="D-E" stroke="#c8d2e7" stroke-width="4" />
+              <line x1="260" y1="190" x2="420" y2="190" class="vocab-edge" data-vocab-edge="E-F" stroke="#c8d2e7" stroke-width="4" />
+              <circle cx="100" cy="70" r="26" class="vocab-node" data-node="A" />
+              <circle cx="260" cy="70" r="26" class="vocab-node" data-node="B" />
+              <circle cx="420" cy="70" r="26" class="vocab-node" data-node="C" />
+              <circle cx="100" cy="190" r="26" class="vocab-node" data-node="D" />
+              <circle cx="260" cy="190" r="26" class="vocab-node" data-node="E" />
+              <circle cx="420" cy="190" r="26" class="vocab-node" data-node="F" />
+              <text x="93" y="76" class="vocab-label">A</text>
+              <text x="253" y="76" class="vocab-label">B</text>
+              <text x="413" y="76" class="vocab-label">C</text>
+              <text x="93" y="196" class="vocab-label">D</text>
+              <text x="253" y="196" class="vocab-label">E</text>
+              <text x="413" y="196" class="vocab-label">F</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> the vertex/edge currently being named</span>
+            <span><i class="dot dot-blue"></i> in the structure being defined this step</span>
+            <span><i class="dot dot-green"></i> supporting vertex/edge (neighbour, or later leg of a cycle)</span>
+            <span><i class="dot dot-gray"></i> not part of this step's definition</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="vocab-step-title">Initial state</h3>
+          <p id="vocab-step-text">adj already holds all six vertices and their neighbour sets — the same structure Method 1 built. Nothing is highlighted yet; each step below names one piece of vocabulary on top of it.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="vocab-prev">Previous</button>
+            <button type="button" id="vocab-play" class="primary">Resume</button>
+            <button type="button" id="vocab-next">Next</button>
+            <button type="button" id="vocab-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="vocab-step-counter">Step 0 / 6</span>
+            <div class="progress"><span id="vocab-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Concept</strong><div class="state-value" id="vocab-concept">—</div></div>
+            <div class="state-box"><strong>Highlighted on the graph</strong><div class="state-value" id="vocab-focus">—</div></div>
+            <div class="state-box"><strong>Adjacency list (reference)</strong><div class="state-value" id="vocab-adj">{A: {B, D}, B: {A, C, E}, C: {B, F}, D: {A, E}, E: {B, D, F}, F: {C, E}}</div></div>
+            <div class="state-box"><strong>Value computed</strong><div class="state-value" id="vocab-value">—</div></div>
+            <div class="state-box"><strong>Verified</strong><div class="state-value" id="vocab-verified">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="vocab-detail"><strong>What changed:</strong> nothing yet — this is the same finished adjacency list from Method 1, just waiting for the tour to start.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="vocab-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Concept</th><th>Highlighted on the graph</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Starting point</td><td>Nothing highlighted</td><td>adj already built — six keys, each mapping to a set of neighbours</td></tr>
+            <tr data-step="1"><td>1</td><td>Vertices</td><td>All 6 nodes → blue</td><td>The "things": A, B, C, D, E, F</td></tr>
+            <tr data-step="2"><td>2</td><td>Edges</td><td>All 7 connections → blue</td><td>The "connections": each line is one edge from the edges list</td></tr>
+            <tr data-step="3"><td>3</td><td>Degree(B)</td><td>B → orange, A/C/E → green, their 3 edges → orange</td><td>degree(B) = len(adj["B"]) = 3</td></tr>
+            <tr data-step="4"><td>4</td><td>A path: A → B → E → F</td><td>A, B, E → blue, F → orange, 3 edges → blue</td><td>Every consecutive pair (A,B) (B,E) (E,F) is a real edge — verified below</td></tr>
+            <tr data-step="5"><td>5</td><td>A cycle: A → B → E → D → A</td><td>A → orange (start = end), B/E/D → green, 4 edges → green</td><td>Every consecutive pair is a real edge, and the walk returns to A — verified below</td></tr>
+            <tr data-step="6"><td>6</td><td>Recap</td><td>Everything → blue</td><td>Degree, path, and cycle are just different questions asked of the same adj</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Degree, path, and cycle aren't three different data structures — they're three different questions you can ask of the same adjacency list: "how many neighbours does this vertex have," "is there a chain of real edges between these two vertices," and "does that chain loop back to where it started."</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Treating the highlighted path or cycle as the <em>only</em> one. A → B → E → F is one valid path from A to F on this graph — A → D → E → F is a different, equally valid one. "A path exists" and "this is the path" are two different claims; <code>path_exists</code> in Method 2 only answers the first.</p>
+        </div>
+        <div class="card">
+          <h4>Why the data structure matters</h4>
+          <p>Because <code>adj[u]</code> is a <code>set</code>, checking whether the next hop is a real edge — <code>v in adj[u]</code> — is an O(1) lookup. That single check is exactly what both the path loop and the cycle loop above are built from, and it's the same check <code>path_exists</code> uses internally on every pop.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Graph types: undirected → directed → weighted</h2>
+      <p>Same six vertices, same seven connecting pairs — three different graphs, because <code>add_edge</code> and the neighbour sets it writes change shape each time. Watch what happens to the <em>same</em> canonical graph as it goes from undirected to directed to weighted.</p>
+      <div class="mini-grid">
+        <div class="mini-diagram">
+          <h3>Undirected</h3>
+          <svg viewBox="0 0 300 170" width="100%" role="img" aria-label="Undirected version of the canonical graph: plain lines, no direction">
+            <line x1="50" y1="40" x2="150" y2="40" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+            <line x1="150" y1="40" x2="250" y2="40" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+            <line x1="50" y1="40" x2="50" y2="130" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+            <line x1="150" y1="40" x2="150" y2="130" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+            <line x1="250" y1="40" x2="250" y2="130" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+            <line x1="50" y1="130" x2="150" y2="130" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+            <line x1="150" y1="130" x2="250" y2="130" stroke="#c8d2e7" stroke-width="4" stroke-linecap="round" />
+            <circle cx="50" cy="40" r="18" fill="#315efb" /><text x="45" y="45" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">A</text>
+            <circle cx="150" cy="40" r="18" fill="#315efb" /><text x="145" y="45" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">B</text>
+            <circle cx="250" cy="40" r="18" fill="#315efb" /><text x="245" y="45" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">C</text>
+            <circle cx="50" cy="130" r="18" fill="#315efb" /><text x="45" y="135" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">D</text>
+            <circle cx="150" cy="130" r="18" fill="#315efb" /><text x="145" y="135" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">E</text>
+            <circle cx="250" cy="130" r="18" fill="#315efb" /><text x="245" y="135" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">F</text>
+          </svg>
+          <p class="footer-note">Each line is mutual — <code>add_edge(u, v)</code> writes <em>both</em> <code>adj[u].add(v)</code> and <code>adj[v].add(u)</code>.</p>
+        </div>
+        <div class="mini-diagram">
+          <h3>Directed</h3>
+          <svg viewBox="0 0 300 170" width="100%" role="img" aria-label="Directed version of the same graph: one-way arrows from earlier letter to later letter">
+            <defs>
+              <marker id="types-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6 Z" fill="#315efb" />
+              </marker>
+            </defs>
+            <line x1="68" y1="40" x2="132" y2="40" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow)" />
+            <line x1="168" y1="40" x2="232" y2="40" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow)" />
+            <line x1="50" y1="58" x2="50" y2="112" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow)" />
+            <line x1="150" y1="58" x2="150" y2="112" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow)" />
+            <line x1="250" y1="58" x2="250" y2="112" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow)" />
+            <line x1="68" y1="130" x2="132" y2="130" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow)" />
+            <line x1="168" y1="130" x2="232" y2="130" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow)" />
+            <circle cx="50" cy="40" r="18" fill="#315efb" /><text x="45" y="45" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">A</text>
+            <circle cx="150" cy="40" r="18" fill="#315efb" /><text x="145" y="45" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">B</text>
+            <circle cx="250" cy="40" r="18" fill="#315efb" /><text x="245" y="45" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">C</text>
+            <circle cx="50" cy="130" r="18" fill="#315efb" /><text x="45" y="135" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">D</text>
+            <circle cx="150" cy="130" r="18" fill="#315efb" /><text x="145" y="135" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">E</text>
+            <circle cx="250" cy="130" r="18" fill="#315efb" /><text x="245" y="135" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">F</text>
+          </svg>
+          <p class="footer-note">Same pairs, now one-way — <code>add_edge(u, v)</code> writes only <code>adj[u].add(v)</code>. In-degree and out-degree can now differ.</p>
+        </div>
+        <div class="mini-diagram">
+          <h3>Weighted</h3>
+          <svg viewBox="0 0 300 170" width="100%" role="img" aria-label="Weighted directed version of the same graph: arrows labelled with a cost">
+            <defs>
+              <marker id="types-arrow-w" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6 Z" fill="#315efb" />
+              </marker>
+            </defs>
+            <line x1="68" y1="40" x2="132" y2="40" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow-w)" />
+            <line x1="168" y1="40" x2="232" y2="40" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow-w)" />
+            <line x1="50" y1="58" x2="50" y2="112" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow-w)" />
+            <line x1="150" y1="58" x2="150" y2="112" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow-w)" />
+            <line x1="250" y1="58" x2="250" y2="112" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow-w)" />
+            <line x1="68" y1="130" x2="132" y2="130" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow-w)" />
+            <line x1="168" y1="130" x2="232" y2="130" stroke="#315efb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#types-arrow-w)" />
+            <text x="100" y="32" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#13a46b">4</text>
+            <text x="200" y="32" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#13a46b">2</text>
+            <text x="32" y="89" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#13a46b">1</text>
+            <text x="132" y="89" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#13a46b">5</text>
+            <text x="268" y="89" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#13a46b">3</text>
+            <text x="100" y="122" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#13a46b">6</text>
+            <text x="200" y="122" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#13a46b">2</text>
+            <circle cx="50" cy="40" r="18" fill="#315efb" /><text x="45" y="45" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">A</text>
+            <circle cx="150" cy="40" r="18" fill="#315efb" /><text x="145" y="45" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">B</text>
+            <circle cx="250" cy="40" r="18" fill="#315efb" /><text x="245" y="45" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">C</text>
+            <circle cx="50" cy="130" r="18" fill="#315efb" /><text x="45" y="135" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">D</text>
+            <circle cx="150" cy="130" r="18" fill="#315efb" /><text x="145" y="135" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">E</text>
+            <circle cx="250" cy="130" r="18" fill="#315efb" /><text x="245" y="135" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#fff">F</text>
+          </svg>
+          <p class="footer-note">Each edge now carries a cost — <code>adj[u].add((v, weight))</code> stores a tuple instead of a bare vertex. "Shortest" means cheapest total weight, not fewest edges.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>When you'd use each:</strong> undirected for mutual relationships (friendships, two-way roads — <code>degree()</code> is symmetric). Directed for one-way relationships (follows, prerequisites, one-way streets — now <code>in_degree</code> and <code>out_degree</code> can differ). Weighted whenever the connection itself has a cost (distance, latency, price) and "shortest" has to mean cheapest, which is what pulls Dijkstra or Bellman-Ford into the picture instead of plain BFS.</p>
+      </div>
+      <div class="mini-grid" style="margin-top:18px;">
+        <div class="card">
+          <h4>DAG — directed + acyclic</h4>
+          <p>The directed diagram above happens to have zero cycles — every arrow goes from an earlier letter to a later one, so nothing ever points back. That makes it a <strong>DAG</strong>: it can be topologically sorted into a valid order (here, simply A, B, C, D, E, F), which is exactly the shape of a build pipeline or a course-prerequisite chart.</p>
+        </div>
+        <div class="card">
+          <h4>Bipartite</h4>
+          <p>A graph is bipartite if its vertices split into two groups with edges only crossing <em>between</em> the groups, never within one. This canonical graph actually is: group {A, C, E} and group {B, D, F} — every one of the 7 edges connects one group to the other. Useful for matching problems and 2-colouring.</p>
+        </div>
+        <div class="card">
+          <h4>Sparse vs dense</h4>
+          <p>6 vertices means a spanning tree needs 5 edges (the minimum to stay connected) and a complete graph would need 15 (<code>V(V−1)/2</code>). This graph has 7 — just 2 above the minimum, nowhere near the 15-edge maximum. That's <strong>sparse</strong>, and it's exactly why the whole page stores it as an adjacency list rather than a V×V matrix.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Edge cases you should test</h2>
       <div class="tabs" role="tablist" aria-label="Edge case examples">
         <button type="button" class="active-tab" data-example-tab="0">Directed graph</button>
@@ -978,6 +1206,7 @@ F: {C, E}</code></div>
             <tr><td>degree(u) — undirected</td><td>O(1)</td><td>O(1) extra</td><td>Reading how many edges touch u directly off the structure</td></tr>
             <tr><td>out_degree(u) / in_degree(u) — directed</td><td>out: O(1) · in: O(V + E) worst case</td><td>O(1) extra</td><td>out_degree reads one list; in_degree has no reverse index, so it scans every vertex</td></tr>
             <tr><td>path_exists(start, goal)</td><td>O(V + E) worst case</td><td>O(V) for stack + seen</td><td>Answering "can I reach goal from start at all"</td></tr>
+            <tr><td>add_edge — weighted variant</td><td>O(1) avg per edge</td><td>O(V + E)</td><td>Storing <code>(neighbour, weight)</code> tuples so a later shortest-path algorithm (Dijkstra, Bellman-Ford) can read the cost straight off the adjacency list</td></tr>
           </tbody>
         </table>
       </div>
@@ -1093,6 +1322,22 @@ F: {C, E}</code></div>
         { step: 2, title: "Step 2: pop 'D'", text: 'The stack pops from the right, so D (pushed last) comes off before B. D is new, gets marked seen, and its sorted neighbours A and E are pushed.', stack: "['B', 'A', 'E']", seen: "['A', 'D']", u: 'D', nbrs: "['A', 'E']", result: '—', detail: "Notice A goes back onto the stack even though it's already in seen — path_exists only checks seen when a vertex is POPPED, not when it's pushed. That duplicate A will simply be skipped if it's ever popped.", currentNode: 'D', frontierNodes: ['B', 'E'], seenNodes: ['A', 'D'], activeEdge: 'A-D', lines: [4, 5, 7, 9, 10] },
         { step: 3, title: "Step 3: pop 'E'", text: "E is popped next. It's new, so it's marked seen, and all three of its neighbours — B, D, F — get pushed. Watch the stack: B is now sitting in it twice.", stack: "['B', 'A', 'B', 'D', 'F']", seen: "['A', 'D', 'E']", u: 'E', nbrs: "['B', 'D', 'F']", result: '—', detail: 'Two of the three pushed neighbours (B and D) are duplicates already represented on the stack or in seen. This is the visited set earning its keep — without it, D and B would each be re-expanded from scratch.', currentNode: 'E', frontierNodes: ['B', 'F'], seenNodes: ['A', 'D', 'E'], activeEdge: 'D-E', lines: [4, 5, 7, 9, 10] },
         { step: 4, title: "Step 4: pop 'F' — goal found", text: 'F is popped and immediately matches the goal — return True fires before the seen check even runs for F. The leftover duplicate B, A, and D entries are still sitting in the stack, unexplored, but the function is already done.', stack: "['B', 'A', 'B', 'D']", seen: "['A', 'D', 'E']", u: 'F', nbrs: '—', result: 'True', detail: 'F was never added to seen because the function returns on line 6, before line 9 ever runs for F.', currentNode: 'F', frontierNodes: ['B'], seenNodes: ['A', 'D', 'E'], activeEdge: 'E-F', lines: [4, 5, 6] }
+      ];
+
+      const vocabAdjText = '{A: {B, D}, B: {A, C, E}, C: {B, F}, D: {A, E}, E: {B, D, F}, F: {C, E}}';
+      const allVocabNodes = ['A', 'B', 'C', 'D', 'E', 'F'];
+      const allVocabEdges = ['A-B', 'B-C', 'A-D', 'B-E', 'C-F', 'D-E', 'E-F'];
+      const blueAll = Object.fromEntries(allVocabNodes.map((n) => [n, 'blue']));
+      const blueAllEdges = Object.fromEntries(allVocabEdges.map((e) => [e, 'blue']));
+
+      const vocabSteps = [
+        { step: 0, title: 'Initial state', text: 'adj already holds all six vertices and their neighbour sets — the same structure Method 1 built. Nothing is highlighted yet; each step below names one piece of vocabulary on top of it.', concept: 'Starting point', focus: '—', value: '—', verified: '—', detail: 'nothing yet — this is the same finished adjacency list from Method 1, just waiting for the tour to start.', nodeColors: {}, edgeColors: {}, lines: [1, 2, 3, 4] },
+        { step: 1, title: 'Step 1: vertices — the things', text: 'Vertices are just the keys of adj: A, B, C, D, E, F. Nothing about how they connect yet — just the six things that exist.', concept: 'Vertices', focus: 'A, B, C, D, E, F', value: '6 vertices', verified: '—', detail: 'sorted(adj) lists every key — this is the full vertex set, before any talk of edges.', nodeColors: blueAll, edgeColors: {}, lines: [1, 2, 3, 4, 6] },
+        { step: 2, title: 'Step 2: edges — the connections', text: 'Each line on the graph is one pair from the edges list — the same flat list Method 1 fed into add_edge, one call per edge.', concept: 'Edges', focus: 'A-B, B-C, A-D, B-E, C-F, D-E, E-F', value: '7 edges', verified: '—', detail: 'the adjacency list adj is nothing more than this edges list turned into neighbour sets, two set insertions per edge.', nodeColors: {}, edgeColors: blueAllEdges, lines: [7] },
+        { step: 3, title: 'Step 3: degree(B) = 3', text: 'Degree counts how many edges touch a vertex. B connects to A, C, and E — three neighbours, so degree(B) = 3, the highest in this graph.', concept: 'Degree(B)', focus: 'B (current) · neighbours A, C, E', value: 'degree_B = len(adj["B"]) = 3', verified: 'len({A, C, E}) = 3 — computed, not guessed', detail: 'degree is a single len() call on one neighbour set — no walking the rest of the graph required.', nodeColors: { B: 'orange', A: 'green', C: 'green', E: 'green' }, edgeColors: { 'A-B': 'orange', 'B-C': 'orange', 'B-E': 'orange' }, lines: [9] },
+        { step: 4, title: 'Step 4: a path — A → B → E → F', text: 'A path is a chain of vertices where every consecutive pair is a real edge. A → B → E → F walks three real edges in a row and lands on F.', concept: 'A path: A → B → E → F', focus: 'A, B, E → blue · F → orange (destination)', value: 'path = ["A", "B", "E", "F"]', verified: '(A,B) in adj[A]? True · (B,E) in adj[B]? True · (E,F) in adj[E]? True', detail: 'every consecutive pair in the path list is checked against adj with v in adj[u] — that check, not eyeballing the picture, is what makes this a real path.', nodeColors: { A: 'blue', B: 'blue', E: 'blue', F: 'orange' }, edgeColors: { 'A-B': 'blue', 'B-E': 'blue', 'E-F': 'blue' }, lines: [11, 12, 13] },
+        { step: 5, title: 'Step 5: a cycle — A → B → E → D → A', text: 'A cycle is a path with one extra rule: the walk has to return to the vertex it started from. A → B → E → D → A does exactly that.', concept: 'A cycle: A → B → E → D → A', focus: 'A → orange (start = end) · B, E, D → green', value: 'cycle = ["A", "B", "E", "D", "A"]', verified: 'all 4 consecutive pairs are real edges, and cycle[0] == cycle[-1] == "A"', detail: 'same v in adj[u] check as a path, run four times, plus one more check: does the last vertex equal the first?', nodeColors: { A: 'orange', B: 'green', E: 'green', D: 'green' }, edgeColors: { 'A-B': 'green', 'B-E': 'green', 'D-E': 'green', 'A-D': 'green' }, lines: [15, 16, 17, 18] },
+        { step: 6, title: 'Step 6: recap — one structure, three questions', text: 'Degree, path, and cycle are not three different structures to learn — they are three different questions asked of the exact same adjacency list.', concept: 'Recap', focus: 'everything on the graph', value: 'degree → 1 lookup · path → a chain of lookups · cycle → a chain that comes home', verified: 'all checks above passed', detail: 'degree counts one neighbour set; a path chains several "is this a real edge" checks; a cycle is a path that returns to its start. Same adj, three lenses.', nodeColors: blueAll, edgeColors: blueAllEdges, lines: [1, 2, 3, 4, 6, 7, 9, 11, 15] }
       ];
 
       function setCodeHighlight(containerId, lines) {
@@ -1231,8 +1476,39 @@ F: {C, E}</code></div>
         });
       }
 
+      const vocabColorHex = { blue: '#315efb', green: '#13a46b', orange: '#ff9f1c', gray: '#c8d2e7' };
+
+      function renderVocab(step, index, max) {
+        document.getElementById('vocab-step-title').textContent = step.title;
+        document.getElementById('vocab-step-text').textContent = step.text;
+        document.getElementById('vocab-concept').textContent = step.concept;
+        document.getElementById('vocab-focus').textContent = step.focus;
+        document.getElementById('vocab-adj').textContent = vocabAdjText;
+        document.getElementById('vocab-value').textContent = step.value;
+        document.getElementById('vocab-verified').textContent = step.verified;
+        document.getElementById('vocab-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('vocab-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('vocab-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('vocab-trace-table', step.step);
+        setCodeHighlight('vocab-code', step.lines);
+
+        document.querySelectorAll('#vocab-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          const color = step.nodeColors[id] || 'gray';
+          node.setAttribute('fill', vocabColorHex[color]);
+        });
+
+        document.querySelectorAll('#vocab-graph [data-vocab-edge]').forEach((line) => {
+          const key = line.dataset.vocabEdge;
+          const color = step.edgeColors[key] || 'gray';
+          line.setAttribute('stroke', vocabColorHex[color]);
+          line.setAttribute('stroke-width', color === 'orange' ? '8' : color === 'gray' ? '4' : '5');
+        });
+      }
+
       setupTrace({ steps: m1Steps, prefix: 'm1', render: renderM1 });
       setupTrace({ steps: m2Steps, prefix: 'm2', render: renderM2 });
+      setupTrace({ steps: vocabSteps, prefix: 'vocab', render: renderVocab });
 
       const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
       const panels = Array.from(document.querySelectorAll('[data-example-panel]'));

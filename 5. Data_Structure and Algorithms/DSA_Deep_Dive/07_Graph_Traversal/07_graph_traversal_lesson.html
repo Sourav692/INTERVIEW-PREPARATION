@@ -512,6 +512,7 @@
             <span class="chip">Core idea: mark visited on discovery</span>
             <span class="chip">Interactive BFS trace</span>
             <span class="chip">Interactive DFS trace</span>
+            <span class="chip">Interactive connected-components trace</span>
             <span class="chip">Code synced with steps</span>
           </div>
         </div>
@@ -939,6 +940,175 @@ F: [C, E]</code></div>
     </section>
 
     <section class="panel">
+      <h2>Method 3: Connected components — count the islands</h2>
+      <p>
+        BFS and DFS above both assumed the graph was one connected piece — start at A and every other vertex is
+        reachable. Real graphs are often not: they arrive as several separate pieces, and some pieces are a
+        single vertex with no edges at all. Counting connected components answers "how many separate pieces does
+        this graph have?" by wrapping the same DFS-with-an-explicit-stack from Method 2 in a <strong>for loop over
+        every vertex</strong>, sorted for a deterministic order. Whenever that loop lands on a vertex that is still
+        unvisited, that vertex cannot belong to any component already flooded — so the count goes up by one and a
+        fresh flood-fill starts right there.
+      </p>
+      <p style="margin-top:10px;">
+        Canonical graph for this trace: <code>adj = {"G":["H"], "H":["G","I"], "I":["H"], "J":["K"], "K":["J","L"], "L":["K"], "M":[]}</code>,
+        with <code>vertices = sorted(adj) = [G, H, I, J, K, L, M]</code>. It has three components on purpose:
+        <code>{G, H, I}</code>, a separate <code>{J, K, L}</code>, and <code>{M}</code> — a single vertex with zero
+        edges, included specifically because it proves the outer loop cannot be driven by the edge list.
+      </p>
+      <div class="code-block stepped">
+        <code id="cc-code">
+<span class="code-line" data-line="1">def connected_components(adj, vertices):</span>
+<span class="code-line" data-line="2">    """Each fresh start that finds new ground is one more component."""</span>
+<span class="code-line" data-line="3">    seen, count = set(), 0</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    for start in vertices:            # try EVERY vertex, not just the ones with edges</span>
+<span class="code-line" data-line="6">        if start not in seen:</span>
+<span class="code-line" data-line="7">            count += 1                 # a fresh, never-before-seen island</span>
+<span class="code-line" data-line="8">            stack = [start]</span>
+<span class="code-line" data-line="9"></span>
+<span class="code-line" data-line="10">            while stack:               # flood everything reachable from start</span>
+<span class="code-line" data-line="11">                u = stack.pop()</span>
+<span class="code-line" data-line="12">                if u in seen:</span>
+<span class="code-line" data-line="13">                    continue</span>
+<span class="code-line" data-line="14">                seen.add(u)</span>
+<span class="code-line" data-line="15">                stack.extend(adj[u])</span>
+<span class="code-line" data-line="16"></span>
+<span class="code-line" data-line="17">    return count</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive connected-components trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="cc-graph" viewBox="0 0 460 310" width="100%" role="img" aria-label="Connected components trace over three separate groups, including one isolated vertex">
+              <defs>
+                <style>
+                  .ccg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .ccg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .ccg-cluster { fill: none; stroke: #c8d2e7; stroke-width: 2; stroke-dasharray: 6 6; transition: stroke 0.2s ease, fill 0.2s ease; }
+                  .ccg-cluster.assigned { stroke: #315efb; stroke-dasharray: none; fill: rgba(49, 94, 251, 0.06); }
+                  .ccg-cluster-label { font: 700 12px Inter, Arial, sans-serif; fill: #5d677d; }
+                  .ccg-cluster.assigned + .ccg-cluster-label,
+                  text.ccg-cluster-label.assigned { fill: #315efb; }
+                  .ccg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .ccg-node.seen { fill: #315efb; }
+                  .ccg-node.frontier { fill: #13a46b; }
+                  .ccg-node.current { fill: #ff9f1c; }
+                  .ccg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                </style>
+              </defs>
+              <rect id="cc-cluster-1" class="ccg-cluster" x="26" y="22" width="178" height="178" rx="20" />
+              <text id="cc-cluster-label-1" class="ccg-cluster-label" x="34" y="16">group 1</text>
+              <rect id="cc-cluster-2" class="ccg-cluster" x="256" y="22" width="178" height="178" rx="20" />
+              <text id="cc-cluster-label-2" class="ccg-cluster-label" x="264" y="16">group 2</text>
+              <rect id="cc-cluster-3" class="ccg-cluster" x="186" y="202" width="88" height="88" rx="20" />
+              <text id="cc-cluster-label-3" class="ccg-cluster-label" x="194" y="196">group 3</text>
+              <line x1="70" y1="66" x2="70" y2="156" class="ccg-base-edge" />
+              <line x1="70" y1="156" x2="160" y2="156" class="ccg-base-edge" />
+              <line x1="300" y1="66" x2="300" y2="156" class="ccg-base-edge" />
+              <line x1="300" y1="156" x2="390" y2="156" class="ccg-base-edge" />
+              <line x1="70" y1="66" x2="70" y2="156" class="ccg-active-edge" data-cc-edge="G-H" visibility="hidden" />
+              <line x1="70" y1="156" x2="160" y2="156" class="ccg-active-edge" data-cc-edge="H-I" visibility="hidden" />
+              <line x1="300" y1="66" x2="300" y2="156" class="ccg-active-edge" data-cc-edge="J-K" visibility="hidden" />
+              <line x1="300" y1="156" x2="390" y2="156" class="ccg-active-edge" data-cc-edge="K-L" visibility="hidden" />
+              <circle cx="70" cy="66" r="24" class="ccg-node" data-node="G" />
+              <circle cx="70" cy="156" r="24" class="ccg-node" data-node="H" />
+              <circle cx="160" cy="156" r="24" class="ccg-node" data-node="I" />
+              <circle cx="300" cy="66" r="24" class="ccg-node" data-node="J" />
+              <circle cx="300" cy="156" r="24" class="ccg-node" data-node="K" />
+              <circle cx="390" cy="156" r="24" class="ccg-node" data-node="L" />
+              <circle cx="230" cy="246" r="24" class="ccg-node" data-node="M" />
+              <text x="63" y="72" class="ccg-label">G</text>
+              <text x="63" y="162" class="ccg-label">H</text>
+              <text x="153" y="162" class="ccg-label">I</text>
+              <text x="293" y="72" class="ccg-label">J</text>
+              <text x="293" y="162" class="ccg-label">K</text>
+              <text x="383" y="162" class="ccg-label">L</text>
+              <text x="223" y="252" class="ccg-label">M</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current vertex being processed</span>
+            <span><i class="dot dot-green"></i> pushed to the stack, still unvisited</span>
+            <span><i class="dot dot-blue"></i> already seen — assigned to a component</span>
+            <span><i class="dot dot-gray"></i> not reached yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="cc-step-title">Step 0: start = G — new component #1</h3>
+          <p id="cc-step-text">The outer for-loop scans the sorted vertex list and reaches G first. G is not in seen, so this is a brand-new component: count becomes 1 and G is pushed onto an empty stack — nothing is marked seen yet, that happens only when a vertex is actually popped.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="cc-prev">Previous</button>
+            <button type="button" id="cc-play" class="primary">Resume</button>
+            <button type="button" id="cc-next">Next</button>
+            <button type="button" id="cc-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="cc-step-counter">Step 0 / 17</span>
+            <div class="progress"><span id="cc-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Outer loop position</strong><div class="state-value" id="cc-outer">start = 'G' (1 of 7)</div></div>
+            <div class="state-box"><strong>Stack (top is rightmost)</strong><div class="state-value" id="cc-stack">[G]</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="cc-action">start='G' not in seen -&gt; count=1 (new island), stack=[G]</div></div>
+            <div class="state-box"><strong>Seen set</strong><div class="state-value" id="cc-seen">{}</div></div>
+            <div class="state-box"><strong>Component being built</strong><div class="state-value" id="cc-component">Component #1: just started, stack seeded with G</div></div>
+            <div class="state-box"><strong>Components found so far</strong><div class="state-value" id="cc-count">1</div></div>
+          </div>
+          <div class="explainer">
+            <p id="cc-detail"><strong>What changed:</strong> count jumps from 0 to 1 the moment an unvisited start is found — before any neighbor has even been looked at. seen is still empty; G is only sitting on the stack.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="cc-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Vertex</th><th>Action</th><th>Stack after</th><th>Seen after</th><th>Components after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>start G</td><td>not in seen -&gt; new component, count=1</td><td><code>[G]</code></td><td><code>{}</code></td><td>1</td></tr>
+            <tr data-step="1"><td>1</td><td>pop G</td><td>mark seen, push adj[G]=[H]</td><td><code>[H]</code></td><td><code>{G}</code></td><td>1</td></tr>
+            <tr data-step="2"><td>2</td><td>pop H</td><td>mark seen, push adj[H]=[G,I]</td><td><code>[G,I]</code></td><td><code>{G,H}</code></td><td>1</td></tr>
+            <tr data-step="3"><td>3</td><td>pop I</td><td>mark seen, push adj[I]=[H]</td><td><code>[G,H]</code></td><td><code>{G,H,I}</code></td><td>1</td></tr>
+            <tr data-step="4"><td>4</td><td>pop H</td><td>already seen -&gt; skip (duplicate)</td><td><code>[G]</code></td><td><code>{G,H,I}</code></td><td>1</td></tr>
+            <tr data-step="5"><td>5</td><td>pop G</td><td>already seen -&gt; skip (duplicate); stack empty, component #1 done</td><td><code>[]</code></td><td><code>{G,H,I}</code></td><td>1</td></tr>
+            <tr data-step="6"><td>6</td><td>start H</td><td>already in seen -&gt; skip, no new component</td><td><code>[]</code></td><td><code>{G,H,I}</code></td><td>1</td></tr>
+            <tr data-step="7"><td>7</td><td>start I</td><td>already in seen -&gt; skip, no new component</td><td><code>[]</code></td><td><code>{G,H,I}</code></td><td>1</td></tr>
+            <tr data-step="8"><td>8</td><td>start J</td><td>not in seen -&gt; new component, count=2</td><td><code>[J]</code></td><td><code>{G,H,I}</code></td><td>2</td></tr>
+            <tr data-step="9"><td>9</td><td>pop J</td><td>mark seen, push adj[J]=[K]</td><td><code>[K]</code></td><td><code>{G,H,I,J}</code></td><td>2</td></tr>
+            <tr data-step="10"><td>10</td><td>pop K</td><td>mark seen, push adj[K]=[J,L]</td><td><code>[J,L]</code></td><td><code>{G,H,I,J,K}</code></td><td>2</td></tr>
+            <tr data-step="11"><td>11</td><td>pop L</td><td>mark seen, push adj[L]=[K]</td><td><code>[J,K]</code></td><td><code>{G,H,I,J,K,L}</code></td><td>2</td></tr>
+            <tr data-step="12"><td>12</td><td>pop K</td><td>already seen -&gt; skip (duplicate)</td><td><code>[J]</code></td><td><code>{G,H,I,J,K,L}</code></td><td>2</td></tr>
+            <tr data-step="13"><td>13</td><td>pop J</td><td>already seen -&gt; skip (duplicate); stack empty, component #2 done</td><td><code>[]</code></td><td><code>{G,H,I,J,K,L}</code></td><td>2</td></tr>
+            <tr data-step="14"><td>14</td><td>start K</td><td>already in seen -&gt; skip, no new component</td><td><code>[]</code></td><td><code>{G,H,I,J,K,L}</code></td><td>2</td></tr>
+            <tr data-step="15"><td>15</td><td>start L</td><td>already in seen -&gt; skip, no new component</td><td><code>[]</code></td><td><code>{G,H,I,J,K,L}</code></td><td>2</td></tr>
+            <tr data-step="16"><td>16</td><td>start M</td><td>not in seen -&gt; new component, count=3 (isolated, adj[M]=[])</td><td><code>[M]</code></td><td><code>{G,H,I,J,K,L}</code></td><td>3</td></tr>
+            <tr data-step="17"><td>17</td><td>pop M</td><td>mark seen, push adj[M]=[]; stack empty, component #3 done</td><td><code>[]</code></td><td><code>{G,H,I,J,K,L,M}</code></td><td>3</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>A single BFS or DFS from one start only ever finds the vertices reachable from that start — it can never discover a vertex sitting in a different, disconnected part of the graph. Wrapping the traversal in a for loop over every vertex, and only re-flooding when a vertex is still unvisited, is what turns "traverse from one place" into "count every component in the whole graph."</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Driving the outer loop off the edge list instead of the full vertex list. Vertex M has zero edges, so it never appears in any edge tuple — if the loop only visits vertices mentioned in edges, an isolated vertex like M is silently skipped and the component count comes out one short.</p>
+        </div>
+        <div class="card">
+          <h4>Why this pattern matters</h4>
+          <p>This exact shape — loop over every cell or vertex, skip the ones already visited, flood-fill the rest — is Number of Islands, Provinces, and Accounts Merge under different names. The flood-fill (BFS or DFS) never changes; only what counts as a "neighbor" does: grid adjacency, a same-city matrix, or a shared email address.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Edge cases you should test</h2>
       <div class="tabs" role="tablist" aria-label="Edge case examples">
         <button type="button" class="active-tab" data-example-tab="0">Disconnected graph</button>
@@ -985,6 +1155,7 @@ F: [C, E]</code></div>
             <tr><td>BFS (queue)</td><td>O(V + E)</td><td>O(V) — queue + seen set</td><td>Shortest path / fewest hops, level-by-level info</td></tr>
             <tr><td>DFS (recursive)</td><td>O(V + E)</td><td>O(V) worst case — call stack depth (can hit <code>RecursionError</code> on a very long, skewed graph)</td><td>Reachability, connected components, cycle detection, topological order</td></tr>
             <tr><td>DFS (iterative, explicit stack)</td><td>O(V + E)</td><td>O(V) — explicit stack + seen set, never risks <code>RecursionError</code></td><td>Same jobs as recursive DFS, safe on very deep or skewed graphs</td></tr>
+            <tr><td>Connected components (outer loop + DFS)</td><td>O(V + E)</td><td>O(V) — seen set + stack</td><td>Counting disconnected pieces: Number of Islands, Provinces, Accounts Merge</td></tr>
           </tbody>
         </table>
       </div>
@@ -1096,6 +1267,27 @@ F: [C, E]</code></div>
         { step: 6, title: 'Step 6: pop D', text: 'Pop D (top copy). Not seen — mark it. Neighbors of D are A, E — both already seen, so nothing new is pushed.', stack: '[D, E]', action: 'pop D -> mark seen -> A, E seen -> nothing to push', node: 'D', seen: '{A,B,C,D,E,F}', order: '[A, B, C, F, E, D]', detail: 'Every vertex is now marked seen. What is left on the stack (D, E) are stale duplicate entries from earlier steps that will simply get skipped next.', doneNodes: ['A','B','C','F','E'], currentNode: 'D', stackNodes: ['D','E'], activeEdges: [], lines: [5,6,8,9,11,12] },
         { step: 7, title: 'Step 7: pop E — duplicate, skip', text: 'Pop E again — the duplicate copy pushed back in step 4. It is already in seen, so the if u in seen: continue guard fires and this pop does nothing else.', stack: '[D]', action: 'pop E -> already seen -> continue (skip)', node: 'E (duplicate)', seen: '{A,B,C,D,E,F}', order: '[A, B, C, F, E, D]', detail: 'This is exactly the cost of marking on pop instead of on push: a wasted pop that does no real work. It is harmless, because the guard is checked before anything else runs.', doneNodes: ['A','B','C','F','E','D'], currentNode: 'E', stackNodes: ['D'], activeEdges: [], lines: [5,6,7] },
         { step: 8, title: 'Step 8: pop D — duplicate, skip, stack empties', text: 'Pop D again — the duplicate from step 1. Already seen, so it is skipped too. The stack is now empty, the while loop ends, and DFS returns.', stack: '[]', action: 'pop D -> already seen -> continue -> stack empty -> return order', node: 'D (duplicate)', seen: '{A,B,C,D,E,F}', order: '[A, B, C, F, E, D]', detail: 'Final result: order = [A, B, C, F, E, D] — the same six vertices BFS found, reached in a completely different order because a stack dives deep instead of spreading wide.', doneNodes: ['A','B','C','F','E','D'], currentNode: 'D', stackNodes: [], activeEdges: [], lines: [5,6,7,15] }
+      ];
+
+      const ccSteps = [
+        { step: 0, title: 'Step 0: start = G — new component #1', text: "The outer for-loop scans the sorted vertex list and reaches G first. G is not in seen, so this is a brand-new component: count becomes 1 and G is pushed onto an empty stack — nothing is marked seen yet, that happens only when a vertex is actually popped.", outer: "start = 'G' (1 of 7)", stack: '[G]', action: "start='G' not in seen -> count=1 (new island), stack=[G]", seen: '{}', component: 'Component #1: just started, stack seeded with G', count: '1', detail: 'count jumps from 0 to 1 the moment an unvisited start is found — before any neighbor has even been looked at. seen is still empty; G is only sitting on the stack.', doneNodes: [], currentNode: 'G', stackNodes: ['G'], activeEdges: [], clusterClosed: [], lines: [5,6,7,8] },
+        { step: 1, title: 'Step 1: pop G', text: "Pop G off the stack. It is not in seen, so mark it now and read its neighbor list, adj[G] = [H]. H gets appended to the stack.", outer: "start = 'G' (1 of 7) — flooding", stack: '[H]', action: "pop 'G' -> mark seen -> stack.extend(adj['G']=['H'])", seen: '{G}', component: 'Component #1 so far: {G}', count: '1', detail: 'G becomes the first vertex actually marked seen. Its only neighbor, H, is queued for the next pop.', doneNodes: ['G'], currentNode: 'G', stackNodes: ['H'], activeEdges: ['G-H'], clusterClosed: [], lines: [10,11,12,14,15] },
+        { step: 2, title: 'Step 2: pop H', text: "Pop H. Not seen yet — mark it. H's neighbor list is [G, I]; both get appended to the stack even though G is already marked seen — the extend happens unconditionally, without checking seen first.", outer: "start = 'G' (1 of 7) — flooding", stack: '[G, I]', action: "pop 'H' -> mark seen -> stack.extend(adj['H']=['G','I'])", seen: '{G, H}', component: 'Component #1 so far: {G, H}', count: '1', detail: 'H is marked seen. Its neighbor list has both G and I in it — G goes back onto the stack even though it is already seen, because stack.extend never checks seen first.', doneNodes: ['G','H'], currentNode: 'H', stackNodes: ['I'], activeEdges: ['G-H','H-I'], clusterClosed: [], lines: [10,11,12,14,15] },
+        { step: 3, title: 'Step 3: pop I', text: "Pop I (top of the stack). Not seen — mark it. I's only neighbor, H, gets appended, even though H is already seen. This is why the stack can hold visited vertices: the seen check happens at pop time, not at push time.", outer: "start = 'G' (1 of 7) — flooding", stack: '[G, H]', action: "pop 'I' -> mark seen -> stack.extend(adj['I']=['H'])", seen: '{G, H, I}', component: 'Component #1 so far: {G, H, I}', count: '1', detail: 'I is marked seen. This is the third and last member of component #1 — everything else adj[u] pushes from here on is a duplicate of something already seen.', doneNodes: ['G','H','I'], currentNode: 'I', stackNodes: [], activeEdges: ['H-I'], clusterClosed: [1], lines: [10,11,12,14,15] },
+        { step: 4, title: 'Step 4: pop H — duplicate, skip', text: "Pop H again — this is the duplicate pushed back in step 2. It is already in seen, so the guard fires and this pop does nothing except drop it.", outer: "start = 'G' (1 of 7) — flooding", stack: '[G]', action: "pop 'H' -> already seen -> continue (skip)", seen: '{G, H, I}', component: 'Component #1 (closed): {G, H, I} — draining duplicate H', count: '1', detail: 'This pop does no real work: H was already marked seen two steps ago. The if u in seen: continue guard is the only thing standing between a correct O(V+E) algorithm and reprocessing vertices.', doneNodes: ['G','H','I'], currentNode: 'H', stackNodes: [], activeEdges: [], clusterClosed: [1], lines: [10,11,12,13] },
+        { step: 5, title: 'Step 5: pop G — duplicate, skip', text: "Pop G again — the duplicate from step 3. Also already seen; skipped the same way. The stack is now empty, so the inner while loop ends. Component #1 = {G, H, I} is fully flooded.", outer: "start = 'G' (1 of 7) — flooding", stack: '[]', action: "pop 'G' -> already seen -> continue (skip)", seen: '{G, H, I}', component: 'Component #1 (closed): {G, H, I} — draining duplicate G, stack empty', count: '1', detail: 'Same story for G. With the stack now empty, the while loop exits — component #1 is finished at exactly {G, H, I}, three vertices, zero more to check.', doneNodes: ['G','H','I'], currentNode: 'G', stackNodes: [], activeEdges: [], clusterClosed: [1], lines: [10,11,12,13] },
+        { step: 6, title: 'Step 6: start = H — already seen, skip', text: "Back in the outer for-loop: the next vertex is H. It is already in seen (from component #1), so the if start not in seen check is false and nothing happens — no new component, no traversal.", outer: "start = 'H' (2 of 7)", stack: '[]', action: "start='H' already in seen -> skip, no new component", seen: '{G, H, I}', component: 'Component #1 (closed): {G, H, I} — outer loop checking H next', count: '1', detail: 'H already belongs to component #1, so if start not in seen is false and the whole body of the if is skipped — no count increment, no stack, no traversal at all.', doneNodes: ['G','H','I'], currentNode: 'H', stackNodes: [], activeEdges: [], clusterClosed: [1], lines: [5,6] },
+        { step: 7, title: 'Step 7: start = I — already seen, skip', text: "Next vertex, I — same story: already seen, skipped. This is the whole mechanism for a disconnected graph: the loop simply keeps moving until it finds a vertex nobody has claimed yet.", outer: "start = 'I' (3 of 7)", stack: '[]', action: "start='I' already in seen -> skip, no new component", seen: '{G, H, I}', component: 'Component #1 (closed): {G, H, I} — outer loop checking I next', count: '1', detail: 'Same for I. Two outer-loop iterations in a row do nothing but check a set membership — that is the cost of the outer loop when a graph is disconnected, and it is O(1) per vertex.', doneNodes: ['G','H','I'], currentNode: 'I', stackNodes: [], activeEdges: [], clusterClosed: [1], lines: [5,6] },
+        { step: 8, title: 'Step 8: start = J — new component #2', text: "Next vertex, J. Not in seen — a second component begins. count becomes 2, and J seeds a fresh stack.", outer: "start = 'J' (4 of 7)", stack: '[J]', action: "start='J' not in seen -> count=2 (new island), stack=[J]", seen: '{G, H, I}', component: 'Component #2: just started, stack seeded with J', count: '2', detail: 'J has never appeared in seen, so this triggers component #2. Notice count goes straight from 1 to 2 — the second component is found purely because the outer loop kept going after component #1 finished.', doneNodes: ['G','H','I'], currentNode: 'J', stackNodes: ['J'], activeEdges: [], clusterClosed: [1], lines: [5,6,7,8] },
+        { step: 9, title: 'Step 9: pop J', text: "Pop J. Not seen — mark it. adj[J] = [K], so K is pushed.", outer: "start = 'J' (4 of 7) — flooding", stack: '[K]', action: "pop 'J' -> mark seen -> stack.extend(adj['J']=['K'])", seen: '{G, H, I, J}', component: 'Component #2 so far: {J}', count: '2', detail: 'J is marked seen; its one neighbor K is pushed.', doneNodes: ['G','H','I','J'], currentNode: 'J', stackNodes: ['K'], activeEdges: ['J-K'], clusterClosed: [1], lines: [10,11,12,14,15] },
+        { step: 10, title: 'Step 10: pop K', text: "Pop K. Not seen — mark it. adj[K] = [J, L]; both are pushed, including J even though it is already seen.", outer: "start = 'J' (4 of 7) — flooding", stack: '[J, L]', action: "pop 'K' -> mark seen -> stack.extend(adj['K']=['J','L'])", seen: '{G, H, I, J, K}', component: 'Component #2 so far: {J, K}', count: '2', detail: "K is marked seen. Its neighbor list [J, L] pushes both — J again, even though it is already seen.", doneNodes: ['G','H','I','J','K'], currentNode: 'K', stackNodes: ['L'], activeEdges: ['J-K','K-L'], clusterClosed: [1], lines: [10,11,12,14,15] },
+        { step: 11, title: 'Step 11: pop L', text: "Pop L. Not seen — mark it. adj[L] = [K]; K is pushed again even though it is already seen. Stack after: [J, K] — both duplicates.", outer: "start = 'J' (4 of 7) — flooding", stack: '[J, K]', action: "pop 'L' -> mark seen -> stack.extend(adj['L']=['K'])", seen: '{G, H, I, J, K, L}', component: 'Component #2 so far: {J, K, L}', count: '2', detail: 'L is marked seen — the third member of component #2. adj[L] = [K] pushes K a second time.', doneNodes: ['G','H','I','J','K','L'], currentNode: 'L', stackNodes: [], activeEdges: ['K-L'], clusterClosed: [1,2], lines: [10,11,12,14,15] },
+        { step: 12, title: 'Step 12: pop K — duplicate, skip', text: "Pop K — duplicate from step 10. Already seen, skipped.", outer: "start = 'J' (4 of 7) — flooding", stack: '[J]', action: "pop 'K' -> already seen -> continue (skip)", seen: '{G, H, I, J, K, L}', component: 'Component #2 (closed): {J, K, L} — draining duplicate K', count: '2', detail: "K's duplicate pop does nothing — already seen, guard fires.", doneNodes: ['G','H','I','J','K','L'], currentNode: 'K', stackNodes: [], activeEdges: [], clusterClosed: [1,2], lines: [10,11,12,13] },
+        { step: 13, title: 'Step 13: pop J — duplicate, skip', text: "Pop J — duplicate from step 9. Already seen, skipped. Stack is empty; component #2 finishes at exactly {J, K, L}.", outer: "start = 'J' (4 of 7) — flooding", stack: '[]', action: "pop 'J' -> already seen -> continue (skip)", seen: '{G, H, I, J, K, L}', component: 'Component #2 (closed): {J, K, L} — draining duplicate J, stack empty', count: '2', detail: "J's duplicate pop does nothing either. Stack empties: component #2 finishes at exactly {J, K, L}.", doneNodes: ['G','H','I','J','K','L'], currentNode: 'J', stackNodes: [], activeEdges: [], clusterClosed: [1,2], lines: [10,11,12,13] },
+        { step: 14, title: 'Step 14: start = K — already seen, skip', text: "Outer loop reaches K — already seen, skipped.", outer: "start = 'K' (5 of 7)", stack: '[]', action: "start='K' already in seen -> skip, no new component", seen: '{G, H, I, J, K, L}', component: 'Component #2 (closed): {J, K, L} — outer loop checking K next', count: '2', detail: 'K is already seen (component #2) — outer loop skips it with a single set lookup.', doneNodes: ['G','H','I','J','K','L'], currentNode: 'K', stackNodes: [], activeEdges: [], clusterClosed: [1,2], lines: [5,6] },
+        { step: 15, title: 'Step 15: start = L — already seen, skip', text: "Outer loop reaches L — already seen, skipped.", outer: "start = 'L' (6 of 7)", stack: '[]', action: "start='L' already in seen -> skip, no new component", seen: '{G, H, I, J, K, L}', component: 'Component #2 (closed): {J, K, L} — outer loop checking L next', count: '2', detail: 'L is already seen too — same skip.', doneNodes: ['G','H','I','J','K','L'], currentNode: 'L', stackNodes: [], activeEdges: [], clusterClosed: [1,2], lines: [5,6] },
+        { step: 16, title: 'Step 16: start = M — new component #3 (isolated vertex)', text: "Outer loop reaches M. M never appears as a neighbor of anything — adj[M] = [] — but the loop iterates over every vertex, not every edge, so M is still checked. It is not in seen, so a third component begins: count becomes 3, stack = [M].", outer: "start = 'M' (7 of 7)", stack: '[M]', action: "start='M' not in seen -> count=3 (new island), stack=[M]", seen: '{G, H, I, J, K, L}', component: 'Component #3: just started, stack seeded with M (isolated — 0 edges)', count: '3', detail: 'M has zero neighbors — it never shows up on the right-hand side of any edge, so nothing would ever discover it by following edges. The only reason it gets counted is that the outer loop walks the full vertex list, not the edge list. count becomes 3.', doneNodes: ['G','H','I','J','K','L'], currentNode: 'M', stackNodes: ['M'], activeEdges: [], clusterClosed: [1,2], lines: [5,6,7,8] },
+        { step: 17, title: 'Step 17: pop M — component #3 closes, done', text: "Pop M. Not seen — mark it. adj[M] is empty, so nothing gets pushed. The stack empties immediately, component #3 = {M} closes with a single vertex, and the outer loop has no vertices left to check. Final: 3 components.", outer: "start = 'M' (7 of 7) — flooding", stack: '[]', action: "pop 'M' -> mark seen -> stack.extend(adj['M']=[])", seen: '{G, H, I, J, K, L, M}', component: 'Component #3 (closed): {M} — all 7 vertices seen, done', count: '3', detail: 'M is marked seen with nothing to push. The stack empties immediately and the outer loop has checked every vertex. Final answer: 3 connected components — {G,H,I}, {J,K,L}, and {M} — proving an isolated vertex is still its own component.', doneNodes: ['G','H','I','J','K','L','M'], currentNode: 'M', stackNodes: [], activeEdges: [], clusterClosed: [1,2,3], lines: [10,11,12,14,15,17] }
       ];
 
       function setCodeHighlight(containerId, lines) {
@@ -1226,8 +1418,46 @@ F: [C, E]</code></div>
         });
       }
 
+      function renderCC(step, index, max) {
+        document.getElementById('cc-step-title').textContent = step.title;
+        document.getElementById('cc-step-text').textContent = step.text;
+        document.getElementById('cc-outer').textContent = step.outer;
+        document.getElementById('cc-stack').textContent = step.stack;
+        document.getElementById('cc-action').textContent = step.action;
+        document.getElementById('cc-seen').textContent = step.seen;
+        document.getElementById('cc-component').textContent = step.component;
+        document.getElementById('cc-count').textContent = step.count;
+        document.getElementById('cc-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('cc-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('cc-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('cc-trace-table', step.step);
+        setCodeHighlight('cc-code', step.lines);
+
+        document.querySelectorAll('#cc-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('seen', 'frontier', 'current');
+          if (step.doneNodes.includes(id)) node.classList.add('seen');
+          if (step.stackNodes.includes(id)) node.classList.add('frontier');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#cc-graph [data-cc-edge]').forEach((line) => {
+          line.setAttribute('visibility', step.activeEdges.includes(line.dataset.ccEdge) ? 'visible' : 'hidden');
+        });
+
+        [1, 2, 3].forEach((n) => {
+          const rect = document.getElementById(`cc-cluster-${n}`);
+          const label = document.getElementById(`cc-cluster-label-${n}`);
+          const closed = step.clusterClosed.includes(n);
+          rect.classList.toggle('assigned', closed);
+          label.classList.toggle('assigned', closed);
+          label.textContent = closed ? `Component ${n}` : `group ${n}`;
+        });
+      }
+
       setupTrace({ steps: bfsSteps, prefix: 'bfs', render: renderBFS });
       setupTrace({ steps: dfsSteps, prefix: 'dfs', render: renderDFS });
+      setupTrace({ steps: ccSteps, prefix: 'cc', render: renderCC });
 
       const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
       const panels = Array.from(document.querySelectorAll('[data-example-panel]'));

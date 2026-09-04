@@ -513,6 +513,8 @@
             <span class="chip">Core idea: at most 2 ordered children</span>
             <span class="chip">Interactive height() trace</span>
             <span class="chip">Interactive array-packing trace</span>
+            <span class="chip">Interactive invert() trace</span>
+            <span class="chip">Interactive diameter() trace</span>
             <span class="chip">Code synced with steps</span>
           </div>
         </div>
@@ -925,6 +927,262 @@
     </section>
 
     <section class="panel">
+      <h2>Method 3: recursive mirror — <code>invert()</code></h2>
+      <p>Inverting a tree means swapping every node's left and right child, all the way down. The "work" at each node is a single swap — the interesting part is <em>when</em> that swap happens. <code>node.left, node.right = invert(node.right), invert(node.left)</code> only assigns once both recursive calls on the right-hand side have returned, so a node's own swap always lands after its whole subtree has already been recursed into. That makes this a <strong>post-order-ish walk</strong>, even though it is written as one line. One quirk worth noticing: Python evaluates a tuple's right-hand side left to right, so <code>invert(node.right)</code> actually runs before <code>invert(node.left)</code> — recursion visits the right subtree first at every node.</p>
+      <div class="code-block stepped">
+        <code id="inv-code">
+<span class="code-line" data-line="1">def invert(node):</span>
+<span class="code-line" data-line="2">    if not node:</span>
+<span class="code-line" data-line="3">        return None</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    node.left, node.right = invert(node.right), invert(node.left)</span>
+<span class="code-line" data-line="6">    return node</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive invert() trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="inv-graph" viewBox="0 0 520 250" width="100%" role="img" aria-label="invert() recursion trace, showing children swapping position">
+              <defs>
+                <style>
+                  .ig-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .ig-node circle { fill: #c8d2e7; stroke: #c8d2e7; stroke-width: 2; transition: fill 0.2s ease, opacity 0.2s ease; }
+                  .ig-node text { font: 700 16px Inter, Arial, sans-serif; fill: #ffffff; text-anchor: middle; }
+                  .ig-node.filled circle { fill: #315efb; }
+                  .ig-node.current circle { fill: #ff9f1c; }
+                  .ig-node.swapped circle { fill: #13a46b; }
+                  .ig-node.empty circle { fill: none; stroke: #c8d2e7; stroke-dasharray: 4 3; }
+                  .ig-node.empty text { fill: none; }
+                  .ig-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="ig-title">Fixed screen slots — values move between them as pointers swap</text>
+              <line x1="260" y1="60" x2="150" y2="140" class="ig-edge" />
+              <line x1="260" y1="60" x2="370" y2="140" class="ig-edge" />
+              <line x1="150" y1="140" x2="90" y2="220" class="ig-edge" />
+              <line x1="150" y1="140" x2="210" y2="220" class="ig-edge" />
+              <line x1="370" y1="140" x2="330" y2="220" class="ig-edge" />
+              <line x1="370" y1="140" x2="450" y2="220" class="ig-edge" />
+              <g class="ig-node" data-slot="root"><circle cx="260" cy="60" r="24" /><text x="260" y="66">1</text></g>
+              <g class="ig-node" data-slot="L"><circle cx="150" cy="140" r="24" /><text x="150" y="146"></text></g>
+              <g class="ig-node" data-slot="R"><circle cx="370" cy="140" r="24" /><text x="370" y="146"></text></g>
+              <g class="ig-node" data-slot="LL"><circle cx="90" cy="220" r="24" /><text x="90" y="226"></text></g>
+              <g class="ig-node" data-slot="LR"><circle cx="210" cy="220" r="24" /><text x="210" y="226"></text></g>
+              <g class="ig-node" data-slot="RL"><circle cx="330" cy="220" r="24" /><text x="330" y="226"></text></g>
+              <g class="ig-node" data-slot="RR"><circle cx="450" cy="220" r="24" /><text x="450" y="226"></text></g>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current call (entering or exiting)</span>
+            <span><i class="dot dot-green"></i> slot(s) that just changed in this swap</span>
+            <span><i class="dot dot-blue"></i> filled slot, not swapping this step</span>
+            <span><i class="dot dot-gray"></i> empty slot — no node here</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="inv-step-title">Initial state</h3>
+          <p id="inv-step-text">invert(root) is about to be called. Nothing is on the call stack yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="inv-prev">Previous</button>
+            <button type="button" id="inv-play" class="primary">Resume</button>
+            <button type="button" id="inv-next">Next</button>
+            <button type="button" id="inv-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="inv-step-counter">Step 0 / 12</span>
+            <div class="progress"><span id="inv-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Call stack (open frames)</strong><div class="state-value" id="inv-stack">[]</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="inv-node">—</div></div>
+            <div class="state-box"><strong>node.left after</strong><div class="state-value" id="inv-leftchild">—</div></div>
+            <div class="state-box"><strong>node.right after</strong><div class="state-value" id="inv-rightchild">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="inv-detail"><strong>What changed:</strong> we are about to call <code>invert(1)</code>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="inv-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Node</th><th>Action</th><th>Left child after</th><th>Right child after</th><th>Stack after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>Not started</td><td>—</td><td>—</td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>1</td><td>ENTER invert(1)</td><td>—</td><td>—</td><td><code>[1]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>3</td><td>ENTER invert(3) — right before left</td><td>—</td><td>—</td><td><code>[1,3]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>6</td><td>ENTER invert(6)</td><td>—</td><td>—</td><td><code>[1,3,6]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>6</td><td>EXIT invert(6): both children None</td><td><code>None</code></td><td><code>None</code></td><td><code>[1,3]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>3</td><td>EXIT invert(3): swap (None, 6) → (6, None)</td><td><code>6</code></td><td><code>None</code></td><td><code>[1]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>2</td><td>ENTER invert(2)</td><td>—</td><td>—</td><td><code>[1,2]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>5</td><td>ENTER invert(5) — right before left</td><td>—</td><td>—</td><td><code>[1,2,5]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>5</td><td>EXIT invert(5): both children None</td><td><code>None</code></td><td><code>None</code></td><td><code>[1,2]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>4</td><td>ENTER invert(4)</td><td>—</td><td>—</td><td><code>[1,2,4]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>4</td><td>EXIT invert(4): both children None</td><td><code>None</code></td><td><code>None</code></td><td><code>[1,2]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>2</td><td>EXIT invert(2): swap (4, 5) → (5, 4)</td><td><code>5</code></td><td><code>4</code></td><td><code>[1]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>1</td><td>EXIT invert(1): swap (2's subtree, 3's subtree) → (3's subtree, 2's subtree)</td><td><code>3</code></td><td><code>2</code></td><td><code>[]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The recursion visits <em>right</em> before <em>left</em> at every node (that is just how Python evaluates the tuple), but a node's own swap still only lands after both of its children have already been fully recursed into and returned — it is still fundamentally a "children first, then this node's work" walk.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common invert() mistake</h4>
+          <p>Writing the swap as two separate lines — <code>node.left = node.right</code> then <code>node.right = node.left</code> — destroys the original left value before the second line can read it. A tuple assignment (or a temp variable) evaluates the whole right-hand side first, which is why this code is safe.</p>
+        </div>
+        <div class="card">
+          <h4>Why the invisible swaps matter</h4>
+          <p>Steps 4, 8, and 10 swap two <code>None</code> children and produce no visible change — but the recursive call still genuinely ran. Skipping the call on a <code>None</code> child instead of hitting the base case is a common way to silently miss inverting a subtree that starts one level deeper.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 4: longest path — <code>diameter()</code> (reuses Method 1's recursion)</h2>
+      <p>The <strong>diameter</strong> is the longest path between <em>any</em> two nodes — and that path does not have to pass through the root. Because of that, diameter cannot simply be the value a recursive call returns: whatever gets returned up has to be usable by a <em>parent</em> call to keep combining, so it must stay a height-like number. The fix is the same trick called out in the instructor note above — <strong>return one value, track another</strong>. The nested <code>depth()</code> function here is the exact same "solve left, solve right, combine" recursion as <code>height()</code> in Method 1, walking this tree in the identical order and taking the identical 12 steps. The only differences: its base case reports <code>0</code> instead of <code>-1</code>, and one extra line updates a side variable <code>best</code> — declared in <code>diameter()</code> and reached into with <code>nonlocal</code> — every time a node's <code>left + right</code> beats the running best.</p>
+      <div class="code-block stepped">
+        <code id="diam-code">
+<span class="code-line" data-line="1">def diameter(root):</span>
+<span class="code-line" data-line="2">    best = 0</span>
+<span class="code-line" data-line="3">    def depth(node):</span>
+<span class="code-line" data-line="4">        nonlocal best</span>
+<span class="code-line" data-line="5">        if not node:</span>
+<span class="code-line" data-line="6">            return 0</span>
+<span class="code-line" data-line="7">        L = depth(node.left)</span>
+<span class="code-line" data-line="8">        R = depth(node.right)</span>
+<span class="code-line" data-line="9">        best = max(best, L + R)</span>
+<span class="code-line" data-line="10">        return 1 + max(L, R)</span>
+<span class="code-line" data-line="11">    depth(root)</span>
+<span class="code-line" data-line="12">    return best</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive diameter() trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="diam-graph" viewBox="0 0 520 240" width="100%" role="img" aria-label="diameter() recursion trace over the tree">
+              <defs>
+                <style>
+                  .dg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .dg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .dg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .dg-node.computed { fill: #315efb; }
+                  .dg-node.stacked { fill: #13a46b; }
+                  .dg-node.current { fill: #ff9f1c; }
+                  .dg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .dg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="dg-title">Current call frame</text>
+              <line x1="260" y1="40" x2="150" y2="120" class="dg-base-edge" />
+              <line x1="260" y1="40" x2="370" y2="120" class="dg-base-edge" />
+              <line x1="150" y1="120" x2="80" y2="200" class="dg-base-edge" />
+              <line x1="150" y1="120" x2="220" y2="200" class="dg-base-edge" />
+              <line x1="370" y1="120" x2="460" y2="200" class="dg-base-edge" />
+              <line x1="260" y1="40" x2="150" y2="120" class="dg-active-edge" data-dg-edge="1-2" visibility="hidden" />
+              <line x1="260" y1="40" x2="370" y2="120" class="dg-active-edge" data-dg-edge="1-3" visibility="hidden" />
+              <line x1="150" y1="120" x2="80" y2="200" class="dg-active-edge" data-dg-edge="2-4" visibility="hidden" />
+              <line x1="150" y1="120" x2="220" y2="200" class="dg-active-edge" data-dg-edge="2-5" visibility="hidden" />
+              <line x1="370" y1="120" x2="460" y2="200" class="dg-active-edge" data-dg-edge="3-6" visibility="hidden" />
+              <circle cx="260" cy="40" r="26" class="dg-node" data-node="1" />
+              <circle cx="150" cy="120" r="26" class="dg-node" data-node="2" />
+              <circle cx="370" cy="120" r="26" class="dg-node" data-node="3" />
+              <circle cx="80" cy="200" r="26" class="dg-node" data-node="4" />
+              <circle cx="220" cy="200" r="26" class="dg-node" data-node="5" />
+              <circle cx="460" cy="200" r="26" class="dg-node" data-node="6" />
+              <text x="253" y="46" class="dg-label">1</text>
+              <text x="143" y="126" class="dg-label">2</text>
+              <text x="363" y="126" class="dg-label">3</text>
+              <text x="73" y="206" class="dg-label">4</text>
+              <text x="213" y="206" class="dg-label">5</text>
+              <text x="453" y="206" class="dg-label">6</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current call (entering or exiting)</span>
+            <span><i class="dot dot-green"></i> open frames on the call stack</span>
+            <span><i class="dot dot-blue"></i> report value already computed</span>
+            <span><i class="dot dot-gray"></i> not visited yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="diam-step-title">Initial state</h3>
+          <p id="diam-step-text">diameter(root) is about to call depth(root). best starts at 0.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="diam-prev">Previous</button>
+            <button type="button" id="diam-play" class="primary">Resume</button>
+            <button type="button" id="diam-next">Next</button>
+            <button type="button" id="diam-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="diam-step-counter">Step 0 / 12</span>
+            <div class="progress"><span id="diam-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Call stack (open frames)</strong><div class="state-value" id="diam-stack">[]</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="diam-node">—</div></div>
+            <div class="state-box"><strong>L (left report)</strong><div class="state-value" id="diam-left">—</div></div>
+            <div class="state-box"><strong>R (right report)</strong><div class="state-value" id="diam-right">—</div></div>
+            <div class="state-box"><strong>Computed reports so far</strong><div class="state-value" id="diam-computed">{}</div></div>
+            <div class="state-box"><strong>best (running diameter)</strong><div class="state-value" id="diam-best">0</div></div>
+          </div>
+          <div class="explainer">
+            <p id="diam-detail"><strong>What changed:</strong> <code>best = 0</code> before any recursion runs.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="diam-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Node</th><th>Action</th><th>L</th><th>R</th><th>best after</th><th>Stack after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>Not started</td><td>—</td><td>—</td><td>0</td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>1</td><td>ENTER depth(1)</td><td>—</td><td>—</td><td>0</td><td><code>[1]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>2</td><td>ENTER depth(2)</td><td>—</td><td>—</td><td>0</td><td><code>[1,2]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>4</td><td>ENTER depth(4)</td><td>—</td><td>—</td><td>0</td><td><code>[1,2,4]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>4</td><td>EXIT depth(4): leaf</td><td>0</td><td>0</td><td>0</td><td><code>[1,2]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>5</td><td>ENTER depth(5)</td><td>—</td><td>—</td><td>0</td><td><code>[1,2,5]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>5</td><td>EXIT depth(5): leaf</td><td>0</td><td>0</td><td>0</td><td><code>[1,2]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>2</td><td>EXIT depth(2): combine — best updates</td><td>1</td><td>1</td><td>2</td><td><code>[1]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>3</td><td>ENTER depth(3)</td><td>—</td><td>—</td><td>2</td><td><code>[1,3]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>6</td><td>ENTER depth(6)</td><td>—</td><td>—</td><td>2</td><td><code>[1,3,6]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>6</td><td>EXIT depth(6): leaf</td><td>0</td><td>0</td><td>2</td><td><code>[1,3]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>3</td><td>EXIT depth(3): left is None</td><td>0</td><td>1</td><td>2</td><td><code>[1]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>1</td><td>EXIT depth(1): final combine — best updates</td><td>2</td><td>2</td><td>4</td><td><code>[]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p><code>depth()</code> reuses the exact same "solve left, solve right, combine" shape as <code>height()</code> from Method 1 — same recursion, same traversal order, same 12 steps over this tree. The only two differences: the base case returns <code>0</code> instead of <code>-1</code> (so a leaf reports <code>1</code>, not <code>0</code>), and one extra line updates <code>best</code> before returning.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common diameter() mistake</h4>
+          <p>Making <code>diameter()</code> return whatever <code>depth(root)</code> returns forces the longest path to pass through the root. Here the true longest path (4-2-1-3-6) happens to touch the root anyway, but step 7 already found <code>best = 2</code> entirely inside node 2's own subtree — a different tree could hide its longest path there and never reach the root at all.</p>
+        </div>
+        <div class="card">
+          <h4>Why the side variable matters</h4>
+          <p><code>best</code> lives in the enclosing <code>diameter()</code> and is reached into with <code>nonlocal</code> so all six recursive <code>depth()</code> calls update the <em>same</em> variable — not six separate local copies that would each disappear the moment their own call returned.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Edge cases you should test</h2>
       <div class="tabs" role="tablist" aria-label="Edge case examples">
         <button type="button" class="active-tab" data-example-tab="0">Single node</button>
@@ -971,6 +1229,8 @@
           <tbody>
             <tr><td>Linked <code>TreeNode</code> + recursion (<code>height</code>, <code>size</code>, <code>diameter</code>)</td><td>O(n) to walk</td><td>O(h) call stack — up to O(n) if skewed</td><td>Any shape of tree, including sparse and unbalanced ones</td></tr>
             <tr><td>Array-packed index arithmetic (<code>from_array</code>, <code>to_array</code>)</td><td>O(n) to build, O(1) per child lookup</td><td>O(n) array, no pointer overhead</td><td>Complete trees only (heaps) — wastes space on sparse trees</td></tr>
+            <tr><td>Recursive mirror (<code>invert</code>)</td><td>O(n) — visits every node once</td><td>O(h) call stack, same shape as <code>height</code></td><td>LeetCode 226 and any "flip every level" transform</td></tr>
+            <tr><td>Height + side variable (<code>diameter</code>)</td><td>O(n) — one DFS, reuses <code>height</code>'s shape</td><td>O(h) call stack + O(1) extra for <code>best</code></td><td>Longest path, max path sum, and other "track a second answer" problems</td></tr>
           </tbody>
         </table>
       </div>
@@ -1088,6 +1348,38 @@
         { step: 5, title: 'Step 5: i = 4, node.val = 5', text: 'li = 9, ri = 10. Both are out of range, so node 5 also stays a leaf.', i: '4', val: '5', liri: 'li=9, ri=10', bounds: '9 >= 7 and 10 >= 7 → both out of range', leftassign: 'none — 9 >= 7', rightassign: 'none — 10 >= 7', detail: 'Every remaining index in this perfect tree is on the last level, so every remaining iteration will skip both assignments.', currentIdx: 4, processed: [0, 1, 2, 3], linked: [], edges: ['0-1', '0-2', '1-3', '1-4', '2-5', '2-6'], newEdges: [], lines: [6, 7, 9, 10, 12] },
         { step: 6, title: 'Step 6: i = 5, node.val = 6', text: 'li = 11, ri = 12. Both out of range.', i: '5', val: '6', liri: 'li=11, ri=12', bounds: '11 >= 7 and 12 >= 7 → both out of range', leftassign: 'none — 11 >= 7', rightassign: 'none — 12 >= 7', detail: 'Same pattern as the previous step — node 6 is on the last level.', currentIdx: 5, processed: [0, 1, 2, 3, 4], linked: [], edges: ['0-1', '0-2', '1-3', '1-4', '2-5', '2-6'], newEdges: [], lines: [6, 7, 9, 10, 12] },
         { step: 7, title: 'Step 7: i = 6, node.val = 7 — loop ends', text: 'li = 13, ri = 14. Both out of range. This was the last index, so the loop ends and the function returns nodes[0].', i: '6', val: '7', liri: 'li=13, ri=14', bounds: '13 >= 7 and 14 >= 7 → both out of range', leftassign: 'none — 13 >= 7', rightassign: 'none — 14 >= 7', detail: 'return nodes[0] hands back node 1, which now carries the full tree through its .left/.right pointers — exactly the shape [1,2,3,4,5,6,7] describes.', currentIdx: 6, processed: [0, 1, 2, 3, 4, 5], linked: [], edges: ['0-1', '0-2', '1-3', '1-4', '2-5', '2-6'], newEdges: [], lines: [6, 7, 9, 10, 12, 15] }
+      ];
+
+      const invSteps = [
+        { step: 0, title: 'Initial state', text: 'invert(root) is about to be called. Nothing is on the call stack yet.', stack: '[]', node: '—', leftchild: '—', rightchild: '—', detail: 'We are about to call invert(1). The starting tree is the same one Method 1 traced: 1 with children 2 and 3.', currentNode: null, stackNodes: [], positions: { root: 1, L: 2, R: 3, LL: 4, LR: 5, RL: null, RR: 6 }, swappedSlots: [], lines: [1] },
+        { step: 1, title: 'Step 1: ENTER invert(1)', text: 'invert is called on the root. It is not empty, so line 5 evaluates invert(node.right) first, then invert(node.left) — right before left.', stack: '[1]', node: '1', leftchild: '—', rightchild: '—', detail: 'Python evaluates the right-hand side of node.left, node.right = invert(node.right), invert(node.left) left to right, so invert(3) is called before invert(2).', currentNode: 1, stackNodes: [1], positions: { root: 1, L: 2, R: 3, LL: 4, LR: 5, RL: null, RR: 6 }, swappedSlots: [], lines: [1, 2, 5] },
+        { step: 2, title: 'Step 2: ENTER invert(3)', text: 'To fill the first slot of the tuple, we recurse into node 3 (root.right) before ever touching node 2.', stack: '[1, 3]', node: '3', leftchild: '—', rightchild: '—', detail: "Node 3 has a real right child (6) but its left child is None — invert must still handle both.", currentNode: 3, stackNodes: [1, 3], positions: { root: 1, L: 2, R: 3, LL: 4, LR: 5, RL: null, RR: 6 }, swappedSlots: [], lines: [1, 2, 5] },
+        { step: 3, title: 'Step 3: ENTER invert(6)', text: "To fill invert(3)'s first slot, we recurse into node 6 (3's right child).", stack: '[1, 3, 6]', node: '6', leftchild: '—', rightchild: '—', detail: 'Node 6 is a leaf: both children are None.', currentNode: 6, stackNodes: [1, 3, 6], positions: { root: 1, L: 2, R: 3, LL: 4, LR: 5, RL: null, RR: 6 }, swappedSlots: [], lines: [1, 2, 5] },
+        { step: 4, title: 'Step 4: EXIT invert(6) — no visible change', text: "Both of node 6's children are None, so the swap assigns None, None right back. The recursive call still ran — it just had nothing to swap.", stack: '[1, 3]', node: '6', leftchild: 'None', rightchild: 'None', detail: 'This is worth noticing: invert(None) really is called (twice), it just returns None immediately. Skipping that call is a common bug, even though here it changes nothing.', currentNode: 6, stackNodes: [1, 3], positions: { root: 1, L: 2, R: 3, LL: 4, LR: 5, RL: null, RR: 6 }, swappedSlots: [], lines: [5, 6] },
+        { step: 5, title: 'Step 5: EXIT invert(3) — first visible swap', text: "Node 3's children swap: left was None, right was 6. Now left = 6, right = None. Watch the diagram — node 6 jumps from the right slot under 3 to the left slot.", stack: '[1]', node: '3', leftchild: '6', rightchild: 'None', detail: 'node.left, node.right = invert(node.right), invert(node.left) assigns (6, None) to (node.left, node.right) — an actual pointer swap.', currentNode: 3, stackNodes: [1], positions: { root: 1, L: 2, R: 3, LL: 4, LR: 5, RL: 6, RR: null }, swappedSlots: ['RL', 'RR'], lines: [5, 6] },
+        { step: 6, title: 'Step 6: ENTER invert(2)', text: "Node 1's second tuple slot now runs: invert(node.left) recurses into node 2.", stack: '[1, 2]', node: '2', leftchild: '—', rightchild: '—', detail: 'Node 1 itself has not swapped yet — that only happens once both invert(node.right) and invert(node.left) have returned.', currentNode: 2, stackNodes: [1, 2], positions: { root: 1, L: 2, R: 3, LL: 4, LR: 5, RL: 6, RR: null }, swappedSlots: [], lines: [1, 2, 5] },
+        { step: 7, title: 'Step 7: ENTER invert(5)', text: 'Inside invert(2), invert(node.right) is evaluated first, recursing into node 5.', stack: '[1, 2, 5]', node: '5', leftchild: '—', rightchild: '—', detail: 'Same right-before-left order as at the root.', currentNode: 5, stackNodes: [1, 2, 5], positions: { root: 1, L: 2, R: 3, LL: 4, LR: 5, RL: 6, RR: null }, swappedSlots: [], lines: [1, 2, 5] },
+        { step: 8, title: 'Step 8: EXIT invert(5) — no visible change', text: 'Node 5 is a leaf: both children None, swap assigns None, None.', stack: '[1, 2]', node: '5', leftchild: 'None', rightchild: 'None', detail: 'Same pattern as node 6 and node 4: a real call, no visible effect.', currentNode: 5, stackNodes: [1, 2], positions: { root: 1, L: 2, R: 3, LL: 4, LR: 5, RL: 6, RR: null }, swappedSlots: [], lines: [5, 6] },
+        { step: 9, title: 'Step 9: ENTER invert(4)', text: "invert(node.left) now runs for node 2, recursing into node 4.", stack: '[1, 2, 4]', node: '4', leftchild: '—', rightchild: '—', detail: "Both of invert(2)'s tuple slots are almost ready — invert(5) already returned, invert(4) is running now.", currentNode: 4, stackNodes: [1, 2, 4], positions: { root: 1, L: 2, R: 3, LL: 4, LR: 5, RL: 6, RR: null }, swappedSlots: [], lines: [1, 2, 5] },
+        { step: 10, title: 'Step 10: EXIT invert(4) — no visible change', text: 'Node 4 is a leaf too: swap assigns None, None.', stack: '[1, 2]', node: '4', leftchild: 'None', rightchild: 'None', detail: 'Both children of node 2 (4 and 5) are leaves, so both of their own swaps are invisible.', currentNode: 4, stackNodes: [1, 2], positions: { root: 1, L: 2, R: 3, LL: 4, LR: 5, RL: 6, RR: null }, swappedSlots: [], lines: [5, 6] },
+        { step: 11, title: 'Step 11: EXIT invert(2) — second visible swap', text: "Node 2's children swap: left was 4, right was 5. Now left = 5, right = 4.", stack: '[1]', node: '2', leftchild: '5', rightchild: '4', detail: 'Watch node 4 and node 5 trade slots under node 2.', currentNode: 2, stackNodes: [1], positions: { root: 1, L: 2, R: 3, LL: 5, LR: 4, RL: 6, RR: null }, swappedSlots: ['LL', 'LR'], lines: [5, 6] },
+        { step: 12, title: 'Step 12: EXIT invert(1) — final swap, whole subtrees move', text: "Node 1's children swap: left was the whole subtree rooted at 2, right was the whole subtree rooted at 3. Now left = 3's subtree, right = 2's subtree.", stack: '[]', node: '1', leftchild: '3', rightchild: '2', detail: 'This is the biggest visual jump: not single values but entire subtrees swap sides, because node.left and node.right are pointers to whole subtrees, not just single values.', currentNode: 1, stackNodes: [], positions: { root: 1, L: 3, R: 2, LL: 6, LR: null, RL: 5, RR: 4 }, swappedSlots: ['L', 'R', 'LL', 'LR', 'RL', 'RR'], lines: [5, 6] }
+      ];
+
+      const diamSteps = [
+        { step: 0, title: 'Initial state', text: 'diameter(root) is about to call depth(root). best starts at 0.', stack: '[]', node: '—', left: '—', right: '—', computed: '{}', best: '0', detail: 'best = 0 before any recursion runs.', currentNode: null, stackNodes: [], computedNodes: [], activeEdge: null, lines: [1, 2] },
+        { step: 1, title: 'Step 1: ENTER depth(1)', text: "depth is called on the root. It reuses the exact recursion shape from Method 1's height() — solve left, solve right, combine — plus one extra line that updates best.", stack: '[1]', node: '1', left: '—', right: '—', computed: '{}', best: '0', detail: 'Node 1 is not empty, so we move on to compute L = depth(node.left).', currentNode: 1, stackNodes: [1], computedNodes: [], activeEdge: null, lines: [3, 5, 7] },
+        { step: 2, title: 'Step 2: ENTER depth(2)', text: 'To get L for node 1, we recurse into node 2 — same traversal order as height().', stack: '[1, 2]', node: '2', left: '—', right: '—', computed: '{}', best: '0', detail: 'Node 2 is not empty either, so it will also solve its own left subtree first.', currentNode: 2, stackNodes: [1, 2], computedNodes: [], activeEdge: '1-2', lines: [3, 5, 7] },
+        { step: 3, title: 'Step 3: ENTER depth(4)', text: 'To get L for node 2, we recurse into node 4.', stack: '[1, 2, 4]', node: '4', left: '—', right: '—', computed: '{}', best: '0', detail: 'Node 4 is a leaf: both children are None.', currentNode: 4, stackNodes: [1, 2, 4], computedNodes: [], activeEdge: '2-4', lines: [3, 5, 7] },
+        { step: 4, title: 'Step 4: EXIT depth(4) — leaf', text: "Both of node 4's children are None, so L = 0 and R = 0 (base case is 0 here, not -1 like height()). through = L + R = 0, so best stays 0. report = 1 + max(0, 0) = 1.", stack: '[1, 2]', node: '4', left: '0', right: '0', computed: '{4: 1}', best: '0', detail: 'A leaf reports 1 here (not 0, like in height()) because this base case returns 0, not -1 — the convention differs, but the shape of the recursion is identical.', currentNode: 4, stackNodes: [1, 2], computedNodes: [4], activeEdge: '2-4', lines: [5, 6, 7, 8, 9, 10] },
+        { step: 5, title: 'Step 5: ENTER depth(5)', text: 'Back in node 2\'s frame, L = 1 is known. Now recurse into node 5 to get R.', stack: '[1, 2, 5]', node: '5', left: '—', right: '—', computed: '{4: 1}', best: '0', detail: 'Node 2 has not returned yet — it is waiting on this call to finish.', currentNode: 5, stackNodes: [1, 2, 5], computedNodes: [4], activeEdge: '2-5', lines: [3, 5, 7] },
+        { step: 6, title: 'Step 6: EXIT depth(5) — leaf', text: 'Node 5 is also a leaf: L = 0, R = 0, through = 0, best stays 0, report = 1.', stack: '[1, 2]', node: '5', left: '0', right: '0', computed: '{4: 1, 5: 1}', best: '0', detail: "Both of node 2's children are now resolved.", currentNode: 5, stackNodes: [1, 2], computedNodes: [4, 5], activeEdge: '2-5', lines: [5, 6, 7, 8, 9, 10] },
+        { step: 7, title: 'Step 7: EXIT depth(2) — combine, best updates', text: 'Node 2 now has L = 1 and R = 1. through = L + R = 2, so best updates from 0 to 2 — the first real path length recorded, and it does not pass through the root. report = 1 + max(1, 1) = 2.', stack: '[1]', node: '2', left: '1', right: '1', computed: '{4: 1, 5: 1, 2: 2}', best: '2', detail: "best jumps to 2 here — the path 4-2-5 — entirely inside node 2's own subtree, nowhere near node 1.", currentNode: 2, stackNodes: [1], computedNodes: [4, 5, 2], activeEdge: '1-2', lines: [5, 6, 7, 8, 9, 10] },
+        { step: 8, title: 'Step 8: ENTER depth(3)', text: "Node 1's L = 2 is known. Now recurse into node 3 to get R.", stack: '[1, 3]', node: '3', left: '—', right: '—', computed: '{4: 1, 5: 1, 2: 2}', best: '2', detail: "Node 3's left child is None (no separate call needed) but its right child, node 6, is real.", currentNode: 3, stackNodes: [1, 3], computedNodes: [4, 5, 2], activeEdge: '1-3', lines: [3, 5, 7] },
+        { step: 9, title: 'Step 9: ENTER depth(6)', text: "Node 3's left is None (L = 0, no separate call), so we recurse into node 6 for R.", stack: '[1, 3, 6]', node: '6', left: '—', right: '—', computed: '{4: 1, 5: 1, 2: 2}', best: '2', detail: 'Node 3 has one real child (right) and one missing child (left).', currentNode: 6, stackNodes: [1, 3, 6], computedNodes: [4, 5, 2], activeEdge: '3-6', lines: [3, 5, 7] },
+        { step: 10, title: 'Step 10: EXIT depth(6) — leaf', text: 'Node 6 is a leaf: L = 0, R = 0, through = 0, best stays 2, report = 1.', stack: '[1, 3]', node: '6', left: '0', right: '0', computed: '{4: 1, 5: 1, 2: 2, 6: 1}', best: '2', detail: "Node 3's R is now known: 1.", currentNode: 6, stackNodes: [1, 3], computedNodes: [4, 5, 2, 6], activeEdge: '3-6', lines: [5, 6, 7, 8, 9, 10] },
+        { step: 11, title: 'Step 11: EXIT depth(3) — left is None', text: 'Node 3 has L = 0 (left child was None) and R = 1 (from node 6). through = 0 + 1 = 1, best stays 2 (1 < 2). report = 1 + max(0, 1) = 2.', stack: '[1]', node: '3', left: '0', right: '1', computed: '{4: 1, 5: 1, 2: 2, 6: 1, 3: 2}', best: '2', detail: "Even though node 3's own through-path is short, it correctly reports 2 up to node 1.", currentNode: 3, stackNodes: [1], computedNodes: [4, 5, 2, 6, 3], activeEdge: '1-3', lines: [5, 6, 7, 8, 9, 10] },
+        { step: 12, title: 'Step 12: EXIT depth(1) — final combine, best updates', text: 'Node 1 now has L = 2 (from node 2) and R = 2 (from node 3). through = 2 + 2 = 4, best updates from 2 to 4 — a longer path found, this time running straight through the root. Final: diameter(root) = 4, matching the notebook assertion.', stack: '[]', node: '1', left: '2', right: '2', computed: '{4: 1, 5: 1, 2: 2, 6: 1, 3: 2, 1: 3}', best: '4', detail: "best = 4 is the answer: the path 4-2-1-3-6 has 4 edges. Notice depth(root) itself returns 3 (report, discarded) — diameter() returns best (4) on line 12, not depth()'s own return value.", currentNode: 1, stackNodes: [], computedNodes: [4, 5, 2, 6, 3, 1], activeEdge: null, lines: [5, 6, 7, 8, 9, 10, 11, 12] }
       ];
 
       function setCodeHighlight(containerId, lines) {
@@ -1228,8 +1520,70 @@
         });
       }
 
+      const INV_SLOTS = ['root', 'L', 'R', 'LL', 'LR', 'RL', 'RR'];
+
+      function renderInv(step, index, max) {
+        document.getElementById('inv-step-title').textContent = step.title;
+        document.getElementById('inv-step-text').textContent = step.text;
+        document.getElementById('inv-stack').textContent = step.stack;
+        document.getElementById('inv-node').textContent = step.node;
+        document.getElementById('inv-leftchild').textContent = step.leftchild;
+        document.getElementById('inv-rightchild').textContent = step.rightchild;
+        document.getElementById('inv-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('inv-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('inv-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('inv-trace-table', step.step);
+        setCodeHighlight('inv-code', step.lines);
+
+        INV_SLOTS.forEach((slot) => {
+          const g = document.querySelector(`#inv-graph [data-slot="${slot}"]`);
+          const text = g.querySelector('text');
+          const val = step.positions[slot];
+          g.classList.remove('filled', 'current', 'swapped', 'empty');
+          if (val === null) {
+            g.classList.add('empty');
+            text.textContent = '';
+          } else {
+            g.classList.add('filled');
+            text.textContent = val;
+            if (step.currentNode === val) g.classList.add('current');
+            if (step.swappedSlots.includes(slot)) g.classList.add('swapped');
+          }
+        });
+      }
+
+      function renderDiam(step, index, max) {
+        document.getElementById('diam-step-title').textContent = step.title;
+        document.getElementById('diam-step-text').textContent = step.text;
+        document.getElementById('diam-stack').textContent = step.stack;
+        document.getElementById('diam-node').textContent = step.node;
+        document.getElementById('diam-left').textContent = step.left;
+        document.getElementById('diam-right').textContent = step.right;
+        document.getElementById('diam-computed').textContent = step.computed;
+        document.getElementById('diam-best').textContent = step.best;
+        document.getElementById('diam-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('diam-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('diam-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('diam-trace-table', step.step);
+        setCodeHighlight('diam-code', step.lines);
+
+        document.querySelectorAll('#diam-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('computed', 'stacked', 'current');
+          if (step.computedNodes.includes(id)) node.classList.add('computed');
+          if (step.stackNodes.includes(id)) node.classList.add('stacked');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#diam-graph [data-dg-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.dgEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
       setupTrace({ steps: htSteps, prefix: 'ht', render: renderHt });
       setupTrace({ steps: arrSteps, prefix: 'arr', render: renderArr });
+      setupTrace({ steps: invSteps, prefix: 'inv', render: renderInv });
+      setupTrace({ steps: diamSteps, prefix: 'diam', render: renderDiam });
 
       const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
       const panels = Array.from(document.querySelectorAll('[data-example-panel]'));

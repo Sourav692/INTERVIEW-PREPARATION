@@ -511,6 +511,8 @@
             <span class="chip">Core idea: children live in a list, not fixed slots</span>
             <span class="chip">Interactive DFS pre-order trace</span>
             <span class="chip">Interactive BFS level-order trace</span>
+            <span class="chip">Interactive DFS post-order trace</span>
+            <span class="chip">Interactive flat-rows tree build trace</span>
             <span class="chip">Code synced with steps</span>
           </div>
         </div>
@@ -934,6 +936,298 @@ G.children = []</code></div>
     </section>
 
     <section class="panel">
+      <h2>Method 3: DFS post-order (recursive)</h2>
+      <p>Post-order asks the exact same call-stack question as pre-order — "when do I record this node?" — but answers it differently: wait until every child's subtree has fully finished, then record the node last. In code this is the <strong>same function as dfs_preorder</strong> with one change: the <code>out.append(node.val)</code> line moves from before the <code>for</code> loop to after it.</p>
+      <div class="code-block stepped">
+        <code id="post-code">
+<span class="code-line" data-line="1">def dfs_postorder(node, out=None):</span>
+<span class="code-line" data-line="2">    if out is None:</span>
+<span class="code-line" data-line="3">        out = []</span>
+<span class="code-line" data-line="4">    if node is None:</span>
+<span class="code-line" data-line="5">        return out</span>
+<span class="code-line" data-line="6">    for child in node.children:</span>
+<span class="code-line" data-line="7">        dfs_postorder(child, out)</span>
+<span class="code-line" data-line="8">    out.append(node.val)</span>
+<span class="code-line" data-line="9">    return out</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive DFS post-order trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="post-graph" viewBox="0 0 620 260" width="100%" role="img" aria-label="DFS post-order trace over the tree">
+              <defs>
+                <style>
+                  .postg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .postg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .postg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .postg-node.done { fill: #315efb; }
+                  .postg-node.onstack { fill: #13a46b; }
+                  .postg-node.current { fill: #ff9f1c; }
+                  .postg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .postg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="postg-title">Current call frame</text>
+              <line x1="310" y1="60" x2="140" y2="140" class="postg-base-edge" />
+              <line x1="310" y1="60" x2="310" y2="140" class="postg-base-edge" />
+              <line x1="310" y1="60" x2="480" y2="140" class="postg-base-edge" />
+              <line x1="140" y1="140" x2="80" y2="230" class="postg-base-edge" />
+              <line x1="140" y1="140" x2="200" y2="230" class="postg-base-edge" />
+              <line x1="480" y1="140" x2="480" y2="230" class="postg-base-edge" />
+              <line x1="310" y1="60" x2="140" y2="140" class="postg-active-edge" data-post-edge="A-B" visibility="hidden" />
+              <line x1="310" y1="60" x2="310" y2="140" class="postg-active-edge" data-post-edge="A-C" visibility="hidden" />
+              <line x1="310" y1="60" x2="480" y2="140" class="postg-active-edge" data-post-edge="A-D" visibility="hidden" />
+              <line x1="140" y1="140" x2="80" y2="230" class="postg-active-edge" data-post-edge="B-E" visibility="hidden" />
+              <line x1="140" y1="140" x2="200" y2="230" class="postg-active-edge" data-post-edge="B-F" visibility="hidden" />
+              <line x1="480" y1="140" x2="480" y2="230" class="postg-active-edge" data-post-edge="D-G" visibility="hidden" />
+              <circle cx="310" cy="60" r="26" class="postg-node" data-node="A" />
+              <circle cx="140" cy="140" r="26" class="postg-node" data-node="B" />
+              <circle cx="310" cy="140" r="26" class="postg-node" data-node="C" />
+              <circle cx="480" cy="140" r="26" class="postg-node" data-node="D" />
+              <circle cx="80" cy="230" r="26" class="postg-node" data-node="E" />
+              <circle cx="200" cy="230" r="26" class="postg-node" data-node="F" />
+              <circle cx="480" cy="230" r="26" class="postg-node" data-node="G" />
+              <text x="303" y="66" class="postg-label">A</text>
+              <text x="133" y="146" class="postg-label">B</text>
+              <text x="303" y="146" class="postg-label">C</text>
+              <text x="473" y="146" class="postg-label">D</text>
+              <text x="73" y="236" class="postg-label">E</text>
+              <text x="193" y="236" class="postg-label">F</text>
+              <text x="473" y="236" class="postg-label">G</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current call frame</span>
+            <span><i class="dot dot-green"></i> ancestors still on the call stack</span>
+            <span><i class="dot dot-blue"></i> finished (appended, then returned)</span>
+            <span><i class="dot dot-gray"></i> not entered yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="post-step-title">Initial state</h3>
+          <p id="post-step-text">Before the first call, out is created as an empty list. Nothing has been visited yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="post-prev">Previous</button>
+            <button type="button" id="post-play" class="primary">Resume</button>
+            <button type="button" id="post-next">Next</button>
+            <button type="button" id="post-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="post-step-counter">Step 0 / 14</span>
+            <div class="progress"><span id="post-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Call stack (top is rightmost)</strong><div class="state-value" id="post-stack">[]</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="post-action">out = []</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="post-node">—</div></div>
+            <div class="state-box"><strong>out (result so far)</strong><div class="state-value" id="post-out">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="post-detail"><strong>What changed:</strong> the call stack is empty; dfs_postorder(A) is about to run for the first time.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="post-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>Call stack after</th><th>out after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Initial call: <code>out = []</code></td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>Enter A — no append yet, loop first</td><td><code>['A']</code></td><td><code>[]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>Enter B (1st child of A) — no append yet</td><td><code>['A','B']</code></td><td><code>[]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>Enter E (1st child of B) — no append yet</td><td><code>['A','B','E']</code></td><td><code>[]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>E has no children → <code>out.append('E')</code> → return</td><td><code>['A','B']</code></td><td><code>['E']</code></td></tr>
+            <tr data-step="5"><td>5</td><td>Enter F (2nd child of B) — no append yet</td><td><code>['A','B','F']</code></td><td><code>['E']</code></td></tr>
+            <tr data-step="6"><td>6</td><td>F has no children → <code>out.append('F')</code> → return</td><td><code>['A','B']</code></td><td><code>['E','F']</code></td></tr>
+            <tr data-step="7"><td>7</td><td>B's loop finished (E, F done) → <code>out.append('B')</code> → return</td><td><code>['A']</code></td><td><code>['E','F','B']</code></td></tr>
+            <tr data-step="8"><td>8</td><td>Enter C (2nd child of A) — no append yet</td><td><code>['A','C']</code></td><td><code>['E','F','B']</code></td></tr>
+            <tr data-step="9"><td>9</td><td>C has no children → <code>out.append('C')</code> → return</td><td><code>['A']</code></td><td><code>['E','F','B','C']</code></td></tr>
+            <tr data-step="10"><td>10</td><td>Enter D (3rd child of A) — no append yet</td><td><code>['A','D']</code></td><td><code>['E','F','B','C']</code></td></tr>
+            <tr data-step="11"><td>11</td><td>Enter G (1st child of D) — no append yet</td><td><code>['A','D','G']</code></td><td><code>['E','F','B','C']</code></td></tr>
+            <tr data-step="12"><td>12</td><td>G has no children → <code>out.append('G')</code> → return</td><td><code>['A','D']</code></td><td><code>['E','F','B','C','G']</code></td></tr>
+            <tr data-step="13"><td>13</td><td>D's loop finished (G done) → <code>out.append('D')</code> → return</td><td><code>['A']</code></td><td><code>['E','F','B','C','G','D']</code></td></tr>
+            <tr data-step="14"><td>14</td><td>A's loop finished (B, C, D done) → <code>out.append('A')</code> → return out</td><td><code>[]</code></td><td><code>['E','F','B','C','G','D','A']</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Moving one line — <code>out.append(node.val)</code> — from before the <code>for</code> loop to after it is the entire difference between pre-order and post-order. Same recursion, same call stack, same children loop; only the moment of recording changes.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common post-order mistake</h4>
+          <p>Copy-pasting pre-order and forgetting to move the append line, then calling the result "post-order" anyway. If a node's value can be recorded before its children have returned, the code cannot depend on the children's results — which is exactly the ability post-order exists to provide.</p>
+        </div>
+        <div class="card">
+          <h4>Why post-order matters</h4>
+          <p>Post-order is required whenever a node's answer depends on its children's answers first: computing subtree size or height, safely deleting a node (free children before the parent), or evaluating an expression tree bottom-up.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 4: build a tree from flat {id, parent_id} rows</h2>
+      <p>Real trees rarely arrive pre-linked. A database table, a CSV export, or an API response usually hands you a flat list of rows, each carrying its own <code>id</code> and its parent's <code>parent_id</code>. <code>build_from_rows</code> rebuilds the exact same tree shape in two linear passes: first create every node and index it by id in a hash map (so any id is an O(1) lookup), then walk the rows again and attach each one to <code>nodes[parent_id]</code> — or, when <code>parent_id is None</code>, record it as a root. Because pass 1 always finishes before pass 2 starts, the rows can arrive in absolutely any order.</p>
+      <div class="code-block stepped">
+        <code id="flat-code">
+<span class="code-line" data-line="1">def build_from_rows(rows):</span>
+<span class="code-line" data-line="2">    # Pass 1: create every node first, index by id</span>
+<span class="code-line" data-line="3">    nodes = {}</span>
+<span class="code-line" data-line="4">    for r in rows:</span>
+<span class="code-line" data-line="5">        nodes[r["id"]] = Node(r["id"])</span>
+<span class="code-line" data-line="6"></span>
+<span class="code-line" data-line="7">    # Pass 2: link each row to its parent</span>
+<span class="code-line" data-line="8">    roots = []</span>
+<span class="code-line" data-line="9">    for r in rows:</span>
+<span class="code-line" data-line="10">        pid = r["parent_id"]</span>
+<span class="code-line" data-line="11">        if pid is None:</span>
+<span class="code-line" data-line="12">            roots.append(nodes[r["id"]])</span>
+<span class="code-line" data-line="13">        else:</span>
+<span class="code-line" data-line="14">            nodes[pid].children.append(nodes[r["id"]])</span>
+<span class="code-line" data-line="15">    return roots</span>
+        </code>
+      </div>
+
+      <p class="footer-note" style="margin-top:14px;">Rows for this trace (deliberately shuffled — the same canonical tree used by every other method on this page, rebuilt from a flat table): <code>[{id:'G',parent_id:'D'}, {id:'E',parent_id:'B'}, {id:'C',parent_id:'A'}, {id:'A',parent_id:None}, {id:'F',parent_id:'B'}, {id:'D',parent_id:'A'}, {id:'B',parent_id:'A'}]</code></p>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive flat-rows build trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="flat-graph" viewBox="0 0 620 260" width="100%" role="img" aria-label="Flat rows to tree build trace">
+              <defs>
+                <style>
+                  .flatg-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 6 6; }
+                  .flatg-active-edge { stroke: #ff9f1c; stroke-width: 8; stroke-linecap: round; }
+                  .flatg-done-edge { stroke: #315efb; stroke-width: 6; stroke-linecap: round; }
+                  .flatg-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                  .flatg-node.mapped { fill: #13a46b; }
+                  .flatg-node.linked { fill: #315efb; }
+                  .flatg-node.current { fill: #ff9f1c; }
+                  .flatg-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .flatg-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="20" y="24" class="flatg-title">Current row</text>
+              <line x1="310" y1="60" x2="140" y2="140" class="flatg-base-edge" />
+              <line x1="310" y1="60" x2="310" y2="140" class="flatg-base-edge" />
+              <line x1="310" y1="60" x2="480" y2="140" class="flatg-base-edge" />
+              <line x1="140" y1="140" x2="80" y2="230" class="flatg-base-edge" />
+              <line x1="140" y1="140" x2="200" y2="230" class="flatg-base-edge" />
+              <line x1="480" y1="140" x2="480" y2="230" class="flatg-base-edge" />
+              <line x1="310" y1="60" x2="140" y2="140" class="flatg-done-edge" data-flat-edge="A-B" visibility="hidden" />
+              <line x1="310" y1="60" x2="310" y2="140" class="flatg-done-edge" data-flat-edge="A-C" visibility="hidden" />
+              <line x1="310" y1="60" x2="480" y2="140" class="flatg-done-edge" data-flat-edge="A-D" visibility="hidden" />
+              <line x1="140" y1="140" x2="80" y2="230" class="flatg-done-edge" data-flat-edge="B-E" visibility="hidden" />
+              <line x1="140" y1="140" x2="200" y2="230" class="flatg-done-edge" data-flat-edge="B-F" visibility="hidden" />
+              <line x1="480" y1="140" x2="480" y2="230" class="flatg-done-edge" data-flat-edge="D-G" visibility="hidden" />
+              <line x1="310" y1="60" x2="140" y2="140" class="flatg-active-edge" data-flat-active="A-B" visibility="hidden" />
+              <line x1="310" y1="60" x2="310" y2="140" class="flatg-active-edge" data-flat-active="A-C" visibility="hidden" />
+              <line x1="310" y1="60" x2="480" y2="140" class="flatg-active-edge" data-flat-active="A-D" visibility="hidden" />
+              <line x1="140" y1="140" x2="80" y2="230" class="flatg-active-edge" data-flat-active="B-E" visibility="hidden" />
+              <line x1="140" y1="140" x2="200" y2="230" class="flatg-active-edge" data-flat-active="B-F" visibility="hidden" />
+              <line x1="480" y1="140" x2="480" y2="230" class="flatg-active-edge" data-flat-active="D-G" visibility="hidden" />
+              <circle cx="310" cy="60" r="26" class="flatg-node" data-node="A" />
+              <circle cx="140" cy="140" r="26" class="flatg-node" data-node="B" />
+              <circle cx="310" cy="140" r="26" class="flatg-node" data-node="C" />
+              <circle cx="480" cy="140" r="26" class="flatg-node" data-node="D" />
+              <circle cx="80" cy="230" r="26" class="flatg-node" data-node="E" />
+              <circle cx="200" cy="230" r="26" class="flatg-node" data-node="F" />
+              <circle cx="480" cy="230" r="26" class="flatg-node" data-node="G" />
+              <text x="303" y="66" class="flatg-label">A</text>
+              <text x="133" y="146" class="flatg-label">B</text>
+              <text x="303" y="146" class="flatg-label">C</text>
+              <text x="473" y="146" class="flatg-label">D</text>
+              <text x="73" y="236" class="flatg-label">E</text>
+              <text x="193" y="236" class="flatg-label">F</text>
+              <text x="473" y="236" class="flatg-label">G</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current row's id</span>
+            <span><i class="dot dot-green"></i> node created (mapped), not linked yet</span>
+            <span><i class="dot dot-blue"></i> linked to its parent (or recorded as root)</span>
+            <span><i class="dot dot-gray"></i> not created yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="flat-step-title">Initial state</h3>
+          <p id="flat-step-text">Seven rows have arrived in arbitrary order. Nothing has been created or linked yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="flat-prev">Previous</button>
+            <button type="button" id="flat-play" class="primary">Resume</button>
+            <button type="button" id="flat-next">Next</button>
+            <button type="button" id="flat-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="flat-step-counter">Step 0 / 15</span>
+            <div class="progress"><span id="flat-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Phase</strong><div class="state-value" id="flat-phase">Not started</div></div>
+            <div class="state-box"><strong>Current row</strong><div class="state-value" id="flat-row">—</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="flat-action">rows = [7 rows, arbitrary order]</div></div>
+            <div class="state-box"><strong>id → node map (keys so far)</strong><div class="state-value" id="flat-map">[]</div></div>
+            <div class="state-box"><strong>children lists so far</strong><div class="state-value" id="flat-children">{}</div></div>
+            <div class="state-box"><strong>roots</strong><div class="state-value" id="flat-roots">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="flat-detail"><strong>What changed:</strong> nothing yet — pass 1 (create every node) is about to start.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="flat-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Action</th><th>id → node map (keys)</th><th>children / roots after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>7 rows arrive, arbitrary order</td><td><code>[]</code></td><td>children: <code>{}</code> · roots: <code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>Pass 1: <code>nodes['G'] = Node('G')</code></td><td><code>['G']</code></td><td>children: <code>{}</code> · roots: <code>[]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>Pass 1: <code>nodes['E'] = Node('E')</code></td><td><code>['G','E']</code></td><td>children: <code>{}</code> · roots: <code>[]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>Pass 1: <code>nodes['C'] = Node('C')</code></td><td><code>['G','E','C']</code></td><td>children: <code>{}</code> · roots: <code>[]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>Pass 1: <code>nodes['A'] = Node('A')</code></td><td><code>['G','E','C','A']</code></td><td>children: <code>{}</code> · roots: <code>[]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>Pass 1: <code>nodes['F'] = Node('F')</code></td><td><code>['G','E','C','A','F']</code></td><td>children: <code>{}</code> · roots: <code>[]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>Pass 1: <code>nodes['D'] = Node('D')</code></td><td><code>['G','E','C','A','F','D']</code></td><td>children: <code>{}</code> · roots: <code>[]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>Pass 1: <code>nodes['B'] = Node('B')</code> — all 7 ids now mapped</td><td><code>['G','E','C','A','F','D','B']</code></td><td>children: <code>{}</code> · roots: <code>[]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>Pass 2: row id='G', parent='D' → <code>nodes['D'].children.append(nodes['G'])</code></td><td><code>['G','E','C','A','F','D','B']</code></td><td>children: <code>{'D': ['G']}</code> · roots: <code>[]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>Pass 2: row id='E', parent='B' → <code>nodes['B'].children.append(nodes['E'])</code></td><td><code>['G','E','C','A','F','D','B']</code></td><td>children: <code>{'D': ['G'], 'B': ['E']}</code> · roots: <code>[]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>Pass 2: row id='C', parent='A' → <code>nodes['A'].children.append(nodes['C'])</code></td><td><code>['G','E','C','A','F','D','B']</code></td><td>children: <code>{'D': ['G'], 'B': ['E'], 'A': ['C']}</code> · roots: <code>[]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>Pass 2: row id='A', parent=None → <code>roots.append(nodes['A'])</code></td><td><code>['G','E','C','A','F','D','B']</code></td><td>children: <code>{'D': ['G'], 'B': ['E'], 'A': ['C']}</code> · roots: <code>['A']</code></td></tr>
+            <tr data-step="12"><td>12</td><td>Pass 2: row id='F', parent='B' → <code>nodes['B'].children.append(nodes['F'])</code></td><td><code>['G','E','C','A','F','D','B']</code></td><td>children: <code>{'D': ['G'], 'B': ['E','F'], 'A': ['C']}</code> · roots: <code>['A']</code></td></tr>
+            <tr data-step="13"><td>13</td><td>Pass 2: row id='D', parent='A' → <code>nodes['A'].children.append(nodes['D'])</code></td><td><code>['G','E','C','A','F','D','B']</code></td><td>children: <code>{'D': ['G'], 'B': ['E','F'], 'A': ['C','D']}</code> · roots: <code>['A']</code></td></tr>
+            <tr data-step="14"><td>14</td><td>Pass 2: row id='B', parent='A' → <code>nodes['A'].children.append(nodes['B'])</code></td><td><code>['G','E','C','A','F','D','B']</code></td><td>children: <code>{'D': ['G'], 'B': ['E','F'], 'A': ['C','D','B']}</code> · roots: <code>['A']</code></td></tr>
+            <tr data-step="15"><td>15</td><td>Pass 2 finished → <code>return roots</code></td><td><code>['G','E','C','A','F','D','B']</code></td><td>children: <code>{'D': ['G'], 'B': ['E','F'], 'A': ['C','D','B']}</code> · roots: <code>['A']</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Two passes, not one. Pass 1 guarantees every id exists in the map before pass 2 ever runs — that is what makes the algorithm immune to row order. A single-pass version would crash or silently drop a node whenever a child row appears before its parent row.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Assuming parent rows always arrive before their children's rows and trying to link in one pass. Real data — a SQL dump, a CSV export, an API page — makes no such promise. The trace above deliberately links G to D (step 8) using <code>nodes['D']</code>, even though D's own row is not processed until step 13.</p>
+        </div>
+        <div class="card">
+          <h4>Why the hash map matters</h4>
+          <p>Without <code>nodes</code>, finding a row's parent would mean scanning all rows for a matching id — O(n) work per row, O(n²) overall. The map turns "find node by id" into O(1), which is exactly what keeps the whole build at O(n).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Edge cases you should test</h2>
       <div class="tabs" role="tablist" aria-label="Edge case examples">
         <button type="button" class="active-tab" data-example-tab="0">Single node</button>
@@ -980,10 +1274,11 @@ G.children = []</code></div>
             <tr><td>DFS — pre-order (recursive)</td><td>O(n)</td><td>O(h) — call stack</td><td>Recording a node before its subtree: printing, copying, serializing top-down</td></tr>
             <tr><td>DFS — post-order (recursive)</td><td>O(n)</td><td>O(h) — call stack</td><td>Combining children's answers first: size, height, safe deletion</td></tr>
             <tr><td>BFS — level-order (iterative)</td><td>O(n)</td><td>O(w) — widest level, held in the queue</td><td>Row-by-row output, nearest-node / shortest-hop questions, avoiding call-stack limits</td></tr>
+            <tr><td>Build from flat rows (two-pass)</td><td>O(n)</td><td>O(n) — id→node map plus the tree itself</td><td>Reconstructing a tree from a database table or CSV export where each row only knows its own parent's id</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="footer-note">All three visit every node exactly once because a tree has no cycles — the only thing that changes is the order they are visited in and where the "waiting" nodes are stored (call stack vs. queue).</p>
+      <p class="footer-note">The three traversals each visit every node exactly once because a tree has no cycles — the only thing that changes is the order they are visited in and where the "waiting" nodes are stored (call stack vs. queue). Building from flat rows is not a traversal at all — it is a two-pass construction step that has to run before any of the three traversals above can walk the result.</p>
     </section>
 
     <section class="panel">
@@ -1098,6 +1393,43 @@ G.children = []</code></div>
         { step: 5, title: 'Step 5: pop E', text: 'E is popped. It has no children, so nothing is pushed.', action: "pop E; order.append('E'); no children to push", queue: "['F', 'G']", node: 'E', order: "['A', 'B', 'C', 'D', 'E']", detail: 'Depth-2 nodes are now being drained in the order they were pushed: E, then F, then G.', currentNode: 'E', frontierNodes: ['F', 'G'], seenNodes: ['A', 'B', 'C', 'D', 'E'], activeEdge: 'B-E', lines: [9, 10, 11] },
         { step: 6, title: 'Step 6: pop F', text: 'F is popped. It has no children, so nothing is pushed.', action: "pop F; order.append('F'); no children to push", queue: "['G']", node: 'F', order: "['A', 'B', 'C', 'D', 'E', 'F']", detail: 'Only G remains in the queue.', currentNode: 'F', frontierNodes: ['G'], seenNodes: ['A', 'B', 'C', 'D', 'E', 'F'], activeEdge: 'B-F', lines: [9, 10, 11] },
         { step: 7, title: 'Step 7: pop G — done', text: 'G is popped and appended. The queue is now empty, so the while loop condition fails on the next check and bfs returns order.', action: "pop G; order.append('G'); queue empty -> loop ends -> return order", queue: '[]', node: 'G', order: "['A', 'B', 'C', 'D', 'E', 'F', 'G']", detail: 'Final result: A, B, C, D, E, F, G — every level finished before the next began.', currentNode: 'G', frontierNodes: [], seenNodes: ['A', 'B', 'C', 'D', 'E', 'F', 'G'], activeEdge: 'D-G', lines: [9, 10, 11, 13] }
+      ];
+
+      const postSteps = [
+        { step: 0, title: 'Initial state', text: 'Before the first call, out is created as an empty list. Nothing has been visited yet. Notice the code is identical to dfs_preorder except the append line has moved after the for loop.', action: 'out = [] (first call only)', stack: '[]', node: '—', out: '[]', detail: 'The call stack is empty; dfs_postorder(A) is about to run for the first time.', currentNode: null, stackNodes: [], doneNodes: [], activeEdge: null, lines: [1, 2, 3] },
+        { step: 1, title: 'Step 1: enter A', text: "dfs_postorder(A) begins. Unlike pre-order, nothing is appended yet — A's frame just opens and moves straight to the for loop over its children. A will only be recorded after every child's subtree returns.", action: 'enter dfs_postorder(A) — no append yet', stack: "['A']", node: 'A', out: '[]', detail: "A is pushed onto the call stack but not recorded — post-order must wait for all of A's children to finish first.", currentNode: 'A', stackNodes: [], doneNodes: [], activeEdge: null, lines: [4, 5, 6] },
+        { step: 2, title: 'Step 2: enter B (1st child of A)', text: "A's loop calls dfs_postorder(B) before A has appended anything for itself. B's frame opens the same way — check for None, then start its own loop.", action: 'enter dfs_postorder(B) — no append yet', stack: "['A', 'B']", node: 'B', out: '[]', detail: "B's call frame opens on top of A's; A is still waiting for B to finish.", currentNode: 'B', stackNodes: ['A'], doneNodes: [], activeEdge: 'A-B', lines: [4, 5, 6] },
+        { step: 3, title: 'Step 3: enter E (1st child of B)', text: 'B\'s loop calls dfs_postorder(E). The call stack is now three deep: A, B, E — none of them have been appended to out yet.', action: 'enter dfs_postorder(E) — no append yet', stack: "['A', 'B', 'E']", node: 'E', out: '[]', detail: 'The call stack is three deep, and out is still completely empty — post-order records nothing until a subtree actually finishes.', currentNode: 'E', stackNodes: ['A', 'B'], doneNodes: [], activeEdge: 'B-E', lines: [4, 5, 6] },
+        { step: 4, title: 'Step 4: return from E', text: "E has no children, so its for-loop body never runs. Only now — after the loop — does dfs_postorder(E) append E's value and return. E is the first node written to out.", action: "E.children is empty -> out.append('E') -> return out", stack: "['A', 'B']", node: 'E', out: "['E']", detail: 'E is now finished — it is the first node in out, because it was the first leaf reached.', currentNode: 'E', stackNodes: ['A', 'B'], doneNodes: [], activeEdge: null, lines: [8, 9] },
+        { step: 5, title: 'Step 5: enter F (2nd child of B)', text: "Back inside B's loop, the next child is F. dfs_postorder(F) opens a new frame; F is not appended yet either.", action: 'enter dfs_postorder(F) — no append yet', stack: "['A', 'B', 'F']", node: 'F', out: "['E']", detail: "B's loop moves to its second child now that E's subtree is fully done.", currentNode: 'F', stackNodes: ['A', 'B'], doneNodes: ['E'], activeEdge: 'B-F', lines: [4, 5, 6] },
+        { step: 6, title: 'Step 6: return from F', text: 'F is also a leaf, so its loop body never runs — it appends itself and returns immediately, just like E did.', action: "F.children is empty -> out.append('F') -> return out", stack: "['A', 'B']", node: 'F', out: "['E', 'F']", detail: 'F is now finished, alongside E.', currentNode: 'F', stackNodes: ['A', 'B'], doneNodes: ['E'], activeEdge: null, lines: [8, 9] },
+        { step: 7, title: "Step 7: return from B", text: "B's loop has now visited both E and F, and there are no more children. Only now does B append itself — after both of its children's subtrees are done — and return to A.", action: "B's loop finished (E, F done) -> out.append('B') -> return out", stack: "['A']", node: 'B', out: "['E', 'F', 'B']", detail: "B's entire subtree — E, F, then B — is now finished, with B recorded last.", currentNode: 'B', stackNodes: ['A'], doneNodes: ['E', 'F'], activeEdge: null, lines: [8, 9] },
+        { step: 8, title: 'Step 8: enter C (2nd child of A)', text: "Back inside A's loop, the second child is C. dfs_postorder(C) opens; C is not appended yet.", action: 'enter dfs_postorder(C) — no append yet', stack: "['A', 'C']", node: 'C', out: "['E', 'F', 'B']", detail: "A's loop moves on to C now that B's whole subtree is done.", currentNode: 'C', stackNodes: ['A'], doneNodes: ['E', 'F', 'B'], activeEdge: 'A-C', lines: [4, 5, 6] },
+        { step: 9, title: 'Step 9: return from C', text: 'C is a leaf, so it appends itself and returns right after its (empty) loop.', action: "C.children is empty -> out.append('C') -> return out", stack: "['A']", node: 'C', out: "['E', 'F', 'B', 'C']", detail: 'C is now finished.', currentNode: 'C', stackNodes: ['A'], doneNodes: ['E', 'F', 'B'], activeEdge: null, lines: [8, 9] },
+        { step: 10, title: 'Step 10: enter D (3rd child of A)', text: "A's third and final child is D. dfs_postorder(D) opens a new frame; D is not appended yet.", action: 'enter dfs_postorder(D) — no append yet', stack: "['A', 'D']", node: 'D', out: "['E', 'F', 'B', 'C']", detail: "A's loop reaches its last child.", currentNode: 'D', stackNodes: ['A'], doneNodes: ['E', 'F', 'B', 'C'], activeEdge: 'A-D', lines: [4, 5, 6] },
+        { step: 11, title: 'Step 11: enter G (1st child of D)', text: "D loops over its one child, G. dfs_postorder(G) opens; G is not appended yet.", action: 'enter dfs_postorder(G) — no append yet', stack: "['A', 'D', 'G']", node: 'G', out: "['E', 'F', 'B', 'C']", detail: 'The call stack is three deep again: A, D, G.', currentNode: 'G', stackNodes: ['A', 'D'], doneNodes: ['E', 'F', 'B', 'C'], activeEdge: 'D-G', lines: [4, 5, 6] },
+        { step: 12, title: 'Step 12: return from G', text: 'G is a leaf, so it appends itself and returns immediately.', action: "G.children is empty -> out.append('G') -> return out", stack: "['A', 'D']", node: 'G', out: "['E', 'F', 'B', 'C', 'G']", detail: 'G is now finished.', currentNode: 'G', stackNodes: ['A', 'D'], doneNodes: ['E', 'F', 'B', 'C'], activeEdge: null, lines: [8, 9] },
+        { step: 13, title: "Step 13: return from D", text: "D's only child, G, is done, so D can finally append itself and return to A.", action: "D's loop finished (G done) -> out.append('D') -> return out", stack: "['A']", node: 'D', out: "['E', 'F', 'B', 'C', 'G', 'D']", detail: "D's subtree — G, then D — is now finished.", currentNode: 'D', stackNodes: ['A'], doneNodes: ['E', 'F', 'B', 'C', 'G'], activeEdge: null, lines: [8, 9] },
+        { step: 14, title: 'Step 14: return from A — done', text: "A's loop has now visited B, C, and D — all three subtrees are finished. Only now does A append itself, last of all seven nodes, and dfs_postorder(A) returns out.", action: "A's loop finished (B, C, D done) -> out.append('A') -> return out", stack: '[]', node: 'A', out: "['E', 'F', 'B', 'C', 'G', 'D', 'A']", detail: 'The call stack is empty again. Final result: E, F, B, C, G, D, A — every node appears only after its entire subtree is finished.', currentNode: 'A', stackNodes: [], doneNodes: ['E', 'F', 'B', 'C', 'G', 'D'], activeEdge: null, lines: [8, 9] }
+      ];
+
+      const flatSteps = [
+        { step: 0, title: 'Initial state', text: "Seven rows have arrived in arbitrary order: {id:'G',parent_id:'D'}, {id:'E',parent_id:'B'}, {id:'C',parent_id:'A'}, {id:'A',parent_id:None}, {id:'F',parent_id:'B'}, {id:'D',parent_id:'A'}, {id:'B',parent_id:'A'}. Nothing has been created or linked yet.", phase: 'Not started', row: '—', action: 'rows = [7 rows, arbitrary order]', map: '[]', children: '{}', roots: '[]', detail: 'Neither pass has run yet.', currentNode: null, mappedNodes: [], linkedNodes: [], linkedEdges: [], activeEdge: null, lines: [1, 2, 3] },
+        { step: 1, title: 'Pass 1, row 1: create G', text: "Pass 1 never looks at parent_id — it walks every row once, in row order, and creates a Node for that row's id. Row 0 is id='G', so nodes['G'] is created first, even though G is actually a grandchild in the final tree.", phase: 'Pass 1: create nodes (1 / 7)', row: "{id:'G', parent_id:'D'}", action: "nodes['G'] = Node('G')", map: "['G']", children: '{}', roots: '[]', detail: 'G now exists in the map, but it is not linked to anything yet — that only happens in pass 2.', currentNode: 'G', mappedNodes: ['G'], linkedNodes: [], linkedEdges: [], activeEdge: null, lines: [4, 5] },
+        { step: 2, title: 'Pass 1, row 2: create E', text: "Row 1 is id='E'. Its node is created next. Row order, not id order or tree order, decides the sequence here.", phase: 'Pass 1: create nodes (2 / 7)', row: "{id:'E', parent_id:'B'}", action: "nodes['E'] = Node('E')", map: "['G', 'E']", children: '{}', roots: '[]', detail: 'E is mapped, not yet linked.', currentNode: 'E', mappedNodes: ['G', 'E'], linkedNodes: [], linkedEdges: [], activeEdge: null, lines: [4, 5] },
+        { step: 3, title: 'Pass 1, row 3: create C', text: "Row 2 is id='C'.", phase: 'Pass 1: create nodes (3 / 7)', row: "{id:'C', parent_id:'A'}", action: "nodes['C'] = Node('C')", map: "['G', 'E', 'C']", children: '{}', roots: '[]', detail: 'C is mapped, not yet linked.', currentNode: 'C', mappedNodes: ['G', 'E', 'C'], linkedNodes: [], linkedEdges: [], activeEdge: null, lines: [4, 5] },
+        { step: 4, title: 'Pass 1, row 4: create A', text: "Row 3 is id='A' — the eventual root. Pass 1 treats it exactly like every other row: create the node, nothing more.", phase: 'Pass 1: create nodes (4 / 7)', row: "{id:'A', parent_id:None}", action: "nodes['A'] = Node('A')", map: "['G', 'E', 'C', 'A']", children: '{}', roots: '[]', detail: 'A is mapped like everything else — being the root only matters in pass 2, when its parent_id is read.', currentNode: 'A', mappedNodes: ['G', 'E', 'C', 'A'], linkedNodes: [], linkedEdges: [], activeEdge: null, lines: [4, 5] },
+        { step: 5, title: 'Pass 1, row 5: create F', text: "Row 4 is id='F'.", phase: 'Pass 1: create nodes (5 / 7)', row: "{id:'F', parent_id:'B'}", action: "nodes['F'] = Node('F')", map: "['G', 'E', 'C', 'A', 'F']", children: '{}', roots: '[]', detail: 'F is mapped, not yet linked.', currentNode: 'F', mappedNodes: ['G', 'E', 'C', 'A', 'F'], linkedNodes: [], linkedEdges: [], activeEdge: null, lines: [4, 5] },
+        { step: 6, title: 'Pass 1, row 6: create D', text: "Row 5 is id='D'. Note D's own node is only created now, in row-position 6 — but E and F, and even G (D's own future child), were created earlier. Pass 1 does not care about tree shape at all, only that every row gets a node.", phase: 'Pass 1: create nodes (6 / 7)', row: "{id:'D', parent_id:'A'}", action: "nodes['D'] = Node('D')", map: "['G', 'E', 'C', 'A', 'F', 'D']", children: '{}', roots: '[]', detail: "D is mapped, not yet linked. Its own row appears late (position 6 of 7), which will matter once pass 2 tries to link G under D.", currentNode: 'D', mappedNodes: ['G', 'E', 'C', 'A', 'F', 'D'], linkedNodes: [], linkedEdges: [], activeEdge: null, lines: [4, 5] },
+        { step: 7, title: 'Pass 1, row 7: create B — pass 1 complete', text: "Row 6, the last row, is id='B'. Once this node is created, all 7 ids exist in the map. Pass 1 is done: every id — no matter how early or late its row appeared — can now be looked up in O(1) during pass 2.", phase: 'Pass 1: create nodes (7 / 7) — done', row: "{id:'B', parent_id:'A'}", action: "nodes['B'] = Node('B')", map: "['G', 'E', 'C', 'A', 'F', 'D', 'B']", children: '{}', roots: '[]', detail: 'All 7 ids are now mapped. This is exactly why row order cannot break the algorithm — every lookup pass 2 needs is already guaranteed to exist.', currentNode: 'B', mappedNodes: ['G', 'E', 'C', 'A', 'F', 'D', 'B'], linkedNodes: [], linkedEdges: [], activeEdge: null, lines: [4, 5] },
+        { step: 8, title: 'Pass 2, row 1: link G under D', text: "Pass 2 walks the SAME rows again, this time reading parent_id. Row 0 is {id:'G', parent_id:'D'}. D was created back in pass-1 row 6 — even though D's own row has not been processed yet in this pass, nodes['D'] already exists, so the lookup succeeds instantly.", phase: 'Pass 2: link parents (1 / 7)', row: "{id:'G', parent_id:'D'}", action: "nodes['D'].children.append(nodes['G'])", map: "['G', 'E', 'C', 'A', 'F', 'D', 'B']", children: "{'D': ['G']}", roots: '[]', detail: "G is now linked under D. This is the core guarantee of the two-pass design: D did not need to be 'created first' in the row list to be found.", currentNode: 'G', mappedNodes: ['G', 'E', 'C', 'A', 'F', 'D', 'B'], linkedNodes: ['G'], linkedEdges: ['D-G'], activeEdge: 'D-G', lines: [9, 10, 11, 13, 14] },
+        { step: 9, title: 'Pass 2, row 2: link E under B', text: "Row 1 is {id:'E', parent_id:'B'}. B was only created in pass 1's last step (row 6), but nodes['B'] is already in the map, so linking E under B works immediately.", phase: 'Pass 2: link parents (2 / 7)', row: "{id:'E', parent_id:'B'}", action: "nodes['B'].children.append(nodes['E'])", map: "['G', 'E', 'C', 'A', 'F', 'D', 'B']", children: "{'D': ['G'], 'B': ['E']}", roots: '[]', detail: 'E is now linked under B.', currentNode: 'E', mappedNodes: ['G', 'E', 'C', 'A', 'F', 'D', 'B'], linkedNodes: ['G', 'E'], linkedEdges: ['D-G', 'B-E'], activeEdge: 'B-E', lines: [9, 10, 11, 13, 14] },
+        { step: 10, title: 'Pass 2, row 3: link C under A', text: "Row 2 is {id:'C', parent_id:'A'}. A was created in pass 1's row 3, so nodes['A'] is ready.", phase: 'Pass 2: link parents (3 / 7)', row: "{id:'C', parent_id:'A'}", action: "nodes['A'].children.append(nodes['C'])", map: "['G', 'E', 'C', 'A', 'F', 'D', 'B']", children: "{'D': ['G'], 'B': ['E'], 'A': ['C']}", roots: '[]', detail: "C is now linked under A. A.children starts growing: ['C'] so far.", currentNode: 'C', mappedNodes: ['G', 'E', 'C', 'A', 'F', 'D', 'B'], linkedNodes: ['G', 'E', 'C'], linkedEdges: ['D-G', 'B-E', 'A-C'], activeEdge: 'A-C', lines: [9, 10, 11, 13, 14] },
+        { step: 11, title: "Pass 2, row 4: A's own row — parent_id is None, so A is a root", text: "Row 3 is {id:'A', parent_id:None}. This is the branch the whole algorithm watches for: parent_id is None means this row has no parent, so instead of linking it under another node, A itself is appended to roots.", phase: 'Pass 2: link parents (4 / 7)', row: "{id:'A', parent_id:None}", action: "roots.append(nodes['A'])", map: "['G', 'E', 'C', 'A', 'F', 'D', 'B']", children: "{'D': ['G'], 'B': ['E'], 'A': ['C']}", roots: "['A']", detail: 'roots now holds A. This is exactly how build_from_rows recognizes the top of the tree — no special "is this the root" flag is needed, only a None check on parent_id.', currentNode: 'A', mappedNodes: ['G', 'E', 'C', 'A', 'F', 'D', 'B'], linkedNodes: ['G', 'E', 'C', 'A'], linkedEdges: ['D-G', 'B-E', 'A-C'], activeEdge: null, lines: [9, 10, 11, 12] },
+        { step: 12, title: 'Pass 2, row 5: link F under B', text: "Row 4 is {id:'F', parent_id:'B'}. B already holds E as a child; F is appended right after it.", phase: 'Pass 2: link parents (5 / 7)', row: "{id:'F', parent_id:'B'}", action: "nodes['B'].children.append(nodes['F'])", map: "['G', 'E', 'C', 'A', 'F', 'D', 'B']", children: "{'D': ['G'], 'B': ['E', 'F'], 'A': ['C']}", roots: "['A']", detail: "B.children is now ['E', 'F'].", currentNode: 'F', mappedNodes: ['G', 'E', 'C', 'A', 'F', 'D', 'B'], linkedNodes: ['G', 'E', 'C', 'A', 'F'], linkedEdges: ['D-G', 'B-E', 'A-C', 'B-F'], activeEdge: 'B-F', lines: [9, 10, 11, 13, 14] },
+        { step: 13, title: 'Pass 2, row 6: link D under A', text: "Row 5 is {id:'D', parent_id:'A'}. D itself already has G linked underneath it (from step 8) — now D is attached to A, completing that branch.", phase: 'Pass 2: link parents (6 / 7)', row: "{id:'D', parent_id:'A'}", action: "nodes['A'].children.append(nodes['D'])", map: "['G', 'E', 'C', 'A', 'F', 'D', 'B']", children: "{'D': ['G'], 'B': ['E', 'F'], 'A': ['C', 'D']}", roots: "['A']", detail: "A.children is now ['C', 'D'].", currentNode: 'D', mappedNodes: ['G', 'E', 'C', 'A', 'F', 'D', 'B'], linkedNodes: ['G', 'E', 'C', 'A', 'F', 'D'], linkedEdges: ['D-G', 'B-E', 'A-C', 'B-F', 'A-D'], activeEdge: 'A-D', lines: [9, 10, 11, 13, 14] },
+        { step: 14, title: 'Pass 2, row 7: link B under A — pass 2 complete', text: "Row 6, the last row, is {id:'B', parent_id:'A'}. B is attached to A last of all, even though B was itself a parent (of E and F) several steps ago. Every row has now been linked or recognized as root.", phase: 'Pass 2: link parents (7 / 7) — done', row: "{id:'B', parent_id:'A'}", action: "nodes['A'].children.append(nodes['B'])", map: "['G', 'E', 'C', 'A', 'F', 'D', 'B']", children: "{'D': ['G'], 'B': ['E', 'F'], 'A': ['C', 'D', 'B']}", roots: "['A']", detail: "A.children ends up as ['C', 'D', 'B'] — not ['B', 'C', 'D'] like the canonical add_child() build earlier on this page. The final child order always matches ROW order, not id order — worth saying out loud in an interview if child order matters for your use case.", currentNode: 'B', mappedNodes: ['G', 'E', 'C', 'A', 'F', 'D', 'B'], linkedNodes: ['G', 'E', 'C', 'A', 'F', 'D', 'B'], linkedEdges: ['D-G', 'B-E', 'A-C', 'B-F', 'A-D', 'A-B'], activeEdge: 'A-B', lines: [9, 10, 11, 13, 14] },
+        { step: 15, title: 'Done — return roots', text: 'All 7 rows have been processed. build_from_rows returns roots = [A]. Running dfs_preorder or bfs on this rebuilt tree visits the exact same 7 nodes as the canonical tree built with add_child earlier on this page — only the internal child-list order differs, and only for parents whose rows did not arrive in "natural" order.', phase: 'Done — O(n) total across both passes', row: '—', action: 'return roots', map: "['G', 'E', 'C', 'A', 'F', 'D', 'B']", children: "{'D': ['G'], 'B': ['E', 'F'], 'A': ['C', 'D', 'B']}", roots: "['A']", detail: "The tree is fully rebuilt: A → [C, D, B], B → [E, F], D → [G]. Same shape, same 7 nodes as the canonical tree — just discovered from flat rows instead of add_child calls.", currentNode: null, mappedNodes: ['G', 'E', 'C', 'A', 'F', 'D', 'B'], linkedNodes: ['G', 'E', 'C', 'A', 'F', 'D', 'B'], linkedEdges: ['D-G', 'B-E', 'A-C', 'B-F', 'A-D', 'A-B'], activeEdge: null, lines: [15] }
       ];
 
       function setCodeHighlight(containerId, lines) {
@@ -1225,8 +1557,68 @@ G.children = []</code></div>
         });
       }
 
+      function renderPost(step, index, max) {
+        document.getElementById('post-step-title').textContent = step.title;
+        document.getElementById('post-step-text').textContent = step.text;
+        document.getElementById('post-stack').textContent = step.stack;
+        document.getElementById('post-action').textContent = step.action;
+        document.getElementById('post-node').textContent = step.node;
+        document.getElementById('post-out').textContent = step.out;
+        document.getElementById('post-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('post-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('post-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('post-trace-table', step.step);
+        setCodeHighlight('post-code', step.lines);
+
+        document.querySelectorAll('#post-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('done', 'onstack', 'current');
+          if (step.doneNodes.includes(id)) node.classList.add('done');
+          if (step.stackNodes.includes(id)) node.classList.add('onstack');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#post-graph [data-post-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.postEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderFlat(step, index, max) {
+        document.getElementById('flat-step-title').textContent = step.title;
+        document.getElementById('flat-step-text').textContent = step.text;
+        document.getElementById('flat-phase').textContent = step.phase;
+        document.getElementById('flat-row').textContent = step.row;
+        document.getElementById('flat-action').textContent = step.action;
+        document.getElementById('flat-map').textContent = step.map;
+        document.getElementById('flat-children').textContent = step.children;
+        document.getElementById('flat-roots').textContent = step.roots;
+        document.getElementById('flat-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('flat-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('flat-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('flat-trace-table', step.step);
+        setCodeHighlight('flat-code', step.lines);
+
+        document.querySelectorAll('#flat-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('mapped', 'linked', 'current');
+          if (step.mappedNodes.includes(id)) node.classList.add('mapped');
+          if (step.linkedNodes.includes(id)) node.classList.add('linked');
+          if (step.currentNode === id) node.classList.add('current');
+        });
+
+        document.querySelectorAll('#flat-graph [data-flat-edge]').forEach((line) => {
+          line.setAttribute('visibility', step.linkedEdges.includes(line.dataset.flatEdge) ? 'visible' : 'hidden');
+        });
+
+        document.querySelectorAll('#flat-graph [data-flat-active]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.flatActive === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
       setupTrace({ steps: dfsSteps, prefix: 'dfs', render: renderDFS });
       setupTrace({ steps: bfsSteps, prefix: 'bfs', render: renderBFS });
+      setupTrace({ steps: postSteps, prefix: 'post', render: renderPost });
+      setupTrace({ steps: flatSteps, prefix: 'flat', render: renderFlat });
 
       const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
       const panels = Array.from(document.querySelectorAll('[data-example-panel]'));

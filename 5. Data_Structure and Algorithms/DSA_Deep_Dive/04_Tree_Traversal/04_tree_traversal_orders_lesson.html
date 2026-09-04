@@ -512,6 +512,7 @@
             <span class="chip">Core idea: same walk, different visit point</span>
             <span class="chip">Interactive combined DFS trace</span>
             <span class="chip">Interactive explicit-stack trace</span>
+            <span class="chip">Interactive reconstruction trace</span>
             <span class="chip">Code synced with steps</span>
           </div>
         </div>
@@ -958,6 +959,138 @@
     </section>
 
     <section class="panel">
+      <h2>Method 3: reconstruct a tree from preorder + inorder</h2>
+      <p>Both walks above assume a tree already exists. This one runs the idea backwards: given <strong>only</strong> the two output lists, rebuild the exact tree that produced them. The trick is that preorder and inorder answer two different questions about the same node — preorder says <strong>which value is the root</strong>, inorder says <strong>which values are left of it and which are right of it</strong> — and combining those two answers, one recursive call at a time, is enough to pin down the whole shape uniquely.</p>
+
+      <div class="code-block stepped">
+        <code id="m3-code">
+<span class="code-line" data-line="1">def build_tree(preorder, inorder):</span>
+<span class="code-line" data-line="2">    if not preorder or not inorder:</span>
+<span class="code-line" data-line="3">        return None</span>
+<span class="code-line" data-line="4"></span>
+<span class="code-line" data-line="5">    root_val = preorder[0]</span>
+<span class="code-line" data-line="6">    root = TreeNode(root_val)</span>
+<span class="code-line" data-line="7">    mid = inorder.index(root_val)</span>
+<span class="code-line" data-line="8"></span>
+<span class="code-line" data-line="9">    left_inorder  = inorder[:mid]</span>
+<span class="code-line" data-line="10">    right_inorder = inorder[mid + 1:]</span>
+<span class="code-line" data-line="11">    left_preorder  = preorder[1:1 + len(left_inorder)]</span>
+<span class="code-line" data-line="12">    right_preorder = preorder[1 + len(left_inorder):]</span>
+<span class="code-line" data-line="13"></span>
+<span class="code-line" data-line="14">    root.left  = build_tree(left_preorder, left_inorder)</span>
+<span class="code-line" data-line="15">    root.right = build_tree(right_preorder, right_inorder)</span>
+<span class="code-line" data-line="16">    return root</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive reconstruction trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="m3-graph" viewBox="0 0 560 240" width="100%" role="img" aria-label="Tree being rebuilt node by node from preorder and inorder">
+              <defs>
+                <style>
+                  .m3-active-edge { stroke: #13a46b; stroke-width: 6; stroke-linecap: round; }
+                  .m3-node { fill: #c8d2e7; transition: fill 0.2s ease; }
+                  .m3-node.built { fill: #315efb; }
+                  .m3-node.current { fill: #ff9f1c; }
+                  .m3-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .m3-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="16" y="22" class="m3-title">Tree being assembled, one root at a time</text>
+              <line x1="280" y1="60" x2="160" y2="130" class="m3-active-edge" data-m3-edge="1-2" visibility="hidden" />
+              <line x1="280" y1="60" x2="400" y2="130" class="m3-active-edge" data-m3-edge="1-3" visibility="hidden" />
+              <line x1="160" y1="130" x2="100" y2="200" class="m3-active-edge" data-m3-edge="2-4" visibility="hidden" />
+              <line x1="160" y1="130" x2="220" y2="200" class="m3-active-edge" data-m3-edge="2-5" visibility="hidden" />
+              <line x1="400" y1="130" x2="340" y2="200" class="m3-active-edge" data-m3-edge="3-6" visibility="hidden" />
+              <line x1="400" y1="130" x2="460" y2="200" class="m3-active-edge" data-m3-edge="3-7" visibility="hidden" />
+              <circle cx="280" cy="60" r="25" class="m3-node" data-node="1" />
+              <circle cx="160" cy="130" r="25" class="m3-node" data-node="2" />
+              <circle cx="400" cy="130" r="25" class="m3-node" data-node="3" />
+              <circle cx="100" cy="200" r="25" class="m3-node" data-node="4" />
+              <circle cx="220" cy="200" r="25" class="m3-node" data-node="5" />
+              <circle cx="340" cy="200" r="25" class="m3-node" data-node="6" />
+              <circle cx="460" cy="200" r="25" class="m3-node" data-node="7" />
+              <text x="273" y="66" class="m3-label">1</text>
+              <text x="153" y="136" class="m3-label">2</text>
+              <text x="393" y="136" class="m3-label">3</text>
+              <text x="93" y="206" class="m3-label">4</text>
+              <text x="213" y="206" class="m3-label">5</text>
+              <text x="333" y="206" class="m3-label">6</text>
+              <text x="453" y="206" class="m3-label">7</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> root being placed right now</span>
+            <span><i class="dot dot-blue"></i> already attached to the rebuilt tree</span>
+            <span><i class="dot dot-gray"></i> not built yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="m3-step-title">Initial state</h3>
+          <p id="m3-step-text">Only two lists exist so far — no tree. preorder = [1,2,4,5,3,6,7], inorder = [4,2,5,1,6,3,7].</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="m3-prev">Previous</button>
+            <button type="button" id="m3-play" class="primary">Resume</button>
+            <button type="button" id="m3-next">Next</button>
+            <button type="button" id="m3-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="m3-step-counter">Step 0 / 8</span>
+            <div class="progress"><span id="m3-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>preorder slice</strong><div class="state-value" id="m3-pre" style="color:#13a46b;">[1, 2, 4, 5, 3, 6, 7]</div></div>
+            <div class="state-box"><strong>inorder slice</strong><div class="state-value" id="m3-ino" style="color:#13a46b;">[4, 2, 5, 1, 6, 3, 7]</div></div>
+            <div class="state-box"><strong>root chosen (this call)</strong><div class="state-value" id="m3-root" style="color:#ff9f1c;">—</div></div>
+            <div class="state-box"><strong>left split (pre | in)</strong><div class="state-value" id="m3-left">—</div></div>
+            <div class="state-box"><strong>right split (pre | in)</strong><div class="state-value" id="m3-right">—</div></div>
+            <div class="state-box"><strong>attached so far</strong><div class="state-value" id="m3-attached">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="m3-detail"><strong>What changed:</strong> nothing has been read yet — this is the state right before the first call.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="m3-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Call</th><th>Root</th><th>mid</th><th>Left split (pre | in)</th><th>Right split (pre | in)</th><th>Attached so far</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>—</td><td>—</td><td><code>— | —</code></td><td><code>— | —</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>build_tree([1,2,4,5,3,6,7], [4,2,5,1,6,3,7])</td><td>1</td><td>3</td><td><code>[2,4,5] | [4,2,5]</code></td><td><code>[3,6,7] | [6,3,7]</code></td><td><code>[1]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>build_tree([2,4,5], [4,2,5])</td><td>2</td><td>1</td><td><code>[4] | [4]</code></td><td><code>[5] | [5]</code></td><td><code>[1,2]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>build_tree([4], [4])</td><td>4</td><td>0</td><td><code>[] | []</code></td><td><code>[] | []</code></td><td><code>[1,2,4]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>build_tree([5], [5])</td><td>5</td><td>0</td><td><code>[] | []</code></td><td><code>[] | []</code></td><td><code>[1,2,4,5]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>build_tree([3,6,7], [6,3,7])</td><td>3</td><td>1</td><td><code>[6] | [6]</code></td><td><code>[7] | [7]</code></td><td><code>[1,2,4,5,3]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>build_tree([6], [6])</td><td>6</td><td>0</td><td><code>[] | []</code></td><td><code>[] | []</code></td><td><code>[1,2,4,5,3,6]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>build_tree([7], [7])</td><td>7</td><td>0</td><td><code>[] | []</code></td><td><code>[] | []</code></td><td><code>[1,2,4,5,3,6,7]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>all calls returned</td><td>—</td><td>—</td><td><code>— | —</code></td><td><code>— | —</code></td><td><code>[1,2,4,5,3,6,7] (complete)</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Preorder's first element is always the current subtree's <strong>root</strong> — no exceptions, that's what "N first" guarantees. Finding that value's position inside the matching inorder slice splits it into "everything left of the root" and "everything right of it" — which <em>are</em> the left and right subtrees. Their sizes then tell you exactly how to cut the preorder slice too: the next <code>len(left_inorder)</code> values after the root belong to the left subtree, the rest to the right.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake — assuming preorder + postorder is enough</h4>
+          <p>It is not, for a general binary tree. Preorder <code>[1,2]</code> and postorder <code>[2,1]</code> match <em>both</em> "1 with a left child 2" and "1 with a right child 2" — postorder can't tell which side a lone child is on because L,R,N never records where the single child sat relative to a sibling that doesn't exist. Inorder breaks that tie (<code>[2,1]</code> vs <code>[1,2]</code>), which is exactly why it must be one of the two traversals you use.</p>
+        </div>
+        <div class="card">
+          <h4>The O(n) optimization: an index map</h4>
+          <p>The code above calls <code>inorder.index(root_val)</code> on every recursive call — a linear scan each time, O(n) work repeated for each of the n nodes, so O(n<sup>2</sup>) overall. Precomputing <code>val_to_index = {v: i for i, v in enumerate(inorder)}</code> once up front turns that scan into a single O(1) dictionary lookup per call, dropping the whole reconstruction to O(n).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Edge cases you should test</h2>
       <div class="tabs" role="tablist" aria-label="Edge case examples">
         <button type="button" class="active-tab" data-example-tab="0">Single node</button>
@@ -1005,10 +1138,11 @@
             <tr><td>Inorder</td><td>Sorted order on a BST — validate-BST, kth-smallest</td><td>O(n)</td><td>O(h) call stack</td><td>O(h) explicit stack (O(1) with Morris threading)</td></tr>
             <tr><td>Postorder</td><td>Compute a value bottom-up from children; the only safe order to free/delete nodes</td><td>O(n)</td><td>O(h) call stack</td><td>O(h) explicit stack</td></tr>
             <tr><td>Level-order (BFS)</td><td>Anything about depth: shortest hops to a node, level-by-level view, minimum depth</td><td>O(n)</td><td>N/A — no natural recursive form</td><td>O(w) queue, widest level</td></tr>
+            <tr><td>Reconstruct (pre + in)</td><td>Rebuild the unique tree from two traversals — needs one of them to be inorder</td><td>O(n<sup>2</sup>) naive <code>.index()</code> · O(n) with an index map</td><td>O(h) call stack</td><td>O(n) index map (optimized version only)</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="footer-note"><code>h</code> = tree height (worst case <code>n</code> on a skewed tree, <code>log n</code> balanced). <code>w</code> = widest level (up to <code>~n/2</code> on a perfect tree). All four still touch every node exactly once — they only differ in when/how.</p>
+      <p class="footer-note"><code>h</code> = tree height (worst case <code>n</code> on a skewed tree, <code>log n</code> balanced). <code>w</code> = widest level (up to <code>~n/2</code> on a perfect tree). All four traversal orders still touch every node exactly once — they only differ in when/how. Reconstruction is the odd one out: it does <code>n</code> total recursive calls but each one's <code>.index()</code> scan can cost up to O(n), which is what the index-map optimization removes.</p>
     </section>
 
     <section class="panel">
@@ -1139,6 +1273,18 @@
         { step: 12, title: 'Step 12: pop 3, record', text: 'node is None (6\'s right was None), pop 3 — its left subtree (node 6) is fully recorded — and append it.', node: '3', action: 'node = stack.pop(); out.append(3); node = node.right', stack: '[]', out: '[4, 2, 5, 1, 6, 3]', detail: 'out = [4, 2, 5, 1, 6, 3]. Stack: [].', currentNode: 3, stackNodes: [], doneNodes: [4, 2, 5, 1, 6, 3], lines: [8, 9, 10] },
         { step: 13, title: 'Step 13: push 7, dive left', text: 'node = 3.right = 7. Push it and move to node.left (None).', node: '7', action: 'stack.append(7); node = node.left', stack: '[7]', out: '[4, 2, 5, 1, 6, 3]', detail: 'Stack: [7].', currentNode: 7, stackNodes: [7], doneNodes: [4, 2, 5, 1, 6, 3], lines: [5, 6, 7] },
         { step: 14, title: 'Step 14: pop 7, record — done', text: 'node is None, pop 7 (last node) and append it. Both node and stack are now empty/None, so the outer while loop ends.', node: '7', action: 'node = stack.pop(); out.append(7); return out', stack: '[]', out: '[4, 2, 5, 1, 6, 3, 7]', detail: 'out = [4, 2, 5, 1, 6, 3, 7] — matches the recursive inorder exactly. Final answer.', currentNode: 7, stackNodes: [], doneNodes: [4, 2, 5, 1, 6, 3, 7], lines: [8, 9, 11] }
+      ];
+
+      const m3Steps = [
+        { step: 0, title: 'Initial state', text: 'Only two lists exist so far — no tree at all. preorder = [1,2,4,5,3,6,7], inorder = [4,2,5,1,6,3,7].', pre: '[1, 2, 4, 5, 3, 6, 7]', ino: '[4, 2, 5, 1, 6, 3, 7]', root: '—', left: '—', right: '—', attached: '[]', detail: 'Nothing has been read yet — this is the state right before the first call to build_tree.', currentNode: null, doneNodes: [], pathEdges: [], lines: [1] },
+        { step: 1, title: 'Step 1: build_tree([1,2,4,5,3,6,7], [4,2,5,1,6,3,7])', text: 'root_val = preorder[0] = 1. mid = inorder.index(1) = 3, so everything left of index 3 is the left subtree and everything right of it is the right subtree — inorder splits it into [4,2,5] and [6,3,7]. Their sizes (3 and 3) tell the code exactly where to cut preorder too: the next 3 values [2,4,5] are the left subtree, the last 3 [3,6,7] are the right.', pre: '[1, 2, 4, 5, 3, 6, 7]', ino: '[4, 2, 5, 1, 6, 3, 7]', root: '1', left: '[2, 4, 5] | [4, 2, 5]', right: '[3, 6, 7] | [6, 3, 7]', attached: '[1]', detail: 'Node 1 is placed as the root. Its left and right slices are now known; the walk recurses into the left slice first.', currentNode: 1, doneNodes: [], pathEdges: [], lines: [5, 6, 7, 9, 10, 11, 12] },
+        { step: 2, title: 'Step 2: build_tree([2,4,5], [4,2,5]) — left subtree of 1', text: 'root_val = preorder[0] = 2. mid = inorder.index(2) = 1 inside [4,2,5], splitting it into [4] (left) and [5] (right). preorder splits the same way: [4] and [5].', pre: '[2, 4, 5]', ino: '[4, 2, 5]', root: '2', left: '[4] | [4]', right: '[5] | [5]', attached: '[1, 2]', detail: 'Node 2 is attached as the left child of 1. Edge 1-2 is now known.', currentNode: 2, doneNodes: [1], pathEdges: ['1-2'], lines: [5, 6, 7, 9, 10, 11, 12] },
+        { step: 3, title: 'Step 3: build_tree([4], [4]) — leaf', text: 'root_val = preorder[0] = 4. mid = inorder.index(4) = 0 inside [4], so both the left slice and the right slice are empty — node 4 has no children. Both recursive calls hit the base case (line 2-3) and return None immediately.', pre: '[4]', ino: '[4]', root: '4', left: '[] | []', right: '[] | []', attached: '[1, 2, 4]', detail: 'Node 4 is attached as the left child of 2. Edge 2-4 is now known. This is a leaf: an empty slice means "no subtree here."', currentNode: 4, doneNodes: [1, 2], pathEdges: ['1-2', '2-4'], lines: [2, 3, 5, 6, 7, 9, 10, 11, 12, 14, 15] },
+        { step: 4, title: 'Step 4: build_tree([5], [5]) — leaf, right child of 2', text: 'Back in node 2\'s frame: root.left = build_tree(...) for node 4 just returned, so now root.right = build_tree([5], [5]) runs. root_val = 5, mid = 0, both splits empty — another leaf.', pre: '[5]', ino: '[5]', root: '5', left: '[] | []', right: '[] | []', attached: '[1, 2, 4, 5]', detail: 'Node 5 is attached as the right child of 2. Edge 2-5 is now known. Node 2\'s whole subtree — {2, 4, 5} — is now fully built and returns up to node 1.', currentNode: 5, doneNodes: [1, 2, 4], pathEdges: ['1-2', '2-4', '2-5'], lines: [2, 3, 5, 6, 7, 9, 10, 11, 12, 14, 15] },
+        { step: 5, title: 'Step 5: build_tree([3,6,7], [6,3,7]) — right subtree of 1', text: 'Back in node 1\'s frame: root.left is done, so now root.right = build_tree([3,6,7], [6,3,7]) runs. root_val = 3, mid = inorder.index(3) = 1 inside [6,3,7], splitting into [6] and [7]. preorder splits the same way: [6] and [7].', pre: '[3, 6, 7]', ino: '[6, 3, 7]', root: '3', left: '[6] | [6]', right: '[7] | [7]', attached: '[1, 2, 4, 5, 3]', detail: 'Node 3 is attached as the right child of 1. Edge 1-3 is now known.', currentNode: 3, doneNodes: [1, 2, 4, 5], pathEdges: ['1-2', '2-4', '2-5', '1-3'], lines: [5, 6, 7, 9, 10, 11, 12] },
+        { step: 6, title: 'Step 6: build_tree([6], [6]) — leaf, left child of 3', text: 'root_val = 6, mid = 0, both splits empty — leaf.', pre: '[6]', ino: '[6]', root: '6', left: '[] | []', right: '[] | []', attached: '[1, 2, 4, 5, 3, 6]', detail: 'Node 6 is attached as the left child of 3. Edge 3-6 is now known.', currentNode: 6, doneNodes: [1, 2, 4, 5, 3], pathEdges: ['1-2', '2-4', '2-5', '1-3', '3-6'], lines: [2, 3, 5, 6, 7, 9, 10, 11, 12, 14, 15] },
+        { step: 7, title: 'Step 7: build_tree([7], [7]) — leaf, right child of 3', text: 'root_val = 7, mid = 0, both splits empty — leaf. This is the last unbuilt node.', pre: '[7]', ino: '[7]', root: '7', left: '[] | []', right: '[] | []', attached: '[1, 2, 4, 5, 3, 6, 7]', detail: 'Node 7 is attached as the right child of 3. Edge 3-7 is now known. Node 3\'s subtree — {3, 6, 7} — is complete.', currentNode: 7, doneNodes: [1, 2, 4, 5, 3, 6], pathEdges: ['1-2', '2-4', '2-5', '1-3', '3-6', '3-7'], lines: [2, 3, 5, 6, 7, 9, 10, 11, 12, 14, 15] },
+        { step: 8, title: 'Step 8: all calls returned — tree complete', text: 'Every recursive call has returned. root.left and root.right for every node are set, and return root unwinds all the way back to the original caller with the fully assembled tree.', pre: '—', ino: '—', root: '—', left: '— | —', right: '— | —', attached: '[1, 2, 4, 5, 3, 6, 7] (complete)', detail: 'Re-running preorder / inorder / postorder on this rebuilt tree gives back exactly [1,2,4,5,3,6,7], [4,2,5,1,6,3,7], [4,5,2,6,7,3,1] — the same three lists Method 1 traced at the top of this page.', currentNode: null, doneNodes: [1, 2, 4, 5, 3, 6, 7], pathEdges: ['1-2', '2-4', '2-5', '1-3', '3-6', '3-7'], lines: [16] }
       ];
 
       function setCodeHighlight(containerId, lines) {
@@ -1272,8 +1418,39 @@
         });
       }
 
+      function renderM3(step, index, max) {
+        document.getElementById('m3-step-title').textContent = step.title;
+        document.getElementById('m3-step-text').textContent = step.text;
+        document.getElementById('m3-pre').textContent = step.pre;
+        document.getElementById('m3-ino').textContent = step.ino;
+        document.getElementById('m3-root').textContent = step.root;
+        document.getElementById('m3-left').textContent = step.left;
+        document.getElementById('m3-right').textContent = step.right;
+        document.getElementById('m3-attached').textContent = step.attached;
+        document.getElementById('m3-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('m3-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('m3-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('m3-trace-table', step.step);
+        setCodeHighlight('m3-code', step.lines);
+
+        document.querySelectorAll('#m3-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.remove('built', 'current');
+          if (step.currentNode === id) {
+            node.classList.add('current');
+          } else if (step.doneNodes.includes(id)) {
+            node.classList.add('built');
+          }
+        });
+
+        document.querySelectorAll('#m3-graph [data-m3-edge]').forEach((line) => {
+          line.setAttribute('visibility', step.pathEdges.includes(line.dataset.m3Edge) ? 'visible' : 'hidden');
+        });
+      }
+
       setupTrace({ steps: m1Steps, prefix: 'm1', render: renderM1 });
       setupTrace({ steps: m2Steps, prefix: 'm2', render: renderM2 });
+      setupTrace({ steps: m3Steps, prefix: 'm3', render: renderM3 });
 
       const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
       const panels = Array.from(document.querySelectorAll('[data-example-panel]'));

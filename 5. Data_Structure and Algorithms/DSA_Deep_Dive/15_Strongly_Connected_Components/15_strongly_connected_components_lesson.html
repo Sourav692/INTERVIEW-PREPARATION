@@ -531,6 +531,7 @@
             <span class="chip">Core idea: mutual reachability</span>
             <span class="chip">Interactive Kosaraju trace</span>
             <span class="chip">Interactive Tarjan trace</span>
+            <span class="chip">Interactive condensation trace</span>
             <span class="chip">Code synced with steps</span>
           </div>
         </div>
@@ -1068,6 +1069,173 @@
     </section>
 
     <section class="panel">
+      <h2>Method 3: Condensing the graph into a DAG</h2>
+      <p>Kosaraju and Tarjan both end with the same thing: <code>comp[u]</code>, an SCC id for every vertex. Condensing means building a brand-new, much smaller graph whose nodes are those SCC ids instead of the original vertices. Walk the same edge list one more time — for every original edge <code>u → v</code>, look up <code>comp[u]</code> and <code>comp[v]</code>. If they match, the edge lives entirely inside one super-node and simply vanishes. If they differ, it becomes an edge between two super-nodes, added once (duplicates are dropped). The single most useful fact about this new graph: <strong>it can never contain a cycle</strong>.</p>
+
+      <div class="callout">
+        <p><strong>Why the condensation is always a DAG:</strong> suppose it did have a cycle, say <code>C1 → C2 → C1</code>. That would mean some vertex in <code>C1</code> reaches some vertex in <code>C2</code>, and some vertex in <code>C2</code> reaches back into <code>C1</code> — so every vertex in <code>C1</code> and <code>C2</code> is mutually reachable through that loop. But mutual reachability is <em>exactly</em> the definition of "same SCC". <code>C1</code> and <code>C2</code> would never have been computed as two separate components in the first place. A cycle in the condensation would contradict the very definition of an SCC — so it is structurally impossible, not just empirically rare.</p>
+      </div>
+
+      <div class="code-block stepped">
+        <code id="cond-code">
+<span class="code-line" data-line="1">def condense(n, adj, comp, num_comps):</span>
+<span class="code-line" data-line="2">    """Collapse every SCC into one super-node; return the condensation."""</span>
+<span class="code-line" data-line="3">    cond_adj = [set() for _ in range(num_comps)]</span>
+<span class="code-line" data-line="4">    for u in range(n):</span>
+<span class="code-line" data-line="5">        for v in adj[u]:</span>
+<span class="code-line" data-line="6">            cu, cv = comp[u], comp[v]</span>
+<span class="code-line" data-line="7">            if cu != cv:                  # crossing edge -> record it (set dedups it)</span>
+<span class="code-line" data-line="8">                cond_adj[cu].add(cv)</span>
+<span class="code-line" data-line="9">            # else: cu == cv -> internal edge, vanishes inside the super-node</span>
+<span class="code-line" data-line="10">    return [sorted(nbrs) for nbrs in cond_adj]</span>
+<span class="code-line" data-line="11"></span>
+<span class="code-line" data-line="12">def is_dag(num_comps, cond_adj):</span>
+<span class="code-line" data-line="13">    """DFS cycle check with a recursion-stack color array."""</span>
+<span class="code-line" data-line="14">    WHITE, GRAY, BLACK = 0, 1, 2</span>
+<span class="code-line" data-line="15">    color = [WHITE] * num_comps</span>
+<span class="code-line" data-line="16">    def dfs(u):</span>
+<span class="code-line" data-line="17">        color[u] = GRAY</span>
+<span class="code-line" data-line="18">        for v in cond_adj[u]:</span>
+<span class="code-line" data-line="19">            if color[v] == GRAY:</span>
+<span class="code-line" data-line="20">                return False               # back edge -> a cycle exists</span>
+<span class="code-line" data-line="21">            if color[v] == WHITE and not dfs(v):</span>
+<span class="code-line" data-line="22">                return False</span>
+<span class="code-line" data-line="23">        color[u] = BLACK</span>
+<span class="code-line" data-line="24">        return True</span>
+<span class="code-line" data-line="25">    return all(color[i] != WHITE or dfs(i) for i in range(num_comps))</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive condensation trace</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px;">
+            <div class="diagram">
+              <svg id="cond-src-graph" viewBox="0 0 560 260" width="100%" role="img" aria-label="Original graph with the edge currently under examination highlighted">
+                <defs>
+                  <style>
+                    .cond-src-node { fill: #cfd8ea; transition: fill 0.2s ease; }
+                    .cond-src-node.active { fill: #ff9f1c; }
+                    .cond-src-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                    .cond-src-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                    .cond-src-edge { stroke: #9aa6c2; stroke-width: 4; stroke-linecap: round; marker-end: url(#arrow-gray); }
+                    .cond-src-edge.active { stroke: #ff9f1c; stroke-width: 7; marker-end: url(#arrow-orange); }
+                  </style>
+                </defs>
+                <text x="10" y="20" class="cond-src-title">Original graph</text>
+                <line class="cond-src-edge" data-edge="0-1" x1="100" y1="84" x2="70" y2="156" />
+                <line class="cond-src-edge" data-edge="1-2" x1="86" y1="180" x2="194" y2="180" />
+                <line class="cond-src-edge" data-edge="2-0" x1="202" y1="161" x2="128" y2="79" />
+                <line class="cond-src-edge" data-edge="2-3" x1="242" y1="167" x2="398" y2="73" />
+                <line class="cond-src-edge" data-edge="3-4" x1="408" y1="86" x2="408" y2="174" />
+                <line class="cond-src-edge" data-edge="4-3" x1="432" y1="174" x2="432" y2="86" />
+                <circle cx="110" cy="60" r="26" class="cond-src-node" data-node="0" />
+                <circle cx="60" cy="180" r="26" class="cond-src-node" data-node="1" />
+                <circle cx="220" cy="180" r="26" class="cond-src-node" data-node="2" />
+                <circle cx="420" cy="60" r="26" class="cond-src-node" data-node="3" />
+                <circle cx="420" cy="200" r="26" class="cond-src-node" data-node="4" />
+                <text x="103" y="66" class="cond-src-label">0</text>
+                <text x="53" y="186" class="cond-src-label">1</text>
+                <text x="213" y="186" class="cond-src-label">2</text>
+                <text x="413" y="66" class="cond-src-label">3</text>
+                <text x="413" y="206" class="cond-src-label">4</text>
+              </svg>
+            </div>
+            <div class="diagram">
+              <svg id="cond-dag-graph" viewBox="0 0 420 220" width="100%" role="img" aria-label="Condensation graph being built from the two SCCs">
+                <defs>
+                  <style>
+                    .cond-node { fill: #315efb; }
+                    .cond-node-label { font: 700 15px Inter, Arial, sans-serif; fill: #ffffff; }
+                    .cond-sub-label { font: 600 12px Inter, Arial, sans-serif; fill: #5d677d; }
+                    .cond-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                    .cond-dag-edge { stroke: #c8d2e7; stroke-width: 4; stroke-linecap: round; marker-end: url(#arrow-gray); }
+                    .cond-dag-edge.visible { stroke: #315efb; marker-end: url(#arrow-blue); }
+                    .cond-dag-edge.active { stroke: #13a46b; stroke-width: 7; marker-end: url(#arrow-green); }
+                  </style>
+                </defs>
+                <text x="10" y="20" class="cond-title">Condensation being built</text>
+                <line id="cond-dag-edge-01" class="cond-dag-edge" data-cedge="0-1" x1="146" y1="90" x2="284" y2="90" visibility="hidden" />
+                <circle cx="110" cy="90" r="36" class="cond-node" data-comp="0" />
+                <circle cx="320" cy="90" r="36" class="cond-node" data-comp="1" />
+                <text x="110" y="86" text-anchor="middle" class="cond-node-label">SCC0</text>
+                <text x="110" y="150" text-anchor="middle" class="cond-sub-label">{0, 1, 2}</text>
+                <text x="320" y="86" text-anchor="middle" class="cond-node-label">SCC1</text>
+                <text x="320" y="150" text-anchor="middle" class="cond-sub-label">{3, 4}</text>
+                <text id="cond-dag-verify" x="210" y="195" text-anchor="middle" font-weight="700" fill="var(--good)" opacity="0">Acyclic — verified, a DAG</text>
+              </svg>
+            </div>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> edge / component under examination</span>
+            <span><i class="dot dot-green"></i> crossing edge just added</span>
+            <span><i class="dot dot-blue"></i> component already placed in the condensation</span>
+            <span><i class="dot dot-gray"></i> not yet processed</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="cond-step-title">Initial state</h3>
+          <p id="cond-step-text">Both SCCs already exist as super-nodes. No original edge has been examined yet.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="cond-prev">Previous</button>
+            <button type="button" id="cond-play" class="primary">Resume</button>
+            <button type="button" id="cond-next">Next</button>
+            <button type="button" id="cond-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="cond-step-counter">Step 0 / 7</span>
+            <div class="progress"><span id="cond-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Current edge</strong><div class="state-value" id="cond-edge">—</div></div>
+            <div class="state-box"><strong>comp[u] / comp[v]</strong><div class="state-value" id="cond-comp">— / —</div></div>
+            <div class="state-box"><strong>Decision</strong><div class="state-value" id="cond-decision">Not started</div></div>
+            <div class="state-box"><strong>Condensation edges so far</strong><div class="state-value" id="cond-edges-so-far">[]</div></div>
+            <div class="state-box"><strong>Original edges processed</strong><div class="state-value" id="cond-processed">0 / 6</div></div>
+            <div class="state-box"><strong>DAG check</strong><div class="state-value" id="cond-verify">pending</div></div>
+          </div>
+          <div class="explainer">
+            <p id="cond-detail"><strong>What changed:</strong> comp is already known; condensation hasn't started.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="cond-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Edge</th><th>comp[u]</th><th>comp[v]</th><th>Decision</th><th>Condensation edges so far</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>—</td><td>—</td><td>SCC0 = {0,1,2}, SCC1 = {3,4} already known</td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>0 → 1</td><td>0</td><td>0</td><td>internal, comp equal → drop</td><td><code>[]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>1 → 2</td><td>0</td><td>0</td><td>internal, comp equal → drop</td><td><code>[]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>2 → 0</td><td>0</td><td>0</td><td>internal, comp equal → drop</td><td><code>[]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>2 → 3</td><td>0</td><td>1</td><td>crossing, comp differs → ADD SCC0 → SCC1</td><td><code>[SCC0 → SCC1]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>3 → 4</td><td>1</td><td>1</td><td>internal, comp equal → drop</td><td><code>[SCC0 → SCC1]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>4 → 3</td><td>1</td><td>1</td><td>internal, comp equal → drop</td><td><code>[SCC0 → SCC1]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>—</td><td>—</td><td>—</td><td>all 6 edges processed; cycle check run → NO CYCLE</td><td><code>[SCC0 → SCC1]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Every original edge either lives entirely inside one super-node (internal, dropped) or crosses between two super-nodes (kept, deduplicated). That one pass over the existing edge list is the entire algorithm — no new graph traversal is needed once <code>comp[]</code> is known.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Forgetting to dedupe crossing edges. If two different original edges both cross from the same pair of components (imagine an extra edge <code>1 → 4</code> alongside <code>2 → 3</code>), a plain list would record <code>SCC0 → SCC1</code> twice, producing a parallel edge. Using a <code>set</code> (as in <code>cond_adj[cu].add(cv)</code>) keeps the condensation simple.</p>
+        </div>
+        <div class="card">
+          <h4>Why this matters</h4>
+          <p>This is the entire reason SCCs get computed in practice. Once collapsed, the condensation is guaranteed acyclic — no matter how tangled the original graph's cycles were — so topological sort, longest/critical path, and dependency-ordered DP all become legal again. 2-SAT is the classic exploit: build the implication graph, collapse it, and read satisfiability straight off SCC membership.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Edge cases you should test</h2>
       <div class="tabs" role="tablist" aria-label="Edge case examples">
         <button type="button" class="active-tab" data-example-tab="0">DAG — every node its own SCC</button>
@@ -1113,6 +1281,7 @@
           <tbody>
             <tr><td>Kosaraju</td><td>O(V + E)</td><td>O(V + E)</td><td>Two (+ build transpose)</td><td>Easier to explain out loud: finish order, reverse, DFS again.</td></tr>
             <tr><td>Tarjan</td><td>O(V + E)</td><td>O(V)</td><td>One</td><td>Trickier low-link idea, but no transpose graph to build, and often faster in practice.</td></tr>
+            <tr><td>Condensation</td><td>O(V + E)</td><td>O(V + E)</td><td>One pass over the edge list (after comp[] exists)</td><td>Not a way to find SCCs — it's what you do <em>with</em> them: collapse to a guaranteed DAG.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1238,6 +1407,17 @@
         { step: 11, title: 'Step 11: back to dfs(1)', text: 'Control returns to dfs(1). low[1] is pulled down using low[2]: min(1, 0) = 0.', node: '1', disc: '[0, 1, 2, 3, 4]', low: '[0, 0, 0, 3, 3]', onstack: '{0, 1, 2}', stack: '[0, 1, 2]', sccs: '[{3, 4}]', detail: 'low[1] is now 0, matching disc[0] — proof that 1 can reach all the way back to the very first vertex. Still not a root itself: 0 has to check too.', lines: [12, 15], currentNode: 1, blueNodes: [3, 4], greenNodes: [0, 1, 2], activeEdge: null },
         { step: 12, title: 'Step 12: dfs(0) closes {0, 1, 2} — done', text: 'Control returns to dfs(0). low[0] is pulled down using low[1]: min(0, 0) = 0. low[0] equals disc[0] = 0, so 0 is an SCC root — pop the stack down to and including 0: that removes 2, 1, then 0.', node: '0', disc: '[0, 1, 2, 3, 4]', low: '[0, 0, 0, 3, 3]', onstack: '{}', stack: '[]', sccs: '[{3, 4}, {0, 1, 2}]', detail: 'Two SCCs found in a single DFS pass, no reversed graph required — {3,4} closed first because it happened to be discovered deepest, then {0,1,2} closed once the whole outer call unwound.', lines: [12, 15, 16, 17, 18, 19, 20, 21, 22], currentNode: 0, blueNodes: [0, 1, 2, 3, 4], greenNodes: [], activeEdge: null },
         { step: 13, title: 'Step 13: outer loop finishes', text: 'The outer loop checks 1, 2, 3, 4 — all already discovered, so nothing more happens. tarjan returns sccs.', node: '—', disc: '[0, 1, 2, 3, 4]', low: '[0, 0, 0, 3, 3]', onstack: '{}', stack: '[]', sccs: '[{3, 4}, {0, 1, 2}]', detail: 'The same two SCCs Kosaraju found, in a different (but equally valid) discovery order — SCC identity never depends on which algorithm or which starting vertex you use.', lines: [23, 24, 26], currentNode: null, blueNodes: [0, 1, 2, 3, 4], greenNodes: [], activeEdge: null }
+      ];
+
+      const condensationSteps = [
+        { step: 0, title: 'Initial state — SCCs already found', text: 'Kosaraju/Tarjan already gave us comp[u] for every vertex: comp = {0:0, 1:0, 2:0, 3:1, 4:1}. Condensation creates one super-node per distinct comp id — SCC0 = {0,1,2} and SCC1 = {3,4} — with zero edges so far.', edge: '—', comp: '— / —', decision: 'Not started', edgesSoFar: '[]', processed: '0 / 6', verify: 'pending', detail: "Two super-nodes exist before a single original edge is examined — we haven't touched the edge list yet.", lines: [1, 2, 3], activeEdge: null, activeNodes: [], dagVisible: false, dagActive: false, dagVerify: false },
+        { step: 1, title: 'Step 1: edge 0 → 1 — internal, dropped', text: 'comp[0] = 0 and comp[1] = 0 — same component. This edge lives entirely inside SCC0, so it contributes nothing to the condensation.', edge: '0 → 1', comp: '0 / 0', decision: 'Internal (comp[u] == comp[v]) → drop', edgesSoFar: '[]', processed: '1 / 6', verify: 'pending', detail: 'Internal edges are exactly the edges that made {0,1,2} one SCC in the first place — once collapsed, they vanish inside the super-node.', lines: [4, 5, 6, 9], activeEdge: '0-1', activeNodes: [0, 1], dagVisible: false, dagActive: false, dagVerify: false },
+        { step: 2, title: 'Step 2: edge 1 → 2 — internal, dropped', text: 'comp[1] = 0 and comp[2] = 0 — still inside SCC0. Another internal edge, dropped the same way.', edge: '1 → 2', comp: '0 / 0', decision: 'Internal (comp[u] == comp[v]) → drop', edgesSoFar: '[]', processed: '2 / 6', verify: 'pending', detail: 'Same rule, same result: both endpoints belong to SCC0, so the edge never reaches the condensation.', lines: [4, 5, 6, 9], activeEdge: '1-2', activeNodes: [1, 2], dagVisible: false, dagActive: false, dagVerify: false },
+        { step: 3, title: 'Step 3: edge 2 → 0 — internal, dropped', text: 'comp[2] = 0 and comp[0] = 0. This is the very back edge that originally closed the 0-1-2 cycle in Kosaraju/Tarjan — inside the condensation it disappears just like the other two.', edge: '2 → 0', comp: '0 / 0', decision: 'Internal (comp[u] == comp[v]) → drop', edgesSoFar: '[]', processed: '3 / 6', verify: 'pending', detail: 'All three edges that proved {0,1,2} mutually reachable are, unsurprisingly, all internal to the same super-node.', lines: [4, 5, 6, 9], activeEdge: '2-0', activeNodes: [2, 0], dagVisible: false, dagActive: false, dagVerify: false },
+        { step: 4, title: 'Step 4: edge 2 → 3 — crossing, added', text: 'comp[2] = 0 but comp[3] = 1 — different components. This is a crossing edge: add SCC0 → SCC1 to the condensation.', edge: '2 → 3', comp: '0 / 1', decision: 'Crossing (comp[u] != comp[v]) → NEW edge SCC0 → SCC1 added', edgesSoFar: '[SCC0 → SCC1]', processed: '4 / 6', verify: 'pending', detail: 'This is the ONLY original edge that survives condensation. Every other edge in this graph is internal to one SCC or the other.', lines: [4, 5, 6, 7, 8], activeEdge: '2-3', activeNodes: [2, 3], dagVisible: true, dagActive: true, dagVerify: false },
+        { step: 5, title: 'Step 5: edge 3 → 4 — internal, dropped', text: 'comp[3] = 1 and comp[4] = 1 — both inside SCC1. Internal, dropped.', edge: '3 → 4', comp: '1 / 1', decision: 'Internal (comp[u] == comp[v]) → drop', edgesSoFar: '[SCC0 → SCC1]', processed: '5 / 6', verify: 'pending', detail: 'The condensation edge added last step is unaffected — a dropped internal edge never removes an edge that already made it in.', lines: [4, 5, 6, 9], activeEdge: '3-4', activeNodes: [3, 4], dagVisible: true, dagActive: false, dagVerify: false },
+        { step: 6, title: 'Step 6: edge 4 → 3 — internal, dropped', text: 'comp[4] = 1 and comp[3] = 1. The last edge is internal too. All 6 original edges have now been examined.', edge: '4 → 3', comp: '1 / 1', decision: 'Internal (comp[u] == comp[v]) → drop', edgesSoFar: '[SCC0 → SCC1]', processed: '6 / 6', verify: 'pending', detail: '5 of the 6 original edges were internal; exactly 1 crossed between components. That 1 edge is the entire condensation.', lines: [4, 5, 6, 9], activeEdge: '4-3', activeNodes: [4, 3], dagVisible: true, dagActive: false, dagVerify: false },
+        { step: 7, title: 'Step 7: verify the condensation is a DAG', text: 'All 6 edges are processed: 5 internal (dropped), 1 crossing (kept). Run a cycle check on the 2-node condensation graph: no back edge is ever found, so it is acyclic.', edge: '—', comp: '— / —', decision: '6 / 6 edges processed — 1 crossing edge kept', edgesSoFar: '[SCC0 → SCC1]', processed: '6 / 6', verify: 'Acyclic — verified (DAG)', detail: 'This was not a lucky outcome. Any cycle among components would prove they were mutually reachable, which would make them the same SCC by definition — so a cycle here is structurally impossible, not just empirically absent.', lines: [10, 16, 19, 25], activeEdge: null, activeNodes: [], dagVisible: true, dagActive: false, dagVerify: true }
       ];
 
       function setCodeHighlight(containerId, lines) {
@@ -1373,8 +1553,41 @@
         });
       }
 
+      function renderCondensation(step, index, max) {
+        document.getElementById('cond-step-title').textContent = step.title;
+        document.getElementById('cond-step-text').textContent = step.text;
+        document.getElementById('cond-edge').textContent = step.edge;
+        document.getElementById('cond-comp').textContent = step.comp;
+        document.getElementById('cond-decision').textContent = step.decision;
+        document.getElementById('cond-edges-so-far').textContent = step.edgesSoFar;
+        document.getElementById('cond-processed').textContent = step.processed;
+        document.getElementById('cond-verify').textContent = step.verify;
+        document.getElementById('cond-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('cond-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('cond-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('cond-trace-table', step.step);
+        setCodeHighlight('cond-code', step.lines);
+
+        document.querySelectorAll('#cond-src-graph [data-node]').forEach((node) => {
+          const id = Number(node.dataset.node);
+          node.classList.toggle('active', step.activeNodes.includes(id));
+        });
+
+        document.querySelectorAll('#cond-src-graph [data-edge]').forEach((line) => {
+          line.classList.toggle('active', line.dataset.edge === step.activeEdge);
+        });
+
+        const dagEdge = document.getElementById('cond-dag-edge-01');
+        dagEdge.setAttribute('visibility', step.dagVisible ? 'visible' : 'hidden');
+        dagEdge.classList.toggle('visible', step.dagVisible);
+        dagEdge.classList.toggle('active', step.dagActive);
+
+        document.getElementById('cond-dag-verify').setAttribute('opacity', step.dagVerify ? '1' : '0');
+      }
+
       setupTrace({ steps: kosarajuSteps, prefix: 'kos', render: renderKosaraju });
       setupTrace({ steps: tarjanSteps, prefix: 'tar', render: renderTarjan });
+      setupTrace({ steps: condensationSteps, prefix: 'cond', render: renderCondensation });
 
       const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
       const panels = Array.from(document.querySelectorAll('[data-example-panel]'));

@@ -512,6 +512,8 @@
             <span class="chip">Core idea: compare, then discard half the tree</span>
             <span class="chip">Interactive search + insert trace</span>
             <span class="chip">Interactive delete trace (2-children case)</span>
+            <span class="chip">Interactive validate (range) trace</span>
+            <span class="chip">Interactive in-order trace</span>
             <span class="chip">Code synced with steps</span>
           </div>
         </div>
@@ -974,6 +976,302 @@
     </section>
 
     <section class="panel">
+      <h2>Method 3: Validate a BST — carry a (low, high) range</h2>
+      <p>The trap: checking only <code>node.left.val &lt; node.val &lt; node.right.val</code> is not enough. A node several levels down must still be smaller (or larger) than ancestors far above its own parent. <code>is_valid_bst</code> fixes this by carrying an allowed <code>(low, high)</code> window down the recursion — going left tightens the ceiling, going right tightens the floor — so every node is checked against every ancestor that matters, not just its parent.</p>
+      <div class="code-block stepped">
+        <code id="val-code">
+<span class="code-line" data-line="1">def is_valid_bst(node, low=float("-inf"), high=float("inf")):</span>
+<span class="code-line" data-line="2">    if node is None:</span>
+<span class="code-line" data-line="3">        return True</span>
+<span class="code-line" data-line="4">    if not (low < node.val < high):</span>
+<span class="code-line" data-line="5">        return False</span>
+<span class="code-line" data-line="6">    return (is_valid_bst(node.left, low, node.val) and</span>
+<span class="code-line" data-line="7">            is_valid_bst(node.right, node.val, high))</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive validate trace — is_valid_bst(root)</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="val-graph" viewBox="0 0 700 460" width="100%" role="img" aria-label="Validate trace over the canonical BST, tracking the (low, high) window">
+              <defs>
+                <style>
+                  .val-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .val-active-edge { stroke: #ff9f1c; stroke-width: 7; stroke-linecap: round; }
+                  .val-node { fill: #c8d2e7; transition: fill 0.2s ease; }
+                  .val-node.visited { fill: #315efb; }
+                  .val-node.bound { fill: #13a46b; }
+                  .val-node.current { fill: #ff9f1c; }
+                  .val-label { font: 700 17px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .val-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="16" y="24" class="val-title">Current (low, high) window</text>
+              <line x1="420" y1="45" x2="120" y2="150" class="val-base-edge" />
+              <line x1="420" y1="45" x2="495" y2="150" class="val-base-edge" />
+              <line x1="120" y1="150" x2="45" y2="255" class="val-base-edge" />
+              <line x1="120" y1="150" x2="270" y2="255" class="val-base-edge" />
+              <line x1="270" y1="255" x2="195" y2="360" class="val-base-edge" />
+              <line x1="270" y1="255" x2="345" y2="360" class="val-base-edge" />
+              <line x1="495" y1="150" x2="645" y2="255" class="val-base-edge" />
+              <line x1="645" y1="255" x2="570" y2="360" class="val-base-edge" />
+
+              <line x1="420" y1="45" x2="120" y2="150" class="val-active-edge" data-val-edge="8-3" visibility="hidden" />
+              <line x1="420" y1="45" x2="495" y2="150" class="val-active-edge" data-val-edge="8-10" visibility="hidden" />
+              <line x1="120" y1="150" x2="45" y2="255" class="val-active-edge" data-val-edge="3-1" visibility="hidden" />
+              <line x1="120" y1="150" x2="270" y2="255" class="val-active-edge" data-val-edge="3-6" visibility="hidden" />
+              <line x1="270" y1="255" x2="195" y2="360" class="val-active-edge" data-val-edge="6-4" visibility="hidden" />
+              <line x1="270" y1="255" x2="345" y2="360" class="val-active-edge" data-val-edge="6-7" visibility="hidden" />
+              <line x1="495" y1="150" x2="645" y2="255" class="val-active-edge" data-val-edge="10-14" visibility="hidden" />
+              <line x1="645" y1="255" x2="570" y2="360" class="val-active-edge" data-val-edge="14-13" visibility="hidden" />
+
+              <circle cx="420" cy="45" r="26" class="val-node" data-node="8" />
+              <circle cx="120" cy="150" r="26" class="val-node" data-node="3" />
+              <circle cx="495" cy="150" r="26" class="val-node" data-node="10" />
+              <circle cx="45" cy="255" r="26" class="val-node" data-node="1" />
+              <circle cx="270" cy="255" r="26" class="val-node" data-node="6" />
+              <circle cx="645" cy="255" r="26" class="val-node" data-node="14" />
+              <circle cx="195" cy="360" r="26" class="val-node" data-node="4" />
+              <circle cx="345" cy="360" r="26" class="val-node" data-node="7" />
+              <circle cx="570" cy="360" r="26" class="val-node" data-node="13" />
+
+              <text x="412" y="51" class="val-label">8</text>
+              <text x="112" y="156" class="val-label">3</text>
+              <text x="487" y="156" class="val-label">10</text>
+              <text x="37" y="261" class="val-label">1</text>
+              <text x="262" y="261" class="val-label">6</text>
+              <text x="637" y="261" class="val-label">14</text>
+              <text x="187" y="366" class="val-label">4</text>
+              <text x="337" y="366" class="val-label">7</text>
+              <text x="562" y="366" class="val-label">13</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current node being range-checked</span>
+            <span><i class="dot dot-green"></i> ancestor currently setting the low or high bound</span>
+            <span><i class="dot dot-blue"></i> already checked and passed</span>
+            <span><i class="dot dot-gray"></i> not reached yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="val-step-title">Initial state</h3>
+          <p id="val-step-text">is_valid_bst(root) begins with the widest possible window: low=-inf, high=+inf.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="val-prev">Previous</button>
+            <button type="button" id="val-play" class="primary">Resume</button>
+            <button type="button" id="val-next">Next</button>
+            <button type="button" id="val-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="val-step-counter">Step 0 / 10</span>
+            <div class="progress"><span id="val-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Function running</strong><div class="state-value" id="val-fn">is_valid_bst(node=8, low=-inf, high=+inf)</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="val-current">—</div></div>
+            <div class="state-box"><strong>(low, high) window</strong><div class="state-value" id="val-window">(-inf, +inf)</div></div>
+            <div class="state-box"><strong>Range check</strong><div class="state-value" id="val-check">not yet checked</div></div>
+            <div class="state-box"><strong>Verdict so far</strong><div class="state-value" id="val-verdict">pending</div></div>
+          </div>
+          <div class="explainer">
+            <p id="val-detail"><strong>What changed:</strong> no node has been checked yet — the window starts as wide as possible.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="val-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Node checked</th><th>Window (low, high)</th><th>Check</th><th>Verdict so far</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td><code>(-inf, +inf)</code></td><td>not yet checked</td><td>pending</td></tr>
+            <tr data-step="1"><td>1</td><td><code>8</code></td><td><code>(-inf, +inf)</code></td><td><code>-inf &lt; 8 &lt; +inf → PASS</code></td><td>True so far (1/9)</td></tr>
+            <tr data-step="2"><td>2</td><td><code>3</code></td><td><code>(-inf, 8)</code></td><td><code>-inf &lt; 3 &lt; 8 → PASS</code></td><td>True so far (2/9)</td></tr>
+            <tr data-step="3"><td>3</td><td><code>1</code></td><td><code>(-inf, 3)</code></td><td><code>-inf &lt; 1 &lt; 3 → PASS</code></td><td>True so far (3/9)</td></tr>
+            <tr data-step="4"><td>4</td><td><code>6</code></td><td><code>(3, 8)</code></td><td><code>3 &lt; 6 &lt; 8 → PASS</code></td><td>True so far (4/9)</td></tr>
+            <tr data-step="5"><td>5</td><td><code>4</code></td><td><code>(3, 6)</code></td><td><code>3 &lt; 4 &lt; 6 → PASS</code></td><td>True so far (5/9)</td></tr>
+            <tr data-step="6"><td>6</td><td><code>7</code></td><td><code>(6, 8)</code></td><td><code>6 &lt; 7 &lt; 8 → PASS</code></td><td>True so far (6/9)</td></tr>
+            <tr data-step="7"><td>7</td><td><code>10</code></td><td><code>(8, +inf)</code></td><td><code>8 &lt; 10 &lt; +inf → PASS</code></td><td>True so far (7/9)</td></tr>
+            <tr data-step="8"><td>8</td><td><code>14</code></td><td><code>(10, +inf)</code></td><td><code>10 &lt; 14 &lt; +inf → PASS</code></td><td>True so far (8/9)</td></tr>
+            <tr data-step="9"><td>9</td><td><code>13</code></td><td><code>(10, 14)</code></td><td><code>10 &lt; 13 &lt; 14 → PASS</code></td><td>True so far (9/9)</td></tr>
+            <tr data-step="10"><td>10</td><td>—</td><td><code>(10, 14)</code> — last window checked</td><td>all 9 nodes passed</td><td><code>True</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="diagram-row" style="grid-template-columns: 1fr;">
+        <div class="mini-diagram">
+          <h3>Why a naive parent-only check is not enough</h3>
+          <p>The common wrong version only compares a node to its immediate parent — <code>node.left.val &lt; node.val</code> and <code>node.right.val &gt; node.val</code>. Run both checks against this tree, where <code>6</code> sits in <code>10</code>'s right subtree but is smaller than <code>10</code>:</p>
+          <div class="code-block" style="margin-top:10px;"><code>bad = 10(left=5, right=15(left=6, right=None))
+
+naive_is_valid(bad) = True   # WRONG — only checks 6 &lt; 15, its immediate parent
+is_valid_bst(bad)    = False # CORRECT — 6 must be in (10, 15), but 6 &lt; 10</code></div>
+          <p class="footer-note">6 passes the naive check because <code>6 &lt; 15</code> holds. But 6 is in 10's right subtree, so the real rule requires <code>10 &lt; 6 &lt; 15</code> — and <code>6</code> fails that lower bound. This is exactly the ancestor-not-just-parent gap the <code>(low, high)</code> window closes: at node 6, <code>low</code> is inherited from 10, two levels up, not from 15, the immediate parent.</p>
+        </div>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Each recursive call inherits its window from its parent call, not from the tree shape directly — going left tightens the ceiling, going right tightens the floor. The window is the accumulated memory of every ancestor's decision, not just the immediate parent's value.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common validate mistake</h4>
+          <p>Checking only <code>node.left.val &lt; node.val &lt; node.right.val</code>. This passes the counterexample above even though the tree is not a valid BST, because it never checks a node against ancestors further up than its own parent.</p>
+        </div>
+        <div class="card">
+          <h4>Why this pattern matters</h4>
+          <p>Carrying inherited state down the recursion instead of re-deriving it from scratch at every node is the same trick behind Kth Smallest in a BST and Lowest Common Ancestor in a BST.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 4: In-order walk — sorted output for free</h2>
+      <p>An in-order traversal visits left subtree, then the node itself, then right subtree. On a BST that ordering is not incidental: because every node's left subtree is entirely smaller and its right subtree entirely larger, visiting in that order emits every value in ascending order. This is also the direct reason the naive validate check is wrong — the same recursive left-then-node-then-right structure is what makes a node's relationship to every ancestor, not just its parent, the thing that has to hold.</p>
+      <div class="code-block stepped">
+        <code id="ino-code">
+<span class="code-line" data-line="1">def inorder(node, out=None):</span>
+<span class="code-line" data-line="2">    out = [] if out is None else out</span>
+<span class="code-line" data-line="3">    if node:</span>
+<span class="code-line" data-line="4">        inorder(node.left, out)</span>
+<span class="code-line" data-line="5">        out.append(node.val)</span>
+<span class="code-line" data-line="6">        inorder(node.right, out)</span>
+<span class="code-line" data-line="7">    return out</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive in-order trace — inorder(root)</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="ino-graph" viewBox="0 0 700 460" width="100%" role="img" aria-label="In-order trace over the canonical BST producing sorted output">
+              <defs>
+                <style>
+                  .ino-base-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .ino-active-edge { stroke: #ff9f1c; stroke-width: 7; stroke-linecap: round; }
+                  .ino-node { fill: #c8d2e7; transition: fill 0.2s ease; }
+                  .ino-node.visited { fill: #315efb; }
+                  .ino-node.current { fill: #ff9f1c; }
+                  .ino-label { font: 700 17px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .ino-title { font: 700 16px Inter, Arial, sans-serif; fill: #172033; }
+                </style>
+              </defs>
+              <text x="16" y="24" class="ino-title">Current recursive call</text>
+              <line x1="420" y1="45" x2="120" y2="150" class="ino-base-edge" />
+              <line x1="420" y1="45" x2="495" y2="150" class="ino-base-edge" />
+              <line x1="120" y1="150" x2="45" y2="255" class="ino-base-edge" />
+              <line x1="120" y1="150" x2="270" y2="255" class="ino-base-edge" />
+              <line x1="270" y1="255" x2="195" y2="360" class="ino-base-edge" />
+              <line x1="270" y1="255" x2="345" y2="360" class="ino-base-edge" />
+              <line x1="495" y1="150" x2="645" y2="255" class="ino-base-edge" />
+              <line x1="645" y1="255" x2="570" y2="360" class="ino-base-edge" />
+
+              <line x1="420" y1="45" x2="120" y2="150" class="ino-active-edge" data-ino-edge="8-3" visibility="hidden" />
+              <line x1="420" y1="45" x2="495" y2="150" class="ino-active-edge" data-ino-edge="8-10" visibility="hidden" />
+              <line x1="120" y1="150" x2="45" y2="255" class="ino-active-edge" data-ino-edge="3-1" visibility="hidden" />
+              <line x1="120" y1="150" x2="270" y2="255" class="ino-active-edge" data-ino-edge="3-6" visibility="hidden" />
+              <line x1="270" y1="255" x2="195" y2="360" class="ino-active-edge" data-ino-edge="6-4" visibility="hidden" />
+              <line x1="270" y1="255" x2="345" y2="360" class="ino-active-edge" data-ino-edge="6-7" visibility="hidden" />
+              <line x1="495" y1="150" x2="645" y2="255" class="ino-active-edge" data-ino-edge="10-14" visibility="hidden" />
+              <line x1="645" y1="255" x2="570" y2="360" class="ino-active-edge" data-ino-edge="14-13" visibility="hidden" />
+
+              <circle cx="420" cy="45" r="26" class="ino-node" data-node="8" />
+              <circle cx="120" cy="150" r="26" class="ino-node" data-node="3" />
+              <circle cx="495" cy="150" r="26" class="ino-node" data-node="10" />
+              <circle cx="45" cy="255" r="26" class="ino-node" data-node="1" />
+              <circle cx="270" cy="255" r="26" class="ino-node" data-node="6" />
+              <circle cx="645" cy="255" r="26" class="ino-node" data-node="14" />
+              <circle cx="195" cy="360" r="26" class="ino-node" data-node="4" />
+              <circle cx="345" cy="360" r="26" class="ino-node" data-node="7" />
+              <circle cx="570" cy="360" r="26" class="ino-node" data-node="13" />
+
+              <text x="412" y="51" class="ino-label">8</text>
+              <text x="112" y="156" class="ino-label">3</text>
+              <text x="487" y="156" class="ino-label">10</text>
+              <text x="37" y="261" class="ino-label">1</text>
+              <text x="262" y="261" class="ino-label">6</text>
+              <text x="637" y="261" class="ino-label">14</text>
+              <text x="187" y="366" class="ino-label">4</text>
+              <text x="337" y="366" class="ino-label">7</text>
+              <text x="562" y="366" class="ino-label">13</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> current node — just appended</span>
+            <span><i class="dot dot-blue"></i> already appended to the output</span>
+            <span><i class="dot dot-gray"></i> not visited yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="ino-step-title">Initial state</h3>
+          <p id="ino-step-text">inorder(root) begins with an empty output list and recurses all the way left before appending anything.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="ino-prev">Previous</button>
+            <button type="button" id="ino-play" class="primary">Resume</button>
+            <button type="button" id="ino-next">Next</button>
+            <button type="button" id="ino-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="ino-step-counter">Step 0 / 10</span>
+            <div class="progress"><span id="ino-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Function running</strong><div class="state-value" id="ino-fn">inorder(node=8, out=[])</div></div>
+            <div class="state-box"><strong>Current node</strong><div class="state-value" id="ino-current">—</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="ino-action">recurse into node.left before appending anything</div></div>
+            <div class="state-box"><strong>Output so far</strong><div class="state-value" id="ino-output">[]</div></div>
+            <div class="state-box"><strong>Sorted check</strong><div class="state-value" id="ino-sorted">—</div></div>
+          </div>
+          <div class="explainer">
+            <p id="ino-detail"><strong>What changed:</strong> no values appended yet — the walk is still descending toward the leftmost node.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="ino-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Node</th><th>Action</th><th>Output after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>—</td><td>recurse into node.left before appending anything</td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td><code>1</code></td><td>no left child → append 1 → recurse right (None)</td><td><code>[1]</code></td></tr>
+            <tr data-step="2"><td>2</td><td><code>3</code></td><td>left subtree (1) done → append 3 → recurse right into 6</td><td><code>[1, 3]</code></td></tr>
+            <tr data-step="3"><td>3</td><td><code>4</code></td><td>no left child → append 4 → recurse right (None)</td><td><code>[1, 3, 4]</code></td></tr>
+            <tr data-step="4"><td>4</td><td><code>6</code></td><td>left subtree (4) done → append 6 → recurse right into 7</td><td><code>[1, 3, 4, 6]</code></td></tr>
+            <tr data-step="5"><td>5</td><td><code>7</code></td><td>no left child → append 7 → recurse right (None)</td><td><code>[1, 3, 4, 6, 7]</code></td></tr>
+            <tr data-step="6"><td>6</td><td><code>8</code></td><td>left subtree (3,1,6,4,7) done → append 8 → recurse right into 10</td><td><code>[1, 3, 4, 6, 7, 8]</code></td></tr>
+            <tr data-step="7"><td>7</td><td><code>10</code></td><td>no left child → append 10 → recurse right into 14</td><td><code>[1, 3, 4, 6, 7, 8, 10]</code></td></tr>
+            <tr data-step="8"><td>8</td><td><code>13</code></td><td>no left child → append 13 → recurse right (None)</td><td><code>[1, 3, 4, 6, 7, 8, 10, 13]</code></td></tr>
+            <tr data-step="9"><td>9</td><td><code>14</code></td><td>left subtree (13) done → append 14 → recurse right (None)</td><td><code>[1, 3, 4, 6, 7, 8, 10, 13, 14]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>—</td><td>return out — recursion fully unwound</td><td><code>[1, 3, 4, 6, 7, 8, 10, 13, 14]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>A value is appended only after its entire left subtree is fully appended and before its entire right subtree begins. Applied recursively at every node, that ordering is what produces ascending output — it is a direct consequence of the BST invariant, not a separate trick.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common in-order mistake</h4>
+          <p>Appending <code>node.val</code> before recursing left (pre-order, not sorted), or creating a new list instead of passing the same <code>out</code> list into both recursive calls — either mistake silently breaks the sorted guarantee.</p>
+        </div>
+        <div class="card">
+          <h4>Why this pattern matters</h4>
+          <p>This is the basis for Kth Smallest in a BST (stop after k appends instead of collecting everything) and for converting a BST back into a sorted array in O(n) with zero extra sorting work.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Edge cases you should test</h2>
       <div class="tabs" role="tablist" aria-label="Edge case examples">
         <button type="button" class="active-tab" data-example-tab="0">Skewed insert order</button>
@@ -986,7 +1284,7 @@
           <h3>Case A: sorted insert order degenerates the tree</h3>
           <p>Insert <code>1, 2, 3, 4, 5, 6, 7, 8, 9</code> into an empty BST, in that order.</p>
           <div class="result-badge">search(skewed, 9) = 9 comparisons · search(balanced, 9) = 3 comparisons</div>
-          <p class="footer-note">Every new value is larger than everything before it, so each one attaches as a right child of the previous node — the tree becomes a 9-node linked list with height 8. Inserting the same 9 values as <code>[5, 3, 8, 2, 4, 7, 9, 1, 6]</code> keeps the tree short (height 2), and <code>search_steps()</code> confirms it: <strong>9 comparisons vs. 3</strong> for the identical target, purely from insert order. This is the single most important BST caveat: a plain BST is only <code>O(log n)</code> if it stays balanced. Sorted (or nearly sorted) input makes it <code>O(n)</code> — no better than a linked list. Production code reaches for a self-balancing variant (AVL, Red-Black) specifically to prevent this.</p>
+          <p class="footer-note">Every new value is larger than everything before it, so each one attaches as a right child of the previous node — the tree becomes a 9-node linked list with height 8. Inserting the same 9 values as <code>[5, 3, 8, 2, 4, 7, 9, 1, 6]</code> keeps the tree short (height 2), and <code>search_steps()</code> confirms it: <strong>9 comparisons vs. 3</strong> for the identical target, purely from insert order. This is the single most important BST caveat: a plain BST is only <code>O(log n)</code> if it stays balanced. Sorted (or nearly sorted) input makes it <code>O(n)</code> — no better than a linked list. Production code reaches for a self-balancing variant (AVL, Red-Black) specifically to prevent this. The gap holds for other targets too, measured the same way with <code>search_steps()</code>: target <code>1</code> takes <strong>1 comparison</strong> in the skewed tree (an early hit near the root) but <strong>4 comparisons</strong> in the balanced tree (1 sits four levels down as a leaf); target <code>5</code> takes <strong>5 comparisons</strong> skewed but only <strong>1 comparison</strong> balanced (5 is the balanced tree's root). Same nine values every time — only the insert order changes, and the comparison count swings by 4-9x.</p>
         </div>
       </div>
 
@@ -1021,6 +1319,7 @@
             <tr><td>Insert</td><td>O(log n)</td><td>O(n)</td><td>O(h) — recursion call stack</td></tr>
             <tr><td>Delete</td><td>O(log n)</td><td>O(n)</td><td>O(h) — recursion call stack</td></tr>
             <tr><td>In-order traversal (sorted output)</td><td>O(n)</td><td>O(n)</td><td>O(h) — recursion call stack</td></tr>
+            <tr><td>Validate (range check)</td><td>O(n)</td><td>O(n)</td><td>O(h) — recursion call stack</td></tr>
           </tbody>
         </table>
       </div>
@@ -1145,6 +1444,34 @@
         { step: 15, title: 'Step 15: delete(node=6,...) returns', text: 'The call at node 6 receives None from its left recursive call, sets node.left = None, and returns itself.', call: 'delete(node=6, val=4) → returning', action: 'node.left = None → return node (6)', stack: ['root', 'L', 'LR'], succ: '—', tree: '8(4(1, 6(_, 7)), 10(_, 14(13, _)))', current: 'LR', successorPos: null, labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: null, LRR: '7', RRL: '13' }, activeEdge: null, detail: 'Node 6 now has only a right child, 7.', lines: [5, 18] },
         { step: 16, title: 'Step 16: delete(node=3→4,...) returns', text: 'The call that swapped in the successor now receives the updated right subtree back and returns itself.', call: 'delete(node=3→4, val=3) → returning', action: 'root.right = updated subtree → return node (4)', stack: ['root', 'L'], succ: '—', tree: '8(4(1, 6(_, 7)), 10(_, 14(13, _)))', current: 'L', successorPos: null, labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: null, LRR: '7', RRL: '13' }, activeEdge: null, detail: 'The node that used to hold 3 keeps its new value, 4, and its left child (1) untouched.', lines: [17, 18] },
         { step: 17, title: 'Step 17: delete(root,...) returns — done', text: '3 is gone, and the tree is still a valid BST.', call: 'delete(node=8, val=3) → returning', action: 'root.left = updated subtree → return node (8), DONE', stack: ['root'], succ: '—', tree: '8(4(1, 6(_, 7)), 10(_, 14(13, _)))', current: 'root', successorPos: null, labels: { root: '8', L: '4', R: '10', LL: '1', LR: '6', RR: '14', LRL: null, LRR: '7', RRL: '13' }, activeEdge: null, detail: 'Inorder is now 1, 4, 6, 7, 8, 10, 13, 14 — sorted, and 3 no longer appears.', lines: [5, 18] }
+      ];
+
+      const validateSteps = [
+        { step: 0, title: 'Start: is_valid_bst(root)', text: 'is_valid_bst() is called on the root with the widest possible window: low=-inf, high=+inf. Every node must fit inside whatever window it inherits.', fn: 'is_valid_bst(node=8, low=-inf, high=+inf)', current: '—', window: '(-inf, +inf)', check: 'not yet checked', verdict: 'pending', detail: 'No node has been checked yet — the window starts as wide as possible.', nodeStates: {}, activeEdge: null, lines: [1] },
+        { step: 1, title: 'Step 1: check node 8', text: '8 must fit in (-inf, +inf) — trivially true for the root. Going left will tighten the upper bound to 8; going right will tighten the lower bound to 8.', fn: 'is_valid_bst(node=8, low=-inf, high=+inf)', current: '8', window: '(-inf, +inf)', check: '-inf < 8 < +inf → PASS', verdict: 'True so far (1/9 checked)', detail: '8 passes with the widest window, since it is the root.', nodeStates: { 8: 'current' }, activeEdge: null, lines: [2, 4, 6, 7] },
+        { step: 2, title: 'Step 2: check node 3', text: 'The recursive call into root.left carries high=8 forward — 3 must now be less than 8, not just less than nothing.', fn: 'is_valid_bst(node=3, low=-inf, high=8)', current: '3', window: '(-inf, 8)', check: '-inf < 3 < 8 → PASS', verdict: 'True so far (2/9 checked)', detail: 'Going left from 8 tightened the upper bound from +inf to 8.', nodeStates: { 8: 'bound', 3: 'current' }, activeEdge: '8-3', lines: [2, 4, 6, 7] },
+        { step: 3, title: 'Step 3: check node 1', text: 'The recursive call into node 3\'s left carries high=3 forward.', fn: 'is_valid_bst(node=1, low=-inf, high=3)', current: '1', window: '(-inf, 3)', check: '-inf < 1 < 3 → PASS', verdict: 'True so far (3/9 checked)', detail: 'Going left from 3 tightened the upper bound again, from 8 down to 3 — this is the tightening a naive parent-only check misses entirely.', nodeStates: { 8: 'visited', 3: 'bound', 1: 'current' }, activeEdge: '3-1', lines: [2, 4, 6, 7] },
+        { step: 4, title: 'Step 4: check node 6', text: 'Back up at 3, now recursing right: low becomes 3 (from node 3), but high stays 8 — inherited from node 8, two levels up, not from node 3.', fn: 'is_valid_bst(node=6, low=3, high=8)', current: '6', window: '(3, 8)', check: '3 < 6 < 8 → PASS', verdict: 'True so far (4/9 checked)', detail: 'The window is not "beat your parent" — it is "fit inside every ancestor\'s constraint at once".', nodeStates: { 8: 'bound', 3: 'bound', 1: 'visited', 6: 'current' }, activeEdge: '3-6', lines: [2, 4, 6, 7] },
+        { step: 5, title: 'Step 5: check node 4', text: 'Going left from 6 tightens the upper bound to 6, while the lower bound of 3 (from node 3, two levels up) still applies.', fn: 'is_valid_bst(node=4, low=3, high=6)', current: '4', window: '(3, 6)', check: '3 < 4 < 6 → PASS', verdict: 'True so far (5/9 checked)', detail: 'Node 4 is checked against ancestor 3\'s lower bound, not just its immediate parent 6.', nodeStates: { 8: 'visited', 3: 'bound', 1: 'visited', 6: 'bound', 4: 'current' }, activeEdge: '6-4', lines: [2, 4, 6, 7] },
+        { step: 6, title: 'Step 6: check node 7', text: 'Going right from 6 tightens the lower bound to 6, but the upper bound of 8 still comes from node 8, three levels up.', fn: 'is_valid_bst(node=7, low=6, high=8)', current: '7', window: '(6, 8)', check: '6 < 7 < 8 → PASS', verdict: 'True so far (6/9 checked)', detail: 'Same idea as node 6: the ceiling is inherited from an ancestor two levels above the immediate parent.', nodeStates: { 8: 'bound', 3: 'visited', 1: 'visited', 6: 'bound', 4: 'visited', 7: 'current' }, activeEdge: '6-7', lines: [2, 4, 6, 7] },
+        { step: 7, title: 'Step 7: check node 10', text: 'Back at the root, now recursing right: low becomes 8, and high resets to +inf since nothing has bounded it from above yet.', fn: 'is_valid_bst(node=10, low=8, high=+inf)', current: '10', window: '(8, +inf)', check: '8 < 10 < +inf → PASS', verdict: 'True so far (7/9 checked)', detail: 'The whole left subtree is done; this starts a fresh window for the right subtree.', nodeStates: { 8: 'bound', 3: 'visited', 1: 'visited', 6: 'visited', 4: 'visited', 7: 'visited', 10: 'current' }, activeEdge: '8-10', lines: [2, 4, 6, 7] },
+        { step: 8, title: 'Step 8: check node 14', text: 'Going right from 10 tightens the lower bound to 10.', fn: 'is_valid_bst(node=14, low=10, high=+inf)', current: '14', window: '(10, +inf)', check: '10 < 14 < +inf → PASS', verdict: 'True so far (8/9 checked)', detail: 'Same pattern, mirrored on the right side of the tree.', nodeStates: { 8: 'visited', 3: 'visited', 1: 'visited', 6: 'visited', 4: 'visited', 7: 'visited', 10: 'bound', 14: 'current' }, activeEdge: '10-14', lines: [2, 4, 6, 7] },
+        { step: 9, title: 'Step 9: check node 13', text: 'Going left from 14 tightens the upper bound to 14, while the lower bound of 10 still comes from node 10, two levels up.', fn: 'is_valid_bst(node=13, low=10, high=14)', current: '13', window: '(10, 14)', check: '10 < 13 < 14 → PASS', verdict: 'True so far (9/9 checked)', detail: 'The last node — every real node in the tree has now been checked against its true (low, high) window.', nodeStates: { 8: 'visited', 3: 'visited', 1: 'visited', 6: 'visited', 4: 'visited', 7: 'visited', 10: 'bound', 14: 'bound', 13: 'current' }, activeEdge: '14-13', lines: [2, 4, 6, 7] },
+        { step: 10, title: 'Step 10: every call returns True', text: 'All nine range checks passed, so every "and" collapses to True all the way back up to the root call.', fn: 'is_valid_bst(root) returns', current: '—', window: '(10, 14) — last window checked', check: 'all 9 nodes passed', verdict: 'True', detail: 'is_valid_bst(root) = True — confirmed by running the real function from the notebook on this exact tree.', nodeStates: { 8: 'visited', 3: 'visited', 1: 'visited', 6: 'visited', 4: 'visited', 7: 'visited', 10: 'visited', 14: 'visited', 13: 'visited' }, activeEdge: null, lines: [6, 7] }
+      ];
+
+      const inorderSteps = [
+        { step: 0, title: 'Start: inorder(root)', text: 'inorder() is called on the root with an empty output list. It will recurse all the way left before appending anything.', fn: 'inorder(node=8, out=[])', current: '—', action: 'recurse into node.left before appending anything', output: '[]', sorted: '—', detail: 'No values appended yet — the walk is still descending toward the leftmost node.', nodeStates: {}, activeEdge: null, lines: [1, 2, 3] },
+        { step: 1, title: 'Step 1: visit node 1', text: 'Node 1 has no left child, so it is appended immediately, then the walk recurses into its right child (None).', fn: 'inorder(node=1, out=[])', current: '1', action: 'no left child → append 1 → recurse right (None)', output: '[1]', sorted: '—', detail: '1 is the leftmost node in the whole tree, so it is the first value appended — in-order visits the smallest value first.', nodeStates: { 1: 'current' }, activeEdge: '3-1', lines: [3, 4, 5, 6] },
+        { step: 2, title: 'Step 2: visit node 3', text: 'Node 3\'s left subtree (just 1) is fully appended, so 3 is appended now, then the walk recurses right into 6.', fn: 'inorder(node=3, out=[1])', current: '3', action: 'left subtree (1) done → append 3 → recurse right into 6', output: '[1, 3]', sorted: '—', detail: '3 is appended only after its entire left subtree finishes — that ordering is exactly why the output comes out sorted.', nodeStates: { 1: 'visited', 3: 'current' }, activeEdge: '8-3', lines: [3, 4, 5, 6] },
+        { step: 3, title: 'Step 3: visit node 4', text: 'Node 4 has no left child, so it is appended immediately.', fn: 'inorder(node=4, out=[1, 3])', current: '4', action: 'no left child → append 4 → recurse right (None)', output: '[1, 3, 4]', sorted: '—', detail: '4 is the leftmost node of 6\'s subtree, so it is appended before 6 or 7.', nodeStates: { 1: 'visited', 3: 'visited', 4: 'current' }, activeEdge: '6-4', lines: [3, 4, 5, 6] },
+        { step: 4, title: 'Step 4: visit node 6', text: 'Node 6\'s left subtree (4) is fully appended, so 6 is appended now, then the walk recurses right into 7.', fn: 'inorder(node=6, out=[1, 3, 4])', current: '6', action: 'left subtree (4) done → append 6 → recurse right into 7', output: '[1, 3, 4, 6]', sorted: '—', detail: 'Same shape as node 3: a node is only appended once everything smaller than it has already been appended.', nodeStates: { 1: 'visited', 3: 'visited', 4: 'visited', 6: 'current' }, activeEdge: '3-6', lines: [3, 4, 5, 6] },
+        { step: 5, title: 'Step 5: visit node 7', text: 'Node 7 has no left child, so it is appended immediately.', fn: 'inorder(node=7, out=[1, 3, 4, 6])', current: '7', action: 'no left child → append 7 → recurse right (None)', output: '[1, 3, 4, 6, 7]', sorted: '—', detail: 'This closes out 6\'s entire subtree — everything under 6 is now in the output, in order.', nodeStates: { 1: 'visited', 3: 'visited', 4: 'visited', 6: 'visited', 7: 'current' }, activeEdge: '6-7', lines: [3, 4, 5, 6] },
+        { step: 6, title: 'Step 6: visit node 8', text: 'Node 8\'s entire left subtree (3, 1, 6, 4, 7) is done, so 8 is appended now, then the walk recurses right into 10.', fn: 'inorder(node=8, out=[1, 3, 4, 6, 7])', current: '8', action: 'left subtree (3,1,6,4,7) done → append 8 → recurse right into 10', output: '[1, 3, 4, 6, 7, 8]', sorted: '—', detail: '8 is the root, and it lands exactly in the middle of the sorted output — everything smaller is already appended, everything larger is still to come.', nodeStates: { 1: 'visited', 3: 'visited', 4: 'visited', 6: 'visited', 7: 'visited', 8: 'current' }, activeEdge: null, lines: [3, 4, 5, 6] },
+        { step: 7, title: 'Step 7: visit node 10', text: 'Node 10 has no left child, so it is appended immediately, then the walk recurses right into 14.', fn: 'inorder(node=10, out=[1, 3, 4, 6, 7, 8])', current: '10', action: 'no left child → append 10 → recurse right into 14', output: '[1, 3, 4, 6, 7, 8, 10]', sorted: '—', detail: 'The walk is now entirely in the right subtree of the root — every remaining value must be larger than 8.', nodeStates: { 1: 'visited', 3: 'visited', 4: 'visited', 6: 'visited', 7: 'visited', 8: 'visited', 10: 'current' }, activeEdge: '8-10', lines: [3, 4, 5, 6] },
+        { step: 8, title: 'Step 8: visit node 13', text: 'Node 13 has no left child, so it is appended immediately.', fn: 'inorder(node=13, out=[1, 3, 4, 6, 7, 8, 10])', current: '13', action: 'no left child → append 13 → recurse right (None)', output: '[1, 3, 4, 6, 7, 8, 10, 13]', sorted: '—', detail: '13 is the leftmost node of 14\'s subtree, so it is appended before 14 — even though 14 was reached first on the way down.', nodeStates: { 1: 'visited', 3: 'visited', 4: 'visited', 6: 'visited', 7: 'visited', 8: 'visited', 10: 'visited', 13: 'current' }, activeEdge: '14-13', lines: [3, 4, 5, 6] },
+        { step: 9, title: 'Step 9: visit node 14', text: 'Node 14\'s left subtree (13) is fully appended, so 14 is appended now, then the walk recurses right (None) — recursion complete.', fn: 'inorder(node=14, out=[1, 3, 4, 6, 7, 8, 10, 13])', current: '14', action: 'left subtree (13) done → append 14 → recurse right (None)', output: '[1, 3, 4, 6, 7, 8, 10, 13, 14]', sorted: '—', detail: 'The last value is appended — every node has now been visited left, node, right.', nodeStates: { 1: 'visited', 3: 'visited', 4: 'visited', 6: 'visited', 7: 'visited', 8: 'visited', 10: 'visited', 13: 'visited', 14: 'current' }, activeEdge: '10-14', lines: [3, 4, 5, 6] },
+        { step: 10, title: 'Step 10: inorder(root) returns', text: 'All nine values have been appended in ascending order. This is exactly why an in-order walk of a BST is a free sort — and it only works because the invariant holds against every ancestor, not just the immediate parent.', fn: 'inorder(root) returns', current: '—', action: 'return out', output: '[1, 3, 4, 6, 7, 8, 10, 13, 14]', sorted: 'assert vals == sorted(vals) → PASSED', detail: 'Confirmed by running the real inorder() function from the notebook on this exact tree.', nodeStates: { 1: 'visited', 3: 'visited', 4: 'visited', 6: 'visited', 7: 'visited', 8: 'visited', 10: 'visited', 13: 'visited', 14: 'visited' }, activeEdge: null, lines: [7] }
       ];
 
       function setCodeHighlight(containerId, lines) {
@@ -1301,8 +1628,62 @@
         });
       }
 
+      function renderValidate(step, index, max) {
+        document.getElementById('val-step-title').textContent = step.title;
+        document.getElementById('val-step-text').textContent = step.text;
+        document.getElementById('val-fn').textContent = step.fn;
+        document.getElementById('val-current').textContent = step.current;
+        document.getElementById('val-window').textContent = step.window;
+        document.getElementById('val-check').textContent = step.check;
+        document.getElementById('val-verdict').textContent = step.verdict;
+        document.getElementById('val-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('val-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('val-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('val-trace-table', step.step);
+        setCodeHighlight('val-code', step.lines);
+
+        document.querySelectorAll('#val-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('current', 'bound', 'visited');
+          const state = step.nodeStates[id];
+          if (state) node.classList.add(state);
+        });
+
+        document.querySelectorAll('#val-graph [data-val-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.valEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
+      function renderInorder(step, index, max) {
+        document.getElementById('ino-step-title').textContent = step.title;
+        document.getElementById('ino-step-text').textContent = step.text;
+        document.getElementById('ino-fn').textContent = step.fn;
+        document.getElementById('ino-current').textContent = step.current;
+        document.getElementById('ino-action').textContent = step.action;
+        document.getElementById('ino-output').textContent = step.output;
+        document.getElementById('ino-sorted').textContent = step.sorted;
+        document.getElementById('ino-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('ino-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('ino-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('ino-trace-table', step.step);
+        setCodeHighlight('ino-code', step.lines);
+
+        document.querySelectorAll('#ino-graph [data-node]').forEach((node) => {
+          const id = node.dataset.node;
+          node.classList.remove('current', 'visited');
+          const state = step.nodeStates[id];
+          if (state) node.classList.add(state);
+        });
+
+        document.querySelectorAll('#ino-graph [data-ino-edge]').forEach((line) => {
+          line.setAttribute('visibility', line.dataset.inoEdge === step.activeEdge ? 'visible' : 'hidden');
+        });
+      }
+
       setupTrace({ steps: walkSteps, prefix: 'walk', render: renderWalk });
       setupTrace({ steps: deleteSteps, prefix: 'del', render: renderDelete });
+      setupTrace({ steps: validateSteps, prefix: 'val', render: renderValidate });
+      setupTrace({ steps: inorderSteps, prefix: 'ino', render: renderInorder });
 
       const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
       const panels = Array.from(document.querySelectorAll('[data-example-panel]'));

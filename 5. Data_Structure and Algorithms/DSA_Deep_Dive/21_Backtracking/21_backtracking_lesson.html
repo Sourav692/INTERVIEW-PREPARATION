@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backtracking — Interactive DSA Lesson</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --ink: #182132;
+      --muted: #5d677d;
+      --line: #d9e1ef;
+      --accent: #315efb;
+      --accent-soft: #eaf0ff;
+      --good: #0f9d58;
+      --good-soft: #e9f8ef;
+      --warn: #c97a10;
+      --warn-soft: #fff4df;
+      --dark: #0f1728;
+      --dark-2: #131e34;
+      --dark-line: #24314d;
+      --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #eef3ff 0, transparent 28%),
+        linear-gradient(180deg, #fbfcff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 32px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 24px;
+      margin-top: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1, h2, h3, h4 { margin: 0; line-height: 1.15; }
+    h1 { font-size: clamp(2rem, 4vw, 3.35rem); }
+    h2 { font-size: clamp(1.4rem, 2vw, 1.9rem); margin-bottom: 12px; }
+    h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    p { margin: 0; color: var(--muted); }
+
+    .hero-grid,
+    .two-col,
+    .steps,
+    .compare,
+    .interactive-grid,
+    .state-grid,
+    .summary-grid,
+    .note-grid,
+    .mini-grid,
+    .use-cases,
+    .reason-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid { grid-template-columns: 1.08fr 0.92fr; align-items: start; }
+    .two-col,
+    .compare,
+    .summary-grid,
+    .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .interactive-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+    .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .note-grid,
+    .mini-grid,
+    .use-cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .chips, .legend, .tabs, .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips { margin-top: 14px; }
+
+    .chip,
+    .pill,
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 600;
+      background: #f5f7fb;
+      color: var(--ink);
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fcfdff;
+    }
+
+    .step-no {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8faff;
+      border-radius: 12px;
+      color: var(--ink);
+      margin-top: 16px;
+    }
+
+    .callout p,
+    .explainer p,
+    .timeline-step p,
+    details p { color: var(--ink); }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f7fc;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f1f4fa;
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #17366c;
+    }
+
+    .code-block {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--dark);
+      color: #e8eefc;
+      border: 1px solid var(--dark-line);
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      white-space: pre;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .code-block.stepped code {
+      font-size: 0;
+    }
+
+    .code-line {
+      display: block;
+      padding: 0 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .code-line:empty {
+      height: 0.55em;
+      line-height: 0.55em;
+    }
+
+    .code-line.active {
+      background: rgba(49, 94, 251, 0.22);
+      outline: 1px solid rgba(125, 158, 255, 0.45);
+      transform: translateX(2px);
+    }
+
+    ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .result-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: var(--good-soft);
+      color: var(--good);
+      font-weight: 800;
+    }
+
+    .diagram {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 12px;
+    }
+
+    .interactive-graph {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+    }
+
+    .legend {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: white;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-blue { background: #315efb; }
+    .dot-green { background: #13a46b; }
+    .dot-orange { background: #ff9f1c; }
+    .dot-gray { background: #c8d2e7; }
+    .dot-gray-dashed { background: #c8d2e7; border: 2px dashed #8a96b3; }
+
+    .footer-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.active-tab { background: var(--accent); color: white; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .progress {
+      flex: 1 1 220px;
+      height: 10px;
+      background: #edf2fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, #6f8fff 100%);
+      transition: width 0.25s ease;
+    }
+
+    .state-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .state-box strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .state-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      color: #17366c;
+      word-break: break-word;
+    }
+
+    .explainer {
+      padding: 16px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .trace-table tbody tr.active-row { background: #eef4ff; }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding: 0 0 16px 18px;
+    }
+
+    .timeline-step::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .example-panel { display: none; margin-top: 16px; }
+    .example-panel.active { display: block; }
+
+    .details-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fcfdff;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .mistake-list li { margin-bottom: 8px; }
+
+    .diagram-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .mini-diagram {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .arrow-box {
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .two-col,
+      .steps,
+      .compare,
+      .interactive-grid,
+      .state-grid,
+      .summary-grid,
+      .note-grid,
+      .mini-grid,
+      .use-cases,
+      .reason-grid,
+      .diagram-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Recursion &amp; search · interactive DSA lesson</div>
+      <div class="hero-grid">
+        <div>
+          <h1>Backtracking</h1>
+          <p>
+            Backtracking is DFS over a tree of decisions instead of a tree of nodes. At every step you
+            <strong>choose</strong> one option, <strong>explore</strong> what follows from it, and then
+            <strong>un-choose</strong> it so the next option starts from a clean slate. This page traces that
+            template through three real problems and shows the seven-pattern family it generates.
+          </p>
+          <div class="chips">
+            <span class="chip">Core idea: choose → explore → un-choose</span>
+            <span class="chip">Interactive Subsets recursion-tree trace</span>
+            <span class="chip">Interactive Combination Sum prune trace</span>
+            <span class="chip">Interactive N-Queens board trace</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Canonical example</h3>
+          <p><code>subsets([1, 2, 3])</code> — start-index loop</p>
+          <div class="diagram">
+            <svg viewBox="0 0 620 340" width="100%" role="img" aria-label="Recursion tree for subsets of 1, 2, 3">
+              <defs>
+                <style>
+                  .hero-edge { stroke: #9fb0d8; stroke-width: 3; }
+                  .hero-node rect { fill: #13a46b; }
+                  .hero-node text { font: 700 13px Inter, Arial, sans-serif; fill: #ffffff; text-anchor: middle; }
+                </style>
+              </defs>
+              <line x1="320" y1="45" x2="140" y2="110" class="hero-edge" />
+              <line x1="320" y1="45" x2="320" y2="110" class="hero-edge" />
+              <line x1="320" y1="45" x2="500" y2="110" class="hero-edge" />
+              <line x1="140" y1="110" x2="80" y2="190" class="hero-edge" />
+              <line x1="140" y1="110" x2="200" y2="190" class="hero-edge" />
+              <line x1="320" y1="110" x2="320" y2="190" class="hero-edge" />
+              <line x1="80" y1="190" x2="80" y2="270" class="hero-edge" />
+              <g class="hero-node"><rect x="285" y="16" width="70" height="30" rx="8" /><text x="320" y="36">[]</text></g>
+              <g class="hero-node"><rect x="103" y="96" width="74" height="30" rx="8" /><text x="140" y="116">[1]</text></g>
+              <g class="hero-node"><rect x="283" y="96" width="74" height="30" rx="8" /><text x="320" y="116">[2]</text></g>
+              <g class="hero-node"><rect x="463" y="96" width="74" height="30" rx="8" /><text x="500" y="116">[3]</text></g>
+              <g class="hero-node"><rect x="41" y="176" width="78" height="30" rx="8" /><text x="80" y="196">[1,2]</text></g>
+              <g class="hero-node"><rect x="161" y="176" width="78" height="30" rx="8" /><text x="200" y="196">[1,3]</text></g>
+              <g class="hero-node"><rect x="281" y="176" width="78" height="30" rx="8" /><text x="320" y="196">[2,3]</text></g>
+              <g class="hero-node"><rect x="30" y="256" width="100" height="30" rx="8" /><text x="80" y="276">[1,2,3]</text></g>
+            </svg>
+          </div>
+          <div class="result-badge">8 subsets</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Why this matters</h2>
+      <div class="use-cases">
+        <div class="card">
+          <h3>Configuration search</h3>
+          <p>Trying every valid combination of settings, ingredients, or team assignments under hard constraints — feature flags, product bundles, seating charts.</p>
+        </div>
+        <div class="card">
+          <h3>Puzzle and game solvers</h3>
+          <p>Sudoku, N-Queens, crosswords, and maze solving all place one piece, recurse, and undo the piece if the branch fails — the same template every time.</p>
+        </div>
+        <div class="card">
+          <h3>Interview reuse</h3>
+          <p>Ten Blind 75 / NeetCode 150 problems — Subsets, Permutations, Combination Sum, Word Search, N-Queens and more — are all small edits to one template.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Instructor note:</strong> do not memorize seven separate algorithms. Memorize one skeleton — choose, explore, un-choose — and learn to recognize which one-line edit each new problem needs.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What is backtracking?</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>Simple definition</h3>
+          <p>Backtracking is depth-first recursion where the recursive call mutates one shared piece of state on the way down, and undoes that exact mutation on the way back up before trying the next option.</p>
+        </div>
+        <div class="card">
+          <h3>What you are building</h3>
+          <p>Either <strong>every</strong> valid arrangement that satisfies the problem (all subsets, all permutations, all paths) or the <strong>first</strong> one that does (does this word exist on the board, can four queens be placed safely).</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>The recursion tree:</strong> picture the calls as a tree. The root is the empty state. Each edge is one choice. Each node is one partial arrangement. Leaves are complete arrangements you record, or dead ends you prune. The shape of this tree — how many nodes it has — is exactly what determines the running time.</p>
+      </div>
+      <div class="callout">
+        <p><strong>Beginner shortcut:</strong> if a problem says "find all ways to..." or "does there exist a way to...", and a greedy rule or a DP table cannot see far enough ahead to know if a choice is safe, reach for backtracking.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step-by-step thinking process</h2>
+      <div class="steps">
+        <article class="card">
+          <div class="step-no">1</div>
+          <h3>Name the shared state</h3>
+          <p>What single mutable object — a list called <code>path</code>, a <code>used</code> array, the board itself — represents "the arrangement so far"?</p>
+        </article>
+        <article class="card">
+          <div class="step-no">2</div>
+          <h3>Write the base case</h3>
+          <p>When is the state complete? Length equals <code>n</code>? Remaining sum hits zero? Every row has a queen?</p>
+        </article>
+        <article class="card">
+          <div class="step-no">3</div>
+          <h3>List the choices, then prune</h3>
+          <p>What are the legal next moves from here, and which ones can be rejected before recursing at all?</p>
+        </article>
+        <article class="card">
+          <div class="step-no">4</div>
+          <h3>Write the un-choose as an exact mirror of the choose</h3>
+          <p>Every line that mutates state in the choose step gets one matching line that reverses it, in the opposite order, right after the recursive call returns.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How the input becomes the recursion tree of decisions</h2>
+      <p>Backtracking does not transform the input into a separate data structure the way graph traversal builds an adjacency list. The input list <em>is</em> the set of choices at every level — the transformation beginners miss is realizing that the recursion calls themselves trace out a tree, and that tree is the real "structure" being built as the code runs.</p>
+      <div class="diagram-row">
+        <div class="mini-diagram">
+          <h3>Input list</h3>
+          <div class="code-block"><code>nums = [1, 2, 3]</code></div>
+        </div>
+        <div class="arrow-box">→</div>
+        <div class="mini-diagram">
+          <h3>Recursion tree of decisions</h3>
+          <div class="code-block"><code>[]
+├─ [1] ── [1,2] ── [1,2,3]
+│      └─ [1,3]
+├─ [2] ── [2,3]
+└─ [3]</code></div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-step">
+          <h4>Call <code>backtrack(0)</code></h4>
+          <p>The root of the tree. <code>path = []</code> is recorded, then the loop considers index 0, 1, and 2 in turn as the root's three children.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Choosing index 0 descends one level</h4>
+          <p><code>path.append(1)</code> then <code>backtrack(1)</code> creates the edge <code>[] → [1]</code> and enters a new call frame whose own loop considers indices 1 and 2.</p>
+        </div>
+        <div class="timeline-step">
+          <h4>Returning un-does the edge, not the node</h4>
+          <p><code>path.pop()</code> after the recursive call returns removes the value from <code>path</code>, but the node already recorded into <code>out</code> stays recorded forever — only the live path shrinks.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><strong>Critical point:</strong> the recursion tree is not drawn ahead of time and then walked — it is discovered one edge at a time, exactly in the order the recursive calls happen. That is what the interactive trace below shows growing in real time.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 1: Subsets (LC 78) — the start-index loop</h2>
+      <p>Every node visited is itself a subset, not just the leaves. <code>start</code> guarantees the loop only ever moves forward, so <code>[1, 2]</code> and <code>[2, 1]</code> can never both appear — order does not matter for subsets, and forward-only indices are what enforce that.</p>
+      <div class="code-block stepped">
+        <code id="sub-code">
+<span class="code-line" data-line="1">def subsets(nums):</span>
+<span class="code-line" data-line="2">    out, path = [], []</span>
+<span class="code-line" data-line="3">    def backtrack(start):</span>
+<span class="code-line" data-line="4">        out.append(path[:])          # record on ENTRY -- every prefix is a subset</span>
+<span class="code-line" data-line="5">        for i in range(start, len(nums)):</span>
+<span class="code-line" data-line="6">            path.append(nums[i])     # CHOOSE</span>
+<span class="code-line" data-line="7">            backtrack(i + 1)         # EXPLORE -- only indices after i</span>
+<span class="code-line" data-line="8">            path.pop()               # UN-CHOOSE</span>
+<span class="code-line" data-line="9">    backtrack(0)</span>
+<span class="code-line" data-line="10">    return out</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive recursion-tree trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="sub-graph" viewBox="0 0 620 340" width="100%" role="img" aria-label="Recursion tree trace for subsets">
+              <defs>
+                <style>
+                  .sub-edge { stroke: #c8d2e7; stroke-width: 3; opacity: 0; transition: opacity 0.2s ease; }
+                  .sub-edge.shown { opacity: 1; }
+                  .sub-node { opacity: 0; transition: opacity 0.2s ease; }
+                  .sub-node.shown { opacity: 1; }
+                  .sub-node rect { fill: #c8d2e7; transition: fill 0.2s ease; }
+                  .sub-node.recorded rect { fill: #13a46b; }
+                  .sub-node.onpath rect { fill: #315efb; }
+                  .sub-node.current rect { fill: #ff9f1c; }
+                  .sub-node text { font: 700 12px Inter, Arial, sans-serif; fill: #ffffff; text-anchor: middle; }
+                </style>
+              </defs>
+              <line id="sub-e-root-n1" x1="320" y1="45" x2="140" y2="110" class="sub-edge" />
+              <line id="sub-e-root-n2" x1="320" y1="45" x2="320" y2="110" class="sub-edge" />
+              <line id="sub-e-root-n3" x1="320" y1="45" x2="500" y2="110" class="sub-edge" />
+              <line id="sub-e-n1-n12" x1="140" y1="110" x2="80" y2="190" class="sub-edge" />
+              <line id="sub-e-n1-n13" x1="140" y1="110" x2="200" y2="190" class="sub-edge" />
+              <line id="sub-e-n2-n23" x1="320" y1="110" x2="320" y2="190" class="sub-edge" />
+              <line id="sub-e-n12-n123" x1="80" y1="190" x2="80" y2="270" class="sub-edge" />
+              <g id="sub-node-root" class="sub-node" data-node="root"><rect x="285" y="16" width="70" height="30" rx="8" /><text x="320" y="36">[]</text></g>
+              <g id="sub-node-n1" class="sub-node" data-node="n1"><rect x="103" y="96" width="74" height="30" rx="8" /><text x="140" y="116">[1]</text></g>
+              <g id="sub-node-n2" class="sub-node" data-node="n2"><rect x="283" y="96" width="74" height="30" rx="8" /><text x="320" y="116">[2]</text></g>
+              <g id="sub-node-n3" class="sub-node" data-node="n3"><rect x="463" y="96" width="74" height="30" rx="8" /><text x="500" y="116">[3]</text></g>
+              <g id="sub-node-n12" class="sub-node" data-node="n12"><rect x="41" y="176" width="78" height="30" rx="8" /><text x="80" y="196">[1,2]</text></g>
+              <g id="sub-node-n13" class="sub-node" data-node="n13"><rect x="161" y="176" width="78" height="30" rx="8" /><text x="200" y="196">[1,3]</text></g>
+              <g id="sub-node-n23" class="sub-node" data-node="n23"><rect x="281" y="176" width="78" height="30" rx="8" /><text x="320" y="196">[2,3]</text></g>
+              <g id="sub-node-n123" class="sub-node" data-node="n123"><rect x="30" y="256" width="100" height="30" rx="8" /><text x="80" y="276">[1,2,3]</text></g>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> node being chosen / entered right now</span>
+            <span><i class="dot dot-blue"></i> on the live call stack (path)</span>
+            <span><i class="dot dot-green"></i> recorded, off the live path</span>
+            <span><i class="dot dot-gray"></i> not reached yet</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="sub-step-title">Initial state</h3>
+          <p id="sub-step-text">backtrack(0) is about to run.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="sub-prev">Previous</button>
+            <button type="button" id="sub-play" class="primary">Resume</button>
+            <button type="button" id="sub-next">Next</button>
+            <button type="button" id="sub-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="sub-step-counter">Step 0 / 22</span>
+            <div class="progress"><span id="sub-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="sub-action">—</div></div>
+            <div class="state-box"><strong>path</strong><div class="state-value" id="sub-path">[]</div></div>
+            <div class="state-box"><strong>start</strong><div class="state-value" id="sub-start">0</div></div>
+            <div class="state-box"><strong>call depth</strong><div class="state-value" id="sub-depth">0</div></div>
+            <div class="state-box" style="grid-column: span 2;"><strong>out so far</strong><div class="state-value" id="sub-out">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="sub-detail"><strong>What changed:</strong> nothing has run yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="sub-trace-table">
+          <thead><tr><th>Step</th><th>Action</th><th>path after</th><th>out so far</th></tr></thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Initial: backtrack(0) about to run</td><td><code>[]</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>ENTER backtrack(start=0): record path</td><td><code>[]</code></td><td><code>[[]]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>CHOOSE nums[0]=1</td><td><code>[1]</code></td><td><code>[[]]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>ENTER backtrack(start=1): record path</td><td><code>[1]</code></td><td><code>[[], [1]]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>CHOOSE nums[1]=2</td><td><code>[1, 2]</code></td><td><code>[[], [1]]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>ENTER backtrack(start=2): record path</td><td><code>[1, 2]</code></td><td><code>[[], [1], [1, 2]]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>CHOOSE nums[2]=3</td><td><code>[1, 2, 3]</code></td><td><code>[[], [1], [1, 2]]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>ENTER backtrack(start=3): record path (leaf)</td><td><code>[1, 2, 3]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3]]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>UN-CHOOSE pop 3</td><td><code>[1, 2]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3]]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>UN-CHOOSE pop 2</td><td><code>[1]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3]]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>CHOOSE nums[2]=3 (loop continues at i=2)</td><td><code>[1, 3]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3]]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>ENTER backtrack(start=3): record path (leaf)</td><td><code>[1, 3]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3]]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>UN-CHOOSE pop 3</td><td><code>[1]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3]]</code></td></tr>
+            <tr data-step="13"><td>13</td><td>UN-CHOOSE pop 1</td><td><code>[]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3]]</code></td></tr>
+            <tr data-step="14"><td>14</td><td>CHOOSE nums[1]=2 (root loop at i=1)</td><td><code>[2]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3]]</code></td></tr>
+            <tr data-step="15"><td>15</td><td>ENTER backtrack(start=2): record path</td><td><code>[2]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3], [2]]</code></td></tr>
+            <tr data-step="16"><td>16</td><td>CHOOSE nums[2]=3</td><td><code>[2, 3]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3], [2]]</code></td></tr>
+            <tr data-step="17"><td>17</td><td>ENTER backtrack(start=3): record path (leaf)</td><td><code>[2, 3]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]]</code></td></tr>
+            <tr data-step="18"><td>18</td><td>UN-CHOOSE pop 3</td><td><code>[2]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]]</code></td></tr>
+            <tr data-step="19"><td>19</td><td>UN-CHOOSE pop 2</td><td><code>[]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]]</code></td></tr>
+            <tr data-step="20"><td>20</td><td>CHOOSE nums[2]=3 (root loop at i=2)</td><td><code>[3]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]]</code></td></tr>
+            <tr data-step="21"><td>21</td><td>ENTER backtrack(start=3): record path (leaf)</td><td><code>[3]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]]</code></td></tr>
+            <tr data-step="22"><td>22</td><td>UN-CHOOSE pop 3 — root loop ends, return</td><td><code>[]</code></td><td><code>[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Every node in the tree is recorded the instant it is entered, not just the leaves. That is why subsets includes the empty set and every partial prefix, not only the full <code>[1, 2, 3]</code>.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Recursing with <code>i</code> instead of <code>i + 1</code> would let the same index be chosen twice in a row — that is the reuse pattern from Combination Sum, not subsets.</p>
+        </div>
+        <div class="card">
+          <h4>Why start matters</h4>
+          <p><code>start</code> is what turns an <code>n</code>-way choice at every level into a tree with exactly <code>2^n</code> nodes instead of <code>n!</code> — each element is either still ahead of <code>start</code> (a live choice) or already behind it (never reconsidered).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 2: Combination Sum (LC 39) — reuse and the sorted break</h2>
+      <p>Same start-index loop, a different base case: record only when <code>remaining</code> hits exactly zero. Two new ideas appear here that Subsets did not need: recursing with <code>i</code> instead of <code>i + 1</code> to allow reusing a candidate, and a <code>break</code> that exploits sorted input to prune every later sibling at once.</p>
+      <div class="code-block stepped">
+        <code id="cs-code">
+<span class="code-line" data-line="1">def combination_sum(candidates, target):</span>
+<span class="code-line" data-line="2">    candidates = sorted(candidates)</span>
+<span class="code-line" data-line="3">    out, path = [], []</span>
+<span class="code-line" data-line="4">    def backtrack(start, remaining):</span>
+<span class="code-line" data-line="5">        if remaining == 0:</span>
+<span class="code-line" data-line="6">            out.append(path[:]); return</span>
+<span class="code-line" data-line="7">        for i in range(start, len(candidates)):</span>
+<span class="code-line" data-line="8">            if candidates[i] > remaining:</span>
+<span class="code-line" data-line="9">                break                # PRUNE: sorted, so nothing later fits either</span>
+<span class="code-line" data-line="10">            path.append(candidates[i])      # CHOOSE</span>
+<span class="code-line" data-line="11">            backtrack(i, remaining - candidates[i])   # EXPLORE -- reuse allowed (i, not i + 1)</span>
+<span class="code-line" data-line="12">            path.pop()                      # UN-CHOOSE</span>
+<span class="code-line" data-line="13">    backtrack(0, target)</span>
+<span class="code-line" data-line="14">    return out</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive recursion-tree trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="cs-graph" viewBox="0 0 700 340" width="100%" role="img" aria-label="Recursion tree trace for combination sum">
+              <defs>
+                <style>
+                  .cs-edge { stroke: #c8d2e7; stroke-width: 3; opacity: 0; transition: opacity 0.2s ease; }
+                  .cs-edge.shown { opacity: 1; }
+                  .cs-node { opacity: 0; transition: opacity 0.2s ease; }
+                  .cs-node.shown { opacity: 1; }
+                  .cs-node rect { fill: #c8d2e7; transition: fill 0.2s ease; }
+                  .cs-node.closed rect { fill: #aab4cc; }
+                  .cs-node.recorded rect { fill: #13a46b; }
+                  .cs-node.onpath rect { fill: #315efb; }
+                  .cs-node.current rect { fill: #ff9f1c; }
+                  .cs-node text { font: 700 11px Inter, Arial, sans-serif; fill: #ffffff; text-anchor: middle; }
+                  .cs-badge { opacity: 0; transition: opacity 0.15s ease; }
+                  .cs-badge.visible { opacity: 1; }
+                  .cs-badge rect { fill: #fff4df; stroke: #e0b361; stroke-width: 1.5; stroke-dasharray: 5 4; }
+                  .cs-badge text { font: 700 11px Inter, Arial, sans-serif; fill: #8a5a10; }
+                </style>
+              </defs>
+              <line id="cs-e-r-a" x1="350" y1="45" x2="120" y2="110" class="cs-edge" />
+              <line id="cs-e-r-f" x1="350" y1="45" x2="290" y2="110" class="cs-edge" />
+              <line id="cs-e-r-h" x1="350" y1="45" x2="460" y2="110" class="cs-edge" />
+              <line id="cs-e-r-i" x1="350" y1="45" x2="610" y2="110" class="cs-edge" />
+              <line id="cs-e-a-b" x1="120" y1="110" x2="70" y2="190" class="cs-edge" />
+              <line id="cs-e-a-e" x1="120" y1="110" x2="170" y2="190" class="cs-edge" />
+              <line id="cs-e-f-g" x1="290" y1="110" x2="290" y2="190" class="cs-edge" />
+              <line id="cs-e-b-c" x1="70" y1="190" x2="30" y2="270" class="cs-edge" />
+              <line id="cs-e-b-d" x1="70" y1="190" x2="110" y2="270" class="cs-edge" />
+              <g id="cs-node-r" class="cs-node" data-node="r"><rect x="315" y="16" width="70" height="30" rx="8" /><text x="350" y="36">[]</text></g>
+              <g id="cs-node-a" class="cs-node" data-node="a"><rect x="85" y="96" width="70" height="30" rx="8" /><text x="120" y="116">[2]</text></g>
+              <g id="cs-node-f" class="cs-node" data-node="f"><rect x="255" y="96" width="70" height="30" rx="8" /><text x="290" y="116">[3]</text></g>
+              <g id="cs-node-h" class="cs-node" data-node="h"><rect x="425" y="96" width="70" height="30" rx="8" /><text x="460" y="116">[6]</text></g>
+              <g id="cs-node-i" class="cs-node" data-node="i"><rect x="575" y="96" width="70" height="30" rx="8" /><text x="610" y="116">[7]</text></g>
+              <g id="cs-node-b" class="cs-node" data-node="b"><rect x="33" y="176" width="74" height="30" rx="8" /><text x="70" y="196">[2,2]</text></g>
+              <g id="cs-node-e" class="cs-node" data-node="e"><rect x="133" y="176" width="74" height="30" rx="8" /><text x="170" y="196">[2,3]</text></g>
+              <g id="cs-node-g" class="cs-node" data-node="g"><rect x="253" y="176" width="74" height="30" rx="8" /><text x="290" y="196">[3,3]</text></g>
+              <g id="cs-node-c" class="cs-node" data-node="c"><rect x="-8" y="256" width="76" height="30" rx="8" /><text x="30" y="276">[2,2,2]</text></g>
+              <g id="cs-node-d" class="cs-node" data-node="d"><rect x="72" y="256" width="76" height="30" rx="8" /><text x="110" y="276">[2,2,3]</text></g>
+              <g id="cs-badge" class="cs-badge"><rect x="330" y="240" width="360" height="60" rx="10" /><text id="cs-badge-line1" x="345" y="263">—</text><text id="cs-badge-line2" x="345" y="282">—</text></g>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> node being chosen / entered right now</span>
+            <span><i class="dot dot-blue"></i> on the live call stack (path)</span>
+            <span><i class="dot dot-green"></i> recorded answer (remaining hit 0)</span>
+            <span><i class="dot dot-gray"></i> explored dead end, off the path</span>
+            <span><i class="dot dot-gray-dashed"></i> pruned by break — see badge</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="cs-step-title">Initial state</h3>
+          <p id="cs-step-text">backtrack(0, 7) is about to run on sorted candidates [2, 3, 6, 7].</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="cs-prev">Previous</button>
+            <button type="button" id="cs-play" class="primary">Resume</button>
+            <button type="button" id="cs-next">Next</button>
+            <button type="button" id="cs-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="cs-step-counter">Step 0 / 35</span>
+            <div class="progress"><span id="cs-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="cs-action">—</div></div>
+            <div class="state-box"><strong>path</strong><div class="state-value" id="cs-path">[]</div></div>
+            <div class="state-box"><strong>start</strong><div class="state-value" id="cs-start">0</div></div>
+            <div class="state-box"><strong>remaining</strong><div class="state-value" id="cs-remaining">7</div></div>
+            <div class="state-box" style="grid-column: span 2;"><strong>out so far</strong><div class="state-value" id="cs-out">[]</div></div>
+          </div>
+          <div class="explainer">
+            <p id="cs-detail"><strong>What changed:</strong> nothing has run yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="cs-trace-table">
+          <thead><tr><th>Step</th><th>Action</th><th>path</th><th>remaining</th><th>out so far</th></tr></thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Initial: backtrack(0, 7) about to run</td><td><code>[]</code></td><td><code>7</code></td><td><code>[]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>ENTER backtrack(start=0, remaining=7)</td><td><code>[]</code></td><td><code>7</code></td><td><code>[]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>CHOOSE candidates[0]=2 (reuse: recurse with i=0)</td><td><code>[2]</code></td><td><code>5</code></td><td><code>[]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>ENTER backtrack(start=0, remaining=5)</td><td><code>[2]</code></td><td><code>5</code></td><td><code>[]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>CHOOSE candidates[0]=2</td><td><code>[2, 2]</code></td><td><code>3</code></td><td><code>[]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>ENTER backtrack(start=0, remaining=3)</td><td><code>[2, 2]</code></td><td><code>3</code></td><td><code>[]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>CHOOSE candidates[0]=2</td><td><code>[2, 2, 2]</code></td><td><code>1</code></td><td><code>[]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>ENTER backtrack(start=0, remaining=1)</td><td><code>[2, 2, 2]</code></td><td><code>1</code></td><td><code>[]</code></td></tr>
+            <tr data-step="8"><td>8</td><td>BREAK: 2 &gt; 1 — 4 siblings skipped (2,3,6,7)</td><td><code>[2, 2, 2]</code></td><td><code>1</code></td><td><code>[]</code></td></tr>
+            <tr data-step="9"><td>9</td><td>UN-CHOOSE pop 2</td><td><code>[2, 2]</code></td><td><code>3</code></td><td><code>[]</code></td></tr>
+            <tr data-step="10"><td>10</td><td>CHOOSE candidates[1]=3</td><td><code>[2, 2, 3]</code></td><td><code>0</code></td><td><code>[]</code></td></tr>
+            <tr data-step="11"><td>11</td><td>ENTER backtrack(start=1, remaining=0) — RECORD</td><td><code>[2, 2, 3]</code></td><td><code>0</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="12"><td>12</td><td>UN-CHOOSE pop 3</td><td><code>[2, 2]</code></td><td><code>3</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="13"><td>13</td><td>BREAK: 6 &gt; 3 — 2 siblings skipped (6,7)</td><td><code>[2, 2]</code></td><td><code>3</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="14"><td>14</td><td>UN-CHOOSE pop 2</td><td><code>[2]</code></td><td><code>5</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="15"><td>15</td><td>CHOOSE candidates[1]=3</td><td><code>[2, 3]</code></td><td><code>2</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="16"><td>16</td><td>ENTER backtrack(start=1, remaining=2)</td><td><code>[2, 3]</code></td><td><code>2</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="17"><td>17</td><td>BREAK: 3 &gt; 2 — 3 siblings skipped (3,6,7)</td><td><code>[2, 3]</code></td><td><code>2</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="18"><td>18</td><td>UN-CHOOSE pop 3</td><td><code>[2]</code></td><td><code>5</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="19"><td>19</td><td>BREAK: 6 &gt; 5 — 2 siblings skipped (6,7)</td><td><code>[2]</code></td><td><code>5</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="20"><td>20</td><td>UN-CHOOSE pop 2</td><td><code>[]</code></td><td><code>7</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="21"><td>21</td><td>CHOOSE candidates[1]=3</td><td><code>[3]</code></td><td><code>4</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="22"><td>22</td><td>ENTER backtrack(start=1, remaining=4)</td><td><code>[3]</code></td><td><code>4</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="23"><td>23</td><td>CHOOSE candidates[1]=3</td><td><code>[3, 3]</code></td><td><code>1</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="24"><td>24</td><td>ENTER backtrack(start=1, remaining=1)</td><td><code>[3, 3]</code></td><td><code>1</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="25"><td>25</td><td>BREAK: 3 &gt; 1 — 3 siblings skipped (3,6,7)</td><td><code>[3, 3]</code></td><td><code>1</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="26"><td>26</td><td>UN-CHOOSE pop 3</td><td><code>[3]</code></td><td><code>4</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="27"><td>27</td><td>BREAK: 6 &gt; 4 — 2 siblings skipped (6,7)</td><td><code>[3]</code></td><td><code>4</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="28"><td>28</td><td>UN-CHOOSE pop 3</td><td><code>[]</code></td><td><code>7</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="29"><td>29</td><td>CHOOSE candidates[2]=6</td><td><code>[6]</code></td><td><code>1</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="30"><td>30</td><td>ENTER backtrack(start=2, remaining=1)</td><td><code>[6]</code></td><td><code>1</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="31"><td>31</td><td>BREAK: 6 &gt; 1 — 2 siblings skipped (6,7)</td><td><code>[6]</code></td><td><code>1</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="32"><td>32</td><td>UN-CHOOSE pop 6</td><td><code>[]</code></td><td><code>7</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="33"><td>33</td><td>CHOOSE candidates[3]=7</td><td><code>[7]</code></td><td><code>0</code></td><td><code>[[2, 2, 3]]</code></td></tr>
+            <tr data-step="34"><td>34</td><td>ENTER backtrack(start=3, remaining=0) — RECORD</td><td><code>[7]</code></td><td><code>0</code></td><td><code>[[2, 2, 3], [7]]</code></td></tr>
+            <tr data-step="35"><td>35</td><td>UN-CHOOSE pop 7 — root loop ends, return</td><td><code>[]</code></td><td><code>7</code></td><td><code>[[2, 2, 3], [7]]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <p><strong>Measured on the notebook's larger example</strong> — <code>combination_sum_counted([2, 3, 5, 7], 20, mode)</code>: no prune, only bailing out once <code>remaining &lt; 0</code>, costs <strong>246</strong> recursive calls; skipping over-large candidates with <code>continue</code> costs <strong>133</strong>; stopping with <code>break</code> the moment one candidate is too large also costs <strong>133</strong>. All three find the same <strong>18</strong> answers. Honestly: the prune is what does the work, cutting calls roughly in half — <code>break</code> and <code>continue</code> skip exactly the same branches on sorted input, because once one candidate is too large every later one is too. <code>break</code> is still the better choice because it also skips the leftover loop iterations for free, instead of visiting and rejecting each one.</p>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Passing <code>i</code> instead of <code>i + 1</code> to the recursive call is the entire difference between "each candidate once" and "unlimited reuse" — nothing else in the function changes.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Using <code>continue</code> instead of <code>break</code> still gives a correct answer on sorted input, but wastes time re-checking every later candidate that is guaranteed to also be too large.</p>
+        </div>
+        <div class="card">
+          <h4>Why sorting first matters</h4>
+          <p>The <code>break</code> prune is only valid because <code>candidates</code> is sorted — on unsorted input, one large value early in the list would wrongly cut off smaller valid values sitting after it.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method 3: N-Queens (LC 51) — constraint sets</h2>
+      <p>One queen per row; the choice at each row is which column. Three sets — <code>cols</code>, <code>diag</code> (<code>r - c</code>), <code>anti</code> (<code>r + c</code>) — turn "is this square attacked?" into three <code>O(1)</code> lookups instead of rescanning the board. Four pieces of state must be un-chosen, not one.</p>
+      <div class="code-block stepped">
+        <code id="nq-code">
+<span class="code-line" data-line="1">def solve_n_queens(n):</span>
+<span class="code-line" data-line="2">    out, cols, diag, anti = [], set(), set(), set()</span>
+<span class="code-line" data-line="3">    board = [["."] * n for _ in range(n)]</span>
+<span class="code-line" data-line="4">    def backtrack(r):</span>
+<span class="code-line" data-line="5">        if r == n:</span>
+<span class="code-line" data-line="6">            out.append(["".join(row) for row in board]); return</span>
+<span class="code-line" data-line="7">        for c in range(n):</span>
+<span class="code-line" data-line="8">            if c in cols or (r - c) in diag or (r + c) in anti:</span>
+<span class="code-line" data-line="9">                continue             # PRUNE: attacked by a queen above</span>
+<span class="code-line" data-line="10">            cols.add(c); diag.add(r - c); anti.add(r + c); board[r][c] = "Q"   # CHOOSE</span>
+<span class="code-line" data-line="11">            backtrack(r + 1)        # EXPLORE</span>
+<span class="code-line" data-line="12">            cols.remove(c); diag.remove(r - c); anti.remove(r + c); board[r][c] = "."   # UN-CHOOSE</span>
+<span class="code-line" data-line="13">    backtrack(0)</span>
+<span class="code-line" data-line="14">    return out</span>
+        </code>
+      </div>
+
+      <div class="callout">
+        <p><strong>Why r - c and r + c?</strong> Every cell on the same "\" diagonal shares one value of <code>r - c</code> (move one row down and one column right and both go up by 1, so the difference is unchanged). Every cell on the same "/" diagonal shares one value of <code>r + c</code> (move one row down and one column left and the sum is unchanged). Two queens attack each other diagonally exactly when one of those two numbers matches, so remembering the numbers already in use is enough to check safety without touching the board.</p>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive board trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="nq-board" viewBox="0 0 360 360" width="100%" role="img" aria-label="4 by 4 N-Queens board trace">
+              <defs>
+                <style>
+                  .nq-cell { fill: #fbfcff; stroke: #d9e1ef; stroke-width: 1; }
+                  .nq-cell.dark { fill: #f2f5fb; }
+                  .nq-cell.attacked { fill: #e6eaf3; stroke: #8a96b3; stroke-width: 2; stroke-dasharray: 5 4; }
+                  .nq-cell.current { stroke: #ff9f1c; stroke-width: 4; }
+                  .nq-queen-rect { fill: #315efb; }
+                  .nq-queen-rect.solved { fill: #13a46b; }
+                  .nq-queen-text { font: 700 30px Inter, Arial, sans-serif; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
+                </style>
+              </defs>
+              <g id="nq-cells"></g>
+              <g id="nq-queens"></g>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-blue"></i> queen placed on the current path</span>
+            <span><i class="dot dot-green"></i> queen belongs to a recorded solution</span>
+            <span><i class="dot dot-orange"></i> cell being chosen or pruned right now</span>
+            <span><i class="dot dot-gray-dashed"></i> attacked — pruned this scan</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="nq-step-title">Initial state</h3>
+          <p id="nq-step-text">backtrack(0) is about to run on an empty 4x4 board.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="nq-prev">Previous</button>
+            <button type="button" id="nq-play" class="primary">Resume</button>
+            <button type="button" id="nq-next">Next</button>
+            <button type="button" id="nq-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="nq-step-counter">Step 0 / 17</span>
+            <div class="progress"><span id="nq-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="nq-action">—</div></div>
+            <div class="state-box"><strong>current row (r)</strong><div class="state-value" id="nq-row">0</div></div>
+            <div class="state-box"><strong>cols</strong><div class="state-value" id="nq-cols">{}</div></div>
+            <div class="state-box"><strong>diag (r-c)</strong><div class="state-value" id="nq-diag">{}</div></div>
+            <div class="state-box"><strong>anti (r+c)</strong><div class="state-value" id="nq-anti">{}</div></div>
+            <div class="state-box"><strong>solutions found</strong><div class="state-value" id="nq-solutions">0</div></div>
+          </div>
+          <div class="explainer">
+            <p id="nq-detail"><strong>What changed:</strong> nothing has run yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="nq-trace-table">
+          <thead><tr><th>Step</th><th>Row</th><th>Action</th><th>cols / diag / anti after</th></tr></thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>0</td><td>Start backtrack(0). Board empty.</td><td><code>{} / {} / {}</code></td></tr>
+            <tr data-step="1"><td>1</td><td>0</td><td>c=0 safe → CHOOSE (0,0)</td><td><code>{0} / {0} / {0}</code></td></tr>
+            <tr data-step="2"><td>2</td><td>1</td><td>c=0 attacked, c=1 attacked, c=2 safe → CHOOSE (1,2)</td><td><code>{0,2} / {-1,0} / {0,3}</code></td></tr>
+            <tr data-step="3"><td>3</td><td>2</td><td>All 4 columns attacked → DEAD END, back up</td><td><code>{0,2} / {-1,0} / {0,3}</code></td></tr>
+            <tr data-step="4"><td>4</td><td>1</td><td>UN-CHOOSE remove (1,2)</td><td><code>{0} / {0} / {0}</code></td></tr>
+            <tr data-step="5"><td>5</td><td>1</td><td>c=3 safe → CHOOSE (1,3)</td><td><code>{0,3} / {-2,0} / {0,4}</code></td></tr>
+            <tr data-step="6"><td>6</td><td>2</td><td>c=0 attacked, c=1 safe → CHOOSE (2,1)</td><td><code>{0,1,3} / {-2,0,1} / {0,3,4}</code></td></tr>
+            <tr data-step="7"><td>7</td><td>3</td><td>All 4 columns attacked → DEAD END, back up</td><td><code>{0,1,3} / {-2,0,1} / {0,3,4}</code></td></tr>
+            <tr data-step="8"><td>8</td><td>2</td><td>UN-CHOOSE remove (2,1)</td><td><code>{0,3} / {-2,0} / {0,4}</code></td></tr>
+            <tr data-step="9"><td>9</td><td>2</td><td>c=2, c=3 both attacked — no candidates left, row 2 loop ends</td><td><code>{0,3} / {-2,0} / {0,4}</code></td></tr>
+            <tr data-step="10"><td>10</td><td>1</td><td>UN-CHOOSE remove (1,3)</td><td><code>{0} / {0} / {0}</code></td></tr>
+            <tr data-step="11"><td>11</td><td>0</td><td>Row 1 exhausted, backtrack(1) returns. UN-CHOOSE remove (0,0)</td><td><code>{} / {} / {}</code></td></tr>
+            <tr data-step="12"><td>12</td><td>0</td><td>c=1 safe → CHOOSE (0,1)</td><td><code>{1} / {-1} / {1}</code></td></tr>
+            <tr data-step="13"><td>13</td><td>1</td><td>c=0,c=1,c=2 attacked, c=3 safe → CHOOSE (1,3)</td><td><code>{1,3} / {-2,-1} / {1,4}</code></td></tr>
+            <tr data-step="14"><td>14</td><td>2</td><td>c=0 safe → CHOOSE (2,0)</td><td><code>{0,1,3} / {-2,-1,2} / {1,2,4}</code></td></tr>
+            <tr data-step="15"><td>15</td><td>3</td><td>c=0,c=1 attacked, c=2 safe → CHOOSE (3,2)</td><td><code>{0,1,2,3} / {-2,-1,1,2} / {1,2,4,5}</code></td></tr>
+            <tr data-step="16"><td>16</td><td>4</td><td>r == n → SOLUTION #1 RECORDED: [".Q..","...Q","Q...","..Q."]</td><td><code>{0,1,2,3} / {-2,-1,1,2} / {1,2,4,5}</code></td></tr>
+            <tr data-step="17"><td>17</td><td>—</td><td>Search continues (not traced further); total for n=4 is 2 solutions</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Every dead end above looks the same: scan all <code>n</code> columns in the current row, find every one attacked, and return without ever calling <code>backtrack(r + 1)</code> — the recursion never even descends into a doomed row.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Un-choosing only three of the four pieces of state (forgetting <code>board[r][c] = "."</code>, say) leaves a stale queen drawn on the board for branches that never actually placed one there.</p>
+        </div>
+        <div class="card">
+          <h4>Why three sets beat rescanning</h4>
+          <p>Checking safety by scanning the whole board is <code>O(n)</code> per candidate column; checking three set memberships is <code>O(1)</code> — for <code>n</code> columns across <code>n</code> rows that is the difference between <code>O(n^3)</code> and <code>O(n^2)</code> work just to place one full board.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>The pattern family — one template, seven shapes</h2>
+      <p>Every backtracking problem in Blind 75 and NeetCode 150 is this same choose / explore / un-choose skeleton with one part swapped out. This table is the playbook: given a new problem, find its row.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Problem</th><th>Pattern</th><th>The choice</th><th>What must be un-chosen</th><th>Prune applied</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>78</td><td>Subsets</td><td>Start-index loop</td><td>Include <code>nums[i]</code> as the next element of the path</td><td><code>path.pop()</code></td><td>None — every branch is valid, <code>start</code> just stops reorderings</td></tr>
+            <tr><td>90</td><td>Subsets II</td><td>Start-index + sort &amp; skip</td><td>Include <code>nums[i]</code>, skipping a value already tried at this level</td><td><code>path.pop()</code></td><td><code>if i &gt; start and nums[i] == nums[i-1]: continue</code></td></tr>
+            <tr><td>39</td><td>Combination Sum</td><td>Start-index, reuse via <code>i</code></td><td><code>candidates[i]</code>, recursing with <code>i</code> to allow reuse</td><td><code>path.pop()</code></td><td>Sorted <code>break</code> once <code>candidates[i] &gt; remaining</code></td></tr>
+            <tr><td>40</td><td>Combination Sum II</td><td>Start-index, <code>i + 1</code> + sort &amp; skip</td><td><code>candidates[i]</code>, recursing with <code>i + 1</code> (no reuse)</td><td><code>path.pop()</code></td><td><code>break</code> on overflow + sibling-duplicate skip</td></tr>
+            <tr><td>46</td><td>Permutations</td><td><code>used</code> array</td><td>Any unused <code>nums[i]</code>, at any level</td><td><code>path.pop()</code> and <code>used[i] = False</code> — two pieces</td><td><code>if used[i]: continue</code></td></tr>
+            <tr><td>47</td><td>Permutations II</td><td><code>used</code> array + sort &amp; skip</td><td>Any unused <code>nums[i]</code> that is not a still-idle twin</td><td><code>path.pop()</code> and <code>used[i] = False</code></td><td><code>if used[i] or (i&gt;0 and nums[i]==nums[i-1] and not used[i-1]): continue</code></td></tr>
+            <tr><td>79</td><td>Word Search</td><td>Grid, mark-in-place</td><td>One of 4 neighbour directions from <code>(r, c)</code></td><td>Restore <code>board[r][c] = saved</code> — always, even on failure</td><td>Character mismatch or out-of-bounds returns <code>False</code> immediately</td></tr>
+            <tr><td>131</td><td>Palindrome Partitioning</td><td>Start-index, "where to cut"</td><td>The end position of the next piece, <code>s[start:end]</code></td><td><code>path.pop()</code></td><td>Validity check <code>piece == piece[::-1]</code> before choosing</td></tr>
+            <tr><td>17</td><td>Letter Combinations</td><td>Cartesian product mapping</td><td>One letter mapped to the current digit</td><td><code>path.pop()</code></td><td>None — every letter at every position is always valid</td></tr>
+            <tr><td>51</td><td>N-Queens</td><td>Constraint sets</td><td>The column <code>c</code> for row <code>r</code></td><td>Remove <code>c</code>/<code>r-c</code>/<code>r+c</code> and reset the cell — four pieces</td><td><code>if c in cols or (r-c) in diag or (r+c) in anti: continue</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">Reading down the "what must be un-chosen" column is the fastest way to spot the bug in a broken solution: count how many pieces of state the choose line touches, then confirm the un-choose line touches exactly the same pieces, in reverse.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Edge cases you should test</h2>
+      <div class="tabs" role="tablist" aria-label="Edge case examples">
+        <button type="button" class="active-tab" data-example-tab="0">Empty input</button>
+        <button type="button" data-example-tab="1">Duplicates</button>
+        <button type="button" data-example-tab="2">Unreachable target</button>
+      </div>
+
+      <div class="example-panel active" data-example-panel="0">
+        <div class="card">
+          <h3>Case A: empty input</h3>
+          <p><code>subsets([])</code></p>
+          <div class="result-badge">Answer = [[]]</div>
+          <p class="footer-note"><code>backtrack(0)</code> still records the empty path once, then the loop <code>range(0, 0)</code> never runs. One subset — the empty set itself — not zero subsets.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="1">
+        <div class="card">
+          <h3>Case B: input with duplicates</h3>
+          <p><code>subsets_with_dup([1, 2, 2])</code></p>
+          <div class="result-badge">Answer = [[], [1], [1,2], [1,2,2], [2], [2,2]]</div>
+          <p class="footer-note">Sort first so the two 2s sit adjacent, then skip a candidate when <code>i &gt; start and nums[i] == nums[i-1]</code>: the sibling right before it in this same loop already explored that value, so trying it again would only rebuild the exact same subset. Without the sort-and-skip rule, the plain <code>subsets</code> function treats the two 2s as distinguishable and returns all 8 combinations, only 6 of which are distinct.</p>
+        </div>
+      </div>
+
+      <div class="example-panel" data-example-panel="2">
+        <div class="card">
+          <h3>Case C: target no combination can reach</h3>
+          <p><code>combination_sum([2, 4, 6], 7)</code></p>
+          <div class="result-badge">Answer = []</div>
+          <p class="footer-note">Every candidate is even, so every reachable sum is even — 7 is odd and can never be hit. Every branch eventually either overflows into the sorted <code>break</code> or the loop simply runs out of candidates; no path ever reaches <code>remaining == 0</code>, so <code>out</code> stays empty. The function must return <code>[]</code> cleanly, not raise an error or return a partial answer.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Method comparison table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Problem</th><th>Arrangements</th><th>Copy cost</th><th>Time</th><th>Recursion depth</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Subsets (78)</td><td><code>2^n</code></td><td><code>O(n)</code></td><td><code>O(n · 2^n)</code></td><td><code>O(n)</code></td></tr>
+            <tr><td>Permutations (46)</td><td><code>n!</code></td><td><code>O(n)</code></td><td><code>O(n · n!)</code></td><td><code>O(n)</code></td></tr>
+            <tr><td>Combination Sum (39)</td><td>≤ <code>2^target</code> paths, pruned</td><td><code>O(target)</code></td><td>exponential in <code>target / min(candidates)</code></td><td><code>O(target / min)</code></td></tr>
+            <tr><td>Word Search (79)</td><td>one path per start cell</td><td>—</td><td><code>O(R·C · 3^L)</code></td><td><code>O(L)</code></td></tr>
+            <tr><td>Palindrome Partitioning (131)</td><td><code>2^(n-1)</code> cut patterns</td><td><code>O(n)</code></td><td><code>O(n · 2^n)</code></td><td><code>O(n)</code></td></tr>
+            <tr><td>Letter Combinations (17)</td><td>up to <code>4^n</code></td><td><code>O(n)</code></td><td><code>O(n · 4^n)</code></td><td><code>O(n)</code></td></tr>
+            <tr><td>N-Queens (51)</td><td>far fewer than <code>n!</code> after pruning</td><td><code>O(n^2)</code></td><td><code>O(n!)</code> upper bound</td><td><code>O(n)</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footer-note">Time is (number of complete arrangements) × (cost to copy one) once pruning is accounted for. Recursion depth — and therefore call-stack space — is always the length of one arrangement, never the number of arrangements: a <code>2^n</code> enumeration is fine at <code>n = 20</code>, but a <code>2^n</code> stack would not be.</p>
+    </section>
+
+    <section class="panel">
+      <h2>How to derive this in an interview</h2>
+      <div class="reason-grid">
+        <div class="card">
+          <h3>Reasoning path</h3>
+          <div class="timeline">
+            <div class="timeline-step"><p>Do I need every valid arrangement, or just the first one that works? Find-all records and continues; find-one returns <code>True</code> up the chain and short-circuits.</p></div>
+            <div class="timeline-step"><p>Does order matter? If not (subsets, combinations), a <strong>start index</strong> that only moves forward is enough. If it does (permutations), every level needs to consider every unused element via a <strong>used array</strong>.</p></div>
+            <div class="timeline-step"><p>Can I reuse a choice? Recursing with <code>i</code> allows reuse; recursing with <code>i + 1</code> forbids it.</p></div>
+            <div class="timeline-step"><p>What can I prune before I even choose? Sorted-and-additive problems get a <code>break</code>; duplicate inputs get a sort-and-skip; grid and constraint problems get an <code>O(1)</code> feasibility check.</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>What to say out loud</h3>
+          <ul>
+            <li>"This wants every arrangement, so I will write a backtracking function that records on a valid base case and keeps going, rather than returning early."</li>
+            <li>"Order doesn't matter here, so I'll use a start index to avoid generating the same combination twice in different orders."</li>
+            <li>"The input can repeat, so I need a used array instead of a start index, and I have to remember to reset it on the way back up."</li>
+            <li>"Once I sort the input, any candidate too large to fit means every later candidate is too large too, so I can break instead of just continuing."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Common beginner coding mistakes</h2>
+      <div class="two-col">
+        <div class="card">
+          <h3>State and recording mistakes</h3>
+          <ul class="mistake-list">
+            <li><strong>Missing un-choose:</strong> without <code>path.pop()</code>, every sibling inherits the previous sibling's choice instead of starting clean.</li>
+            <li><strong>Recording a reference:</strong> <code>out.append(path)</code> stores the same list every time; by the end every recorded answer is empty, because the shared list has been popped back down.</li>
+            <li><strong>Forgetting to reset <code>used</code>:</strong> in Permutations, popping <code>path</code> but leaving <code>used[i] = True</code> starves every other branch after the first full permutation is found.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Pruning mistakes</h3>
+          <ul class="mistake-list">
+            <li><strong><code>continue</code> where <code>break</code> was possible:</strong> correct on sorted, additive input, but slower — it still visits and rejects every later candidate instead of skipping them all at once.</li>
+            <li><strong>Wrong dedup condition:</strong> writing <code>if nums[i] == nums[i-1]: continue</code> without the <code>i &gt; start</code> guard also skips a duplicate value that is legitimately the first choice at this level, silently dropping valid subsets.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Practice questions</h2>
+      <p>Try these first in your head. Then open the answer only after you commit to a guess.</p>
+      <div class="details-grid">
+        <details>
+          <summary>Practice 1 — Why does Permutations (LC 46) need a <code>used</code> array instead of a start index?</summary>
+          <p style="margin-top:10px;">Answer: a start index only ever looks at elements from <code>start</code> onward, which is exactly what forces the order-independent shape of subsets and combinations. Permutations need <code>[2, 1, 3]</code> and <code>[1, 2, 3]</code> to both appear, which means every level must be able to pick <em>any</em> element not currently on the path, including ones with smaller indices than a choice made earlier. A start index physically cannot go backward; a <code>used</code> array can mark and unmark any index regardless of order.</p>
+        </details>
+        <details>
+          <summary>Practice 2 — Why does Word Search (LC 79) restore the cell even on failure?</summary>
+          <p style="margin-top:10px;">Answer: <code>board[r][c] = saved</code> runs unconditionally after the four recursive calls, whether or not any of them returned <code>True</code>. If the cell were only restored on success, a failed path from one starting cell would leave the board permanently mutated with <code>"#"</code> markers, corrupting every subsequent search from a different starting cell — including the very next candidate in the outer loop over <code>(r, c)</code>. The un-choose has to be unconditional because the choose was unconditional.</p>
+        </details>
+        <details>
+          <summary>Practice 3 — What does the <code>not used[i-1]</code> clause do in Permutations II (LC 47)?</summary>
+          <p style="margin-top:10px;">Answer: without it, <code>if i &gt; 0 and nums[i] == nums[i-1]: continue</code> would also block a duplicate value from ever being placed anywhere in the permutation once its twin has been placed, which is wrong — twins are allowed to both appear, just not interchangeably. <code>not used[i-1]</code> narrows the skip to exactly one case: the identical value just before <code>i</code> is currently sitting idle (already tried and popped back off at this same level), meaning this position would only rebuild a permutation already produced by trying that earlier twin first. If the earlier twin is still <em>on</em> the path, this is a genuinely different position for the current one, so it is allowed.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Final takeaway</h2>
+      <div class="card">
+        <p>
+          One skeleton — <strong>choose, explore, un-choose</strong> — generates every problem on this page.
+          Subsets is that skeleton with a start index. Combination Sum is the same skeleton with a different
+          base case, reuse via <code>i</code>, and a sorted <code>break</code>. N-Queens is the same skeleton
+          with four pieces of state instead of one and three sets doing the safety check in <code>O(1)</code>.
+          The un-choose line is never optional and never approximate — it is an exact mirror of the choose
+          line, every time.
+        </p>
+      </div>
+      <p class="footer-note">Based on the 21_Backtracking README and companion notebook — every trace on this page was produced by running the notebook's real functions with instrumented print statements, not hand-written by inspection.</p>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+
+      function setCodeHighlight(containerId, lines) {
+        document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
+          const lineNo = Number(line.dataset.line);
+          line.classList.toggle('active', lines.includes(lineNo));
+        });
+      }
+
+      function markActiveRow(tableId, step) {
+        document.querySelectorAll(`#${tableId} tbody tr`).forEach((row) => {
+          row.classList.toggle('active-row', Number(row.dataset.step) === step);
+        });
+      }
+
+      function setupTrace({ steps, prefix, render }) {
+        let index = 0;
+        let timer = null;
+
+        const prevBtn = document.getElementById(`${prefix}-prev`);
+        const nextBtn = document.getElementById(`${prefix}-next`);
+        const playBtn = document.getElementById(`${prefix}-play`);
+        const resetBtn = document.getElementById(`${prefix}-reset`);
+
+        function stop() {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          playBtn.textContent = 'Resume';
+        }
+
+        function update() {
+          render(steps[index], index, steps.length - 1);
+          prevBtn.disabled = index === 0;
+          nextBtn.disabled = index === steps.length - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          stop();
+          if (index > 0) index -= 1;
+          update();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          stop();
+          if (index < steps.length - 1) index += 1;
+          update();
+        });
+
+        resetBtn.addEventListener('click', () => {
+          stop();
+          index = 0;
+          update();
+        });
+
+        playBtn.addEventListener('click', () => {
+          if (timer) {
+            stop();
+            return;
+          }
+          playBtn.textContent = 'Pause';
+          timer = setInterval(() => {
+            if (index >= steps.length - 1) {
+              stop();
+              return;
+            }
+            index += 1;
+            update();
+          }, 1700);
+        });
+
+        update();
+      }
+
+      /* ============================= METHOD 1: SUBSETS ============================= */
+
+      const subNodeIds = ['root', 'n1', 'n2', 'n3', 'n12', 'n13', 'n23', 'n123'];
+      const subEdgeIds = ['sub-e-root-n1', 'sub-e-root-n2', 'sub-e-root-n3', 'sub-e-n1-n12', 'sub-e-n1-n13', 'sub-e-n2-n23', 'sub-e-n12-n123'];
+
+      const subSteps = [
+        { step: 0, title: 'Initial state', text: 'subsets([1, 2, 3]) is about to call backtrack(0). Nothing has been recorded yet.', action: 'Nothing has run yet', path: '[]', start: '—', depth: '—', out: '[]', detail: 'The tree below is empty -- every node and edge will appear only once its call actually runs.', lines: [1, 2], shown: [], edges: [], onPath: [], current: null, recorded: [] },
+        { step: 1, title: 'Step 1: ENTER backtrack(start=0)', text: 'The root call records the empty path -- every prefix on the way down counts as a subset, starting with the empty one.', action: 'out.append(path[:]) -> out = [[]]', path: '[]', start: '0', depth: '0', out: '[[]]', detail: 'This ENTER happens before any choice is made, which is why the empty set is subset number one.', lines: [3, 4], shown: ['root'], edges: [], onPath: ['root'], current: 'root', recorded: ['root'] },
+        { step: 2, title: 'Step 2: CHOOSE nums[0] = 1', text: 'The loop considers index 0. path.append(1) happens before the recursive call -- this is the CHOOSE.', action: 'path.append(1); about to call backtrack(1)', path: '[1]', start: '0', depth: '1', out: '[[]]', detail: 'The edge from [] to [1] appears now, even though [1] will not be recorded until the next step enters it.', lines: [5, 6, 7], shown: ['root', 'n1'], edges: ['sub-e-root-n1'], onPath: ['root', 'n1'], current: 'n1', recorded: ['root'] },
+        { step: 3, title: 'Step 3: ENTER backtrack(start=1)', text: 'Node [1] is recorded the instant this call begins.', action: 'out.append(path[:]) -> out = [[], [1]]', path: '[1]', start: '1', depth: '1', out: '[[], [1]]', detail: 'Same rule as the root: record on entry, before the loop runs.', lines: [3, 4], shown: ['root', 'n1'], edges: ['sub-e-root-n1'], onPath: ['root', 'n1'], current: 'n1', recorded: ['root', 'n1'] },
+        { step: 4, title: 'Step 4: CHOOSE nums[1] = 2', text: 'Inside backtrack(1), the loop starts at index 1 (start=1) and chooses index 1.', action: 'path.append(2); about to call backtrack(2)', path: '[1, 2]', start: '1', depth: '2', out: '[[], [1]]', detail: 'start=1 means index 0 (value 1) can never be reconsidered here -- that is what prevents [2, 1] from also being generated.', lines: [5, 6, 7], shown: ['root', 'n1', 'n12'], edges: ['sub-e-root-n1', 'sub-e-n1-n12'], onPath: ['root', 'n1', 'n12'], current: 'n12', recorded: ['root', 'n1'] },
+        { step: 5, title: 'Step 5: ENTER backtrack(start=2)', text: 'Node [1, 2] is recorded.', action: 'out.append(path[:]) -> out = [[], [1], [1, 2]]', path: '[1, 2]', start: '2', depth: '2', out: '[[], [1], [1, 2]]', detail: 'Three subsets recorded so far, and the tree is only two levels deep.', lines: [3, 4], shown: ['root', 'n1', 'n12'], edges: ['sub-e-root-n1', 'sub-e-n1-n12'], onPath: ['root', 'n1', 'n12'], current: 'n12', recorded: ['root', 'n1', 'n12'] },
+        { step: 6, title: 'Step 6: CHOOSE nums[2] = 3', text: 'start=2 lets the loop consider only index 2.', action: 'path.append(3); about to call backtrack(3)', path: '[1, 2, 3]', start: '2', depth: '3', out: '[[], [1], [1, 2]]', detail: 'This is the deepest possible path -- all three elements chosen in order.', lines: [5, 6, 7], shown: ['root', 'n1', 'n12', 'n123'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123'], onPath: ['root', 'n1', 'n12', 'n123'], current: 'n123', recorded: ['root', 'n1', 'n12'] },
+        { step: 7, title: 'Step 7: ENTER backtrack(start=3) -- leaf', text: 'start=3 equals len(nums), so the loop range(3, 3) is empty -- this call records and immediately falls through with no children.', action: 'out.append(path[:]) -> out = [[], [1], [1, 2], [1, 2, 3]]', path: '[1, 2, 3]', start: '3', depth: '3', out: '[[], [1], [1, 2], [1, 2, 3]]', detail: 'A leaf in this tree is not a special case in the code -- it is just a node whose loop happens to have nothing left to iterate over.', lines: [3, 4, 5], shown: ['root', 'n1', 'n12', 'n123'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123'], onPath: ['root', 'n1', 'n12', 'n123'], current: 'n123', recorded: ['root', 'n1', 'n12', 'n123'] },
+        { step: 8, title: 'Step 8: UN-CHOOSE pop 3', text: 'backtrack(3) returns (nothing left to loop over). Control returns to [1, 2]s loop and pops 3.', action: 'path.pop() -> path = [1, 2]', path: '[1, 2]', start: '2', depth: '2', out: '[[], [1], [1, 2], [1, 2, 3]]', detail: 'Node [1,2,3] stays green (recorded) permanently -- only the live path shrinks.', lines: [8], shown: ['root', 'n1', 'n12', 'n123'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123'], onPath: ['root', 'n1', 'n12'], current: 'n12', recorded: ['root', 'n1', 'n12', 'n123'] },
+        { step: 9, title: 'Step 9: UN-CHOOSE pop 2', text: '[1, 2]s loop (range(2, 3)) also has nothing left, so it returns. [1]s loop pops 2.', action: 'path.pop() -> path = [1]', path: '[1]', start: '1', depth: '1', out: '[[], [1], [1, 2], [1, 2, 3]]', detail: 'We are climbing back up two levels in a row because both of those loops were already exhausted.', lines: [8], shown: ['root', 'n1', 'n12', 'n123'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123'], onPath: ['root', 'n1'], current: 'n1', recorded: ['root', 'n1', 'n12', 'n123'] },
+        { step: 10, title: 'Step 10: CHOOSE nums[2] = 3', text: '[1]s loop (range(1, 3)) continues at i=2 -- the sibling branch that skips 2 and goes straight to 3.', action: 'path.append(3); about to call backtrack(3)', path: '[1, 3]', start: '1', depth: '2', out: '[[], [1], [1, 2], [1, 2, 3]]', detail: 'This is the second child of [1] -- the tree grows a new branch, sibling to [1,2].', lines: [5, 6, 7], shown: ['root', 'n1', 'n12', 'n123', 'n13'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13'], onPath: ['root', 'n1', 'n13'], current: 'n13', recorded: ['root', 'n1', 'n12', 'n123'] },
+        { step: 11, title: 'Step 11: ENTER backtrack(start=3) -- leaf', text: 'Node [1, 3] is recorded; its loop is empty.', action: 'out.append(path[:]) -> out = [..., [1, 3]]', path: '[1, 3]', start: '3', depth: '2', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3]]', detail: 'Five subsets recorded so far.', lines: [3, 4, 5], shown: ['root', 'n1', 'n12', 'n123', 'n13'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13'], onPath: ['root', 'n1', 'n13'], current: 'n13', recorded: ['root', 'n1', 'n12', 'n123', 'n13'] },
+        { step: 12, title: 'Step 12: UN-CHOOSE pop 3', text: '[1, 3]s empty loop returns; pop 3.', action: 'path.pop() -> path = [1]', path: '[1]', start: '1', depth: '1', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3]]', detail: '[1]s loop (range(1,3)) has now tried both i=1 and i=2 -- it is exhausted.', lines: [8], shown: ['root', 'n1', 'n12', 'n123', 'n13'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13'], onPath: ['root', 'n1'], current: 'n1', recorded: ['root', 'n1', 'n12', 'n123', 'n13'] },
+        { step: 13, title: 'Step 13: UN-CHOOSE pop 1', text: 'backtrack(1) returns to the root call. The root loop pops 1.', action: 'path.pop() -> path = []', path: '[]', start: '0', depth: '0', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3]]', detail: 'The entire subtree rooted at [1] -- 4 of the 8 subsets -- is now fully explored and closed.', lines: [8], shown: ['root', 'n1', 'n12', 'n123', 'n13'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13'], onPath: ['root'], current: 'root', recorded: ['root', 'n1', 'n12', 'n123', 'n13'] },
+        { step: 14, title: 'Step 14: CHOOSE nums[1] = 2', text: 'The root loop (range(0, 3)) continues at i=1 -- the second child of the root.', action: 'path.append(2); about to call backtrack(2)', path: '[2]', start: '0', depth: '1', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3]]', detail: 'A brand-new sibling subtree begins here, structurally identical in shape to the one just closed.', lines: [5, 6, 7], shown: ['root', 'n1', 'n12', 'n123', 'n13', 'n2'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13', 'sub-e-root-n2'], onPath: ['root', 'n2'], current: 'n2', recorded: ['root', 'n1', 'n12', 'n123', 'n13'] },
+        { step: 15, title: 'Step 15: ENTER backtrack(start=2)', text: 'Node [2] is recorded.', action: 'out.append(path[:]) -> out = [..., [2]]', path: '[2]', start: '2', depth: '1', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3], [2]]', detail: 'Six subsets recorded.', lines: [3, 4], shown: ['root', 'n1', 'n12', 'n123', 'n13', 'n2'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13', 'sub-e-root-n2'], onPath: ['root', 'n2'], current: 'n2', recorded: ['root', 'n1', 'n12', 'n123', 'n13', 'n2'] },
+        { step: 16, title: 'Step 16: CHOOSE nums[2] = 3', text: '[2]s loop (range(2, 3)) chooses index 2.', action: 'path.append(3); about to call backtrack(3)', path: '[2, 3]', start: '2', depth: '2', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3], [2]]', detail: '[2] only ever gets one child, [2,3], because start=2 leaves just one index in range.', lines: [5, 6, 7], shown: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13', 'sub-e-root-n2', 'sub-e-n2-n23'], onPath: ['root', 'n2', 'n23'], current: 'n23', recorded: ['root', 'n1', 'n12', 'n123', 'n13', 'n2'] },
+        { step: 17, title: 'Step 17: ENTER backtrack(start=3) -- leaf', text: 'Node [2, 3] is recorded; its loop is empty.', action: 'out.append(path[:]) -> out = [..., [2, 3]]', path: '[2, 3]', start: '3', depth: '2', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]]', detail: 'Seven subsets recorded.', lines: [3, 4, 5], shown: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13', 'sub-e-root-n2', 'sub-e-n2-n23'], onPath: ['root', 'n2', 'n23'], current: 'n23', recorded: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23'] },
+        { step: 18, title: 'Step 18: UN-CHOOSE pop 3', text: '[2, 3]s empty loop returns; pop 3.', action: 'path.pop() -> path = [2]', path: '[2]', start: '2', depth: '1', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]]', detail: '[2]s loop is now exhausted too.', lines: [8], shown: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13', 'sub-e-root-n2', 'sub-e-n2-n23'], onPath: ['root', 'n2'], current: 'n2', recorded: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23'] },
+        { step: 19, title: 'Step 19: UN-CHOOSE pop 2', text: 'backtrack(2) returns; the root loop pops 2.', action: 'path.pop() -> path = []', path: '[]', start: '0', depth: '0', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]]', detail: 'The subtree rooted at [2] -- 2 more of the 8 subsets -- is closed.', lines: [8], shown: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13', 'sub-e-root-n2', 'sub-e-n2-n23'], onPath: ['root'], current: 'root', recorded: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23'] },
+        { step: 20, title: 'Step 20: CHOOSE nums[2] = 3', text: 'The root loop continues at i=2, its last iteration.', action: 'path.append(3); about to call backtrack(3)', path: '[3]', start: '0', depth: '1', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3]]', detail: 'The final child of the root -- [3] can have no children at all, since start=3 leaves an empty range.', lines: [5, 6, 7], shown: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23', 'n3'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13', 'sub-e-root-n2', 'sub-e-n2-n23', 'sub-e-root-n3'], onPath: ['root', 'n3'], current: 'n3', recorded: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23'] },
+        { step: 21, title: 'Step 21: ENTER backtrack(start=3) -- leaf', text: 'Node [3] is recorded -- the eighth and final subset.', action: 'out.append(path[:]) -> out = [..., [3]]', path: '[3]', start: '3', depth: '1', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]]', detail: 'All 8 subsets of [1, 2, 3] are now recorded -- the full recursion tree is drawn.', lines: [3, 4, 5], shown: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23', 'n3'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13', 'sub-e-root-n2', 'sub-e-n2-n23', 'sub-e-root-n3'], onPath: ['root', 'n3'], current: 'n3', recorded: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23', 'n3'] },
+        { step: 22, title: 'Step 22: UN-CHOOSE pop 3 -- done', text: '[3]s empty loop returns; pop 3. The root loop (range(0,3)) has now tried all three indices and returns. subsets([1,2,3]) returns out.', action: 'path.pop() -> path = []; backtrack(0) returns', path: '[]', start: '0', depth: '0', out: '[[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]]', detail: 'Final answer: 8 subsets, matching 2^3.', lines: [8, 9, 10], shown: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23', 'n3'], edges: ['sub-e-root-n1', 'sub-e-n1-n12', 'sub-e-n12-n123', 'sub-e-n1-n13', 'sub-e-root-n2', 'sub-e-n2-n23', 'sub-e-root-n3'], onPath: ['root'], current: 'root', recorded: ['root', 'n1', 'n12', 'n123', 'n13', 'n2', 'n23', 'n3'] }
+      ];
+
+      function renderSub(step, index, max) {
+        document.getElementById('sub-step-title').textContent = step.title;
+        document.getElementById('sub-step-text').textContent = step.text;
+        document.getElementById('sub-action').textContent = step.action;
+        document.getElementById('sub-path').textContent = step.path;
+        document.getElementById('sub-start').textContent = step.start;
+        document.getElementById('sub-depth').textContent = step.depth;
+        document.getElementById('sub-out').textContent = step.out;
+        document.getElementById('sub-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('sub-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('sub-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('sub-trace-table', step.step);
+        setCodeHighlight('sub-code', step.lines);
+
+        subNodeIds.forEach((id) => {
+          const g = document.getElementById(`sub-node-${id}`);
+          g.classList.toggle('shown', step.shown.includes(id));
+          g.classList.toggle('onpath', step.onPath.includes(id) && step.current !== id);
+          g.classList.toggle('current', step.current === id);
+          g.classList.toggle('recorded', step.recorded.includes(id) && !step.onPath.includes(id));
+        });
+        subEdgeIds.forEach((id) => {
+          document.getElementById(id).classList.toggle('shown', step.edges.includes(id));
+        });
+      }
+
+      setupTrace({ steps: subSteps, prefix: 'sub', render: renderSub });
+
+      /* ============================= METHOD 2: COMBINATION SUM ============================= */
+
+      const csNodeIds = ['r', 'a', 'f', 'h', 'i', 'b', 'e', 'g', 'c', 'd'];
+      const csEdgeIds = ['cs-e-r-a', 'cs-e-r-f', 'cs-e-r-h', 'cs-e-r-i', 'cs-e-a-b', 'cs-e-a-e', 'cs-e-f-g', 'cs-e-b-c', 'cs-e-b-d'];
+
+      const csSteps = [
+        { step: 0, title: 'Initial state', text: 'combination_sum([2, 3, 6, 7], 7) sorts the candidates (already sorted) and is about to call backtrack(0, 7).', action: 'Nothing has run yet', path: '[]', start: '—', remaining: '—', out: '[]', detail: 'The tree below is empty -- nodes and the prune badge appear only as their calls actually run.', lines: [1, 2, 3], shown: [], edges: [], onPath: [], current: null, recorded: [], closed: [], badge: null },
+        { step: 1, title: 'Step 1: ENTER backtrack(start=0, remaining=7)', text: 'Root call. remaining=7 is not 0, so no record -- the loop begins.', action: 'remaining != 0, enter loop over candidates [2,3,6,7]', path: '[]', start: '0', remaining: '7', out: '[]', detail: 'Sorted candidates make the break prune valid later in this trace.', lines: [4, 5, 7], shown: ['r'], edges: [], onPath: ['r'], current: 'r', recorded: [], closed: [], badge: null },
+        { step: 2, title: 'Step 2: CHOOSE candidates[0] = 2', text: '2 <= remaining, so CHOOSE it. Recursing with i (not i+1) is what allows reuse.', action: 'path.append(2); backtrack(0, 5) -- reuse allowed', path: '[2]', start: '0', remaining: '5', out: '[]', detail: 'The recursive call passes i=0 again, not i+1 -- 2 can be chosen again on the next level.', lines: [7, 8, 10, 11], shown: ['r', 'a'], edges: ['cs-e-r-a'], onPath: ['r', 'a'], current: 'a', recorded: [], closed: [], badge: null },
+        { step: 3, title: 'Step 3: ENTER backtrack(start=0, remaining=5)', text: 'remaining=5 != 0, loop begins.', action: 'remaining != 0, enter loop', path: '[2]', start: '0', remaining: '5', out: '[]', detail: 'Still inside the [2] branch.', lines: [4, 5, 7], shown: ['r', 'a'], edges: ['cs-e-r-a'], onPath: ['r', 'a'], current: 'a', recorded: [], closed: [], badge: null },
+        { step: 4, title: 'Step 4: CHOOSE candidates[0] = 2', text: 'Reuse 2 again.', action: 'path.append(2); backtrack(0, 3)', path: '[2, 2]', start: '0', remaining: '3', out: '[]', detail: 'Two 2s chosen so far, remaining dropped from 7 to 3.', lines: [7, 8, 10, 11], shown: ['r', 'a', 'b'], edges: ['cs-e-r-a', 'cs-e-a-b'], onPath: ['r', 'a', 'b'], current: 'b', recorded: [], closed: [], badge: null },
+        { step: 5, title: 'Step 5: ENTER backtrack(start=0, remaining=3)', text: 'remaining=3 != 0, loop begins.', action: 'remaining != 0, enter loop', path: '[2, 2]', start: '0', remaining: '3', out: '[]', detail: 'Node [2,2] is now on the live path.', lines: [4, 5, 7], shown: ['r', 'a', 'b'], edges: ['cs-e-r-a', 'cs-e-a-b'], onPath: ['r', 'a', 'b'], current: 'b', recorded: [], closed: [], badge: null },
+        { step: 6, title: 'Step 6: CHOOSE candidates[0] = 2', text: 'Reuse 2 a third time.', action: 'path.append(2); backtrack(0, 1)', path: '[2, 2, 2]', start: '0', remaining: '1', out: '[]', detail: 'remaining is now 1 -- too small for any remaining candidate.', lines: [7, 8, 10, 11], shown: ['r', 'a', 'b', 'c'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c'], onPath: ['r', 'a', 'b', 'c'], current: 'c', recorded: [], closed: [], badge: null },
+        { step: 7, title: 'Step 7: ENTER backtrack(start=0, remaining=1)', text: 'remaining=1 != 0, loop begins over candidates [2,3,6,7] starting at i=0.', action: 'remaining != 0, enter loop', path: '[2, 2, 2]', start: '0', remaining: '1', out: '[]', detail: 'The very first candidate, 2, is already bigger than what is left.', lines: [4, 5, 7], shown: ['r', 'a', 'b', 'c'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c'], onPath: ['r', 'a', 'b', 'c'], current: 'c', recorded: [], closed: [], badge: null },
+        { step: 8, title: 'Step 8: BREAK -- 2 > 1', text: 'candidates[0]=2 exceeds remaining=1. Since the list is sorted, 3, 6, and 7 are also too big -- break stops the loop instantly.', action: 'break -- 4 sibling(s) skipped: 2, 3, 6, 7', path: '[2, 2, 2]', start: '0', remaining: '1', out: '[]', detail: 'Node [2,2,2] gets zero children -- it is a dead end, not a recorded answer.', lines: [7, 8, 9], shown: ['r', 'a', 'b', 'c'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c'], onPath: ['r', 'a', 'b', 'c'], current: 'c', recorded: [], closed: [], badge: 'BREAK inside [2,2,2]: candidates[0]=2 > remaining=1|4 sibling(s) skipped: candidates 2, 3, 6, 7' },
+        { step: 9, title: 'Step 9: UN-CHOOSE pop 2', text: 'backtrack(0,1) returns with no children. [2,2]s loop pops the third 2.', action: 'path.pop() -> path = [2, 2]', path: '[2, 2]', start: '0', remaining: '3', out: '[]', detail: '[2,2,2] settles to a closed (gray) node -- explored, never recorded.', lines: [12], shown: ['r', 'a', 'b', 'c'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c'], onPath: ['r', 'a', 'b'], current: 'b', recorded: [], closed: ['c'], badge: null },
+        { step: 10, title: 'Step 10: CHOOSE candidates[1] = 3', text: '[2,2]s loop (start=0) continues at i=1.', action: 'path.append(3); backtrack(1, 0)', path: '[2, 2, 3]', start: '0', remaining: '0', out: '[]', detail: 'remaining hits exactly 0 -- this will be recorded on entry.', lines: [7, 8, 10, 11], shown: ['r', 'a', 'b', 'c', 'd'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d'], onPath: ['r', 'a', 'b', 'd'], current: 'd', recorded: [], closed: ['c'], badge: null },
+        { step: 11, title: 'Step 11: ENTER backtrack(start=1, remaining=0) -- RECORD', text: 'remaining == 0, so this path is a valid combination.', action: 'out.append(path[:]) -> out = [[2, 2, 3]]', path: '[2, 2, 3]', start: '1', remaining: '0', out: '[[2, 2, 3]]', detail: 'First answer found: 2 + 2 + 3 = 7.', lines: [4, 5, 6], shown: ['r', 'a', 'b', 'c', 'd'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d'], onPath: ['r', 'a', 'b', 'd'], current: 'd', recorded: ['d'], closed: ['c'], badge: null },
+        { step: 12, title: 'Step 12: UN-CHOOSE pop 3', text: 'backtrack(1,0) already returned (record then return). [2,2]s loop pops 3.', action: 'path.pop() -> path = [2, 2]', path: '[2, 2]', start: '0', remaining: '3', out: '[[2, 2, 3]]', detail: 'Node [2,2,3] stays green permanently.', lines: [12], shown: ['r', 'a', 'b', 'c', 'd'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d'], onPath: ['r', 'a', 'b'], current: 'b', recorded: ['d'], closed: ['c'], badge: null },
+        { step: 13, title: 'Step 13: BREAK -- 6 > 3', text: '[2,2]s loop continues at i=2. candidates[2]=6 exceeds remaining=3.', action: 'break -- 2 sibling(s) skipped: 6, 7', path: '[2, 2]', start: '0', remaining: '3', out: '[[2, 2, 3]]', detail: '[2,2] is now fully explored: one dead end (2,2,2), one answer (2,2,3), then break.', lines: [7, 8, 9], shown: ['r', 'a', 'b', 'c', 'd'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d'], onPath: ['r', 'a', 'b'], current: 'b', recorded: ['d'], closed: ['c'], badge: 'BREAK inside [2,2]: candidates[2]=6 > remaining=3|2 sibling(s) skipped: candidates 6, 7' },
+        { step: 14, title: 'Step 14: UN-CHOOSE pop 2', text: '[2]s loop pops the second 2.', action: 'path.pop() -> path = [2]', path: '[2]', start: '0', remaining: '5', out: '[[2, 2, 3]]', detail: '[2,2] settles to closed (gray) -- it produced one recorded child but was not itself an answer.', lines: [12], shown: ['r', 'a', 'b', 'c', 'd'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d'], onPath: ['r', 'a'], current: 'a', recorded: ['d'], closed: ['c', 'b'], badge: null },
+        { step: 15, title: 'Step 15: CHOOSE candidates[1] = 3', text: '[2]s loop (start=0) continues at i=1.', action: 'path.append(3); backtrack(1, 2)', path: '[2, 3]', start: '0', remaining: '2', out: '[[2, 2, 3]]', detail: 'Second child of [2].', lines: [7, 8, 10, 11], shown: ['r', 'a', 'b', 'c', 'd', 'e'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e'], onPath: ['r', 'a', 'e'], current: 'e', recorded: ['d'], closed: ['c', 'b'], badge: null },
+        { step: 16, title: 'Step 16: ENTER backtrack(start=1, remaining=2)', text: 'remaining=2 != 0, loop begins at i=1.', action: 'remaining != 0, enter loop', path: '[2, 3]', start: '1', remaining: '2', out: '[[2, 2, 3]]', detail: 'candidates[1]=3 is already too big for remaining=2.', lines: [4, 5, 7], shown: ['r', 'a', 'b', 'c', 'd', 'e'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e'], onPath: ['r', 'a', 'e'], current: 'e', recorded: ['d'], closed: ['c', 'b'], badge: null },
+        { step: 17, title: 'Step 17: BREAK -- 3 > 2', text: 'candidates[1]=3 exceeds remaining=2. 6 and 7 are also too big.', action: 'break -- 3 sibling(s) skipped: 3, 6, 7', path: '[2, 3]', start: '1', remaining: '2', out: '[[2, 2, 3]]', detail: '[2,3] gets zero children -- a dead end.', lines: [7, 8, 9], shown: ['r', 'a', 'b', 'c', 'd', 'e'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e'], onPath: ['r', 'a', 'e'], current: 'e', recorded: ['d'], closed: ['c', 'b'], badge: 'BREAK inside [2,3]: candidates[1]=3 > remaining=2|3 sibling(s) skipped: candidates 3, 6, 7' },
+        { step: 18, title: 'Step 18: UN-CHOOSE pop 3', text: '[2]s loop pops 3.', action: 'path.pop() -> path = [2]', path: '[2]', start: '0', remaining: '5', out: '[[2, 2, 3]]', detail: '[2,3] settles to closed.', lines: [12], shown: ['r', 'a', 'b', 'c', 'd', 'e'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e'], onPath: ['r', 'a'], current: 'a', recorded: ['d'], closed: ['c', 'b', 'e'], badge: null },
+        { step: 19, title: 'Step 19: BREAK -- 6 > 5', text: '[2]s loop continues at i=2. candidates[2]=6 exceeds remaining=5.', action: 'break -- 2 sibling(s) skipped: 6, 7', path: '[2]', start: '0', remaining: '5', out: '[[2, 2, 3]]', detail: '[2] is now fully explored: two children ([2,2] and [2,3]) then break.', lines: [7, 8, 9], shown: ['r', 'a', 'b', 'c', 'd', 'e'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e'], onPath: ['r', 'a'], current: 'a', recorded: ['d'], closed: ['c', 'b', 'e'], badge: 'BREAK inside [2]: candidates[2]=6 > remaining=5|2 sibling(s) skipped: candidates 6, 7' },
+        { step: 20, title: 'Step 20: UN-CHOOSE pop 2', text: 'Root loop pops 2.', action: 'path.pop() -> path = []', path: '[]', start: '0', remaining: '7', out: '[[2, 2, 3]]', detail: 'The entire [2] subtree is closed. One answer found so far.', lines: [12], shown: ['r', 'a', 'b', 'c', 'd', 'e'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e'], onPath: ['r'], current: 'r', recorded: ['d'], closed: ['c', 'b', 'e', 'a'], badge: null },
+        { step: 21, title: 'Step 21: CHOOSE candidates[1] = 3', text: 'Root loop (start=0) continues at i=1.', action: 'path.append(3); backtrack(1, 4)', path: '[3]', start: '0', remaining: '4', out: '[[2, 2, 3]]', detail: 'Second child of the root.', lines: [7, 8, 10, 11], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f'], onPath: ['r', 'f'], current: 'f', recorded: ['d'], closed: ['c', 'b', 'e', 'a'], badge: null },
+        { step: 22, title: 'Step 22: ENTER backtrack(start=1, remaining=4)', text: 'remaining=4 != 0, loop begins at i=1.', action: 'remaining != 0, enter loop', path: '[3]', start: '1', remaining: '4', out: '[[2, 2, 3]]', detail: 'Reuse is still available -- start=1, not start=2.', lines: [4, 5, 7], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f'], onPath: ['r', 'f'], current: 'f', recorded: ['d'], closed: ['c', 'b', 'e', 'a'], badge: null },
+        { step: 23, title: 'Step 23: CHOOSE candidates[1] = 3', text: 'Reuse 3.', action: 'path.append(3); backtrack(1, 1)', path: '[3, 3]', start: '1', remaining: '1', out: '[[2, 2, 3]]', detail: 'remaining=1, too small for 3, 6, or 7.', lines: [7, 8, 10, 11], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g'], onPath: ['r', 'f', 'g'], current: 'g', recorded: ['d'], closed: ['c', 'b', 'e', 'a'], badge: null },
+        { step: 24, title: 'Step 24: ENTER backtrack(start=1, remaining=1)', text: 'remaining=1 != 0, loop begins at i=1.', action: 'remaining != 0, enter loop', path: '[3, 3]', start: '1', remaining: '1', out: '[[2, 2, 3]]', detail: 'candidates[1]=3 already exceeds 1.', lines: [4, 5, 7], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g'], onPath: ['r', 'f', 'g'], current: 'g', recorded: ['d'], closed: ['c', 'b', 'e', 'a'], badge: null },
+        { step: 25, title: 'Step 25: BREAK -- 3 > 1', text: 'candidates[1]=3 exceeds remaining=1.', action: 'break -- 3 sibling(s) skipped: 3, 6, 7', path: '[3, 3]', start: '1', remaining: '1', out: '[[2, 2, 3]]', detail: '[3,3] is a dead end.', lines: [7, 8, 9], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g'], onPath: ['r', 'f', 'g'], current: 'g', recorded: ['d'], closed: ['c', 'b', 'e', 'a'], badge: 'BREAK inside [3,3]: candidates[1]=3 > remaining=1|3 sibling(s) skipped: candidates 3, 6, 7' },
+        { step: 26, title: 'Step 26: UN-CHOOSE pop 3', text: '[3]s loop pops the second 3.', action: 'path.pop() -> path = [3]', path: '[3]', start: '1', remaining: '4', out: '[[2, 2, 3]]', detail: '[3,3] settles to closed.', lines: [12], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g'], onPath: ['r', 'f'], current: 'f', recorded: ['d'], closed: ['c', 'b', 'e', 'a', 'g'], badge: null },
+        { step: 27, title: 'Step 27: BREAK -- 6 > 4', text: '[3]s loop continues at i=2. candidates[2]=6 exceeds remaining=4.', action: 'break -- 2 sibling(s) skipped: 6, 7', path: '[3]', start: '1', remaining: '4', out: '[[2, 2, 3]]', detail: '[3] is fully explored: one child ([3,3]) then break.', lines: [7, 8, 9], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g'], onPath: ['r', 'f'], current: 'f', recorded: ['d'], closed: ['c', 'b', 'e', 'a', 'g'], badge: 'BREAK inside [3]: candidates[2]=6 > remaining=4|2 sibling(s) skipped: candidates 6, 7' },
+        { step: 28, title: 'Step 28: UN-CHOOSE pop 3', text: 'Root loop pops 3.', action: 'path.pop() -> path = []', path: '[]', start: '0', remaining: '7', out: '[[2, 2, 3]]', detail: 'The [3] subtree is closed. Still one answer found.', lines: [12], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g'], onPath: ['r'], current: 'r', recorded: ['d'], closed: ['c', 'b', 'e', 'a', 'g', 'f'], badge: null },
+        { step: 29, title: 'Step 29: CHOOSE candidates[2] = 6', text: 'Root loop continues at i=2.', action: 'path.append(6); backtrack(2, 1)', path: '[6]', start: '0', remaining: '1', out: '[[2, 2, 3]]', detail: 'Third child of the root.', lines: [7, 8, 10, 11], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g', 'cs-e-r-h'], onPath: ['r', 'h'], current: 'h', recorded: ['d'], closed: ['c', 'b', 'e', 'a', 'g', 'f'], badge: null },
+        { step: 30, title: 'Step 30: ENTER backtrack(start=2, remaining=1)', text: 'remaining=1 != 0, loop begins at i=2.', action: 'remaining != 0, enter loop', path: '[6]', start: '2', remaining: '1', out: '[[2, 2, 3]]', detail: 'start=2 skips reconsidering 2 and 3 -- neither could be reused here anyway since remaining is too small.', lines: [4, 5, 7], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g', 'cs-e-r-h'], onPath: ['r', 'h'], current: 'h', recorded: ['d'], closed: ['c', 'b', 'e', 'a', 'g', 'f'], badge: null },
+        { step: 31, title: 'Step 31: BREAK -- 6 > 1', text: 'candidates[2]=6 exceeds remaining=1.', action: 'break -- 2 sibling(s) skipped: 6, 7', path: '[6]', start: '2', remaining: '1', out: '[[2, 2, 3]]', detail: '[6] is a dead end with zero children.', lines: [7, 8, 9], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g', 'cs-e-r-h'], onPath: ['r', 'h'], current: 'h', recorded: ['d'], closed: ['c', 'b', 'e', 'a', 'g', 'f'], badge: 'BREAK inside [6]: candidates[2]=6 > remaining=1|2 sibling(s) skipped: candidates 6, 7' },
+        { step: 32, title: 'Step 32: UN-CHOOSE pop 6', text: 'Root loop pops 6.', action: 'path.pop() -> path = []', path: '[]', start: '0', remaining: '7', out: '[[2, 2, 3]]', detail: '[6] settles to closed.', lines: [12], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g', 'cs-e-r-h'], onPath: ['r'], current: 'r', recorded: ['d'], closed: ['c', 'b', 'e', 'a', 'g', 'f', 'h'], badge: null },
+        { step: 33, title: 'Step 33: CHOOSE candidates[3] = 7', text: 'Root loop continues at i=3, its last iteration.', action: 'path.append(7); backtrack(3, 0)', path: '[7]', start: '0', remaining: '0', out: '[[2, 2, 3]]', detail: 'remaining hits exactly 0 -- another answer about to be recorded.', lines: [7, 8, 10, 11], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g', 'cs-e-r-h', 'cs-e-r-i'], onPath: ['r', 'i'], current: 'i', recorded: ['d'], closed: ['c', 'b', 'e', 'a', 'g', 'f', 'h'], badge: null },
+        { step: 34, title: 'Step 34: ENTER backtrack(start=3, remaining=0) -- RECORD', text: 'remaining == 0.', action: 'out.append(path[:]) -> out = [[2, 2, 3], [7]]', path: '[7]', start: '3', remaining: '0', out: '[[2, 2, 3], [7]]', detail: 'Second and final answer: 7 alone.', lines: [4, 5, 6], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g', 'cs-e-r-h', 'cs-e-r-i'], onPath: ['r', 'i'], current: 'i', recorded: ['d', 'i'], closed: ['c', 'b', 'e', 'a', 'g', 'f', 'h'], badge: null },
+        { step: 35, title: 'Step 35: UN-CHOOSE pop 7 -- done', text: 'backtrack(3,0) returns. Root loop pops 7; range(0,4) is exhausted. combination_sum returns out.', action: 'path.pop() -> path = []; backtrack(0,7) returns', path: '[]', start: '0', remaining: '7', out: '[[2, 2, 3], [7]]', detail: 'Final answer: [[2, 2, 3], [7]] -- matches the notebooks assert exactly.', lines: [12, 13, 14], shown: ['r', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'], edges: ['cs-e-r-a', 'cs-e-a-b', 'cs-e-b-c', 'cs-e-b-d', 'cs-e-a-e', 'cs-e-r-f', 'cs-e-f-g', 'cs-e-r-h', 'cs-e-r-i'], onPath: ['r'], current: 'r', recorded: ['d', 'i'], closed: ['c', 'b', 'e', 'a', 'g', 'f', 'h'], badge: null }
+      ];
+
+      function renderCS(step, index, max) {
+        document.getElementById('cs-step-title').textContent = step.title;
+        document.getElementById('cs-step-text').textContent = step.text;
+        document.getElementById('cs-action').textContent = step.action;
+        document.getElementById('cs-path').textContent = step.path;
+        document.getElementById('cs-start').textContent = step.start;
+        document.getElementById('cs-remaining').textContent = step.remaining;
+        document.getElementById('cs-out').textContent = step.out;
+        document.getElementById('cs-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('cs-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('cs-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('cs-trace-table', step.step);
+        setCodeHighlight('cs-code', step.lines);
+
+        csNodeIds.forEach((id) => {
+          const g = document.getElementById(`cs-node-${id}`);
+          g.classList.toggle('shown', step.shown.includes(id));
+          g.classList.toggle('onpath', step.onPath.includes(id) && step.current !== id);
+          g.classList.toggle('current', step.current === id);
+          g.classList.toggle('recorded', step.recorded.includes(id) && !step.onPath.includes(id));
+          g.classList.toggle('closed', step.closed.includes(id) && !step.onPath.includes(id));
+        });
+        csEdgeIds.forEach((id) => {
+          document.getElementById(id).classList.toggle('shown', step.edges.includes(id));
+        });
+
+        const badge = document.getElementById('cs-badge');
+        if (step.badge) {
+          const [line1, line2] = step.badge.split('|');
+          document.getElementById('cs-badge-line1').textContent = line1;
+          document.getElementById('cs-badge-line2').textContent = line2;
+          badge.classList.add('visible');
+        } else {
+          badge.classList.remove('visible');
+        }
+      }
+
+      setupTrace({ steps: csSteps, prefix: 'cs', render: renderCS });
+
+      /* ============================= METHOD 3: N-QUEENS ============================= */
+
+      const nqBoardN = 4;
+      const nqCellsGroup = document.getElementById('nq-cells');
+      const nqQueensGroup = document.getElementById('nq-queens');
+      const nqCellSize = 80;
+      const nqOffset = 20;
+
+      for (let r = 0; r < nqBoardN; r += 1) {
+        for (let c = 0; c < nqBoardN; c += 1) {
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', nqOffset + c * nqCellSize);
+          rect.setAttribute('y', nqOffset + r * nqCellSize);
+          rect.setAttribute('width', nqCellSize);
+          rect.setAttribute('height', nqCellSize);
+          rect.setAttribute('id', `nq-cell-${r}-${c}`);
+          rect.setAttribute('class', `nq-cell${(r + c) % 2 === 1 ? ' dark' : ''}`);
+          nqCellsGroup.appendChild(rect);
+        }
+      }
+
+      function nqMakeQueen(r, c) {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('id', `nq-queen-${r}-${c}`);
+        g.style.opacity = '0';
+        g.style.transition = 'opacity 0.2s ease';
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', nqOffset + c * nqCellSize + 10);
+        rect.setAttribute('y', nqOffset + r * nqCellSize + 10);
+        rect.setAttribute('width', nqCellSize - 20);
+        rect.setAttribute('height', nqCellSize - 20);
+        rect.setAttribute('rx', 10);
+        rect.setAttribute('class', 'nq-queen-rect');
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', nqOffset + c * nqCellSize + nqCellSize / 2);
+        text.setAttribute('y', nqOffset + r * nqCellSize + nqCellSize / 2 + 1);
+        text.setAttribute('class', 'nq-queen-text');
+        text.textContent = 'Q';
+        g.appendChild(rect);
+        g.appendChild(text);
+        nqQueensGroup.appendChild(g);
+        return g;
+      }
+
+      for (let r = 0; r < nqBoardN; r += 1) {
+        for (let c = 0; c < nqBoardN; c += 1) {
+          nqMakeQueen(r, c);
+        }
+      }
+
+      const nqSteps = [
+        { step: 0, title: 'Initial state', text: 'backtrack(0) is about to run. The board is empty and all three pruning sets are empty.', action: 'Start backtrack(r=0)', row: '0', cols: '{}', diag: '{}', anti: '{}', solutions: '0', detail: 'Row 0 has no queens placed anywhere yet, so every column is safe -- the loop will scan left to right.', lines: [1, 2, 3, 4], queens: [], solvedQueens: [], attacked: [], current: null, deadRow: null },
+        { step: 1, title: 'Step 1: CHOOSE (0, 0)', text: 'c=0: not in cols, (0-0)=0 not in diag, (0+0)=0 not in anti -- safe. CHOOSE.', action: 'cols.add(0); diag.add(0); anti.add(0); board[0][0]="Q"', row: '0', cols: '{0}', diag: '{0}', anti: '{0}', solutions: '0', detail: 'Placing a queen adds its column and both diagonal numbers to the three sets -- that is the entire safety check for every future row.', lines: [7, 8, 10], queens: ['0-0'], solvedQueens: [], attacked: [], current: '0-0', deadRow: null },
+        { step: 2, title: 'Step 2: row 1 scan -> CHOOSE (1, 2)', text: 'c=0 attacked (same column). c=1 attacked ((1-1)=0 matches diag from (0,0)). c=2 safe -- CHOOSE.', action: 'cols.add(2); diag.add(-1); anti.add(3); board[1][2]="Q"', row: '1', cols: '{0, 2}', diag: '{-1, 0}', anti: '{0, 3}', solutions: '0', detail: 'r-c=0 for both (0,0) and (1,1): they share the same value, which is exactly why r-c identifies a "\\" diagonal.', lines: [7, 8, 9, 10], queens: ['0-0', '1-2'], solvedQueens: [], attacked: ['1-0', '1-1'], current: '1-2', deadRow: null },
+        { step: 3, title: 'Step 3: row 2 -- DEAD END', text: 'c=0 attacked (col 0). c=1 attacked ((2+1)=3 matches anti). c=2 attacked (col 2 and diag). c=3 attacked ((2-3)=-1 matches diag). Every column is attacked.', action: 'Loop finishes with zero placements -> backtrack(2) returns', row: '2', cols: '{0, 2}', diag: '{-1, 0}', anti: '{0, 3}', solutions: '0', detail: 'This is the recursion backing up: backtrack(1) called backtrack(2), which found nothing safe and returned without ever calling backtrack(3).', lines: [7, 8, 9], queens: ['0-0', '1-2'], solvedQueens: [], attacked: ['2-0', '2-1', '2-2', '2-3'], current: null, deadRow: 2 },
+        { step: 4, title: 'Step 4: UN-CHOOSE (1, 2)', text: 'Control returns to row 1s loop. Undo the queen at (1,2).', action: 'cols.remove(2); diag.remove(-1); anti.remove(3); board[1][2]="."', row: '1', cols: '{0}', diag: '{0}', anti: '{0}', solutions: '0', detail: 'All four pieces of state shrink back to exactly what they were before (1,2) was chosen.', lines: [12], queens: ['0-0'], solvedQueens: [], attacked: [], current: null, deadRow: null },
+        { step: 5, title: 'Step 5: CHOOSE (1, 3)', text: 'Row 1s loop continues at c=3: (1-3)=-2 not in diag, (1+3)=4 not in anti -- safe.', action: 'cols.add(3); diag.add(-2); anti.add(4); board[1][3]="Q"', row: '1', cols: '{0, 3}', diag: '{-2, 0}', anti: '{0, 4}', solutions: '0', detail: 'Row 1 has one column left to try after c=2 failed -- this is that sibling branch.', lines: [7, 8, 10], queens: ['0-0', '1-3'], solvedQueens: [], attacked: [], current: '1-3', deadRow: null },
+        { step: 6, title: 'Step 6: row 2 scan -> CHOOSE (2, 1)', text: 'c=0 attacked (col 0). c=1 safe -- CHOOSE.', action: 'cols.add(1); diag.add(1); anti.add(3); board[2][1]="Q"', row: '2', cols: '{0, 1, 3}', diag: '{-2, 0, 1}', anti: '{0, 3, 4}', solutions: '0', detail: 'Two queens placed, third one just went in -- one row left to fill.', lines: [7, 8, 9, 10], queens: ['0-0', '1-3', '2-1'], solvedQueens: [], attacked: ['2-0'], current: '2-1', deadRow: null },
+        { step: 7, title: 'Step 7: row 3 -- DEAD END', text: 'c=0 attacked (col+anti). c=1 attacked (col+anti). c=2 attacked (diag). c=3 attacked (col+diag). Every column attacked.', action: 'Loop finishes with zero placements -> backtrack(3) returns', row: '3', cols: '{0, 1, 3}', diag: '{-2, 0, 1}', anti: '{0, 3, 4}', solutions: '0', detail: 'Second dead end of this trace -- three queens placed, and the fourth row has no safe square at all.', lines: [7, 8, 9], queens: ['0-0', '1-3', '2-1'], solvedQueens: [], attacked: ['3-0', '3-1', '3-2', '3-3'], current: null, deadRow: 3 },
+        { step: 8, title: 'Step 8: UN-CHOOSE (2, 1)', text: 'Control returns to row 2s loop. Undo the queen at (2,1).', action: 'cols.remove(1); diag.remove(1); anti.remove(3); board[2][1]="."', row: '2', cols: '{0, 3}', diag: '{-2, 0}', anti: '{0, 4}', solutions: '0', detail: 'Back to the state right after (1,3) was chosen.', lines: [12], queens: ['0-0', '1-3'], solvedQueens: [], attacked: [], current: null, deadRow: null },
+        { step: 9, title: 'Step 9: row 2 exhausted', text: 'Row 2s loop continues: c=2 attacked (diag+anti), c=3 attacked (col). No columns left to try.', action: 'Loop finishes (2 placements attempted, both failed) -> backtrack(2) returns', row: '2', cols: '{0, 3}', diag: '{-2, 0}', anti: '{0, 4}', solutions: '0', detail: 'Unlike step 3 and step 7, this row did place a queen earlier in its scan (at c=1) before that branch failed -- it is exhausted, not a fresh all-columns-attacked dead end.', lines: [7, 8, 9], queens: ['0-0', '1-3'], solvedQueens: [], attacked: ['2-2', '2-3'], current: null, deadRow: null },
+        { step: 10, title: 'Step 10: UN-CHOOSE (1, 3)', text: 'Control returns to row 1s loop. Undo the queen at (1,3).', action: 'cols.remove(3); diag.remove(-2); anti.remove(4); board[1][3]="."', row: '1', cols: '{0}', diag: '{0}', anti: '{0}', solutions: '0', detail: 'Row 1s loop (range(0,4)) has now tried c=2 and c=3 -- both failed eventually.', lines: [12], queens: ['0-0'], solvedQueens: [], attacked: [], current: null, deadRow: null },
+        { step: 11, title: 'Step 11: row 1 exhausted, UN-CHOOSE (0, 0)', text: 'backtrack(1) returns (c=0 and c=1 were pruned, c=2 and c=3 both dead-ended). Root loop pops the first queen.', action: 'cols.remove(0); diag.remove(0); anti.remove(0); board[0][0]="."', row: '0', cols: '{}', diag: '{}', anti: '{}', solutions: '0', detail: 'The entire subtree rooted at (0,0) is closed with zero solutions found in it.', lines: [12], queens: [], solvedQueens: [], attacked: [], current: null, deadRow: null },
+        { step: 12, title: 'Step 12: CHOOSE (0, 1)', text: 'Row 0s loop continues at c=1. No queens placed anywhere, so it is safe.', action: 'cols.add(1); diag.add(-1); anti.add(1); board[0][1]="Q"', row: '0', cols: '{1}', diag: '{-1}', anti: '{1}', solutions: '0', detail: 'A brand-new subtree begins, sibling to the one just closed.', lines: [7, 8, 10], queens: ['0-1'], solvedQueens: [], attacked: [], current: '0-1', deadRow: null },
+        { step: 13, title: 'Step 13: row 1 scan -> CHOOSE (1, 3)', text: 'c=0 attacked (anti). c=1 attacked (col). c=2 attacked (diag). c=3 safe -- CHOOSE.', action: 'cols.add(3); diag.add(-2); anti.add(4); board[1][3]="Q"', row: '1', cols: '{1, 3}', diag: '{-2, -1}', anti: '{1, 4}', solutions: '0', detail: 'Only the last column survives the scan this time.', lines: [7, 8, 9, 10], queens: ['0-1', '1-3'], solvedQueens: [], attacked: ['1-0', '1-1', '1-2'], current: '1-3', deadRow: null },
+        { step: 14, title: 'Step 14: row 2 -> CHOOSE (2, 0)', text: 'c=0: (2-0)=2 not in diag, (2+0)=2 not in anti -- safe immediately, no prune needed first.', action: 'cols.add(0); diag.add(2); anti.add(2); board[2][0]="Q"', row: '2', cols: '{0, 1, 3}', diag: '{-2, -1, 2}', anti: '{1, 2, 4}', solutions: '0', detail: 'Three queens placed with no dead end yet on this branch.', lines: [7, 8, 10], queens: ['0-1', '1-3', '2-0'], solvedQueens: [], attacked: [], current: '2-0', deadRow: null },
+        { step: 15, title: 'Step 15: row 3 scan -> CHOOSE (3, 2)', text: 'c=0 attacked (col). c=1 attacked (col+diag+anti). c=2 safe -- CHOOSE.', action: 'cols.add(2); diag.add(1); anti.add(5); board[3][2]="Q"', row: '3', cols: '{0, 1, 2, 3}', diag: '{-2, -1, 1, 2}', anti: '{1, 2, 4, 5}', solutions: '0', detail: 'All four rows now have a queen -- this satisfies the base case on the very next call.', lines: [7, 8, 9, 10], queens: ['0-1', '1-3', '2-0', '3-2'], solvedQueens: [], attacked: ['3-0', '3-1'], current: '3-2', deadRow: null },
+        { step: 16, title: 'Step 16: r == n -- SOLUTION FOUND', text: 'backtrack(4): r equals n, so the board is complete and valid. Record it.', action: 'out.append(board) -- [".Q..", "...Q", "Q...", "..Q."]', row: '4', cols: '{0, 1, 2, 3}', diag: '{-2, -1, 1, 2}', anti: '{1, 2, 4, 5}', solutions: '1', detail: 'The first of two solutions for n=4. The trace stops here; backtracking would continue un-choosing back down to row 0 and eventually find the second, mirrored solution.', lines: [5, 6], queens: ['0-1', '1-3', '2-0', '3-2'], solvedQueens: ['0-1', '1-3', '2-0', '3-2'], attacked: [], current: null, deadRow: null },
+        { step: 17, title: 'Step 17: search continues past this trace', text: 'Un-choosing back down through rows 3, 2, 1 and trying the remaining candidates eventually finds a second, mirrored board.', action: 'backtrack(0) finishes; solve_n_queens(4) returns 2 boards total', row: '—', cols: '{0, 1, 2, 3}', diag: '{-2, -1, 1, 2}', anti: '{1, 2, 4, 5}', solutions: '2', detail: 'Total solutions for n=4 is 2, matching the notebooks asserted sequence [1,0,0,2,10,4,40,92] for n=1..8.', lines: [13, 14], queens: ['0-1', '1-3', '2-0', '3-2'], solvedQueens: ['0-1', '1-3', '2-0', '3-2'], attacked: [], current: null, deadRow: null }
+      ];
+
+      function renderNQ(step, index, max) {
+        document.getElementById('nq-step-title').textContent = step.title;
+        document.getElementById('nq-step-text').textContent = step.text;
+        document.getElementById('nq-action').textContent = step.action;
+        document.getElementById('nq-row').textContent = step.row;
+        document.getElementById('nq-cols').textContent = step.cols;
+        document.getElementById('nq-diag').textContent = step.diag;
+        document.getElementById('nq-anti').textContent = step.anti;
+        document.getElementById('nq-solutions').textContent = step.solutions;
+        document.getElementById('nq-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('nq-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('nq-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('nq-trace-table', step.step);
+        setCodeHighlight('nq-code', step.lines);
+
+        for (let r = 0; r < nqBoardN; r += 1) {
+          for (let c = 0; c < nqBoardN; c += 1) {
+            const id = `${r}-${c}`;
+            const cell = document.getElementById(`nq-cell-${id}`);
+            cell.classList.toggle('attacked', step.attacked.includes(id));
+            cell.classList.toggle('current', step.current === id);
+
+            const queen = document.getElementById(`nq-queen-${id}`);
+            const placed = step.queens.includes(id);
+            queen.style.opacity = placed ? '1' : '0';
+            queen.querySelector('.nq-queen-rect').classList.toggle('solved', step.solvedQueens.includes(id));
+          }
+        }
+
+        for (let r = 0; r < nqBoardN; r += 1) {
+          for (let c = 0; c < nqBoardN; c += 1) {
+            const cell = document.getElementById(`nq-cell-${r}-${c}`);
+            cell.classList.toggle('current', step.deadRow === r || step.current === `${r}-${c}`);
+            if (step.deadRow === r) cell.classList.add('attacked');
+          }
+        }
+      }
+
+      setupTrace({ steps: nqSteps, prefix: 'nq', render: renderNQ });
+
+      /* ============================= EDGE CASE TABS ============================= */
+
+      const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-example-panel]'));
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.exampleTab;
+          tabs.forEach((btn) => btn.classList.toggle('active-tab', btn === tab));
+          panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.examplePanel === id));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

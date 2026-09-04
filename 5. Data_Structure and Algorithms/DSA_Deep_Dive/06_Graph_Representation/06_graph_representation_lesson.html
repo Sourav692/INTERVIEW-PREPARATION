@@ -511,6 +511,7 @@
             <span class="chip">Core idea: storage shape drives complexity</span>
             <span class="chip">Interactive adjacency-list trace</span>
             <span class="chip">Interactive adjacency-matrix trace</span>
+            <span class="chip">Interactive edge-list trace</span>
             <span class="chip">Code synced with steps</span>
           </div>
         </div>
@@ -629,7 +630,7 @@
 ]</code></div>
         </div>
         <div class="arrow-box">→</div>
-        <div class="two-col">
+        <div class="two-col" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
           <div class="mini-diagram">
             <h3>Adjacency list</h3>
             <div class="code-block"><code>0: [1, 3]
@@ -649,6 +650,12 @@
 4 [0 1 0 1 0 1]
 5 [0 0 1 0 1 0]</code></div>
           </div>
+          <div class="mini-diagram">
+            <h3>Edge list</h3>
+            <div class="code-block"><code>[(0,1), (0,3), (1,2),
+ (1,4), (2,5), (3,4),
+ (4,5)]</code></div>
+          </div>
         </div>
       </div>
       <div class="timeline">
@@ -662,7 +669,7 @@
         </div>
         <div class="timeline-step">
           <h4>Read the last edge <code>(4,5)</code></h4>
-          <p>After all 7 edges: the list holds exactly 14 entries. The matrix has 14 of its 36 cells set to 1 — the other 22 were allocated but never used.</p>
+          <p>After all 7 edges: the list holds exactly 14 entries. The matrix has 14 of its 36 cells set to 1 — the other 22 were allocated but never used. The edge list holds exactly 7 entries — one per edge, with nothing mirrored and nothing wasted, because it never tried to answer "who is adjacent to whom" in the first place.</p>
         </div>
       </div>
       <div class="callout">
@@ -1007,6 +1014,177 @@
     </section>
 
     <section class="panel">
+      <h2>Method 3: Edge list — <code>EdgeListGraph</code></h2>
+      <p>Store nothing but the raw pairs, in the order they arrived. Building costs <code>O(1)</code> per edge (an append) and the final structure is only <code>E</code> entries — cheaper than the list's <code>2E</code> and the matrix's <code>V²</code>. The cost of that simplicity: there is no per-vertex bucket and no direct address to look up, so <em>every</em> query — checking one edge or listing one vertex's neighbours — must scan the whole array.</p>
+      <div class="code-block stepped">
+        <code id="edgelist-code">
+<span class="code-line" data-line="1">class EdgeListGraph:</span>
+<span class="code-line" data-line="2">    def __init__(self, directed=False):</span>
+<span class="code-line" data-line="3">        self.directed = directed</span>
+<span class="code-line" data-line="4">        self.edges = []</span>
+<span class="code-line" data-line="5"></span>
+<span class="code-line" data-line="6">    def add_edge(self, u, v):</span>
+<span class="code-line" data-line="7">        self.edges.append((u, v))</span>
+<span class="code-line" data-line="8"></span>
+<span class="code-line" data-line="9">    def has_edge(self, u, v):</span>
+<span class="code-line" data-line="10">        for a, b in self.edges:</span>
+<span class="code-line" data-line="11">            if (a, b) == (u, v):</span>
+<span class="code-line" data-line="12">                return True</span>
+<span class="code-line" data-line="13">            if not self.directed and (b, a) == (u, v):</span>
+<span class="code-line" data-line="14">                return True</span>
+<span class="code-line" data-line="15">        return False</span>
+<span class="code-line" data-line="16"></span>
+<span class="code-line" data-line="17">    def neighbours(self, u):</span>
+<span class="code-line" data-line="18">        result = []</span>
+<span class="code-line" data-line="19">        for a, b in self.edges:</span>
+<span class="code-line" data-line="20">            if a == u:</span>
+<span class="code-line" data-line="21">                result.append(b)</span>
+<span class="code-line" data-line="22">            elif not self.directed and b == u:</span>
+<span class="code-line" data-line="23">                result.append(a)</span>
+<span class="code-line" data-line="24">        return result</span>
+<span class="code-line" data-line="25"></span>
+<span class="code-line" data-line="26">el = EdgeListGraph()</span>
+<span class="code-line" data-line="27">for u, v in edges:</span>
+<span class="code-line" data-line="28">    el.add_edge(u, v)</span>
+<span class="code-line" data-line="29"></span>
+<span class="code-line" data-line="30">el.has_edge(0, 2)</span>
+<span class="code-line" data-line="31">el.has_edge(2, 5)</span>
+<span class="code-line" data-line="32">el.neighbours(1)</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive edge-list trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="edgelist-rows" viewBox="0 0 340 300" width="100%" role="img" aria-label="Edge list scan trace, one row per edge, scanned top to bottom">
+              <defs>
+                <style>
+                  .el-row { fill: #c8d2e7; stroke: #ffffff; stroke-width: 2; transition: fill 0.2s ease; }
+                  .el-row.blue { fill: #315efb; }
+                  .el-row.green { fill: #13a46b; }
+                  .el-row.orange { fill: #ff9f1c; }
+                  .el-idx { font: 700 13px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .el-pair { font: 700 15px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .el-title { font: 700 14px Inter, Arial, sans-serif; fill: #5d677d; }
+                </style>
+              </defs>
+              <text x="20" y="18" class="el-title">edges[0..6] — scanned top to bottom</text>
+              <rect class="el-row" data-edge-idx="0" x="20" y="28" width="300" height="30" rx="8" />
+              <text class="el-idx" x="34" y="48">1</text>
+              <text class="el-pair" x="70" y="48">(A, B)</text>
+              <rect class="el-row" data-edge-idx="1" x="20" y="64" width="300" height="30" rx="8" />
+              <text class="el-idx" x="34" y="84">2</text>
+              <text class="el-pair" x="70" y="84">(A, D)</text>
+              <rect class="el-row" data-edge-idx="2" x="20" y="100" width="300" height="30" rx="8" />
+              <text class="el-idx" x="34" y="120">3</text>
+              <text class="el-pair" x="70" y="120">(B, C)</text>
+              <rect class="el-row" data-edge-idx="3" x="20" y="136" width="300" height="30" rx="8" />
+              <text class="el-idx" x="34" y="156">4</text>
+              <text class="el-pair" x="70" y="156">(B, E)</text>
+              <rect class="el-row" data-edge-idx="4" x="20" y="172" width="300" height="30" rx="8" />
+              <text class="el-idx" x="34" y="192">5</text>
+              <text class="el-pair" x="70" y="192">(C, F)</text>
+              <rect class="el-row" data-edge-idx="5" x="20" y="208" width="300" height="30" rx="8" />
+              <text class="el-idx" x="34" y="228">6</text>
+              <text class="el-pair" x="70" y="228">(D, E)</text>
+              <rect class="el-row" data-edge-idx="6" x="20" y="244" width="300" height="30" rx="8" />
+              <text class="el-idx" x="34" y="264">7</text>
+              <text class="el-pair" x="70" y="264">(E, F)</text>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-blue"></i> already scanned</span>
+            <span><i class="dot dot-green"></i> just added (build) / a match (query)</span>
+            <span><i class="dot dot-orange"></i> edge being examined</span>
+            <span><i class="dot dot-gray"></i> not yet added / not yet reached</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="edgelist-step-title">Initial state</h3>
+          <p id="edgelist-step-text">The edge list starts empty. Unlike the list or matrix, there is no per-vertex structure at all — just one flat array waiting for pairs.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="edgelist-prev">Previous</button>
+            <button type="button" id="edgelist-play" class="primary">Resume</button>
+            <button type="button" id="edgelist-next">Next</button>
+            <button type="button" id="edgelist-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="edgelist-step-counter">Step 0 / 29</span>
+            <div class="progress"><span id="edgelist-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Edge list</strong><div class="state-value" id="edgelist-edges">[]</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="edgelist-action">Create edges = []</div></div>
+            <div class="state-box"><strong>Query</strong><div class="state-value" id="edgelist-query">—</div></div>
+            <div class="state-box"><strong>Scan detail</strong><div class="state-value" id="edgelist-scan">—</div></div>
+            <div class="state-box"><strong>Result</strong><div class="state-value" id="edgelist-result">—</div></div>
+            <div class="state-box"><strong>Cost so far</strong><div class="state-value" id="edgelist-complexity">0 entries written</div></div>
+          </div>
+          <div class="explainer">
+            <p id="edgelist-detail"><strong>What changed:</strong> the edge list starts empty — no vertex information at all, just an array waiting for pairs.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="edgelist-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Phase</th><th>Action</th><th>Edge list after</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Init</td><td>edges = []</td><td><code>[]</code></td><td>—</td></tr>
+            <tr data-step="1"><td>1</td><td>Build</td><td>add_edge(0,1)</td><td><code>[(0,1)]</code></td><td>—</td></tr>
+            <tr data-step="2"><td>2</td><td>Build</td><td>add_edge(0,3)</td><td><code>[(0,1),(0,3)]</code></td><td>—</td></tr>
+            <tr data-step="3"><td>3</td><td>Build</td><td>add_edge(1,2)</td><td><code>[(0,1),(0,3),(1,2)]</code></td><td>—</td></tr>
+            <tr data-step="4"><td>4</td><td>Build</td><td>add_edge(1,4)</td><td><code>[(0,1),(0,3),(1,2),(1,4)]</code></td><td>—</td></tr>
+            <tr data-step="5"><td>5</td><td>Build</td><td>add_edge(2,5)</td><td><code>[(0,1),(0,3),(1,2),(1,4),(2,5)]</code></td><td>—</td></tr>
+            <tr data-step="6"><td>6</td><td>Build</td><td>add_edge(3,4)</td><td><code>[(0,1),(0,3),(1,2),(1,4),(2,5),(3,4)]</code></td><td>—</td></tr>
+            <tr data-step="7"><td>7</td><td>Build</td><td>add_edge(4,5)</td><td><code>[(0,1),(0,3),(1,2),(1,4),(2,5),(3,4),(4,5)]</code></td><td>7 entries total</td></tr>
+            <tr data-step="8"><td>8</td><td>Query</td><td>has_edge(0,2) called, about to scan edges[0..6]</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="9"><td>9</td><td>Query</td><td>compare edges[0]=(0,1) vs (0,2) → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="10"><td>10</td><td>Query</td><td>compare edges[1]=(0,3) vs (0,2) → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="11"><td>11</td><td>Query</td><td>compare edges[2]=(1,2) vs (0,2) → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="12"><td>12</td><td>Query</td><td>compare edges[3]=(1,4) vs (0,2) → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="13"><td>13</td><td>Query</td><td>compare edges[4]=(2,5) vs (0,2) → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="14"><td>14</td><td>Query</td><td>compare edges[5]=(3,4) vs (0,2) → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="15"><td>15</td><td>Query</td><td>compare edges[6]=(4,5) vs (0,2) → no, exhausted</td><td><code>(unchanged)</code></td><td>False</td></tr>
+            <tr data-step="16"><td>16</td><td>Query</td><td>has_edge(2,5) called, about to scan edges[0..6]</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="17"><td>17</td><td>Query</td><td>compare edges[0]=(0,1) vs (2,5) → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="18"><td>18</td><td>Query</td><td>compare edges[1]=(0,3) vs (2,5) → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="19"><td>19</td><td>Query</td><td>compare edges[2]=(1,2) vs (2,5) → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="20"><td>20</td><td>Query</td><td>compare edges[3]=(1,4) vs (2,5) → no</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="21"><td>21</td><td>Query</td><td>compare edges[4]=(2,5) vs (2,5) → match</td><td><code>(unchanged)</code></td><td>True</td></tr>
+            <tr data-step="22"><td>22</td><td>Query</td><td>neighbours(1) called, about to scan edges[0..6]</td><td><code>(unchanged)</code></td><td>pending</td></tr>
+            <tr data-step="23"><td>23</td><td>Query</td><td>check edges[0]=(0,1): touches 1 → include 0 (A)</td><td><code>(unchanged)</code></td><td>found [0]</td></tr>
+            <tr data-step="24"><td>24</td><td>Query</td><td>check edges[1]=(0,3): does not touch 1 → skip</td><td><code>(unchanged)</code></td><td>found [0]</td></tr>
+            <tr data-step="25"><td>25</td><td>Query</td><td>check edges[2]=(1,2): touches 1 → include 2 (C)</td><td><code>(unchanged)</code></td><td>found [0,2]</td></tr>
+            <tr data-step="26"><td>26</td><td>Query</td><td>check edges[3]=(1,4): touches 1 → include 4 (E)</td><td><code>(unchanged)</code></td><td>found [0,2,4]</td></tr>
+            <tr data-step="27"><td>27</td><td>Query</td><td>check edges[4]=(2,5): does not touch 1 → skip</td><td><code>(unchanged)</code></td><td>found [0,2,4]</td></tr>
+            <tr data-step="28"><td>28</td><td>Query</td><td>check edges[5]=(3,4): does not touch 1 → skip</td><td><code>(unchanged)</code></td><td>found [0,2,4]</td></tr>
+            <tr data-step="29"><td>29</td><td>Query</td><td>check edges[6]=(4,5): does not touch 1 → skip — done</td><td><code>(unchanged)</code></td><td>[0,2,4]</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>The edge list stores exactly <code>E</code> entries — 7 here, cheaper than the list's 14 and the matrix's 36. It remembers every edge but nothing about how they connect at any one vertex, so that connectivity must be re-derived by scanning on every single query.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common edge-list mistake</h4>
+          <p>Assuming a fast answer (like <code>has_edge(2,5)</code> finding its match after 5 of 7 comparisons) is typical. It's luck of ordering — <code>has_edge(0,2)</code> above proved the true worst case is a full <code>O(E)</code> scan, tied to the whole graph, not to any one vertex's degree.</p>
+        </div>
+        <div class="card">
+          <h4>Why the edge list exists at all</h4>
+          <p>Kruskal's MST algorithm's first move is "sort every edge by weight, then walk them in increasing order" — the edge list already <em>is</em> that shape. An adjacency list would first have to be flattened back into <code>(u, v, weight)</code> tuples before it could even be sorted; the edge list skips that conversion entirely.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Edge cases you should test</h2>
       <div class="tabs" role="tablist" aria-label="Edge case examples">
         <button type="button" class="active-tab" data-example-tab="0">Dense graph</button>
@@ -1047,20 +1225,18 @@
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Operation</th><th>Adjacency Matrix</th><th>Adjacency List</th></tr>
+            <tr><th>Operation</th><th>Adjacency Matrix</th><th>Adjacency List</th><th>Edge List</th></tr>
           </thead>
           <tbody>
-            <tr><td>Space</td><td><code>O(V²)</code> always</td><td><code>O(V + E)</code></td></tr>
-            <tr><td>Add an edge</td><td><code>O(1)</code></td><td><code>O(1)</code></td></tr>
-            <tr><td>Remove an edge</td><td><code>O(1)</code></td><td><code>O(degree)</code> — must find it first</td></tr>
-            <tr><td>Check edge <code>u–v</code>?</td><td><strong><code>O(1)</code></strong></td><td><code>O(degree(u))</code></td></tr>
-            <tr><td>List <code>u</code>'s neighbours</td><td><code>O(V)</code> — scan the row</td><td><strong><code>O(degree(u))</code></strong></td></tr>
-            <tr><td>Iterate ALL edges</td><td><code>O(V²)</code></td><td><strong><code>O(V + E)</code></strong></td></tr>
-            <tr><td>Best when…</td><td>dense (<code>E ≈ V²</code>) or many edge-existence checks</td><td>sparse (<code>E ≈ V</code>) — most real graphs</td></tr>
+            <tr><td>Space</td><td><code>O(V²)</code> always — 36 cells here</td><td><code>O(V + E)</code> — 14 entries here</td><td><strong><code>O(E)</code></strong> — 7 entries here, the cheapest of the three</td></tr>
+            <tr><td>Build cost (add one edge)</td><td><code>O(1)</code> — one mirrored write</td><td><code>O(1)</code> — one mirrored append</td><td><strong><code>O(1)</code></strong> — one append, no mirror needed</td></tr>
+            <tr><td>Check edge <code>u–v</code>? (<code>has_edge</code>)</td><td><strong><code>O(1)</code></strong> — measured: 1 lookup for both queries</td><td><code>O(degree(u))</code> — measured: 2 comparisons for both queries</td><td><code>O(E)</code> worst case — measured: 7 comparisons (miss) and 5 comparisons (early-exit hit)</td></tr>
+            <tr><td>Iterate <code>u</code>'s neighbours</td><td><code>O(V)</code> — measured: 6 columns checked</td><td><strong><code>O(degree(u))</code></strong> — measured: 3 steps</td><td><code>O(E)</code> — measured: 7 comparisons, no shortcut possible</td></tr>
+            <tr><td>Best when…</td><td>dense (<code>E ≈ V²</code>) or many edge-existence checks</td><td>sparse (<code>E ≈ V</code>) — most real graphs, most traversals</td><td><strong>edge-centric algorithms</strong> — Kruskal's MST, Union-Find — anything that processes edges as a batch instead of asking about one vertex at a time</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="footer-note">A third option, the edge list — just <code>[(u,v), ...]</code> — is not built for either query. It exists to feed edge-centric algorithms like Kruskal's MST or Union-Find, and is usually converted to a list or matrix before traversal.</p>
+      <p class="footer-note">The edge list — just <code>[(u,v), ...]</code> — is the worst of the three at both <code>has_edge</code> and neighbour iteration, because it has no per-vertex structure to look inside. But it is the best possible shape for an algorithm like Kruskal's MST, whose very first step is "sort every edge by weight and walk them in order" — the edge list already <em>is</em> that sorted-then-walked shape, while an adjacency list would first need to be flattened back into individual edges before it could be sorted at all.</p>
     </section>
 
     <section class="panel">
@@ -1142,7 +1318,7 @@
           whose density you already know.
         </p>
       </div>
-      <p class="footer-note">Based on the Graph Representation notebook (<code>06_graph_representation.ipynb</code>) and its companion README — every number and state above was produced by running the notebook's own <code>ListGraph</code> and <code>MatrixGraph</code> classes on the canonical 6-vertex, 7-edge graph.</p>
+      <p class="footer-note">Based on the Graph Representation notebook (<code>06_graph_representation.ipynb</code>) and its companion README — every number and state above was produced by running the notebook's own <code>ListGraph</code> and <code>MatrixGraph</code> classes, plus an <code>EdgeListGraph</code> class built to match the notebook's own edge-list section, on the canonical 6-vertex, 7-edge graph.</p>
     </section>
   </main>
 
@@ -1297,6 +1473,129 @@
           blue: ALL_MATRIX_CELLS, green: [], orange: [[1,5]], lines: [15,16,24] }
       ];
 
+      const edgeListSteps = [
+        { step: 0, title: 'Initial state', text: 'The edge list starts empty. Unlike the list or matrix, there is no per-vertex structure at all — just one flat array waiting for pairs.',
+          edges: '[]', action: 'Create edges = []', query: '—', scan: '—', result: '—', complexity: '0 entries written',
+          detail: 'The edge list starts empty — no vertex information at all, just an array waiting for pairs.',
+          blueRows: [], greenRows: [], orangeRows: [], lines: [1,2,3,4,26] },
+        { step: 1, title: 'Step 1: add_edge(0,1)', text: 'Append the pair once. There is no second write for the reverse direction — has_edge and neighbours will check both directions later, at query time.',
+          edges: '[(0,1)]', action: 'edges.append((0,1))', query: '—', scan: '—', result: '—', complexity: '1 entry written for 1 edge',
+          detail: 'One append, one entry — no mirrored write like the list or matrix need for an undirected edge.',
+          blueRows: [], greenRows: [0], orangeRows: [], lines: [6,7,27,28] },
+        { step: 2, title: 'Step 2: add_edge(0,3)', text: 'Same single append.',
+          edges: '[(0,1),(0,3)]', action: 'edges.append((0,3))', query: '—', scan: '—', result: '—', complexity: '2 entries written so far',
+          detail: 'The array simply grows by one — nothing else in the structure changes shape.',
+          blueRows: [0], greenRows: [1], orangeRows: [], lines: [6,7,27,28] },
+        { step: 3, title: 'Step 3: add_edge(1,2)', text: 'Same single append.',
+          edges: '[(0,1),(0,3),(1,2)]', action: 'edges.append((1,2))', query: '—', scan: '—', result: '—', complexity: '3 entries written so far',
+          detail: 'Still just one append per edge, regardless of which vertices it touches.',
+          blueRows: [0,1], greenRows: [2], orangeRows: [], lines: [6,7,27,28] },
+        { step: 4, title: 'Step 4: add_edge(1,4)', text: 'Same single append — this is the chord edge.',
+          edges: '[(0,1),(0,3),(1,2),(1,4)]', action: 'edges.append((1,4))', query: '—', scan: '—', result: '—', complexity: '4 entries written so far',
+          detail: 'No concept of "degree" is tracked here — the edge list does not know vertex 1 is becoming a hub.',
+          blueRows: [0,1,2], greenRows: [3], orangeRows: [], lines: [6,7,27,28] },
+        { step: 5, title: 'Step 5: add_edge(2,5)', text: 'Same single append.',
+          edges: '[(0,1),(0,3),(1,2),(1,4),(2,5)]', action: 'edges.append((2,5))', query: '—', scan: '—', result: '—', complexity: '5 entries written so far',
+          detail: 'Five edges in, five entries — the count never diverges from E.',
+          blueRows: [0,1,2,3], greenRows: [4], orangeRows: [], lines: [6,7,27,28] },
+        { step: 6, title: 'Step 6: add_edge(3,4)', text: 'Same single append — closing the hexagon cycle.',
+          edges: '[(0,1),(0,3),(1,2),(1,4),(2,5),(3,4)]', action: 'edges.append((3,4))', query: '—', scan: '—', result: '—', complexity: '6 entries written so far',
+          detail: 'One more append, one step closer to the full graph.',
+          blueRows: [0,1,2,3,4], greenRows: [5], orangeRows: [], lines: [6,7,27,28] },
+        { step: 7, title: 'Step 7: add_edge(4,5)', text: 'Final append. Build phase complete.',
+          edges: '[(0,1),(0,3),(1,2),(1,4),(2,5),(3,4),(4,5)]', action: 'edges.append((4,5))', query: '—', scan: '—', result: '—', complexity: 'Build done: 7 entries = O(E), never 2E and never V²',
+          detail: "All 7 edges processed. Compare this to the list's 14 entries and the matrix's 36 cells — the edge list is the cheapest of the three to build and store.",
+          blueRows: [0,1,2,3,4,5], greenRows: [6], orangeRows: [], lines: [6,7,27,28] },
+        { step: 8, title: 'Query: has_edge(0, 2) — is A adjacent to C?', text: 'We must scan the whole edge list from the start — there is no per-vertex shortcut here.',
+          edges: '(unchanged)', action: 'return has_edge(0,2)', query: 'u=0 (A), v=2 (C)', scan: 'about to scan edges[0..6], up to 7 possible', result: 'pending', complexity: 'O(1) so far — just entered the function',
+          detail: "Unlike the matrix's single lookup, there is no address to jump to — every edge must be checked in order until a match or the list runs out.",
+          blueRows: [], greenRows: [], orangeRows: [], lines: [9,10,11,13,15,30] },
+        { step: 9, title: 'Step 9: scanning edges[0]', text: 'Compare the first entry: (A,B) vs the target (A,C). No match, keep scanning.',
+          edges: '(unchanged)', action: 'compare edges[0]=(0,1) vs (0,2)', query: 'u=0, v=2', scan: 'edges[0]=(A,B) vs (A,C) → no match', result: 'pending', complexity: '1 of 7 entries checked',
+          detail: "First edge doesn't match — keep scanning.",
+          blueRows: [], greenRows: [], orangeRows: [0], lines: [9,10,11,13,15,30] },
+        { step: 10, title: 'Step 10: scanning edges[1]', text: 'Compare the second entry: (A,D) vs the target (A,C). No match.',
+          edges: '(unchanged)', action: 'compare edges[1]=(0,3) vs (0,2)', query: 'u=0, v=2', scan: 'edges[1]=(A,D) vs (A,C) → no match', result: 'pending', complexity: '2 of 7 entries checked',
+          detail: 'The scan just keeps walking forward, one entry at a time.',
+          blueRows: [0], greenRows: [], orangeRows: [1], lines: [9,10,11,13,15,30] },
+        { step: 11, title: 'Step 11: scanning edges[2]', text: 'Compare the third entry: (B,C) vs the target (A,C). No match.',
+          edges: '(unchanged)', action: 'compare edges[2]=(1,2) vs (0,2)', query: 'u=0, v=2', scan: 'edges[2]=(B,C) vs (A,C) → no match', result: 'pending', complexity: '3 of 7 entries checked',
+          detail: "Note this edge does touch C — but not through vertex A, so it still isn't the pair we're looking for.",
+          blueRows: [0,1], greenRows: [], orangeRows: [2], lines: [9,10,11,13,15,30] },
+        { step: 12, title: 'Step 12: scanning edges[3]', text: 'Compare the fourth entry: (B,E) vs the target (A,C). No match.',
+          edges: '(unchanged)', action: 'compare edges[3]=(1,4) vs (0,2)', query: 'u=0, v=2', scan: 'edges[3]=(B,E) vs (A,C) → no match', result: 'pending', complexity: '4 of 7 entries checked',
+          detail: 'Halfway through the edge list, still nothing.',
+          blueRows: [0,1,2], greenRows: [], orangeRows: [3], lines: [9,10,11,13,15,30] },
+        { step: 13, title: 'Step 13: scanning edges[4]', text: 'Compare the fifth entry: (C,F) vs the target (A,C). No match.',
+          edges: '(unchanged)', action: 'compare edges[4]=(2,5) vs (0,2)', query: 'u=0, v=2', scan: 'edges[4]=(C,F) vs (A,C) → no match', result: 'pending', complexity: '5 of 7 entries checked',
+          detail: 'Even this edge, which does touch C, is the wrong pair — order matters, and (C,F) is not (A,C).',
+          blueRows: [0,1,2,3], greenRows: [], orangeRows: [4], lines: [9,10,11,13,15,30] },
+        { step: 14, title: 'Step 14: scanning edges[5]', text: 'Compare the sixth entry: (D,E) vs the target (A,C). No match.',
+          edges: '(unchanged)', action: 'compare edges[5]=(3,4) vs (0,2)', query: 'u=0, v=2', scan: 'edges[5]=(D,E) vs (A,C) → no match', result: 'pending', complexity: '6 of 7 entries checked',
+          detail: 'One entry left, and still no match — this is heading toward the worst case.',
+          blueRows: [0,1,2,3,4], greenRows: [], orangeRows: [5], lines: [9,10,11,13,15,30] },
+        { step: 15, title: 'Step 15: scanning edges[6] — exhausted', text: 'Compare the last entry: (E,F) vs the target (A,C). Still no match, and the list is exhausted, so the answer is False.',
+          edges: '(unchanged)', action: 'compare edges[6]=(4,5) vs (0,2)', query: 'u=0, v=2', scan: 'edges[6]=(E,F) vs (A,C) → no match, list exhausted', result: 'False — not adjacent', complexity: 'scanned all E=7 entries → O(E), the worst case for this query',
+          detail: "has_edge(0,2) cost 7 comparisons here — every single edge, because the target pair never appeared. Compare that to the list's 2 and the matrix's 1.",
+          blueRows: [0,1,2,3,4,5], greenRows: [], orangeRows: [6], lines: [9,10,11,13,15,30] },
+        { step: 16, title: 'Query: has_edge(2, 5) — is C adjacent to F?', text: 'Scan from the start again — a fresh call means a fresh scan, with no memory of the previous query.',
+          edges: '(unchanged)', action: 'return has_edge(2,5)', query: 'u=2 (C), v=5 (F)', scan: 'about to scan edges[0..6], up to 7 possible', result: 'pending', complexity: 'O(1) so far — just entered the function',
+          detail: "Same cost model applies whether the eventual answer is True or False — the scan doesn't know the answer in advance.",
+          blueRows: [], greenRows: [], orangeRows: [], lines: [9,10,11,13,14,31] },
+        { step: 17, title: 'Step 17: scanning edges[0]', text: 'Compare the first entry: (A,B) vs the target (C,F). No match.',
+          edges: '(unchanged)', action: 'compare edges[0]=(0,1) vs (2,5)', query: 'u=2, v=5', scan: 'edges[0]=(A,B) vs (C,F) → no match', result: 'pending', complexity: '1 of 7 entries checked',
+          detail: 'Scanning begins again from entry zero.',
+          blueRows: [], greenRows: [], orangeRows: [0], lines: [9,10,11,13,14,31] },
+        { step: 18, title: 'Step 18: scanning edges[1]', text: 'Compare the second entry: (A,D) vs the target (C,F). No match.',
+          edges: '(unchanged)', action: 'compare edges[1]=(0,3) vs (2,5)', query: 'u=2, v=5', scan: 'edges[1]=(A,D) vs (C,F) → no match', result: 'pending', complexity: '2 of 7 entries checked',
+          detail: 'Still walking forward.',
+          blueRows: [0], greenRows: [], orangeRows: [1], lines: [9,10,11,13,14,31] },
+        { step: 19, title: 'Step 19: scanning edges[2]', text: 'Compare the third entry: (B,C) vs the target (C,F). No match.',
+          edges: '(unchanged)', action: 'compare edges[2]=(1,2) vs (2,5)', query: 'u=2, v=5', scan: 'edges[2]=(B,C) vs (C,F) → no match', result: 'pending', complexity: '3 of 7 entries checked',
+          detail: 'This edge touches C, but as the second element, not matching (u,v) order — the direct comparison misses it, which is exactly why has_edge must also check the reversed pair.',
+          blueRows: [0,1], greenRows: [], orangeRows: [2], lines: [9,10,11,13,14,31] },
+        { step: 20, title: 'Step 20: scanning edges[3]', text: 'Compare the fourth entry: (B,E) vs the target (C,F). No match.',
+          edges: '(unchanged)', action: 'compare edges[3]=(1,4) vs (2,5)', query: 'u=2, v=5', scan: 'edges[3]=(B,E) vs (C,F) → no match', result: 'pending', complexity: '4 of 7 entries checked',
+          detail: 'Getting close to the actual match now.',
+          blueRows: [0,1,2], greenRows: [], orangeRows: [3], lines: [9,10,11,13,14,31] },
+        { step: 21, title: 'Step 21: scanning edges[4] — match found', text: 'Compare entry 5: (C,F) vs the target (C,F). Match — return True immediately, without checking the last two edges.',
+          edges: '(unchanged)', action: 'compare edges[4]=(2,5) vs (2,5)', query: 'u=2, v=5', scan: 'edges[4]=(C,F) vs (C,F) → match!', result: 'True — adjacent', complexity: 'found at comparison 5 of 7 → short-circuit, edges[5] and edges[6] are never even read',
+          detail: "This time the search got lucky and stopped early. But that's luck, not a guarantee — has_edge(0,2) above proved the worst case is a full O(E) scan.",
+          blueRows: [0,1,2,3], greenRows: [4], orangeRows: [], lines: [9,10,11,13,14,31] },
+        { step: 22, title: "Query: neighbours(1) — get B's neighbours", text: "There is no adj[1] to hand back. We must check every one of the 7 edges to see whether it touches vertex 1.",
+          edges: '(unchanged)', action: 'return neighbours(1)', query: 'u=1 (B)', scan: 'about to scan all edges[0..6] — every edge must be read, no shortcut', result: 'pending', complexity: 'O(1) so far — about to begin an O(E) scan',
+          detail: "Unlike the list's neighbours(), which just returns a reference to an already-built bucket, the edge list has no per-vertex bucket to return — it has to rebuild the answer from scratch, one edge at a time.",
+          blueRows: [], greenRows: [], orangeRows: [], lines: [17,18,19,20,21,22,23,24,32] },
+        { step: 23, title: 'Step 23: scanning edges[0] — hit', text: 'edges[0]=(A,B) touches B (the vertex we care about) — include the other endpoint, A.',
+          edges: '(unchanged)', action: 'check edges[0]=(0,1): does it touch u=1?', query: 'u=1', scan: 'edges[0]=(A,B) → touches B → include A', result: 'found so far: [A]', complexity: '1 of 7 entries checked',
+          detail: 'A hit — vertex 0 (A) is added to the result.',
+          blueRows: [], greenRows: [0], orangeRows: [], lines: [17,18,19,20,21,22,23,24,32] },
+        { step: 24, title: 'Step 24: scanning edges[1] — miss', text: "edges[1]=(A,D) doesn't involve B at all — skip it and move on.",
+          edges: '(unchanged)', action: 'check edges[1]=(0,3): does it touch u=1?', query: 'u=1', scan: 'edges[1]=(A,D) → does not touch B → skip', result: 'found so far: [A]', complexity: '2 of 7 entries checked',
+          detail: "A miss doesn't stop the scan — it just moves to the next entry.",
+          blueRows: [], greenRows: [0], orangeRows: [1], lines: [17,18,19,20,21,22,23,24,32] },
+        { step: 25, title: 'Step 25: scanning edges[2] — hit', text: 'edges[2]=(B,C) touches B — include C.',
+          edges: '(unchanged)', action: 'check edges[2]=(1,2): does it touch u=1?', query: 'u=1', scan: 'edges[2]=(B,C) → touches B → include C', result: 'found so far: [A, C]', complexity: '3 of 7 entries checked',
+          detail: 'Second real neighbour found.',
+          blueRows: [1], greenRows: [0,2], orangeRows: [], lines: [17,18,19,20,21,22,23,24,32] },
+        { step: 26, title: 'Step 26: scanning edges[3] — hit', text: "edges[3]=(B,E) touches B — include E. All three of B's real neighbours are now found, but the scan is not done — nothing tells it there are no more.",
+          edges: '(unchanged)', action: 'check edges[3]=(1,4): does it touch u=1?', query: 'u=1', scan: 'edges[3]=(B,E) → touches B → include E', result: 'found so far: [A, C, E]', complexity: '4 of 7 entries checked',
+          detail: 'Third and final real neighbour found — but the loop keeps going, because a flat array has no way to know it is "done".',
+          blueRows: [1], greenRows: [0,2,3], orangeRows: [], lines: [17,18,19,20,21,22,23,24,32] },
+        { step: 27, title: 'Step 27: scanning edges[4] — miss', text: "edges[4]=(C,F) doesn't involve B — skip. Notice all 3 real neighbours were already found by step 4, but the scan has no way to know that and must keep going.",
+          edges: '(unchanged)', action: 'check edges[4]=(2,5): does it touch u=1?', query: 'u=1', scan: 'edges[4]=(C,F) → does not touch B → skip', result: 'found so far: [A, C, E]', complexity: '5 of 7 entries checked',
+          detail: 'This is pure wasted work: the answer was already complete, but the scan cannot stop early.',
+          blueRows: [1], greenRows: [0,2,3], orangeRows: [4], lines: [17,18,19,20,21,22,23,24,32] },
+        { step: 28, title: 'Step 28: scanning edges[5] — miss', text: "edges[5]=(D,E) doesn't involve B — skip.",
+          edges: '(unchanged)', action: 'check edges[5]=(3,4): does it touch u=1?', query: 'u=1', scan: 'edges[5]=(D,E) → does not touch B → skip', result: 'found so far: [A, C, E]', complexity: '6 of 7 entries checked',
+          detail: 'Still more wasted work, one entry from the end.',
+          blueRows: [1,4], greenRows: [0,2,3], orangeRows: [5], lines: [17,18,19,20,21,22,23,24,32] },
+        { step: 29, title: 'Step 29: scanning edges[6] — done', text: 'Last edge, still no match. The scan is now complete: neighbours(1) = [A, C, E], found after checking every single edge in the graph.',
+          edges: '(unchanged)', action: 'check edges[6]=(4,5): does it touch u=1?', query: 'u=1', scan: 'edges[6]=(E,F) → does not touch B → skip, scan complete', result: '[A, C, E] — done', complexity: "scanned all E=7 entries → O(E), worse than the list's O(degree(1))=3",
+          detail: "Total work: 7 comparisons to answer a question the list answered in 3. This is the trade the edge list makes — cheap to build, expensive to query.",
+          blueRows: [1,4,5], greenRows: [0,2,3], orangeRows: [6], lines: [17,18,19,20,21,22,23,24,32] }
+      ];
+
       function setCodeHighlight(containerId, lines) {
         document.querySelectorAll(`#${containerId} .code-line`).forEach((line) => {
           const lineNo = Number(line.dataset.line);
@@ -1430,8 +1729,33 @@
         });
       }
 
+      function renderEdgeList(step, index, max) {
+        document.getElementById('edgelist-step-title').textContent = step.title;
+        document.getElementById('edgelist-step-text').textContent = step.text;
+        document.getElementById('edgelist-edges').textContent = step.edges;
+        document.getElementById('edgelist-action').textContent = step.action;
+        document.getElementById('edgelist-query').textContent = step.query;
+        document.getElementById('edgelist-scan').textContent = step.scan;
+        document.getElementById('edgelist-result').textContent = step.result;
+        document.getElementById('edgelist-complexity').textContent = step.complexity;
+        document.getElementById('edgelist-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('edgelist-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('edgelist-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('edgelist-trace-table', step.step);
+        setCodeHighlight('edgelist-code', step.lines);
+
+        document.querySelectorAll('#edgelist-rows [data-edge-idx]').forEach((rect) => {
+          const idx = Number(rect.dataset.edgeIdx);
+          rect.classList.remove('blue', 'green', 'orange');
+          if (step.greenRows.includes(idx)) rect.classList.add('green');
+          else if (step.orangeRows.includes(idx)) rect.classList.add('orange');
+          else if (step.blueRows.includes(idx)) rect.classList.add('blue');
+        });
+      }
+
       setupTrace({ steps: listSteps, prefix: 'list', render: renderList });
       setupTrace({ steps: matrixSteps, prefix: 'matrix', render: renderMatrix });
+      setupTrace({ steps: edgeListSteps, prefix: 'edgelist', render: renderEdgeList });
 
       const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
       const panels = Array.from(document.querySelectorAll('[data-example-panel]'));

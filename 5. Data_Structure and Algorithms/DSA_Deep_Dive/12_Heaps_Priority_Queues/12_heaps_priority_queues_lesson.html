@@ -506,12 +506,14 @@
             no matter what order things were added in. A heap is the specific structure that makes both
             "add an item" and "remove the best item" cost only <code>O(log n)</code>, by giving up full sorted
             order in exchange for just enough order to guarantee the root is always correct. This page traces
-            the sift-up / sift-down mechanics on a real array, then the bounded min-heap pattern that solves
-            top-K problems in interviews.
+            the sift-up / sift-down mechanics on a real array, how <code>heapify</code> builds a valid heap out
+            of an arbitrary array in <code>O(n)</code>, and the bounded min-heap pattern that solves top-K
+            problems in interviews.
           </p>
           <div class="chips">
             <span class="chip">Core idea: the array IS the tree</span>
             <span class="chip">Interactive push / pop trace</span>
+            <span class="chip">Interactive heapify trace</span>
             <span class="chip">Interactive top-K trace</span>
             <span class="chip">Code synced with steps</span>
           </div>
@@ -994,6 +996,182 @@ value: [1, 3, 2, 5, 9, 8, 7]</code></div>
     </section>
 
     <section class="panel">
+      <h2>Method 3: heapify — build a heap from any array in O(n)</h2>
+      <p>Unlike <code>push</code>, which grows a heap one element at a time starting from empty, <code>heapify</code> starts with the whole array already filled — <code>[9, 4, 7, 1, 3, 8, 2]</code>, the same array used in the explainer above — and fixes it in place. The trick is direction: it walks <strong>backwards</strong>, starting at the last parent index <code>n // 2 - 1</code> and finishing at the root, index 0. Sifting a node down only produces a correct result if that node's child subtrees are already valid heaps, and going backwards is what guarantees that: every index past <code>n // 2 - 1</code> is a leaf, and a single value is trivially a valid heap of size one already — nothing to fix, nothing to compare against. That is also why the entire second half of the array is skipped as a starting point for sifting: a leaf has no children, so <code>heapify</code> never even visits it as a place to begin. Walk the trace below and watch the tree and the array together — exactly like Method 1, they are two views of the same object.</p>
+      <div class="code-block stepped">
+        <code id="hpf-code">
+<span class="code-line" data-line="1">def heapify(a):</span>
+<span class="code-line" data-line="2">    n = len(a)</span>
+<span class="code-line" data-line="3">    start = n // 2 - 1</span>
+<span class="code-line" data-line="4">    for i in range(start, -1, -1):</span>
+<span class="code-line" data-line="5">        cur = i</span>
+<span class="code-line" data-line="6">        while True:</span>
+<span class="code-line" data-line="7">            l, r = 2*cur + 1, 2*cur + 2</span>
+<span class="code-line" data-line="8">            smallest = cur</span>
+<span class="code-line" data-line="9">            if l < n and a[l] < a[smallest]:</span>
+<span class="code-line" data-line="10">                smallest = l</span>
+<span class="code-line" data-line="11">            if r < n and a[r] < a[smallest]:</span>
+<span class="code-line" data-line="12">                smallest = r</span>
+<span class="code-line" data-line="13">            if smallest == cur:</span>
+<span class="code-line" data-line="14">                break</span>
+<span class="code-line" data-line="15">            a[cur], a[smallest] = a[smallest], a[cur]</span>
+<span class="code-line" data-line="16">            cur = smallest</span>
+<span class="code-line" data-line="17"></span>
+<span class="code-line" data-line="18">    return a</span>
+        </code>
+      </div>
+
+      <div class="interactive-grid" style="margin-top:18px;">
+        <div class="interactive-graph card">
+          <div class="pill">Interactive heapify trace</div>
+          <div class="diagram" style="margin-top:12px;">
+            <svg id="hpf-diagram" viewBox="0 0 560 320" width="100%" role="img" aria-label="Heap tree and its backing array during heapify, kept in sync">
+              <defs>
+                <style>
+                  .hpf-edge { stroke: #cad3e6; stroke-width: 4; stroke-linecap: round; }
+                  .hpf-blue { fill: #315efb; }
+                  .hpf-green { fill: #13a46b; }
+                  .hpf-orange { fill: #ff9f1c; }
+                  .hpf-gray { fill: #c8d2e7; }
+                  .hpf-label { font: 700 18px Inter, Arial, sans-serif; fill: #ffffff; }
+                  .hpf-title { font: 700 15px Inter, Arial, sans-serif; fill: #172033; }
+                  .hpf-idx { font: 700 11px ui-monospace, Consolas, monospace; fill: #5d677d; }
+                  .hpf-cell { stroke: #cad3e6; stroke-width: 2; }
+                </style>
+              </defs>
+              <text x="12" y="20" class="hpf-title">Tree view</text>
+              <line x1="280" y1="45" x2="140" y2="125" class="hpf-edge" />
+              <line x1="280" y1="45" x2="420" y2="125" class="hpf-edge" />
+              <line x1="140" y1="125" x2="70" y2="205" class="hpf-edge" />
+              <line x1="140" y1="125" x2="210" y2="205" class="hpf-edge" />
+              <line x1="420" y1="125" x2="350" y2="205" class="hpf-edge" />
+              <line x1="420" y1="125" x2="490" y2="205" class="hpf-edge" />
+              <circle cx="280" cy="45" r="24" class="hpf-gray" data-idx="0" />
+              <circle cx="140" cy="125" r="24" class="hpf-gray" data-idx="1" />
+              <circle cx="420" cy="125" r="24" class="hpf-gray" data-idx="2" />
+              <circle cx="70" cy="205" r="24" class="hpf-gray" data-idx="3" />
+              <circle cx="210" cy="205" r="24" class="hpf-gray" data-idx="4" />
+              <circle cx="350" cy="205" r="24" class="hpf-gray" data-idx="5" />
+              <circle cx="490" cy="205" r="24" class="hpf-gray" data-idx="6" />
+              <text x="280" y="51" text-anchor="middle" class="hpf-label" data-idx="0"></text>
+              <text x="140" y="131" text-anchor="middle" class="hpf-label" data-idx="1"></text>
+              <text x="420" y="131" text-anchor="middle" class="hpf-label" data-idx="2"></text>
+              <text x="70" y="211" text-anchor="middle" class="hpf-label" data-idx="3"></text>
+              <text x="210" y="211" text-anchor="middle" class="hpf-label" data-idx="4"></text>
+              <text x="350" y="211" text-anchor="middle" class="hpf-label" data-idx="5"></text>
+              <text x="490" y="211" text-anchor="middle" class="hpf-label" data-idx="6"></text>
+
+              <text x="12" y="248" class="hpf-title">Array view (the same object)</text>
+              <g>
+                <rect x="40" y="260" width="58" height="46" rx="8" class="hpf-gray hpf-cell" data-idx="0" />
+                <rect x="114" y="260" width="58" height="46" rx="8" class="hpf-gray hpf-cell" data-idx="1" />
+                <rect x="188" y="260" width="58" height="46" rx="8" class="hpf-gray hpf-cell" data-idx="2" />
+                <rect x="262" y="260" width="58" height="46" rx="8" class="hpf-gray hpf-cell" data-idx="3" />
+                <rect x="336" y="260" width="58" height="46" rx="8" class="hpf-gray hpf-cell" data-idx="4" />
+                <rect x="410" y="260" width="58" height="46" rx="8" class="hpf-gray hpf-cell" data-idx="5" />
+                <rect x="484" y="260" width="58" height="46" rx="8" class="hpf-gray hpf-cell" data-idx="6" />
+                <text x="69" y="255" text-anchor="middle" class="hpf-idx">i=0</text>
+                <text x="143" y="255" text-anchor="middle" class="hpf-idx">i=1</text>
+                <text x="217" y="255" text-anchor="middle" class="hpf-idx">i=2</text>
+                <text x="291" y="255" text-anchor="middle" class="hpf-idx">i=3</text>
+                <text x="365" y="255" text-anchor="middle" class="hpf-idx">i=4</text>
+                <text x="439" y="255" text-anchor="middle" class="hpf-idx">i=5</text>
+                <text x="513" y="255" text-anchor="middle" class="hpf-idx">i=6</text>
+                <text x="69" y="289" text-anchor="middle" class="hpf-label hpf-array-val" data-idx="0"></text>
+                <text x="143" y="289" text-anchor="middle" class="hpf-label hpf-array-val" data-idx="1"></text>
+                <text x="217" y="289" text-anchor="middle" class="hpf-label hpf-array-val" data-idx="2"></text>
+                <text x="291" y="289" text-anchor="middle" class="hpf-label hpf-array-val" data-idx="3"></text>
+                <text x="365" y="289" text-anchor="middle" class="hpf-label hpf-array-val" data-idx="4"></text>
+                <text x="439" y="289" text-anchor="middle" class="hpf-label hpf-array-val" data-idx="5"></text>
+                <text x="513" y="289" text-anchor="middle" class="hpf-label hpf-array-val" data-idx="6"></text>
+              </g>
+            </svg>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-orange"></i> element sifting now</span>
+            <span><i class="dot dot-green"></i> child being compared</span>
+            <span><i class="dot dot-blue"></i> settled / already a valid subheap</span>
+            <span><i class="dot dot-gray"></i> untouched</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="hpf-step-title">Initial state</h3>
+          <p id="hpf-step-text">The whole array already exists — heapify fixes it in place.</p>
+          <div class="controls" style="margin-top:16px;">
+            <button type="button" id="hpf-prev">Previous</button>
+            <button type="button" id="hpf-play" class="primary">Resume</button>
+            <button type="button" id="hpf-next">Next</button>
+            <button type="button" id="hpf-reset">Reset</button>
+          </div>
+          <div class="status-bar">
+            <span class="pill" id="hpf-step-counter">Step 0 / 7</span>
+            <div class="progress"><span id="hpf-progress"></span></div>
+          </div>
+          <div class="state-grid" style="margin-top:16px;">
+            <div class="state-box"><strong>Phase</strong><div class="state-value" id="hpf-phase">Setup</div></div>
+            <div class="state-box"><strong>Action</strong><div class="state-value" id="hpf-action">start = 7 // 2 - 1 = 2</div></div>
+            <div class="state-box"><strong>Array now</strong><div class="state-value" id="hpf-array">[9, 4, 7, 1, 3, 8, 2]</div></div>
+            <div class="state-box"><strong>Sifting element</strong><div class="state-value" id="hpf-sift">—</div></div>
+            <div class="state-box"><strong>Compared against</strong><div class="state-value" id="hpf-compare">—</div></div>
+            <div class="state-box"><strong>Swaps so far</strong><div class="state-value" id="hpf-swaps">0</div></div>
+          </div>
+          <div class="explainer">
+            <p id="hpf-detail"><strong>What changed:</strong> nothing yet — this is the starting point.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px;">
+        <table class="trace-table" id="hpf-trace-table">
+          <thead>
+            <tr><th>Step</th><th>Phase</th><th>Action</th><th>Sifting</th><th>Compared vs</th><th>Array after</th></tr>
+          </thead>
+          <tbody>
+            <tr data-step="0"><td>0</td><td>Setup</td><td>n = 7; start = n // 2 - 1 = 2</td><td>—</td><td>—</td><td><code>[9, 4, 7, 1, 3, 8, 2]</code></td></tr>
+            <tr data-step="1"><td>1</td><td>i = 2</td><td>children of 2: left(5)=8, right(6)=2 → smaller=2 → swap</td><td>7</td><td>8, 2</td><td><code>[9, 4, 2, 1, 3, 8, 7]</code></td></tr>
+            <tr data-step="2"><td>2</td><td>i = 2</td><td>index 6 has no children → stop, subtree {2,5,6} settled</td><td>7</td><td>—</td><td><code>[9, 4, 2, 1, 3, 8, 7]</code></td></tr>
+            <tr data-step="3"><td>3</td><td>i = 1</td><td>children of 1: left(3)=1, right(4)=3 → smaller=1 → swap</td><td>4</td><td>1, 3</td><td><code>[9, 1, 2, 4, 3, 8, 7]</code></td></tr>
+            <tr data-step="4"><td>4</td><td>i = 1</td><td>index 3 has no children → stop, subtree {1,3,4} settled</td><td>4</td><td>—</td><td><code>[9, 1, 2, 4, 3, 8, 7]</code></td></tr>
+            <tr data-step="5"><td>5</td><td>i = 0</td><td>children of 0: left(1)=1, right(2)=2 → smaller=1 → swap</td><td>9</td><td>1, 2</td><td><code>[1, 9, 2, 4, 3, 8, 7]</code></td></tr>
+            <tr data-step="6"><td>6</td><td>i = 0</td><td>children of 1: left(3)=4, right(4)=3 → smaller=3 → swap</td><td>9</td><td>4, 3</td><td><code>[1, 3, 2, 4, 9, 8, 7]</code></td></tr>
+            <tr data-step="7"><td>7</td><td>i = 0</td><td>index 4 has no children → stop, whole array settled — done</td><td>9</td><td>—</td><td><code>[1, 3, 2, 4, 9, 8, 7]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <p><strong>Why O(n) and not O(n log n):</strong> a sift-down's cost is bounded by how far a node can travel, and that distance is its <em>height</em> in the tree (distance to the nearest leaf below it) — not the tree's overall height. Most nodes sit near the bottom, so most nodes can barely move.</p>
+        <div class="table-wrap" style="margin-top:12px;">
+          <table>
+            <thead><tr><th>Level (distance from leaves)</th><th>Nodes at this level</th><th>Max sift distance</th><th>Max swaps contributed</th></tr></thead>
+            <tbody>
+              <tr><td>2 — leaves (indices 3, 4, 5, 6)</td><td>4</td><td>0 (skipped entirely)</td><td>0</td></tr>
+              <tr><td>1 (indices 1, 2)</td><td>2</td><td>1</td><td>2</td></tr>
+              <tr><td>0 — root (index 0)</td><td>1</td><td>2</td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:10px;">Upper bound on total swaps for this array: <code>0 + 2 + 2 = 4</code> — and the real run above needed exactly <strong>4 swaps</strong>, matching the bound exactly. In general, summing <code>(n / 2^(h+1)) &times; h</code> over every level <code>h</code> from the leaves to the root converges to a constant multiple of <code>n</code>, not <code>n log n</code> — because the number of nodes shrinks geometrically at exactly the rate the possible travel distance grows. Building the same 7-element heap by <code>push</code>-ing each value one at a time instead costs <strong>5 swaps</strong> on this same array (verified in Python), because every one of the <code>n</code> pushed values can independently cost up to <code>O(log n)</code> — there is no shrinking population of "nodes that can barely move" to lean on. The gap only widens as <code>n</code> grows: heapify stays linear while repeated pushing stays <code>O(n log n)</code>.</p>
+      </div>
+
+      <div class="note-grid">
+        <div class="card">
+          <h4>Key mental model</h4>
+          <p>Going backwards is "trust but verify": by the time <code>heapify</code> touches index <code>i</code>, both of its child subtrees are already guaranteed valid heaps, either because they are leaves or because they were already fixed in an earlier iteration. That guarantee is the entire reason sift-down produces a correct result.</p>
+        </div>
+        <div class="card" style="background:var(--warn-soft); border-color:#f1d9a8;">
+          <h4>Common mistake</h4>
+          <p>Looping forward from index 0 to <code>n - 1</code> instead of backward from <code>n // 2 - 1</code> to 0. Sifting a node down before its children's subtrees are fixed compares it against still-broken data and silently produces an invalid heap — the bug will not crash, it will just be wrong.</p>
+        </div>
+        <div class="card">
+          <h4>Why it's O(n), not O(n log n)</h4>
+          <p>Roughly half the nodes are leaves that need zero work, a quarter can move at most one level, an eighth at most two levels, and so on — only the single root can ever travel the full <code>log n</code>. That geometric shrinkage is what collapses the sum to <code>O(n)</code>, versus <code>O(n log n)</code> for <code>n</code> independent pushes.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
       <h2>Edge cases you should test</h2>
       <div class="tabs" role="tablist" aria-label="Edge case examples">
         <button type="button" class="active-tab" data-example-tab="0">Max-heap trick</button>
@@ -1040,7 +1218,8 @@ value: [1, 3, 2, 5, 9, 8, 7]</code></div>
             <tr><td>push</td><td>O(log n)</td><td>O(1) extra</td><td>One sift-up, at most the height of the tree</td></tr>
             <tr><td>pop</td><td>O(log n)</td><td>O(1) extra</td><td>One sift-down, at most the height of the tree</td></tr>
             <tr><td>peek</td><td>O(1)</td><td>O(1)</td><td>The best item is always <code>heap[0]</code></td></tr>
-            <tr><td>heapify (build from n items)</td><td>O(n)</td><td>O(1) extra</td><td>Bottom-up sift-down — beats n individual pushes</td></tr>
+            <tr><td>heapify (build from n items)</td><td>O(n)</td><td>O(1) extra</td><td>Bottom-up sift-down; most nodes are near the bottom and barely move</td></tr>
+            <tr><td>build via n individual pushes</td><td>O(n log n)</td><td>O(1) extra</td><td>Each push costs up to O(log n); with no shrinking population of "barely move" nodes, that cost never collapses to O(n)</td></tr>
             <tr><td>top-K via bounded heap</td><td>O(n log k)</td><td>O(k)</td><td>Only k items are ever in memory at once</td></tr>
             <tr><td>top-K via full sort</td><td>O(n log n)</td><td>O(n)</td><td>Sorts every value just to read the first k</td></tr>
           </tbody>
@@ -1176,6 +1355,17 @@ value: [1, 3, 2, 5, 9, 8, 7]</code></div>
         { step: 10, title: 'Process 8: push, heap overflows to 4', text: 'Push 8. Array becomes [4, 8, 7, 9] — 4 items, past capacity.', action: 'heappush(h, 8) → [4, 8, 7, 9]; len(h)=4 > k', heap: [4, 8, 7, 9], streamIndex: 6, value: '8', popped: '—', result: '—', detail: 'This is the last value in the stream.', lines: [3, 4, 5] },
         { step: 11, title: 'Process 8: pop the smallest (4)', text: 'Pop the smallest, 4, and discard it. Heap becomes [7, 8, 9] — the three largest values seen in the entire stream.', action: 'heappop(h) removes 4 → [7, 8, 9]', heap: [7, 8, 9], streamIndex: 6, value: '8', popped: '4', result: '—', detail: 'This is the final heap state — every remaining value belongs in the top 3.', lines: [5, 6] },
         { step: 12, title: 'Done: return the sorted top-3', text: 'The stream is exhausted. The heap holds exactly the 3 largest values, in heap order. Sort just those 3 for a clean answer: [9, 8, 7]. Notice the full input was never sorted — only k items ever lived in memory at once.', action: 'return sorted(h, reverse=True)', heap: [7, 8, 9], streamIndex: 6, value: '—', popped: '—', result: '[9, 8, 7]', detail: 'O(n log k) total — never O(n log n).', lines: [7] }
+      ];
+
+      const hpfSteps = [
+        { step: 0, title: 'Initial state — heapify starts from a full array', text: 'The array [9, 4, 7, 1, 3, 8, 2] already holds all 7 values — heapify does not build up from empty the way push does. n = 7, so the last parent index is n // 2 - 1 = 2. Indices 3 through 6 (values 1, 3, 8, 2) are leaves: each is trivially a valid heap of size one, so they start out already settled. We will sift down from index 2, then index 1, then index 0 — backwards, never forwards.', phase: 'Setup', action: 'n = 7; start = n // 2 - 1 = 2', array: [9, 4, 7, 1, 3, 8, 2], sift: null, compareVals: [], compareIdx: [], curIdx: null, settled: [3, 4, 5, 6], swaps: 0, detail: 'Nothing has moved yet — leaves are already valid heaps by definition.', lines: [1, 2, 3] },
+        { step: 1, title: 'i = 2 (value 7): compare children, swap with the smaller', text: 'At index 2 (value 7), compare both children: index 5 (value 8) and index 6 (value 2). The smaller child is 2. Since 2 < 7, swap them: 7 sinks to index 6, and 2 rises to index 2.', phase: 'i = 2', action: 'children of 2: left(5)=8, right(6)=2 → smaller=2 → swap', array: [9, 4, 2, 1, 3, 8, 7], sift: 7, compareVals: [8, 2], compareIdx: [5, 6], curIdx: 6, settled: [3, 4, 5, 6], swaps: 1, detail: '7 and 2 swapped places; 7 is now one level lower.', lines: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] },
+        { step: 2, title: 'i = 2 settles at index 6 — subtree {2, 5, 6} is now a valid heap', text: 'Index 6 (2*6+1 = 13, past the end of a 7-element array) has no children, so the sift-down for the node that started at index 2 stops here. The subtree {2, 5, 6} is now a valid min-heap — mark index 2 as settled.', phase: 'i = 2', action: 'index 6 has no children → stop', array: [9, 4, 2, 1, 3, 8, 7], sift: 7, compareVals: [], compareIdx: [], curIdx: 6, settled: [2, 3, 4, 5, 6], swaps: 1, detail: 'The node that started at index 2 has finished sifting after a single swap.', lines: [6, 7, 8, 9, 10, 11, 12, 13, 14] },
+        { step: 3, title: 'i = 1 (value 4): compare children, swap with the smaller', text: 'At index 1 (value 4), compare both children: index 3 (value 1) and index 4 (value 3). The smaller child is 1. Since 1 < 4, swap: 4 sinks to index 3, and 1 rises to index 1.', phase: 'i = 1', action: 'children of 1: left(3)=1, right(4)=3 → smaller=1 → swap', array: [9, 1, 2, 4, 3, 8, 7], sift: 4, compareVals: [1, 3], compareIdx: [3, 4], curIdx: 3, settled: [2, 3, 4, 5, 6], swaps: 2, detail: '4 and 1 swapped places; 4 is now one level lower.', lines: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] },
+        { step: 4, title: 'i = 1 settles at index 3 — subtree {1, 3, 4} is now a valid heap', text: 'Index 3 has no children, so this sift-down stops. The subtree {1, 3, 4} is now a valid min-heap — mark index 1 as settled. Only the root is left.', phase: 'i = 1', action: 'index 3 has no children → stop', array: [9, 1, 2, 4, 3, 8, 7], sift: 4, compareVals: [], compareIdx: [], curIdx: 3, settled: [1, 2, 3, 4, 5, 6], swaps: 2, detail: 'The node that started at index 1 has finished sifting after a single swap.', lines: [6, 7, 8, 9, 10, 11, 12, 13, 14] },
+        { step: 5, title: 'i = 0 (value 9): first compare, swap with the smaller child', text: 'At index 0, the root (value 9), compare both children: index 1 (value 1) and index 2 (value 2). The smaller child is 1. Since 1 < 9, swap: 9 sinks to index 1, and 1 rises to the root. But 9 might still be too big for its new spot, so the loop continues from that new position.', phase: 'i = 0', action: 'children of 0: left(1)=1, right(2)=2 → smaller=1 → swap', array: [1, 9, 2, 4, 3, 8, 7], sift: 9, compareVals: [1, 2], compareIdx: [1, 2], curIdx: 1, settled: [1, 2, 3, 4, 5, 6], swaps: 3, detail: '9 and 1 swapped places, but 9 is not done sifting yet — it continues from its new position.', lines: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] },
+        { step: 6, title: 'i = 0 continued: value 9 keeps sinking', text: '9 is now at index 1. Compare its new children: index 3 (value 4) and index 4 (value 3). The smaller child is 3. Since 3 < 9, swap again: 9 sinks to index 4, and 3 rises to index 1.', phase: 'i = 0', action: 'children of 1: left(3)=4, right(4)=3 → smaller=3 → swap', array: [1, 3, 2, 4, 9, 8, 7], sift: 9, compareVals: [4, 3], compareIdx: [3, 4], curIdx: 4, settled: [1, 2, 3, 4, 5, 6], swaps: 4, detail: '9 and 3 swapped places; 9 has now travelled two full levels.', lines: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] },
+        { step: 7, title: 'Done — heapify complete in O(n)', text: 'Index 4 has no children, so this final sift-down stops. Every subtree is now valid — the whole array [1, 3, 2, 4, 9, 8, 7] is a min-heap, exactly matching the heapified array from the explainer above. Total swaps: 4. Building this same 7-element heap by pushing one value at a time instead costs 5 swaps — verified in Python.', phase: 'Done', action: 'index 4 has no children → stop; heapify complete', array: [1, 3, 2, 4, 9, 8, 7], sift: 9, compareVals: [], compareIdx: [], curIdx: 4, settled: [0, 1, 2, 3, 4, 5, 6], swaps: 4, detail: 'Heapify is complete: 4 total swaps for 7 elements, versus 5 for the same array built by repeated push.', lines: [6, 7, 8, 9, 10, 11, 12, 13, 14, 18] }
       ];
 
       function setCodeHighlight(containerId, lines) {
@@ -1341,7 +1531,44 @@ value: [1, 3, 2, 5, 9, 8, 7]</code></div>
         }
       }
 
+      function renderHpf(step, index, max) {
+        document.getElementById('hpf-step-title').textContent = step.title;
+        document.getElementById('hpf-step-text').textContent = step.text;
+        document.getElementById('hpf-phase').textContent = step.phase;
+        document.getElementById('hpf-action').textContent = step.action;
+        document.getElementById('hpf-array').textContent = `[${step.array.join(', ')}]`;
+        document.getElementById('hpf-sift').textContent = step.sift === null ? '—' : step.sift;
+        document.getElementById('hpf-compare').textContent = step.compareVals.length ? step.compareVals.join(', ') : '—';
+        document.getElementById('hpf-swaps').textContent = step.swaps;
+        document.getElementById('hpf-detail').innerHTML = `<strong>What changed:</strong> ${step.detail}`;
+        document.getElementById('hpf-step-counter').textContent = `Step ${step.step} / ${max}`;
+        document.getElementById('hpf-progress').style.width = `${(index / max) * 100}%`;
+        markActiveRow('hpf-trace-table', step.step);
+        setCodeHighlight('hpf-code', step.lines);
+
+        const array = step.array;
+        for (let idx = 0; idx < 7; idx += 1) {
+          let cls = 'hpf-gray';
+          if (step.settled.includes(idx)) cls = 'hpf-blue';
+          if (step.compareIdx.includes(idx)) cls = 'hpf-green';
+          if (idx === step.curIdx) cls = 'hpf-orange';
+
+          const circle = document.querySelector(`#hpf-diagram circle[data-idx="${idx}"]`);
+          const treeLabel = document.querySelector(`#hpf-diagram .hpf-label[data-idx="${idx}"]`);
+          circle.classList.remove('hpf-blue', 'hpf-orange', 'hpf-green', 'hpf-gray');
+          circle.classList.add(cls);
+          treeLabel.textContent = array[idx];
+
+          const rect = document.querySelector(`#hpf-diagram rect[data-idx="${idx}"]`);
+          const arrLabel = document.querySelector(`#hpf-diagram .hpf-array-val[data-idx="${idx}"]`);
+          rect.classList.remove('hpf-blue', 'hpf-orange', 'hpf-green', 'hpf-gray');
+          rect.classList.add(cls);
+          arrLabel.textContent = array[idx];
+        }
+      }
+
       setupTrace({ steps: mechSteps, prefix: 'mech', render: renderMech });
+      setupTrace({ steps: hpfSteps, prefix: 'hpf', render: renderHpf });
       setupTrace({ steps: topkSteps, prefix: 'topk', render: renderTopk });
 
       const tabs = Array.from(document.querySelectorAll('[data-example-tab]'));
