@@ -1,93 +1,57 @@
 # Markdown cell template
 
-Paste this structure into the new notebook cell. Replace heap-specific lines with the snippet’s DSA. The heap walkthrough in `12_heaps_priority_queues.ipynb` is the filled example.
+Paste this structure into the new notebook cell. Replace the combination-sum-specific lines with the
+snippet's DSA. The filled example is the Combination Sum / Combination Sum II trace in
+`DSA_Deep_Dive/21_Backtracking/21_backtracking.ipynb` (the cell right after `combine` / `combination_sum` /
+`combination_sum2`). This is the **only** format this skill produces — always the full table trace below,
+never a depth choice, never per-step ASCII/fenced blocks.
 
 ```markdown
 ### Step-by-step: what this cell actually does
 
-<INVARIANT in one sentence>. <How it is stored>. After the demo, the notebook prints <EXACT OUTPUT>; <asserts if any>.
+<Shared shape/invariant across the function(s) in one or two sentences>. <What exactly differs between
+them — the one or two lines of code that change, not a redesign>. <Demo input(s) and the exact
+result(s)/assert(s) the trace will hit>.
 
-#### <Primer title — e.g. Array packing (why those formulas)>
+#### `<fn_a>(<demo args>)` — <short tagline, e.g. "reuse allowed">
 
-<One sentence why the formulas exist.>
+1. <algorithm step 1 — e.g. sort / base case>
+2. <algorithm step 2 — e.g. loop + prune condition>
+3. <algorithm step 3 — e.g. choose/recurse/un-choose, naming exactly which index the recursive call uses>
 
-| relation | formula |
-|----------|---------|
-| … | `…` |
+Demo: `<the exact demo call as the notebook writes it>`.
 
-Example — <post-build structure>:
+| Step | Action | `<state col 1>` after | `<state col 2>` after | `<out/res>` after |
+|---|---|---|---|---|
+| 1 | `<call>` entered | `<value>` | `<value>` | `<value>` |
+| 2 | `i=<i>`: CHOOSE `<val>` | `<value>` | `<value>` | `<value>` |
+| 3 | … one row per real step, no skipped/compressed rows … | | | |
 
-```
-index:  …
-value: […]
+Final `<out/res> = <value>` — matches `assert <...>`. <One tie-out sentence — why a particular row
+mattered, e.g. the row where a prune or dedup-skip changed the outcome.>
 
-    <ASCII of that structure with i= labels>
-```
+#### `<fn_b>(<demo args>)` — <short tagline, e.g. "each slot once, duplicates skipped">
 
-- Worked lookup 1.
-- Worked lookup 2.
-
-<What push-like vs pop-like does in one sentence each.>
-
-`<index variable>` is <meaning> — not a scan of the whole structure.
-
----
-
-#### `<fn_a>` — <short recipe>
-
-`<fn_a>(…)`:
-
-1. …
-2. …
-
-Demo input: `[…]`.
-
-**1. <op>** — <indices, comparison, swap or not>.
-
-```
-array: […]
-
-    <ASCII>
-```
-
-**2. <op>** — …
-
----
-
-#### `<fn_b>` — <short recipe>
-
-(same pattern; show state **after** the critical assignment, then after the loop finishes)
-
-**pop → <returned value>.** …
-
-```
-after: […]
-
-    <ASCII>
-```
-
-<Tie to assert. Complexity one-liner.>
+(same shape: numbered algorithm list, demo line, full table, tie-out sentence)
 
 #### Mental model
 
-- **<structure>** → <consequence>.
-- **<fn_a>** = “<verb phrase>.”
-- **<fn_b>** = “<verb phrase>.”
-- Stopping early (`break` / …) means <invariant restored> — you do not <wrong mental model>.
+- <what changes between fn_a and fn_b — the specific line/guard, not a restatement of the loop>
+- <what the recursion's shrinking/loop variable actually represents>
+- <why the prune/guard is safe — what property of the input makes it correct>
+- <one general lesson that transfers to the next problem of this shape>
 ```
 
-## Depth variants
+## Table columns
 
-**Full:** one `**N. op**` block per mutation, including every pop until empty (or every BFS dequeue until the queue is empty).
+Always `Step` + `Action` + one column per piece of mutable state the function threads through recursion
+(commonly `path`/`out`/`res`, plus whatever drives the recursion: `remaining`, `i`, `start`, two pointers,
+a visited set size, etc.). Bold or all-caps the operation keyword inside `Action` (`CHOOSE`, `INCLUDE`,
+`EXCLUDE`, `BREAK`, `SKIP`, `RECORD`, `UN-CHOOSE`) and include the concrete comparison that drove it, e.g.:
 
-**First-class + one unwind:** full build; only the first inverse op in full; then one sentence that the rest repeat and the assert holds.
-
-**Compact:**
-
-```markdown
-| Step | Op | Why | State after |
-|------|----|-----|-------------|
-| 1 | push 5 | empty | `[5]` |
+```
+| 5 | `backtrack(0, 1)` → `i=0`: `2 > 1` → **BREAK** | `[2, 2, 2]` | 1 | `[]` |
 ```
 
-ASCII only after the last build step (and after the first pop if you still show one).
+Never collapse a run of steps into `...` and never drop into a fenced ASCII block per step — every
+mutation gets its own row, all the way to the end of the demo call.
