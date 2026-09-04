@@ -60,9 +60,8 @@ Eight leaves, eight subsets. The shape of this tree is what determines the runni
 
 **LC 78 Subsets · LC 90 Subsets II** — NeetCode 150
 
-Every element is either *in* or *out*. Two ways to write it; know both, because interviewers ask for either.
-
-**Include / exclude** — a binary decision per index. Produces the tree above:
+Every element is either *in* or *out*. A binary decision per index — `backtrack(i)` tries both: include
+`nums[i]` and recurse into `i + 1`, then exclude it and recurse into `i + 1` again. Produces the tree above:
 
 ```python
 def subsets(nums):
@@ -77,43 +76,32 @@ def subsets(nums):
     return out
 ```
 
-**Start-index loop** — record *every* node, not just the leaves, and only ever move forward:
+Only the leaves (`i == len(nums)`) are ever recorded — there are exactly `2^n` of them, one per subset.
 
-```python
-def subsets(nums):
-    out, path = [], []
-    def backtrack(start):
-        out.append(path[:])         # EVERY prefix is a subset — record on entry
-        for i in range(start, len(nums)):
-            path.append(nums[i]);  backtrack(i + 1);  path.pop()
-    backtrack(0)
-    return out
-```
-
-The `start` index is what prevents `[1, 2]` and `[2, 1]` from both appearing: once you have used index `i`, you
-may only add indices *after* it. That single idea — **"only move forward"** — is the whole difference between
-subsets/combinations (order does not matter) and permutations (it does).
-
-**Subsets II — duplicates in the input.** Sort first, then skip an element if it equals the previous one *and*
-the previous one was not used in this branch:
+**Subsets II — duplicates in the input.** Same binary decision, but the EXCLUDE branch can't just move to
+`i + 1` anymore. Excluding the first `2` and excluding the second `2` are *the same decision*, so EXCLUDE
+has to skip past every remaining copy of that value in one go — sort first so duplicates sit next to each
+other:
 
 ```python
 def subsets_with_dup(nums):
-    nums.sort()                                   # duplicates become adjacent
+    nums = sorted(nums)
+    n = len(nums)
     out, path = [], []
-    def backtrack(start):
-        out.append(path[:])
-        for i in range(start, len(nums)):
-            if i > start and nums[i] == nums[i - 1]:
-                continue                          # same value as the sibling we just finished — skip
-            path.append(nums[i]);  backtrack(i + 1);  path.pop()
+    def backtrack(i):
+        if i == n:
+            out.append(path[:]);  return
+        path.append(nums[i]);  backtrack(i + 1);  path.pop()   # INCLUDE nums[i]
+        j = i + 1
+        while j < n and nums[j] == nums[i]:                     # EXCLUDE nums[i] — and every
+            j += 1                                              # duplicate of it, same value
+        backtrack(j)
     backtrack(0)
     return out
 ```
 
-`i > start` is the precise condition. At the *first* position of a loop (`i == start`) a duplicate value is
-legitimately a new branch; at later positions it would only re-create a subset the previous sibling already
-produced. This "sort + skip the sibling duplicate" move recurs in Combination Sum II and Permutations II.
+This "sort + skip every duplicate in the EXCLUDE branch" move recurs in Combination Sum II below, and the
+sort-based dedup idea itself recurs (in loop form) in Permutations II.
 
 ---
 
@@ -121,37 +109,81 @@ produced. This "sort + skip the sibling duplicate" move recurs in Combination Su
 
 **LC 77 Combinations · LC 39 Combination Sum · LC 40 Combination Sum II** — 39 is Blind 75; all three NeetCode 150
 
-Same start-index loop as subsets, with a different base case: record only when the path has hit its target
-(length `k`, or sum `target`).
+Same include/exclude binary decision as Subsets, with a different base case: record only when the path has
+hit its target (length `k`, or sum `target`) instead of at a fixed depth.
 
 ```python
-def combination_sum(candidates, target):          # LC 39 — each candidate may be reused
+def combine(n, k):                                    # LC 77
     out, path = [], []
-    def backtrack(start, remaining):
+    def backtrack(num):
+        if len(path) == k:
+            out.append(path[:]);  return
+        if num > n:
+            return
+        path.append(num);  backtrack(num + 1);  path.pop()   # INCLUDE num
+        backtrack(num + 1)                                   # EXCLUDE num
+    backtrack(1)
+    return out
+
+
+def combination_sum(candidates, target):              # LC 39 — unlimited reuse
+    out, path = [], []
+    def backtrack(i, remaining):
         if remaining == 0:
             out.append(path[:]);  return
-        for i in range(start, len(candidates)):
-            if candidates[i] > remaining:
-                break                             # PRUNE: sorted input, so nothing after fits either
+        if i == len(candidates):
+            return
+        if remaining - candidates[i] >= 0:             # only recurse if it doesn't overshoot
             path.append(candidates[i])
-            backtrack(i, remaining - candidates[i])   # `i`, not `i + 1`: reuse allowed
+            backtrack(i, remaining - candidates[i])    # `i`, not `i + 1`: INCLUDE may reuse
             path.pop()
-    candidates.sort()
+        backtrack(i + 1, remaining)                     # EXCLUDE candidates[i] entirely
+    backtrack(0, target)
+    return out
+
+
+def combination_sum2(candidates, target):             # LC 40 — each element once
+    candidates = sorted(candidates)
+    n = len(candidates)
+    out, path = [], []
+    def backtrack(i, remaining):
+        if remaining == 0:
+            out.append(path[:]);  return
+        if i == n:
+            return
+        if remaining - candidates[i] >= 0:
+            path.append(candidates[i])
+            backtrack(i + 1, remaining - candidates[i])   # `i + 1`: INCLUDE at most once
+            path.pop()
+        j = i + 1
+        while j < n and candidates[j] == candidates[i]:    # EXCLUDE it — and every
+            j += 1                                          # duplicate of it (same trick as Subsets II)
+        backtrack(j, remaining)
     backtrack(0, target)
     return out
 ```
 
-Two things to notice:
+Three things to notice:
 
-- **`backtrack(i, ...)` vs `backtrack(i + 1, ...)`.** Passing `i` lets the same candidate be chosen again;
-  passing `i + 1` forbids it. That one character is the difference between LC 39 (unlimited reuse) and LC 40
+- **`backtrack(i, ...)` vs `backtrack(i + 1, ...)` on INCLUDE.** Passing `i` lets the same candidate be
+  chosen again; passing `i + 1` forbids it. That's the difference between LC 39 (unlimited reuse) and LC 40
   (each element once).
-- **The `break`.** Because the candidates are sorted, the moment one is too large, every later one is too. The
-  prune itself is what matters — on `[2, 3, 5, 7]` with target `20` it cuts the recursive calls from 246 to 133
-  (measured in the notebook). `break` and `continue` skip exactly the same *branches* on sorted input; `break`
-  is still the right choice because it also skips the leftover loop iterations for free.
+- **The fit-check.** `if remaining - candidates[i] >= 0:` guards INCLUDE so the recursion never even enters
+  a branch that's already overshot — the include/exclude equivalent of the sorted-loop's `break`, applied
+  per candidate instead of cutting off the whole remaining loop at once. On `[2, 3, 5, 7]` with target `20`,
+  checking before you recurse (rather than recursing and bailing one call later) cuts the calls from 491 to
+  378 (measured in the notebook, §9) — smaller savings than a sorted `break` gets, because EXCLUDE still has
+  to individually rule out each larger candidate one at a time rather than abandoning the whole remaining
+  list in one step.
+- **No sorting needed for Combination Sum.** The fit-check works on candidates in any order. Combination Sum
+  II still sorts, but only so the duplicate-skip in the EXCLUDE branch (same trick as Subsets II) can find
+  adjacent duplicates.
 
-**Combination Sum II** combines both ideas: `i + 1` (no reuse) and the sibling-duplicate skip from Subsets II.
+> **From here, the choice per step stops being binary.** Permutations picks *which unused element* goes
+> next, Word Search picks *which of 4 directions*, Palindrome Partitioning picks *how long the next piece
+> is*, Letter Combinations picks *which letter for this digit*, and N-Queens picks *which column* — none of
+> those reduce to "is this one fixed element in or out", so the rest of this chapter stays start-index /
+> `used`-array / direct-loop backtracking.
 
 ---
 
@@ -237,9 +269,9 @@ def partition(s):
     return out
 ```
 
-This is the subsets start-index loop in disguise: instead of "which element next", the question is "how long is
-the next piece". Any "split this into valid chunks" problem (IP addresses, word break with enumeration) is this
-pattern.
+This is a start-index loop, not a binary include/exclude choice — the decision isn't "is one fixed element
+in or out", it's "how long is the next piece", so there's no single element to include or exclude. Any
+"split this into valid chunks" problem (IP addresses, word break with enumeration) is this pattern.
 
 ---
 
@@ -311,9 +343,9 @@ succeed. In order of how often they come up:
 
 | Technique                                   | When                                          | Example                                             |
 | ------------------------------------------- | --------------------------------------------- | --------------------------------------------------- |
-| **Start index** — only move forward  | order does not matter (subsets, combinations) | `for i in range(start, n)`                        |
-| **Sort + skip the sibling duplicate** | input has duplicate values                    | `if i > start and nums[i] == nums[i-1]: continue` |
-| **`break` on sorted overflow**      | sorted input, additive target                 | `if candidates[i] > remaining: break`             |
+| **Include/exclude** — binary choice per element | order does not matter, choice is one fixed element (subsets, combinations) | `path.append(x); backtrack(i+1); path.pop(); backtrack(i+1)` |
+| **Skip every duplicate in the EXCLUDE branch** | input has duplicate values                    | `while j<n and nums[j]==nums[i]: j += 1` |
+| **Fit-check before recursing**      | additive target                               | `if remaining - candidates[i] >= 0:`              |
 | **Constraint sets**                   | each choice must avoid conflicts              | N-Queens`cols` / `diag` / `anti`              |
 | **Validity check before recursing**   | only some choices are legal                   | `if piece == piece[::-1]`                         |
 | **Return on first success**           | yes/no or find-one questions                  | Word Search`or` chain                             |
@@ -354,10 +386,10 @@ number of arrangements. That is why a `2^n` enumeration is fine at `n = 20` but 
 
 | #   | Problem                 | List                               | Pattern (section)                                  |
 | --- | ----------------------- | ---------------------------------- | -------------------------------------------------- |
-| 78  | Subsets                 | NeetCode 150                       | §2 include/exclude · start index                 |
-| 90  | Subsets II              | NeetCode 150                       | §2 + sort & skip sibling duplicate                |
-| 39  | Combination Sum         | **Blind 75** · NeetCode 150 | §3 start index, reuse via`i`, sorted `break`  |
-| 40  | Combination Sum II      | NeetCode 150                       | §3`i + 1` + sort & skip                         |
+| 78  | Subsets                 | NeetCode 150                       | §2 include/exclude                                |
+| 90  | Subsets II              | NeetCode 150                       | §2 include/exclude + sort & skip in EXCLUDE       |
+| 39  | Combination Sum         | **Blind 75** · NeetCode 150 | §3 include/exclude, reuse via`i`, fit-check   |
+| 40  | Combination Sum II      | NeetCode 150                       | §3`i + 1` + sort & skip in EXCLUDE              |
 | 46  | Permutations            | NeetCode 150                       | §4`used` array                                  |
 | 47  | Permutations II         | (bonus)                            | §4 + sort & skip with the`not used[i-1]` clause |
 | 79  | Word Search             | **Blind 75** · NeetCode 150 | §5 grid, mark-in-place, return on first success   |
@@ -376,12 +408,13 @@ subsets, combination sum, and N-Queens step by step.
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | The template?                | **choose → explore → un-choose**, with pruning checks placed before the choose line.                                  |
 | What does un-choose do?      | restores the shared`path` (and any `used` / set state) so the next sibling starts clean.                                  |
-| Subsets vs permutations?     | subsets use a**start index** (only move forward); permutations use a **`used` array** (any element, any level). |
-| Allow reusing a candidate?   | recurse with`i` instead of `i + 1`.                                                                                       |
-| Input has duplicates?        | **sort**, then `if i > start and nums[i] == nums[i-1]: continue`.                                                     |
-| Cheapest big prune?          | sorted input + additive target →`break` (not `continue`) the moment a candidate is too large.                            |
+| Subsets vs permutations?     | subsets use **include/exclude** (binary choice per element); permutations use a **`used` array** (any element, any level). |
+| Allow reusing a candidate?   | INCLUDE recurses with`i` instead of `i + 1`.                                                                              |
+| Input has duplicates?        | **sort**, then EXCLUDE skips every remaining duplicate: `while j<n and nums[j]==nums[i]: j += 1`.                     |
+| Cheapest big prune?          | check before you recurse:`if remaining - candidates[i] >= 0:` before the INCLUDE call.                                    |
 | N-Queens safe check in O(1)? | three sets:`cols`, `r - c` (diagonal), `r + c` (anti-diagonal).                                                         |
 | Grid problems?               | mark the cell itself (`"#"`), recurse 4 ways, restore the cell.                                                             |
 | Find one vs find all?        | find-one returns`True` up the chain and short-circuits with `or`; find-all records and continues.                         |
 | Recording a result?          | always copy —`path[:]` — never append the shared list itself.                                                             |
 | Time complexity?             | (number of complete arrangements) × (cost to copy one); depth is the arrangement length.                                     |
+| When does include/exclude work? | anywhere the choice is "is this one fixed element in or out" — Subsets, Subsets II, Combinations, Combination Sum, Combination Sum II (§2–§3). Doesn't work for Permutations, Word Search, Partitioning, Letter Combinations, or N-Queens — those choices aren't binary. |
