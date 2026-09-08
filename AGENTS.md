@@ -8,7 +8,7 @@
 
 ## Learned Workspace Facts
 
-- Interview prep lives mainly under `DSA_Preparation/DSA_Deep_Dive/` (topic folders with README/PRIMARY and notebooks) and `DSA_Preparation/Atlassian_Prep/` (including `DSA_Study_Guide.md` and the Jira CSV exporter notebook).
+- Interview prep lives mainly under `5. Data_Structure and Algorithms/DSA_Deep_Dive/` (topic folders with README/PRIMARY and notebooks) and `1. Company_Wise_Preparation/4. Atlassian/` (including `DSA_Study_Guide.md` and the Jira CSV exporter notebook).
 - In-notebook DSA walkthroughs use `.claude/skills/dsa-snippet-explainer/` (`SKILL.md` + `TEMPLATE.md`); the filled canonical example is `DSA_Preparation/DSA_Deep_Dive/12_Heaps_Priority_Queues/12_heaps_priority_queues.ipynb`.
 - `.claude/skills/tree-notebook-explainer/` writes a separate `_explained.md` file rather than inserting a notebook markdown cell.
 - `DSA_Study_Guide.md` Part 2 (secondary / skip list) is per-topic **Skip** blocks, not a table.

@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "dsa-mock-number-of-islands-same-format",
+  "prompt": "Quiz me on Number of Islands as an interview, same format as last time, and throw in a follow-up variant once I solve the base case.",
+  "assertions": []
+}

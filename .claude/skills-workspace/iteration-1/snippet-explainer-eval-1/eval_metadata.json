@@ -1,0 +1,6 @@
+{
+  "eval_id": 3,
+  "eval_name": "snippet-explainer-heapq-push-pop",
+  "prompt": "Explain this heap push/pop cell in 12_heaps_priority_queues.ipynb in the same format as the Combination Sum walkthrough.",
+  "assertions": []
+}

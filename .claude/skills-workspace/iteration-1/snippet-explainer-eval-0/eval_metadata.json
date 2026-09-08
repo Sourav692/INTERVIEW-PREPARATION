@@ -1,0 +1,6 @@
+{
+  "eval_id": 2,
+  "eval_name": "snippet-explainer-hash-table-put-get-resize",
+  "prompt": "Explain the SimpleHashTable put/get/resize cell in 16_hash_tables.ipynb step by step, in the standard table format.",
+  "assertions": []
+}

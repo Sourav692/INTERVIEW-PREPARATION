@@ -5,7 +5,7 @@ requires-python = "==3.12.*"
 
 [dependency-groups]
 dev = [
-    "databricks-connect~=18.0.0",
+    "databricks-connect~=18.0",
     "ipykernel>=6.29.5",
 ]
 
